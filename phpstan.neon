@@ -1,0 +1,22 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database
+        - routes
+        - tests
+
+    level: 5
+
+    excludePaths:
+        - storage
+        - bootstrap
+        - vendor
+        - node_modules (?)
+
+    inferPrivatePropertyTypeFromConstructor: true
+
+    scanFiles:
+        - bootstrap/app.php

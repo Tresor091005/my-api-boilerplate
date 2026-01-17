@@ -17,7 +17,10 @@
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.6",
+        "driftingly/rector-laravel": "^2.1",
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.8",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
@@ -25,7 +28,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.3",
-        "pestphp/pest-plugin-laravel": "^4.0"
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "rector/rector": "^2.3"
     },
     "autoload": {
         "psr-4": {
@@ -55,6 +59,37 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "quality": [
+            "@composer run ide-helper",
+            "@composer run rector:fix",
+            "@composer run pint",
+            "@composer run analyse"
+        ],
+        "quality:check": [
+            "@composer run rector:check",
+            "@composer run pint:check",
+            "@composer run analyse"
+        ],
+        "ide-helper": [
+            "@php artisan ide-helper:models --write",
+            "@php artisan ide-helper:generate",
+            "@php artisan ide-helper:meta"
+        ],
+        "pint": [
+            "./vendor/bin/pint"
+        ],
+        "pint:check": [
+            "./vendor/bin/pint --test"
+        ],
+        "analyse": [
+            "./vendor/bin/phpstan analyse --memory-limit=512M"
+        ],
+        "rector:check": [
+            "./vendor/bin/rector process --dry-run"
+        ],
+        "rector:fix": [
+            "./vendor/bin/rector process"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

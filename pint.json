@@ -1,0 +1,43 @@
+{
+  "preset": "laravel",
+  "cache-file": ".build/pint-cache.json",
+  "exclude": [
+    "vendor",
+    "storage",
+    "bootstrap",
+    "node_modules",
+    "public"
+  ],
+  "rules": {
+    "array_syntax": {
+      "syntax": "short"
+    },
+    "binary_operator_spaces": {
+      "default": "single_space",
+      "operators": {
+        "=>": "align_single_space_minimal"
+      }
+    },
+    "blank_line_before_statement": {
+      "statements": ["return"]
+    },
+    "no_extra_blank_lines": {
+      "tokens": [
+        "extra",
+        "use"
+      ]
+    },
+    "declare_strict_types": true,
+    "simplified_null_return": true,
+    "no_unused_imports": true,
+    "braces": true,
+    "new_with_braces": {
+      "anonymous_class": true,
+      "named_class": true
+    },
+    "ordered_imports": true,
+    "phpdoc_order": true,
+    "no_trailing_whitespace": true,
+    "not_operator_with_successor_space": false
+  }
+}
