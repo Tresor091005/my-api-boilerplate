@@ -6,7 +6,7 @@ Ce document a pour but de définir les bonnes pratiques concernant l'utilisation
 
 1.  **Le développeur reste le pilote :** Les LLMs sont des assistants. Le code qu'ils génèrent doit être considéré comme une suggestion, et non comme une solution finale. Il est de la responsabilité du développeur de comprendre, valider, et tester chaque ligne de code.
 
-2.  **Qualité et Conventions :** Le code produit doit impérativement respecter les conventions de nommage, de style et d'architecture du projet. Ne faites pas aveuglément confiance au LLM pour respecter le contexte.
+2.  **Qualité et Conventions :** Le code produit doit impérativement respecter les [conventions de nommage et de style définies ici](docs/coding-rules/naming-conventions.md) ainsi que l'architecture du projet. Ne faites pas aveuglément confiance au LLM pour respecter le contexte.
 
 3.  **Sécurité :** Ne jamais inclure d'informations sensibles (clés d'API, mots de passe, données personnelles) dans les prompts envoyés aux LLMs.
 

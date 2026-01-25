@@ -19,7 +19,8 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * @property int $id
- * @property string $name
+ * @property string $first_name
+ * @property string $last_name
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -39,7 +40,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|User whereEmail($value)
  * @method static Builder<static>|User whereEmailVerifiedAt($value)
  * @method static Builder<static>|User whereId($value)
- * @method static Builder<static>|User whereName($value)
+ * @method static Builder<static>|User whereFirstName($value)
+ * @method static Builder<static>|User whereLastName($value)
  * @method static Builder<static>|User wherePassword($value)
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
