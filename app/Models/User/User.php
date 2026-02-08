@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models\User;
 
-use App\Models\Abstract\AuthenticatableModel;
 use App\Models\Career\Application;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
+use Lahatre\Shared\Traits\HasAuthenticatableTraits;
+use Lahatre\Shared\Traits\SharedTraits;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -48,8 +50,10 @@ use Laravel\Sanctum\PersonalAccessToken;
  *
  * @mixin \Eloquent
  */
-class User extends AuthenticatableModel
+class User extends Authenticatable
 {
+    use HasAuthenticatableTraits, SharedTraits;
+
     /**
      * The attributes that are mass assignable.
      *

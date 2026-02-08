@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Abstract\Model;
 use App\Models\Career\Job;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
@@ -35,6 +36,8 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 class Tag extends Model
 {
+    use SharedTraits;
+
     /**
      * The attributes that are mass assignable.
      *

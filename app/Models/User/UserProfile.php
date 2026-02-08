@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models\User;
 
-use App\Models\Abstract\Model;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
@@ -34,6 +35,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class UserProfile extends Model
 {
+    use SharedTraits;
+
     /**
      * The table associated with the model.
      *

@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Models\Abstract;
+namespace Lahatre\Shared\Traits;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model as Eloquent;
 
-abstract class Model extends Eloquent
+trait SharedTraits
 {
     use HasFactory;
     use HasUuids;

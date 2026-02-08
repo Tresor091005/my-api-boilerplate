@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/shared",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Shared\\": "src/",
+			"Lahatre\\Shared\\Tests\\": "tests/",
+			"Lahatre\\Shared\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Shared\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Shared\\Providers\\SharedServiceProvider"
+			]
+		}
+	}
+}

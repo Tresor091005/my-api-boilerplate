@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models\Career;
 
-use App\Models\Abstract\Model;
 use App\Models\Company\Company;
 use App\Models\Company\CompanyMember;
 use App\Models\Tag;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
@@ -59,7 +59,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Job extends Model
 {
-    use SoftDeletes;
+    use SharedTraits;
 
     /**
      * The table associated with the model.

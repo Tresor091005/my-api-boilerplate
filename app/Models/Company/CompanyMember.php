@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models\Company;
 
-use App\Models\Abstract\AuthenticatableModel;
 use App\Models\Career\Job;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Support\Carbon;
+use Lahatre\Shared\Traits\HasAuthenticatableTraits;
+use Lahatre\Shared\Traits\SharedTraits;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -52,9 +53,9 @@ use Laravel\Sanctum\PersonalAccessToken;
  *
  * @mixin \Eloquent
  */
-class CompanyMember extends AuthenticatableModel
+class CompanyMember extends Authenticatable
 {
-    use SoftDeletes;
+    use HasAuthenticatableTraits, SharedTraits;
 
     /**
      * The attributes that are mass assignable.
