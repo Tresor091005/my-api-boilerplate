@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/catalog",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Catalog\\": "src/",
+			"Lahatre\\Catalog\\Tests\\": "tests/",
+			"Lahatre\\Catalog\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Catalog\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Catalog\\Providers\\CatalogServiceProvider"
+			]
+		}
+	}
+}

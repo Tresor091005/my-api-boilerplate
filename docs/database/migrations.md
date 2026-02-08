@@ -18,7 +18,7 @@ Ce document établit les règles pour la création et la gestion des migrations 
 
 ## Types de Colonnes
 
--   **Texte :** Utiliser `text()` pour tous les champs textuels, courts ou longs, afin de bénéficier des optimisations de PostgreSQL.
+-   **Texte :** Utiliser `text()` pour tous les champs textuels, courts ou longs, afin de bénéficier des optimisations de PostgreSQL. Pour les identifiants courts et de longueur fixe (par exemple, les codes de devise ISO 4217), l'utilisation de `string(length)` est acceptable.
 -   **Dates & Heures :** Utiliser `timestamp()` par défaut. `date()` est à éviter, car garder une information d'heure (même à `00:00:00`) est plus flexible pour l'avenir.
 -   **JSON :** Toujours utiliser `jsonb()` pour des performances optimales en requête.
 -   **Nombres :**
