@@ -14,15 +14,16 @@ return new class() extends Migration
     public function up(): void
     {
         // Independent Tables
-        Schema::create('catalog_currencies', function (Blueprint $table) {
-            $table->string('code', 3)->primary();
+        Schema::create('catalog_currencies', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->string('code', 3)->unique()->index();
             $table->text('name');
             $table->string('symbol', 10);
             $table->integer('precision')->default(2);
             $table->timestamps();
         });
 
-        Schema::create('catalog_units', function (Blueprint $table) {
+        Schema::create('catalog_units', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 10)->unique()->index();
             $table->text('name');
@@ -31,7 +32,7 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_categories', function (Blueprint $table) {
+        Schema::create('catalog_categories', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
@@ -40,7 +41,7 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::table('catalog_categories', function (Blueprint $table) {
+        Schema::table('catalog_categories', function (Blueprint $table): void {
             $table->foreignUuid('parent_id')
                 ->nullable()
                 ->index()
@@ -48,7 +49,7 @@ return new class() extends Migration
                 ->onDelete('restrict');
         });
 
-        Schema::create('catalog_products', function (Blueprint $table) {
+        Schema::create('catalog_products', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
@@ -57,21 +58,21 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_options', function (Blueprint $table) {
+        Schema::create('catalog_product_options', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
             $table->timestamps();
         });
 
-        Schema::create('catalog_tags', function (Blueprint $table) {
+        Schema::create('catalog_tags', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_option_values', function (Blueprint $table) {
+        Schema::create('catalog_product_option_values', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('option_id')
                 ->index()
@@ -83,7 +84,7 @@ return new class() extends Migration
             $table->unique(['option_id', 'handle']);
         });
 
-        Schema::create('catalog_prices', function (Blueprint $table) {
+        Schema::create('catalog_prices', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuidMorphs('priceable');
             $table->string('currency_code', 3)->index();
@@ -103,7 +104,7 @@ return new class() extends Migration
             $table->unique(['priceable_type', 'priceable_id', 'currency_code', 'min_quantity', 'step'], 'catalog_prices_unique_idx');
         });
 
-        Schema::create('catalog_bundles', function (Blueprint $table) {
+        Schema::create('catalog_bundles', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
@@ -117,7 +118,7 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_bundle_items', function (Blueprint $table) {
+        Schema::create('catalog_bundle_items', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuidMorphs('item');
             $table->foreignUuid('bundle_id')
@@ -128,7 +129,7 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_categories', function (Blueprint $table) {
+        Schema::create('catalog_product_categories', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')
                 ->index()
@@ -141,7 +142,7 @@ return new class() extends Migration
             $table->unique(['product_id', 'category_id']);
         });
 
-        Schema::create('catalog_product_variants', function (Blueprint $table) {
+        Schema::create('catalog_product_variants', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')
                 ->index()
@@ -163,7 +164,7 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_tags', function (Blueprint $table) {
+        Schema::create('catalog_product_tags', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')
                 ->index()
@@ -176,7 +177,7 @@ return new class() extends Migration
             $table->unique(['product_id', 'tag_id']);
         });
 
-        Schema::create('catalog_product_variant_option_value', function (Blueprint $table) {
+        Schema::create('catalog_product_variant_option_value', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('variant_id')
                 ->index()

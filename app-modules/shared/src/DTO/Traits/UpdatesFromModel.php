@@ -23,15 +23,12 @@ trait UpdatesFromModel
     protected int|string|null $modelId = null;
 
     /**
-     * Initialize the DTO with an optional Model ID.
-     * This overrides the default constructor to handle the model ID injection.
-     *
-     * @param  array  $data
+     * Set the Model ID associated with this DTO.
+     * This method should be called by the DTO's constructor when using this trait for update scenarios.
      */
-    public function __construct(?array $data = null, int|string|null $modelId = null)
+    protected function setModelId(int|string|null $modelId): void
     {
         $this->modelId = $modelId;
-        parent::__construct($data);
     }
 
     /**
@@ -58,10 +55,10 @@ trait UpdatesFromModel
 
         $mergedData = array_merge($modelData, $requestData);
 
-        return new static(
-            $mergedData,
-            $model->getKey()
-        );
+        $dto = new static($mergedData); // @phpstan-ignore-line PHPStan struggles with implicit constructor hydration from ValidatedDTO.
+        $dto->setModelId($model->getKey());
+
+        return $dto;
     }
 
     /**

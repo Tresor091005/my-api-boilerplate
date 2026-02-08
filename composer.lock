@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "577c4e62047c5104ab539a3e296d406f",
+    "content-hash": "d0eea2fda84bf5c03b94efaf57c6ae45",
     "packages": [
         {
             "name": "brick/math",
@@ -2078,6 +2078,38 @@
                 "source": "https://github.com/jsonrainbow/json-schema/tree/6.6.4"
             },
             "time": "2025-12-19T15:01:32+00:00"
+        },
+        {
+            "name": "lahatre/catalog",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/catalog",
+                "reference": "270566da64afae2a7961fa587a19a98c6307c240"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Catalog\\Providers\\CatalogServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Catalog\\": "src/",
+                    "Lahatre\\Catalog\\Tests\\": "tests/",
+                    "Lahatre\\Catalog\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Catalog\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "lahatre/shared",

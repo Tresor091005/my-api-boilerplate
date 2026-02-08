@@ -4,6 +4,7 @@ includes:
 parameters:
     paths:
         - app
+        - app-modules
         - database
         - routes
         - tests
