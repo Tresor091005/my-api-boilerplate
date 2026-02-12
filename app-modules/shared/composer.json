@@ -11,7 +11,10 @@
 			"Lahatre\\Shared\\Tests\\": "tests/",
 			"Lahatre\\Shared\\Database\\Factories\\": "database/factories/",
 			"Lahatre\\Shared\\Database\\Seeders\\": "database/seeders/"
-		}
+		},
+		"files": [
+            "src/helpers.php"
+        ]
 	},
 	"minimum-stability": "stable",
 	"extra": {

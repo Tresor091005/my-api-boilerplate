@@ -13,6 +13,7 @@
         "dedoc/scramble": "^0.13.10",
         "internachi/modular": "^2.3",
         "lahatre/catalog": "*",
+        "lahatre/iam": "*",
         "lahatre/shared": "*",
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.0",
@@ -35,6 +36,7 @@
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.3",
         "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-type-coverage": "^4.0",
         "rector/rector": "^2.3"
     },
     "autoload": {

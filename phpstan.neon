@@ -5,6 +5,7 @@ parameters:
     paths:
         - app
         - app-modules
+        - bootstrap
         - database
         - routes
         - tests
@@ -13,7 +14,7 @@ parameters:
 
     excludePaths:
         - storage
-        - bootstrap
+        - bootstrap/cache
         - vendor
         - node_modules (?)
 
