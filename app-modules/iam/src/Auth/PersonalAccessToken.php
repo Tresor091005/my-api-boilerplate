@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models\Sanctum;
+namespace Lahatre\Iam\Auth;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;

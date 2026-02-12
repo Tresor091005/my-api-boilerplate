@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Lahatre\Iam\Services\AuthContext;
+use Lahatre\Iam\Auth\AuthContext;
+use Lahatre\Iam\Auth\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class IamServiceProvider extends ServiceProvider
 {
@@ -14,5 +16,8 @@ class IamServiceProvider extends ServiceProvider
         $this->app->scoped(AuthContext::class);
     }
 
-    public function boot(): void {}
+    public function boot(): void
+    {
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+    }
 }
