@@ -22,5 +22,10 @@ class AuthContext
         $this->user = $user;
     }
 
+    public function user(): ?Authenticatable
+    {
+        return $this->user;
+    }
+
     // other methods
 }

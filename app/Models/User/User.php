@@ -6,6 +6,7 @@ namespace App\Models\User;
 
 use App\Models\Career\Application;
 use Carbon\CarbonImmutable;
+use Database\Factories\User\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,6 +48,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|User wherePassword($value)
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
+ * @method static UserFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

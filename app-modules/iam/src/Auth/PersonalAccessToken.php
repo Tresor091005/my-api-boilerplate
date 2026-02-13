@@ -49,6 +49,14 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
         'expires_at'   => 'datetime',
     ];
 
+    protected $fillable = [
+        'name',
+        'token',
+        'abilities',
+        'expires_at',
+        'metadata',
+    ];
+
     /**
      * Get a metadata value
      */
