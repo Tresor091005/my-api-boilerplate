@@ -10,7 +10,10 @@ Route::group([
     'prefix'     => 'v1',
     'middleware' => 'api',
 ], function (): void {
-    // ------- Auth endpoints -------
+    /* -----------------------------------------------------------------
+     | Auth endpoints
+     | -----------------------------------------------------------------
+     */
     Route::group([
         'as'     => 'auth.',
         'prefix' => 'auth',
