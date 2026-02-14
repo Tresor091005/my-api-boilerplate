@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
+use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('auth.api', [
             'auth:sanctum',
             ResolveAuthContext::class,
+            SetTeamPermissionsId::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

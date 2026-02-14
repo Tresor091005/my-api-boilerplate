@@ -8,7 +8,6 @@ use App\Models\Company\CompanyMember;
 use App\Models\User\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Lahatre\Iam\Http\Requests\LoginRequest;
 
@@ -27,8 +26,6 @@ class AuthController
                 'message' => 'Invalid login details',
             ], Response::HTTP_UNAUTHORIZED);
         }
-
-        Auth::login($authenticatable);
 
         $metadata = match ($type) {
             'user'           => ['type' => 'user', 'company_id' => null],

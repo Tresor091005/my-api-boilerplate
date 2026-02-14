@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
 use Lahatre\Shared\Traits\HasAuthenticatableTraits;
 use Lahatre\Shared\Traits\SharedTraits;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -49,6 +51,16 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
  * @method static UserFactory factory($count = null, $state = [])
+ *
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ *
+ * @method static Builder<static>|User permission($permissions, bool $without = false)
+ * @method static Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
+ * @method static Builder<static>|User withoutPermission($permissions)
+ * @method static Builder<static>|User withoutRole($roles, ?string $guard = null)
  *
  * @mixin \Eloquent
  */

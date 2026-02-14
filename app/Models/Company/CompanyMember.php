@@ -13,6 +13,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Support\Carbon;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
 use Lahatre\Shared\Traits\HasAuthenticatableTraits;
 use Lahatre\Shared\Traits\SharedTraits;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -50,6 +52,16 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|CompanyMember whereUpdatedAt($value)
  * @method static Builder<static>|CompanyMember withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|CompanyMember withoutTrashed()
+ *
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ *
+ * @method static Builder<static>|CompanyMember permission($permissions, bool $without = false)
+ * @method static Builder<static>|CompanyMember role($roles, ?string $guard = null, bool $without = false)
+ * @method static Builder<static>|CompanyMember withoutPermission($permissions)
+ * @method static Builder<static>|CompanyMember withoutRole($roles, ?string $guard = null)
  *
  * @mixin \Eloquent
  */
