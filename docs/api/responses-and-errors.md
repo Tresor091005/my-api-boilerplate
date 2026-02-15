@@ -4,7 +4,7 @@ Ce document décrit l'approche standardisée pour les réponses JSON de l'API et
 
 ## 1. Réponses d'API Standardisées (`ApiResponse`)
 
-Pour garantir une communication cohérente et prévisible avec les clients de l'API, toutes les réponses JSON sont formatées à l'aide de la classe `Lahatre\Shared\Responses\ApiResponse`.
+Pour garantir une communication cohérente et prévisible avec les clients de l'API, toutes les réponses JSON sont formatées à l'aide de la classe `Lahatre\Shared\Http\Responses\ApiResponse`.
 
 ### Structure
 Cette classe fournit des méthodes statiques pour générer des `JsonResponse` avec une structure unifiée :

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Shared\Responses;
+namespace Lahatre\Shared\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,9 +47,9 @@ final class ApiResponse
         return self::respond(Response::HTTP_CREATED, $message, $data);
     }
 
-    public static function noContent(): Response
+    public static function noContent(): JsonResponse
     {
-        return response()->noContent();
+        return response()->json(null, 204);
     }
 
     /* -----------------------------------------------------------------

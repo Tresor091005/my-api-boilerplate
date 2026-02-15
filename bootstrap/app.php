@@ -9,7 +9,8 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Shared\Exceptions\AssertionException;
-use Lahatre\Shared\Responses\ApiResponse;
+use Lahatre\Shared\Http\Middleware\ForceJsonResponse;
+use Lahatre\Shared\Http\Responses\ApiResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->appendToGroup('api', ForceJsonResponse::class);
+
         $middleware->group('auth.api', [
             'auth:sanctum',
             ResolveAuthContext::class,
