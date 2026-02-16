@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Shared\Http\Responses;
+namespace App\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

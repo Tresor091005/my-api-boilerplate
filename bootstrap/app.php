@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -9,8 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Shared\Exceptions\AssertionException;
-use Lahatre\Shared\Http\Middleware\ForceJsonResponse;
-use Lahatre\Shared\Http\Responses\ApiResponse;
+use App\Http\Responses\ApiResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
