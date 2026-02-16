@@ -11,6 +11,7 @@ use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Shared\Exceptions\AssertionException;
 use Lahatre\Shared\Http\Middleware\ForceJsonResponse;
 use Lahatre\Shared\Http\Responses\ApiResponse;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -42,6 +43,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson()) {
                 return ApiResponse::unprocessable('Validation failed', $e->errors());
+            }
+        });
+
+        $exceptions->render(function (AccessDeniedHttpException $e, $request) {
+            if ($request->expectsJson()) {
+                return ApiResponse::unauthorized($e->getMessage());
             }
         });
     })->create();
