@@ -13,20 +13,22 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $code
  * @property string $name
- * @property int $base_ratio
- * @property bool $is_base
+ * @property string|null $symbol
+ * @property int $ratio
+ * @property string $unit_group
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  *
  * @method static Builder<static>|Unit newModelQuery()
  * @method static Builder<static>|Unit newQuery()
  * @method static Builder<static>|Unit query()
- * @method static Builder<static>|Unit whereBaseRatio($value)
  * @method static Builder<static>|Unit whereCode($value)
  * @method static Builder<static>|Unit whereCreatedAt($value)
  * @method static Builder<static>|Unit whereId($value)
- * @method static Builder<static>|Unit whereIsBase($value)
  * @method static Builder<static>|Unit whereName($value)
+ * @method static Builder<static>|Unit whereRatio($value)
+ * @method static Builder<static>|Unit whereSymbol($value)
+ * @method static Builder<static>|Unit whereUnitGroup($value)
  * @method static Builder<static>|Unit whereUpdatedAt($value)
  *
  * @mixin \Eloquent
@@ -40,16 +42,18 @@ class Unit extends Model
     protected $fillable = [
         'code',
         'name',
-        'base_ratio',
-        'is_base',
+        'ratio',
+        'symbol',
+        'unit_group',
     ];
 
     protected $casts = [
         'id'         => 'string',
         'code'       => 'string',
         'name'       => 'string',
-        'base_ratio' => 'integer',
-        'is_base'    => 'boolean',
+        'ratio'      => 'integer',
+        'symbol'     => 'string',
+        'unit_group' => 'string',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',
     ];

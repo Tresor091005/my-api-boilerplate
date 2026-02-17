@@ -25,11 +25,15 @@ return new class() extends Migration
 
         Schema::create('catalog_units', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->string('code', 10)->unique()->index();
+            $table->string('code')->unique()->index();
             $table->text('name');
-            $table->integer('base_ratio')->default(10000);
-            $table->boolean('is_base')->default(false);
+            $table->string('symbol', 10)->nullable();
+            $table->unsignedInteger('ratio');
+            $table->text('unit_group');
             $table->timestamps();
+
+            $table->unique(['unit_group', 'ratio']);
+            // TODO: application check for ratio == 1 per unit_group
         });
 
         Schema::create('catalog_categories', function (Blueprint $table): void {

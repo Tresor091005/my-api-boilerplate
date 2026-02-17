@@ -8,6 +8,9 @@ use App\Models\Company\Company;
 use App\Models\User\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Lahatre\Catalog\Database\Seeders\CategorySeeder;
+use Lahatre\Catalog\Database\Seeders\CurrencySeeder;
+use Lahatre\Catalog\Database\Seeders\UnitSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,24 +21,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'first_name' => 'Test',
-            'last_name'  => 'User',
-            'email'      => 'admin@lahatre.com',
-            'password'   => 'password',
+        $this->call([
+            CurrencySeeder::class,
+            UnitSeeder::class,
+            CategorySeeder::class,
         ]);
 
-        $c = Company::create([
-            'name' => 'kouri',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@lahatre.com'],
+            [
+                'first_name' => 'Test',
+                'last_name'  => 'User',
+                'password'   => 'password',
+            ]
+        );
 
-        $c->members()->create([
-            'first_name' => 'Xane',
-            'last_name'  => 'Mikane',
-            'email'      => 'admin2@lahatre.com',
-            'password'   => 'password',
-        ]);
+        $company = Company::firstOrCreate(
+            ['name' => 'kouri']
+        );
+
+        $company->members()->firstOrCreate(
+            ['email' => 'admin2@lahatre.com'],
+            [
+                'first_name' => 'Xane',
+                'last_name'  => 'Mikane',
+                'password'   => 'password',
+            ]
+        );
     }
 }

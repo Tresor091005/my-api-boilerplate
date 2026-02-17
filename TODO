@@ -1,0 +1,8 @@
+- currency (-)
+- unit il y a `code`
+- categories : `handle`
+- products : `handle`
+- bundles : `handle`
+- options : `code`
+- option_values : `code`
+- tags : `code`
