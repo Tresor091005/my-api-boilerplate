@@ -64,14 +64,7 @@ return new class() extends Migration
 
         Schema::create('catalog_product_options', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->text('handle')->unique()->index();
-            $table->text('name');
-            $table->timestamps();
-        });
-
-        Schema::create('catalog_tags', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->text('handle')->unique()->index();
+            $table->text('code')->unique()->index();
             $table->text('name');
             $table->timestamps();
         });
@@ -82,10 +75,17 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_product_options')
                 ->onDelete('cascade');
-            $table->text('handle')->index();
+            $table->text('code')->index();
             $table->text('value');
             $table->timestamps();
-            $table->unique(['option_id', 'handle']);
+            $table->unique(['option_id', 'code']);
+        });
+
+        Schema::create('catalog_tags', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->text('code')->unique()->index();
+            $table->text('name');
+            $table->timestamps();
         });
 
         Schema::create('catalog_prices', function (Blueprint $table): void {
@@ -152,7 +152,6 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_products')
                 ->onDelete('cascade');
-            $table->text('handle')->index();
             $table->text('sku')->unique()->index();
             $table->foreignUuid('unit_id')
                 ->nullable()
@@ -183,6 +182,10 @@ return new class() extends Migration
 
         Schema::create('catalog_product_variant_option_value', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('product_id')
+                ->index()
+                ->constrained('catalog_products')
+                ->onDelete('cascade');
             $table->foreignUuid('variant_id')
                 ->index()
                 ->constrained('catalog_product_variants')
@@ -191,7 +194,11 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_product_option_values')
                 ->onDelete('cascade');
-            $table->unique(['variant_id', 'option_value_id']);
+            $table->foreignUuid('option_id')
+                ->index()
+                ->constrained('catalog_product_options')
+                ->onDelete('cascade');
+            $table->unique(['variant_id', 'option_id']);
         });
     }
 

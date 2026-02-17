@@ -15,7 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 /**
  * @property string $id
  * @property string $option_id
- * @property string $handle
+ * @property string $code
  * @property string $value
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -27,8 +27,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductOptionValue newModelQuery()
  * @method static Builder<static>|ProductOptionValue newQuery()
  * @method static Builder<static>|ProductOptionValue query()
+ * @method static Builder<static>|ProductOptionValue whereCode($value)
  * @method static Builder<static>|ProductOptionValue whereCreatedAt($value)
- * @method static Builder<static>|ProductOptionValue whereHandle($value)
  * @method static Builder<static>|ProductOptionValue whereId($value)
  * @method static Builder<static>|ProductOptionValue whereOptionId($value)
  * @method static Builder<static>|ProductOptionValue whereUpdatedAt($value)
@@ -44,14 +44,14 @@ class ProductOptionValue extends Model
 
     protected $fillable = [
         'option_id',
-        'handle',
+        'code',
         'value',
     ];
 
     protected $casts = [
         'id'         => 'string',
         'option_id'  => 'string',
-        'handle'     => 'string',
+        'code'       => 'string',
         'value'      => 'string',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',

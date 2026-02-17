@@ -13,7 +13,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
- * @property string $handle
+ * @property string $code
  * @property string $name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -24,8 +24,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Tag newModelQuery()
  * @method static Builder<static>|Tag newQuery()
  * @method static Builder<static>|Tag query()
+ * @method static Builder<static>|Tag whereCode($value)
  * @method static Builder<static>|Tag whereCreatedAt($value)
- * @method static Builder<static>|Tag whereHandle($value)
  * @method static Builder<static>|Tag whereId($value)
  * @method static Builder<static>|Tag whereName($value)
  * @method static Builder<static>|Tag whereUpdatedAt($value)
@@ -39,13 +39,13 @@ class Tag extends Model
     protected $table = 'catalog_tags';
 
     protected $fillable = [
-        'handle',
+        'code',
         'name',
     ];
 
     protected $casts = [
         'id'         => 'string',
-        'handle'     => 'string',
+        'code'       => 'string',
         'name'       => 'string',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',

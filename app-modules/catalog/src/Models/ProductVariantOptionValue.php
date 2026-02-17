@@ -39,6 +39,11 @@ class ProductVariantOptionValue extends Pivot
         'updated_at'      => 'immutable_datetime',
     ];
 
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
     public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'variant_id', 'id');
@@ -47,5 +52,10 @@ class ProductVariantOptionValue extends Pivot
     public function optionValue(): BelongsTo
     {
         return $this->belongsTo(ProductOptionValue::class, 'option_value_id', 'id');
+    }
+
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(ProductOption::class, 'option_id', 'id');
     }
 }

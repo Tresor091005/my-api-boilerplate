@@ -82,4 +82,15 @@ class Product extends Model
             ->using(ProductTag::class)
             ->withTimestamps();
     }
+
+    public function optionValues(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProductOptionValue::class,
+            'catalog_product_variant_option_value',
+            'product_id',
+            'option_value_id'
+        )->using(ProductVariantOptionValue::class)
+            ->withTimestamps();
+    }
 }

@@ -15,7 +15,6 @@ use Lahatre\Shared\Traits\SharedTraits;
 /**
  * @property string $id
  * @property string $product_id
- * @property string $handle
  * @property string $sku
  * @property string|null $unit_id
  * @property int $min_quantity
@@ -36,7 +35,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant newQuery()
  * @method static Builder<static>|ProductVariant query()
  * @method static Builder<static>|ProductVariant whereCreatedAt($value)
- * @method static Builder<static>|ProductVariant whereHandle($value)
  * @method static Builder<static>|ProductVariant whereId($value)
  * @method static Builder<static>|ProductVariant whereIsActive($value)
  * @method static Builder<static>|ProductVariant whereIsDefault($value)
@@ -59,7 +57,6 @@ class ProductVariant extends Model
 
     protected $fillable = [
         'product_id',
-        'handle',
         'sku',
         'unit_id',
         'min_quantity',
@@ -74,7 +71,6 @@ class ProductVariant extends Model
     protected $casts = [
         'id'                   => 'string',
         'product_id'           => 'string',
-        'handle'               => 'string',
         'sku'                  => 'string',
         'unit_id'              => 'string',
         'min_quantity'         => 'integer',
