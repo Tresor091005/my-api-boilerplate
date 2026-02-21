@@ -69,7 +69,6 @@ class ProductOptionValue extends Model
             'catalog_product_variant_option_value',
             'option_value_id',
             'variant_id'
-        )->using(ProductVariantOptionValue::class)
-            ->withTimestamps();
+        )->using(ProductVariantOptionValue::class);
     }
 }

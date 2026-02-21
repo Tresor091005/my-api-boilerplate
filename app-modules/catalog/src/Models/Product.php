@@ -20,9 +20,11 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read ProductTag|ProductCategory|null $pivot
+ * @property-read ProductTag|ProductVariantOptionValue|ProductCategory|null $pivot
  * @property-read Collection<int, Category> $categories
  * @property-read int|null $categories_count
+ * @property-read Collection<int, ProductOptionValue> $optionValues
+ * @property-read int|null $option_values_count
  * @property-read Collection<int, Tag> $tags
  * @property-read int|null $tags_count
  * @property-read Collection<int, ProductVariant> $variants
@@ -67,8 +69,7 @@ class Product extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'catalog_product_categories', 'product_id', 'category_id')
-            ->using(ProductCategory::class)
-            ->withTimestamps();
+            ->using(ProductCategory::class);
     }
 
     public function variants(): HasMany
@@ -79,8 +80,7 @@ class Product extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'catalog_product_tags', 'product_id', 'tag_id')
-            ->using(ProductTag::class)
-            ->withTimestamps();
+            ->using(ProductTag::class);
     }
 
     public function optionValues(): BelongsToMany
@@ -90,7 +90,6 @@ class Product extends Model
             'catalog_product_variant_option_value',
             'product_id',
             'option_value_id'
-        )->using(ProductVariantOptionValue::class)
-            ->withTimestamps();
+        )->using(ProductVariantOptionValue::class);
     }
 }

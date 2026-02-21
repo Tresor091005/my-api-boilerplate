@@ -35,8 +35,6 @@ class ProductCategory extends Pivot
         'id'          => 'string',
         'product_id'  => 'string',
         'category_id' => 'string',
-        'created_at'  => 'immutable_datetime',
-        'updated_at'  => 'immutable_datetime',
     ];
 
     public function product(): BelongsTo

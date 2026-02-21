@@ -11,16 +11,22 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $product_id
  * @property string $variant_id
  * @property string $option_value_id
+ * @property string $option_id
+ * @property-read ProductOption $option
  * @property-read ProductOptionValue $optionValue
+ * @property-read Product $product
  * @property-read ProductVariant $variant
  *
  * @method static Builder<static>|ProductVariantOptionValue newModelQuery()
  * @method static Builder<static>|ProductVariantOptionValue newQuery()
  * @method static Builder<static>|ProductVariantOptionValue query()
  * @method static Builder<static>|ProductVariantOptionValue whereId($value)
+ * @method static Builder<static>|ProductVariantOptionValue whereOptionId($value)
  * @method static Builder<static>|ProductVariantOptionValue whereOptionValueId($value)
+ * @method static Builder<static>|ProductVariantOptionValue whereProductId($value)
  * @method static Builder<static>|ProductVariantOptionValue whereVariantId($value)
  *
  * @mixin \Eloquent

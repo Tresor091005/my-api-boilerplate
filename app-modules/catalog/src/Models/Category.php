@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -24,6 +25,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, Category> $children
  * @property-read int|null $children_count
  * @property-read Category|null $parent
+ * @property-read ProductCategory|null $pivot
+ * @property-read Collection<int, Product> $products
+ * @property-read int|null $products_count
  *
  * @method static Builder<static>|Category newModelQuery()
  * @method static Builder<static>|Category newQuery()
@@ -72,5 +76,11 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id', 'id');
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'catalog_product_categories', 'category_id', 'product_id')
+            ->using(ProductCategory::class);
     }
 }

@@ -42,6 +42,9 @@ class UnitSeeder extends Seeder
             ['code' => 'b-6', 'name' => 'Bottle (6 pack)', 'ratio' => 6,  'symbol' => 'b6', 'unit_group' => 'bottle'],
             ['code' => 'b-12', 'name' => 'Bottle (12 pack)', 'ratio' => 12, 'symbol' => 'b12', 'unit_group' => 'bottle'],
             ['code' => 'b-24', 'name' => 'Bottle (24 pack)', 'ratio' => 24, 'symbol' => 'b24', 'unit_group' => 'bottle'],
+
+            // Bundle Group
+            ['code' => 'bundle', 'name' => 'Bundle', 'ratio' => 1, 'symbol' => null, 'unit_group' => 'bundle'],
         ];
 
         foreach ($units as $unitData) {

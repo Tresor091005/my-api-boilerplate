@@ -112,10 +112,12 @@ return new class() extends Migration
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
-            $table->foreignUuid('unit_id')
+            $table->string('unit_code')
                 ->nullable()
-                ->index()
-                ->constrained('catalog_units')
+                ->index();
+            $table->foreign('unit_code')
+                ->references('code')
+                ->on('catalog_units')
                 ->onDelete('restrict');
             $table->integer('step')->default(1);
             $table->boolean('is_active')->default(false);
@@ -153,10 +155,12 @@ return new class() extends Migration
                 ->constrained('catalog_products')
                 ->onDelete('cascade');
             $table->text('sku')->unique()->index();
-            $table->foreignUuid('unit_id')
+            $table->string('unit_code')
                 ->nullable()
-                ->index()
-                ->constrained('catalog_units')
+                ->index();
+            $table->foreign('unit_code')
+                ->references('code')
+                ->on('catalog_units')
                 ->onDelete('restrict');
             $table->integer('min_quantity')->default(1);
             $table->integer('max_quantity')->nullable();

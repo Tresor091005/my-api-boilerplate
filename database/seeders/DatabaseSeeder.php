@@ -8,8 +8,12 @@ use App\Models\Company\Company;
 use App\Models\User\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Lahatre\Catalog\Database\Seeders\BundleSeeder;
 use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\CurrencySeeder;
+use Lahatre\Catalog\Database\Seeders\ProductOptionSeeder;
+use Lahatre\Catalog\Database\Seeders\ProductSeeder;
+use Lahatre\Catalog\Database\Seeders\ProductTagSeeder;
 use Lahatre\Catalog\Database\Seeders\UnitSeeder;
 
 class DatabaseSeeder extends Seeder
@@ -25,6 +29,10 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             UnitSeeder::class,
             CategorySeeder::class,
+            ProductOptionSeeder::class,
+            ProductSeeder::class,
+            ProductTagSeeder::class,
+            BundleSeeder::class,
         ]);
 
         User::firstOrCreate(

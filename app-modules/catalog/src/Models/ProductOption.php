@@ -18,6 +18,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read ProductVariantOptionValue|null $pivot
+ * @property-read Collection<int, Product> $products
+ * @property-read int|null $products_count
  * @property-read Collection<int, ProductOptionValue> $values
  * @property-read int|null $values_count
  *
@@ -63,7 +66,6 @@ class ProductOption extends Model
             'catalog_product_variant_option_value',
             'option_id',
             'product_id'
-        )->using(ProductVariantOptionValue::class)
-            ->withTimestamps();
+        )->using(ProductVariantOptionValue::class);
     }
 }
