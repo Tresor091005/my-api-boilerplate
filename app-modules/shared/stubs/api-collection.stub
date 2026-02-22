@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use App\Http\Resources\BaseCollection;
+use {{ namespacedResourceClass }};
+
+class {{ class }} extends BaseCollection
+{
+    public $collects = {{ resourceClass }}::class;
+}

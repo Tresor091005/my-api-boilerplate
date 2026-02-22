@@ -18,31 +18,26 @@ class CategorySeeder extends Seeder
             [
                 'handle'    => 'electronics',
                 'name'      => 'Electronics',
-                'position'  => 1,
                 'is_active' => true,
                 'children'  => [
                     [
                         'handle'    => 'smartphones',
                         'name'      => 'Smartphones',
-                        'position'  => 1,
                         'is_active' => true,
                     ],
                     [
                         'handle'    => 'laptops',
                         'name'      => 'Laptops',
-                        'position'  => 2,
                         'is_active' => true,
                         'children'  => [
                             [
                                 'handle'    => 'gaming-laptops',
                                 'name'      => 'Gaming Laptops',
-                                'position'  => 1,
                                 'is_active' => true,
                             ],
                             [
                                 'handle'    => 'business-laptops',
                                 'name'      => 'Business Laptops',
-                                'position'  => 2,
                                 'is_active' => true,
                             ],
                         ],
@@ -50,7 +45,6 @@ class CategorySeeder extends Seeder
                     [
                         'handle'    => 'accessories',
                         'name'      => 'Accessories',
-                        'position'  => 3,
                         'is_active' => true,
                     ],
                 ],
@@ -58,19 +52,16 @@ class CategorySeeder extends Seeder
             [
                 'handle'    => 'clothing',
                 'name'      => 'Clothing',
-                'position'  => 2,
                 'is_active' => true,
                 'children'  => [
                     [
                         'handle'    => 'mens',
                         'name'      => 'Men\'s Clothing',
-                        'position'  => 1,
                         'is_active' => true,
                     ],
                     [
                         'handle'    => 'womens',
                         'name'      => 'Women\'s Clothing',
-                        'position'  => 2,
                         'is_active' => true,
                     ],
                 ],
@@ -78,19 +69,16 @@ class CategorySeeder extends Seeder
             [
                 'handle'    => 'home-garden',
                 'name'      => 'Home & Garden',
-                'position'  => 3,
                 'is_active' => true,
                 'children'  => [
                     [
                         'handle'    => 'furniture',
                         'name'      => 'Furniture',
-                        'position'  => 1,
                         'is_active' => true,
                     ],
                     [
                         'handle'    => 'decor',
                         'name'      => 'Decor',
-                        'position'  => 2,
                         'is_active' => true,
                     ],
                 ],

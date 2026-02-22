@@ -4,6 +4,17 @@ This document outlines the standardized approach for creating and using Data Tra
 
 Our implementation is built upon the `wendelladriel/validated-dto` package, extended with custom functionalities to better suit our architecture.
 
+### Why DTOs for Query Parameters (Filtering & Pagination)?
+
+While DTOs are commonly used for `POST` and `PUT` requests, they are equally powerful for handling `GET` request query parameters, especially for filtering and pagination. Using a DTO for these scenarios provides significant advantages:
+
+1.  **Centralized Validation:** All validation rules for query parameters (e.g., `perPage`, `sortBy`, `filterName`) are defined in one place within the DTO's `rules()` method. This ensures consistent validation and keeps controllers and services focused on their core responsibilities.
+2.  **Cleaner Method Signatures:** Instead of cluttering controller or service methods with numerous individual parameters for each filter and pagination option, a single DTO object encapsulates all these concerns, leading to more readable and maintainable code.
+3.  **Type Safety and Readability:** DTOs enforce strict type declarations for each query parameter, improving code clarity and reducing the likelihood of type-related bugs.
+4.  **Extensibility:** Adding new filter or pagination options in the future only requires modifications to the DTO. The signatures of the controller and service methods remain stable, adhering to the Open/Closed Principle.
+5.  **Reusability:** A well-defined filter DTO can be reused across different endpoints or even in other parts of the application (e.g., console commands) that require similar filtering logic.
+6.  **Separation of Concerns:** It clearly separates the responsibility of parsing, validating, and structuring incoming query data from the business logic that consumes this data.
+
 ## 1. The `LahatreDTO` Base Class
 
 All DTOs in the application **must** extend `Lahatre\Shared\DTO\LahatreDTO`. This base class provides two crucial features out-of-the-box through traits:

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ApiResponse
@@ -21,9 +22,19 @@ final class ApiResponse
         $payload = array_filter([
             'status'  => $status,
             'message' => $message,
-            'data'    => $data,
             'errors'  => $errors,
         ], fn ($value): bool => $value !== null);
+
+        if ($data instanceof JsonResource) {
+            $resourceOutput = $data->toArray(request());
+            if (array_key_exists('data', $resourceOutput)) {
+                $payload = array_merge($payload, $resourceOutput);
+            } else {
+                $payload['data'] = $resourceOutput;
+            }
+        } elseif ($data !== null) {
+            $payload['data'] = $data;
+        }
 
         return response()->json($payload, $status);
     }

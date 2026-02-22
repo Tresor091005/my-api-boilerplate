@@ -40,7 +40,6 @@ return new class() extends Migration
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
             $table->text('name');
-            $table->integer('position')->default(0);
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });

@@ -22,6 +22,8 @@ trait UpdatesFromModel
      */
     protected int|string|null $modelId = null;
 
+    protected ?Model $model = null;
+
     /**
      * Set the Model ID associated with this DTO.
      * This method should be called by the DTO's constructor when using this trait for update scenarios.
@@ -29,6 +31,15 @@ trait UpdatesFromModel
     protected function setModelId(int|string|null $modelId): void
     {
         $this->modelId = $modelId;
+    }
+
+    /**
+     * Set the Model associated with this DTO.
+     * This method should be called by the DTO's constructor when using this trait for update scenarios.
+     */
+    protected function setModel(?Model $model): void
+    {
+        $this->model = $model;
     }
 
     /**
@@ -57,6 +68,7 @@ trait UpdatesFromModel
 
         $dto = new static($mergedData); // @phpstan-ignore-line PHPStan struggles with implicit constructor hydration from ValidatedDTO.
         $dto->setModelId($model->getKey());
+        $dto->setModel($model);
 
         return $dto;
     }
@@ -83,5 +95,13 @@ trait UpdatesFromModel
     public function getModelId(): int|string|null
     {
         return $this->modelId;
+    }
+
+    /**
+     * Retrieve the Model associated with this DTO.
+     */
+    public function getModel(): ?Model
+    {
+        return $this->model;
     }
 }

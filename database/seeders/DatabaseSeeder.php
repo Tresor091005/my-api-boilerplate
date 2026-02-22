@@ -8,6 +8,7 @@ use App\Models\Company\Company;
 use App\Models\User\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Lahatre\Catalog\Database\Seeders\BundleSeeder;
 use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\CurrencySeeder;
@@ -15,6 +16,7 @@ use Lahatre\Catalog\Database\Seeders\ProductOptionSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductTagSeeder;
 use Lahatre\Catalog\Database\Seeders\UnitSeeder;
+use Lahatre\Iam\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -35,7 +37,7 @@ class DatabaseSeeder extends Seeder
             BundleSeeder::class,
         ]);
 
-        User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['email' => 'admin@lahatre.com'],
             [
                 'first_name' => 'Test',
@@ -56,5 +58,11 @@ class DatabaseSeeder extends Seeder
                 'password'   => 'password',
             ]
         );
+
+        Artisan::call('permissions:discover');
+
+        setPermissionsTeamId(getDefaultTeamId());
+
+        $user->assignRole(Role::first());
     }
 }
