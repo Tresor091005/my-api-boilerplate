@@ -39,7 +39,6 @@ class Tag extends Model
     protected $table = 'catalog_tags';
 
     protected $fillable = [
-        'code',
         'name',
     ];
 

@@ -9,13 +9,13 @@ use Illuminate\Support\Str;
 
 class HandleGenerator
 {
-    public static function generate(string $name, string $table, int $maxLength = 32): string
+    public static function generate(string $name, string $table, string $column = 'handle', int $maxLength = 32): string
     {
         $base = Str::slug(Str::limit($name, $maxLength, ''));
 
         $handles = DB::table($table)
-            ->where('handle', 'LIKE', $base.'%')
-            ->pluck('handle');
+            ->where($column, 'LIKE', $base.'%')
+            ->pluck($column);
 
         if ($handles->isEmpty()) {
             return $base;

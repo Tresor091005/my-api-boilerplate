@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Catalog\Http\Controllers\CategoryController;
+use Lahatre\Catalog\Http\Controllers\TagController;
 
 /* -----------------------------------------------------------------
  | Catalog endpoints
@@ -19,6 +20,7 @@ Route::group([
     ], function (): void {
         Route::apiResources([
             'categories' => CategoryController::class,
+            'tags'       => TagController::class,
         ]);
     });
 });
