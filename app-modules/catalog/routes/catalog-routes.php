@@ -22,5 +22,7 @@ Route::group([
             'categories' => CategoryController::class,
             'tags'       => TagController::class,
         ]);
+
+        Route::get('categories/{category}/products', [CategoryController::class, 'viewProducts'])->name('categories.view-products');
     });
 });

@@ -69,4 +69,13 @@ class CategoryController
 
         return ApiResponse::noContent();
     }
+
+    public function viewProducts(Category $category): JsonResponse
+    {
+        Gate::authorize('viewProducts', $category);
+
+        $response = $this->categoryService->viewProducts($category);
+
+        return ApiResponse::success($response);
+    }
 }
