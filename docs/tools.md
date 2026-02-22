@@ -10,6 +10,12 @@ Ce document référence les outils majeurs intégrés à ce projet, chacun accom
 -   **API Responses & Error Handling :** Description de notre approche standardisée pour les réponses d'API et la gestion des erreurs métier. [En savoir plus](api/responses-and-errors.md)
 -   **Dedoc Scramble :** Un générateur de documentation OpenAPI qui maintient votre documentation API à jour automatiquement. [En savoir plus](documentation/scramble.md)
 
+## Architectural Blueprints
+
+These documents showcase how core principles and tools are combined to build complete features. They serve as practical examples and blueprints for future development.
+
+-   **Category CRUD:** A deep-dive into the implementation of a hierarchical CRUD module, demonstrating patterns for services, DTOs, assertions, and more. [En savoir plus](features/catalog-categories.md)
+
 ## Qualité de Code & Automatisation
 
 L'ensemble de ces outils garantit que chaque commit respecte un haut niveau de qualité. [En savoir plus sur notre philosophie de la qualité](code-quality.md).
