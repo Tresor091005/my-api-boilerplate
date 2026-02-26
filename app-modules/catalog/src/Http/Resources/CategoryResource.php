@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 use Lahatre\Catalog\Models\Category;
 
 /**
@@ -27,44 +28,34 @@ class CategoryResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'bloodline'  => $this->whenLoaded('bloodline',
-                fn (): array => $this->buildTree($this->bloodline)
+                fn (): array => $this->formatTree($this->bloodline->toTree())
             ),
         ];
     }
 
-    private function buildTree(iterable $items): array
+    /**
+     * Recursively formats a tree of categories.
+     *
+     * @param  Collection<int, Category>  $nodes
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatTree(Collection $nodes): array
     {
-        $map = [];
-
-        // 1. Index each item by its ID
-        foreach ($items as $item) {
-            $map[$item->id] = [
-                'id'         => $item->id,
-                'handle'     => $item->handle,
-                'name'       => $item->name,
-                'depth'      => $item->depth,
-                'is_active'  => $item->is_active,
-                'children'   => [],
-                '_parent_id' => $item->parent_id,
+        return $nodes->map(function (Category $node): array {
+            $data = [
+                'id'        => $node->id,
+                'handle'    => $node->handle,
+                'name'      => $node->name,
+                'depth'     => $node->depth,
+                'is_active' => $node->is_active,
+                'children'  => [],
             ];
-        }
 
-        // 2. Attach each node to its parent (by reference)
-        $roots = [];
-
-        foreach ($map as $id => &$node) {
-            $parentId = $node['_parent_id'];
-            unset($node['_parent_id']);
-
-            if ($parentId && isset($map[$parentId])) {
-                $map[$parentId]['children'][] = &$node;
-            } else {
-                $roots[] = &$node;
+            if ($node->relationLoaded('children') && $node->children->isNotEmpty()) {
+                $data['children'] = $this->formatTree($node->children);
             }
-        }
 
-        unset($node);
-
-        return $roots;
+            return $data;
+        })->all();
     }
 }

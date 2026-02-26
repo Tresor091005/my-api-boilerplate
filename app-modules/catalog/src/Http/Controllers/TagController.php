@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Controllers;
 
-use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\DTO\TagDTO;
 use Lahatre\Catalog\DTO\TagFilterDTO;
+use Lahatre\Catalog\Http\Resources\TagCollection;
 use Lahatre\Catalog\Models\Tag;
 use Lahatre\Catalog\Services\TagService;
 
@@ -19,15 +19,13 @@ class TagController
         protected TagService $tagService
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): TagCollection
     {
         Gate::authorize('list', Tag::class);
 
         $filters = TagFilterDTO::fromRequest($request);
 
-        $response = $this->tagService->list($filters);
-
-        return ApiResponse::success($response);
+        return $this->tagService->list($filters);
     }
 
     public function show(Tag $tag): JsonResponse
@@ -36,7 +34,7 @@ class TagController
 
         $response = $this->tagService->retrieve($tag);
 
-        return ApiResponse::success($response);
+        return response()->json($response);
     }
 
     public function store(Request $request): JsonResponse
@@ -47,7 +45,7 @@ class TagController
 
         $response = $this->tagService->create($dto);
 
-        return ApiResponse::created($response);
+        return response()->json($response, 201);
     }
 
     public function update(Request $request, Tag $tag): JsonResponse
@@ -58,7 +56,7 @@ class TagController
 
         $response = $this->tagService->update($tag, $dto);
 
-        return ApiResponse::success($response);
+        return response()->json($response);
     }
 
     public function destroy(Tag $tag): JsonResponse
@@ -67,6 +65,6 @@ class TagController
 
         $this->tagService->delete($tag);
 
-        return ApiResponse::noContent();
+        return response()->json(null, 204);
     }
 }

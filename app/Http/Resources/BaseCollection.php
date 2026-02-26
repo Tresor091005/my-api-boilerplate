@@ -12,16 +12,13 @@ class BaseCollection extends ResourceCollection
     /**
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function paginationInformation(Request $request): array
     {
-        $paginator = $this->resource;
-
         return [
-            'data' => $this->collection,
             'meta' => [
-                'per_page'    => $paginator->perPage(),
-                'next_cursor' => optional($paginator->nextCursor())->encode(),
-                'prev_cursor' => optional($paginator->previousCursor())->encode(),
+                'per_page'    => $this->resource->perPage(),
+                'next_cursor' => optional($this->resource->nextCursor())->encode(),
+                'prev_cursor' => optional($this->resource->previousCursor())->encode(),
             ],
         ];
     }

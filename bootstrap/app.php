@@ -10,7 +10,6 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Shared\Exceptions\AssertionException;
-use App\Http\Responses\ApiResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -33,22 +32,30 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AssertionException $e, $request) {
             if ($request->expectsJson()) {
-                return ApiResponse::unprocessable($e->getMessage(), [
-                    'type' => class_basename($e),
-                    'context' => app()->isProduction() ? null : $e->context(),
-                ]);
+                response()->json([
+                    'message' => $e->getMessage(),
+                    'errors'  => [
+                        'type'    => class_basename($e),
+                        'context' => app()->isProduction() ? null : $e->context(),
+                    ],
+                ], 422);
             }
         });
 
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson()) {
-                return ApiResponse::unprocessable('Validation failed', $e->errors());
+                response()->json([
+                    'message' => 'Validation failed',
+                    'errors'  => $e->errors(),
+                ], 422);
             }
         });
 
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
             if ($request->expectsJson()) {
-                return ApiResponse::unauthorized($e->getMessage());
+                response()->json([
+                    'message' => $e->getMessage(),
+                ], 403);
             }
         });
     })->create();

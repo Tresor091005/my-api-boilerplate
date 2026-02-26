@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Controllers;
 
-use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\DTO\CategoryDTO;
 use Lahatre\Catalog\DTO\CategoryFilterDTO;
+use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Services\CategoryService;
 
@@ -19,15 +19,13 @@ class CategoryController
         protected CategoryService $categoryService
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): CategoryCollection
     {
         Gate::authorize('list', Category::class);
 
         $filters = CategoryFilterDTO::fromRequest($request);
 
-        $response = $this->categoryService->list($filters);
-
-        return ApiResponse::success($response);
+        return $this->categoryService->list($filters);
     }
 
     public function show(Category $category): JsonResponse
@@ -36,7 +34,7 @@ class CategoryController
 
         $response = $this->categoryService->retrieve($category);
 
-        return ApiResponse::success($response);
+        return response()->json($response);
     }
 
     public function store(Request $request): JsonResponse
@@ -47,7 +45,7 @@ class CategoryController
 
         $response = $this->categoryService->create($dto);
 
-        return ApiResponse::created($response);
+        return response()->json($response, 201);
     }
 
     public function update(Request $request, Category $category): JsonResponse
@@ -58,7 +56,7 @@ class CategoryController
 
         $response = $this->categoryService->update($category, $dto);
 
-        return ApiResponse::success($response);
+        return response()->json($response);
     }
 
     public function destroy(Category $category): JsonResponse
@@ -67,7 +65,7 @@ class CategoryController
 
         $this->categoryService->delete($category);
 
-        return ApiResponse::noContent();
+        return response()->json(null, 204);
     }
 
     public function viewProducts(Category $category): JsonResponse
@@ -76,6 +74,6 @@ class CategoryController
 
         $response = $this->categoryService->viewProducts($category);
 
-        return ApiResponse::success($response);
+        return response()->json($response);
     }
 }
