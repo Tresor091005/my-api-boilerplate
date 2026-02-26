@@ -26,6 +26,14 @@ class ProductResource extends JsonResource
             'is_active'   => $this->is_active,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
+            'options'     => $this->whenLoaded('optionValues', fn () => $this->optionValues
+                ->groupBy('option_id')
+                ->map(fn ($values) => [
+                    'name'   => $values->first()->option->name,
+                    'values' => $values->pluck('value')->unique()->values()->all(),
+                ])
+                ->values()
+            ),
         ];
     }
 }
