@@ -61,18 +61,18 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_options', function (Blueprint $table): void {
+        Schema::create('catalog_options', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('code')->unique()->index();
             $table->text('name');
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_option_values', function (Blueprint $table): void {
+        Schema::create('catalog_option_values', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('option_id')
                 ->index()
-                ->constrained('catalog_product_options')
+                ->constrained('catalog_options')
                 ->onDelete('cascade');
             $table->text('code')->index();
             $table->text('value');
@@ -183,7 +183,7 @@ return new class() extends Migration
             $table->unique(['product_id', 'tag_id']);
         });
 
-        Schema::create('catalog_product_variant_option_value', function (Blueprint $table): void {
+        Schema::create('catalog_variant_option_value', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')
                 ->index()
@@ -195,11 +195,11 @@ return new class() extends Migration
                 ->onDelete('cascade');
             $table->foreignUuid('option_value_id')
                 ->index()
-                ->constrained('catalog_product_option_values')
+                ->constrained('catalog_option_values')
                 ->onDelete('cascade');
             $table->foreignUuid('option_id')
                 ->index()
-                ->constrained('catalog_product_options')
+                ->constrained('catalog_options')
                 ->onDelete('cascade');
             $table->unique(['variant_id', 'option_id']);
         });
@@ -210,16 +210,16 @@ return new class() extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('catalog_product_variant_option_value');
+        Schema::dropIfExists('catalog_variant_option_value');
         Schema::dropIfExists('catalog_product_tags');
         Schema::dropIfExists('catalog_product_variants');
         Schema::dropIfExists('catalog_product_categories');
         Schema::dropIfExists('catalog_bundle_items');
         Schema::dropIfExists('catalog_bundles');
         Schema::dropIfExists('catalog_prices');
-        Schema::dropIfExists('catalog_product_option_values');
+        Schema::dropIfExists('catalog_option_values');
         Schema::dropIfExists('catalog_tags');
-        Schema::dropIfExists('catalog_product_options');
+        Schema::dropIfExists('catalog_options');
         Schema::dropIfExists('catalog_products');
         Schema::dropIfExists('catalog_categories');
         Schema::dropIfExists('catalog_units');

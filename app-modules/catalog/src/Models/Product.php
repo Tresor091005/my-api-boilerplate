@@ -20,10 +20,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read ProductTag|ProductVariantOptionValue|ProductCategory|null $pivot
+ * @property-read ProductTag|VariantOptionValue|ProductCategory|null $pivot
  * @property-read Collection<int, Category> $categories
  * @property-read int|null $categories_count
- * @property-read Collection<int, ProductOptionValue> $optionValues
+ * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
  * @property-read Collection<int, Tag> $tags
  * @property-read int|null $tags_count
@@ -83,13 +83,13 @@ class Product extends Model
             ->using(ProductTag::class);
     }
 
-    public function optionValues(): BelongsToMany
+    public function options(): BelongsToMany
     {
         return $this->belongsToMany(
-            ProductOptionValue::class,
-            'catalog_product_variant_option_value',
+            Option::class,
+            'catalog_variant_option_value',
             'product_id',
-            'option_value_id'
-        )->using(ProductVariantOptionValue::class);
+            'option_id'
+        )->distinct()->using(VariantOptionValue::class);
     }
 }

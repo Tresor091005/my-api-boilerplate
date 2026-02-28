@@ -18,28 +18,28 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read ProductVariantOptionValue|null $pivot
+ * @property-read VariantOptionValue|null $pivot
  * @property-read Collection<int, Product> $products
  * @property-read int|null $products_count
- * @property-read Collection<int, ProductOptionValue> $values
+ * @property-read Collection<int, OptionValue> $values
  * @property-read int|null $values_count
  *
- * @method static Builder<static>|ProductOption newModelQuery()
- * @method static Builder<static>|ProductOption newQuery()
- * @method static Builder<static>|ProductOption query()
- * @method static Builder<static>|ProductOption whereCode($value)
- * @method static Builder<static>|ProductOption whereCreatedAt($value)
- * @method static Builder<static>|ProductOption whereId($value)
- * @method static Builder<static>|ProductOption whereName($value)
- * @method static Builder<static>|ProductOption whereUpdatedAt($value)
+ * @method static Builder<static>|Option newModelQuery()
+ * @method static Builder<static>|Option newQuery()
+ * @method static Builder<static>|Option query()
+ * @method static Builder<static>|Option whereCode($value)
+ * @method static Builder<static>|Option whereCreatedAt($value)
+ * @method static Builder<static>|Option whereId($value)
+ * @method static Builder<static>|Option whereName($value)
+ * @method static Builder<static>|Option whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */
-class ProductOption extends Model
+class Option extends Model
 {
     use SharedTraits;
 
-    protected $table = 'catalog_product_options';
+    protected $table = 'catalog_options';
 
     protected $fillable = [
         'code',
@@ -56,16 +56,16 @@ class ProductOption extends Model
 
     public function values(): HasMany
     {
-        return $this->hasMany(ProductOptionValue::class, 'option_id', 'id');
+        return $this->hasMany(OptionValue::class, 'option_id', 'id');
     }
 
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(
             Product::class,
-            'catalog_product_variant_option_value',
+            'catalog_variant_option_value',
             'option_id',
             'product_id'
-        )->using(ProductVariantOptionValue::class);
+        )->distinct()->using(VariantOptionValue::class);
     }
 }

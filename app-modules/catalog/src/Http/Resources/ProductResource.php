@@ -28,7 +28,7 @@ class ProductResource extends JsonResource
             'updated_at'  => $this->updated_at,
             'options'     => $this->whenLoaded('optionValues', fn () => $this->optionValues
                 ->groupBy('option_id')
-                ->map(fn ($values) => [
+                ->map(fn ($values): array => [
                     'name'   => $values->first()->option->name,
                     'values' => $values->pluck('value')->unique()->values()->all(),
                 ])

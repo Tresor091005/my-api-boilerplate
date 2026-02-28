@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Lahatre\Catalog\Models\ProductOption;
-use Lahatre\Catalog\Models\ProductOptionValue;
+use Lahatre\Catalog\Models\Option;
+use Lahatre\Catalog\Models\OptionValue;
 
-class ProductOptionSeeder extends Seeder
+class OptionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -65,15 +65,15 @@ class ProductOptionSeeder extends Seeder
             $optionValues = $optionData['values'];
             unset($optionData['values']);
 
-            $productOption = ProductOption::firstOrCreate(
+            $Option = Option::firstOrCreate(
                 ['code' => $optionData['code']],
                 $optionData
             );
 
             foreach ($optionValues as $optionValueData) {
-                ProductOptionValue::firstOrCreate(
+                OptionValue::firstOrCreate(
                     [
-                        'option_id' => $productOption->id,
+                        'option_id' => $Option->id,
                         'code'      => $optionValueData['code'],
                     ],
                     $optionValueData

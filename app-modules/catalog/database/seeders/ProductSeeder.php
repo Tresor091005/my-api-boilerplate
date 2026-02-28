@@ -6,9 +6,9 @@ namespace Lahatre\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\Catalog\Models\Option;
+use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Catalog\Models\ProductOption;
-use Lahatre\Catalog\Models\ProductOptionValue;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\Unit;
 
@@ -26,27 +26,27 @@ class ProductSeeder extends Seeder
         $ctUnit = Unit::where('code', 'ct')->first();
 
         // Fetch product options and values
-        $colorOption = ProductOption::where('code', 'color')->first();
-        $storageOption = ProductOption::where('code', 'storage')->first();
-        $ramOption = ProductOption::where('code', 'ram')->first();
+        $colorOption = Option::where('code', 'color')->first();
+        $storageOption = Option::where('code', 'storage')->first();
+        $ramOption = Option::where('code', 'ram')->first();
 
         // Color Option Values
-        $blackColor = ProductOptionValue::where('option_id', $colorOption->id)->where('code', 'black')->first();
-        $whiteColor = ProductOptionValue::where('option_id', $colorOption->id)->where('code', 'white')->first();
-        $silverColor = ProductOptionValue::where('option_id', $colorOption->id)->where('code', 'silver')->first();
-        $spaceGrayColor = ProductOptionValue::where('option_id', $colorOption->id)->where('code', 'space-gray')->first();
-        $blueColor = ProductOptionValue::where('option_id', $colorOption->id)->where('code', 'blue')->first();
+        $blackColor = OptionValue::where('option_id', $colorOption->id)->where('code', 'black')->first();
+        $whiteColor = OptionValue::where('option_id', $colorOption->id)->where('code', 'white')->first();
+        $silverColor = OptionValue::where('option_id', $colorOption->id)->where('code', 'silver')->first();
+        $spaceGrayColor = OptionValue::where('option_id', $colorOption->id)->where('code', 'space-gray')->first();
+        $blueColor = OptionValue::where('option_id', $colorOption->id)->where('code', 'blue')->first();
 
         // Storage Option Values
-        $storage128GB = ProductOptionValue::where('option_id', $storageOption->id)->where('code', '128gb')->first();
-        $storage256GB = ProductOptionValue::where('option_id', $storageOption->id)->where('code', '256gb')->first();
-        $storage512GB = ProductOptionValue::where('option_id', $storageOption->id)->where('code', '512gb')->first();
-        $storage1TB = ProductOptionValue::where('option_id', $storageOption->id)->where('code', '1tb')->first();
+        $storage128GB = OptionValue::where('option_id', $storageOption->id)->where('code', '128gb')->first();
+        $storage256GB = OptionValue::where('option_id', $storageOption->id)->where('code', '256gb')->first();
+        $storage512GB = OptionValue::where('option_id', $storageOption->id)->where('code', '512gb')->first();
+        $storage1TB = OptionValue::where('option_id', $storageOption->id)->where('code', '1tb')->first();
 
         // RAM Option Values
-        $ram8GB = ProductOptionValue::where('option_id', $ramOption->id)->where('code', '8gb')->first();
-        $ram16GB = ProductOptionValue::where('option_id', $ramOption->id)->where('code', '16gb')->first();
-        $ram32GB = ProductOptionValue::where('option_id', $ramOption->id)->where('code', '32gb')->first();
+        $ram8GB = OptionValue::where('option_id', $ramOption->id)->where('code', '8gb')->first();
+        $ram16GB = OptionValue::where('option_id', $ramOption->id)->where('code', '16gb')->first();
+        $ram32GB = OptionValue::where('option_id', $ramOption->id)->where('code', '32gb')->first();
 
         $productsData = [
             [

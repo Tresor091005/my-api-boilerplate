@@ -26,8 +26,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read ProductVariantOptionValue|null $pivot
- * @property-read Collection<int, ProductOptionValue> $optionValues
+ * @property-read VariantOptionValue|null $pivot
+ * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
  * @property-read Product $product
  * @property-read Unit|null $unit
@@ -100,11 +100,11 @@ class ProductVariant extends Model
     public function optionValues(): BelongsToMany
     {
         return $this->belongsToMany(
-            ProductOptionValue::class,
-            'catalog_product_variant_option_value',
+            OptionValue::class,
+            'catalog_variant_option_value',
             'variant_id',
             'option_value_id'
-        )->using(ProductVariantOptionValue::class);
+        )->using(VariantOptionValue::class);
     }
 
     public function prices(): MorphMany

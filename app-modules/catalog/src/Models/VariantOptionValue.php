@@ -15,27 +15,27 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $variant_id
  * @property string $option_value_id
  * @property string $option_id
- * @property-read ProductOption $option
- * @property-read ProductOptionValue $optionValue
+ * @property-read Option $option
+ * @property-read OptionValue $optionValue
  * @property-read Product $product
  * @property-read ProductVariant $variant
  *
- * @method static Builder<static>|ProductVariantOptionValue newModelQuery()
- * @method static Builder<static>|ProductVariantOptionValue newQuery()
- * @method static Builder<static>|ProductVariantOptionValue query()
- * @method static Builder<static>|ProductVariantOptionValue whereId($value)
- * @method static Builder<static>|ProductVariantOptionValue whereOptionId($value)
- * @method static Builder<static>|ProductVariantOptionValue whereOptionValueId($value)
- * @method static Builder<static>|ProductVariantOptionValue whereProductId($value)
- * @method static Builder<static>|ProductVariantOptionValue whereVariantId($value)
+ * @method static Builder<static>|VariantOptionValue newModelQuery()
+ * @method static Builder<static>|VariantOptionValue newQuery()
+ * @method static Builder<static>|VariantOptionValue query()
+ * @method static Builder<static>|VariantOptionValue whereId($value)
+ * @method static Builder<static>|VariantOptionValue whereOptionId($value)
+ * @method static Builder<static>|VariantOptionValue whereOptionValueId($value)
+ * @method static Builder<static>|VariantOptionValue whereProductId($value)
+ * @method static Builder<static>|VariantOptionValue whereVariantId($value)
  *
  * @mixin \Eloquent
  */
-class ProductVariantOptionValue extends Pivot
+class VariantOptionValue extends Pivot
 {
     use SharedTraits;
 
-    protected $table = 'catalog_product_variant_option_value';
+    protected $table = 'catalog_variant_option_value';
 
     protected $casts = [
         'id'              => 'string',
@@ -57,11 +57,11 @@ class ProductVariantOptionValue extends Pivot
 
     public function optionValue(): BelongsTo
     {
-        return $this->belongsTo(ProductOptionValue::class, 'option_value_id', 'id');
+        return $this->belongsTo(OptionValue::class, 'option_value_id', 'id');
     }
 
     public function option(): BelongsTo
     {
-        return $this->belongsTo(ProductOption::class, 'option_id', 'id');
+        return $this->belongsTo(Option::class, 'option_id', 'id');
     }
 }

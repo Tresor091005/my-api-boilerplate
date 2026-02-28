@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Artisan;
 use Lahatre\Catalog\Database\Seeders\BundleSeeder;
 use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\CurrencySeeder;
-use Lahatre\Catalog\Database\Seeders\ProductOptionSeeder;
+use Lahatre\Catalog\Database\Seeders\OptionSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductTagSeeder;
 use Lahatre\Catalog\Database\Seeders\UnitSeeder;
+use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\Role;
 
 class DatabaseSeeder extends Seeder
@@ -31,7 +32,7 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             UnitSeeder::class,
             CategorySeeder::class,
-            ProductOptionSeeder::class,
+            OptionSeeder::class,
             ProductSeeder::class,
             ProductTagSeeder::class,
             BundleSeeder::class,
@@ -63,6 +64,6 @@ class DatabaseSeeder extends Seeder
 
         setPermissionsTeamId(getDefaultTeamId());
 
-        $user->assignRole(Role::first());
+        $user->assignRole(Role::whereName(SysRole::Administrator->value)->first());
     }
 }
