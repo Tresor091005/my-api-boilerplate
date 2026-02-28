@@ -26,6 +26,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read string $name
+ * @property-read string $options_label
  * @property-read VariantOptionValue|null $pivot
  * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
@@ -67,25 +69,39 @@ class ProductVariant extends Model
         'step',
         'is_default',
         'is_stockable',
-        'allow_negative_stock',
         'is_active',
     ];
 
     protected $casts = [
-        'id'                   => 'string',
-        'product_id'           => 'string',
-        'sku'                  => 'string',
-        'unit_code'            => 'string',
-        'min_quantity'         => 'integer',
-        'max_quantity'         => 'integer',
-        'step'                 => 'integer',
-        'is_default'           => 'boolean',
-        'is_stockable'         => 'boolean',
-        'allow_negative_stock' => 'boolean',
-        'is_active'            => 'boolean',
-        'created_at'           => 'immutable_datetime',
-        'updated_at'           => 'immutable_datetime',
+        'id'           => 'string',
+        'product_id'   => 'string',
+        'sku'          => 'string',
+        'unit_code'    => 'string',
+        'min_quantity' => 'integer',
+        'max_quantity' => 'integer',
+        'step'         => 'integer',
+        'is_default'   => 'boolean',
+        'is_stockable' => 'boolean',
+        'is_active'    => 'boolean',
+        'created_at'   => 'immutable_datetime',
+        'updated_at'   => 'immutable_datetime',
     ];
+
+    public function getOptionsLabelAttribute(): string
+    {
+        return $this->optionValues
+            ->map(fn (OptionValue $optionValue): string => "[{$optionValue->option->name}: {$optionValue->value}]")
+            ->implode(' ');
+    }
+
+    public function getNameAttribute(): string
+    {
+        $label = $this->options_label;
+
+        return $label !== ''
+            ? "{$this->product->name} {$label}"
+            : $this->product->name;
+    }
 
     public function product(): BelongsTo
     {

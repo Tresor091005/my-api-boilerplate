@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\DTO\ProductDTO;
@@ -23,7 +22,7 @@ class ProductService
     public function list(ProductFilterDTO $filters): ProductCollection
     {
         $query = Product::query()->with([
-            'optionValues.option',
+            'categories', 'tags', 'optionValues.option',
         ]);
 
         if ($filters->handle) {
@@ -48,11 +47,21 @@ class ProductService
         return ProductCollection::make($categories);
     }
 
-    public function retrieve(Product $category): ProductResource
+    public function retrieve(Product $product): ProductResource
     {
-        $category->load(['bloodline']);
+        $product->load([
+            'categories',
+            'tags',
+            'optionValues.option',
+            'variants' => [
+                'product',
+                'optionValues.option',
+                'unit',
+                'prices.currency'
+            ],
+        ]);
 
-        return ProductResource::make($category);
+        return ProductResource::make($product);
     }
 
     public function create(ProductDTO $dto): ProductResource
@@ -94,10 +103,5 @@ class ProductService
             $category->products()->sync([]);
             $category->delete();
         });
-    }
-
-    public function viewProducts(Product $category): ResourceCollection
-    {
-        return ProductResource::collection($category->products);
     }
 }

@@ -83,13 +83,15 @@ class Product extends Model
             ->using(ProductTag::class);
     }
 
-    public function options(): BelongsToMany
+    public function optionValues(): BelongsToMany
     {
+        // Note: relation optionValues instead of options directly
+        // because we don't want to show non used values
         return $this->belongsToMany(
-            Option::class,
+            OptionValue::class,
             'catalog_variant_option_value',
             'product_id',
-            'option_id'
+            'option_value_id'
         )->distinct()->using(VariantOptionValue::class);
     }
 }

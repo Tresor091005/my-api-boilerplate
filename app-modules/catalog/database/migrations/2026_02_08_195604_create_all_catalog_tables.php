@@ -80,13 +80,6 @@ return new class() extends Migration
             $table->unique(['option_id', 'code']);
         });
 
-        Schema::create('catalog_tags', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->text('code')->unique()->index();
-            $table->text('name');
-            $table->timestamps();
-        });
-
         Schema::create('catalog_prices', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuidMorphs('priceable');
@@ -170,19 +163,6 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        Schema::create('catalog_product_tags', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')
-                ->index()
-                ->constrained('catalog_products')
-                ->onDelete('cascade');
-            $table->foreignUuid('tag_id')
-                ->index()
-                ->constrained('catalog_tags')
-                ->onDelete('cascade');
-            $table->unique(['product_id', 'tag_id']);
-        });
-
         Schema::create('catalog_variant_option_value', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')
@@ -203,6 +183,8 @@ return new class() extends Migration
                 ->onDelete('cascade');
             $table->unique(['variant_id', 'option_id']);
         });
+
+        // TODO universal tags system
     }
 
     /**
@@ -211,14 +193,12 @@ return new class() extends Migration
     public function down(): void
     {
         Schema::dropIfExists('catalog_variant_option_value');
-        Schema::dropIfExists('catalog_product_tags');
         Schema::dropIfExists('catalog_product_variants');
         Schema::dropIfExists('catalog_product_categories');
         Schema::dropIfExists('catalog_bundle_items');
         Schema::dropIfExists('catalog_bundles');
         Schema::dropIfExists('catalog_prices');
         Schema::dropIfExists('catalog_option_values');
-        Schema::dropIfExists('catalog_tags');
         Schema::dropIfExists('catalog_options');
         Schema::dropIfExists('catalog_products');
         Schema::dropIfExists('catalog_categories');

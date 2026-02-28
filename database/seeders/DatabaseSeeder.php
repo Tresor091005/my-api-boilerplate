@@ -14,7 +14,6 @@ use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\CurrencySeeder;
 use Lahatre\Catalog\Database\Seeders\OptionSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
-use Lahatre\Catalog\Database\Seeders\ProductTagSeeder;
 use Lahatre\Catalog\Database\Seeders\UnitSeeder;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\Role;
@@ -34,7 +33,6 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             OptionSeeder::class,
             ProductSeeder::class,
-            ProductTagSeeder::class,
             BundleSeeder::class,
         ]);
 

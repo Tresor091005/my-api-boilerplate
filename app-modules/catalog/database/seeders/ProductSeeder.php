@@ -212,10 +212,13 @@ class ProductSeeder extends Seeder
                     $variantData
                 );
 
-                $variant->prices()->create([
-                    'currency_code' => 'XOF',
-                    'amount'        => $price,
-                ]);
+                $variant->prices()->firstOrCreate(
+                    ['amount' => $price],
+                    [
+                        'currency_code' => 'XOF',
+                        'amount'        => $price,
+                    ]
+                );
 
                 // Attach option values to the variant
                 $attachments = [];

@@ -61,6 +61,7 @@ class Option extends Model
 
     public function products(): BelongsToMany
     {
+        // TODO verify it's the right way to get the products
         return $this->belongsToMany(
             Product::class,
             'catalog_variant_option_value',
