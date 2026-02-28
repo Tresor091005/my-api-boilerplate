@@ -101,6 +101,10 @@ class CategoryService
 
     public function viewProducts(Category $category): ResourceCollection
     {
-        return ProductResource::collection($category->products);
+        return ProductResource::collection(
+            $category->products->load([
+                'optionValues.option',
+            ])
+        );
     }
 }

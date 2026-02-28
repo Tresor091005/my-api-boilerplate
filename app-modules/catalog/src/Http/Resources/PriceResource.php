@@ -24,7 +24,7 @@ class PriceResource extends JsonResource
             'min_quantity'  => $this->min_quantity,
             'max_quantity'  => $this->max_quantity,
             'step'          => $this->step,
-            'amount'        => $this->amount, // TODO apply currency precision
+            'amount'        => fromMinor((string) $this->amount, $this->currency_code),
             'is_active'     => $this->is_active,
             'active_from'   => $this->active_from,
             'active_to'     => $this->active_to,

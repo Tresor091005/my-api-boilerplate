@@ -25,8 +25,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $categories_count
  * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
- * @property-read Collection<int, Tag> $tags
- * @property-read int|null $tags_count
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read int|null $variants_count
  *
@@ -75,12 +73,6 @@ class Product extends Model
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class, 'product_id', 'id');
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'catalog_product_tags', 'product_id', 'tag_id')
-            ->using(ProductTag::class);
     }
 
     public function optionValues(): BelongsToMany

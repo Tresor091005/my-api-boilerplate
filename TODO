@@ -1,8 +1,72 @@
-- currency (-)
-- unit il y a `code`
-- categories : `handle`
-- products : `handle`
-- bundles : `handle`
-- options : `code`
-- option_values : `code`
-- tags : `code`
+- Caching of reccurent and constant infos at least: 
+    - Currencies
+    - Units
+    - Permissions
+
+
+Resource design
+    list of products doesn't include variants 
+    product detail include variants
+    list of variants doesn't include product since you need product_id to do it
+    variant detail need the product detail but without other variants to avoid loop
+    create a product do all the things needed
+    update a product, update the product and sync categories so product + categories (sans variants and optionValues) in response
+    create a variant would be bulk so list of the all variants without product relation
+    update a variant would be for unique and could cause inconsistence with creation but variant detail + unit only, prices will have his own, addmany-update-deletemany
+
+
+
+PATCH /variants/{id}/prices
+{
+  "create": [...],
+  "update": [{ "id": 12, ... }],
+  "delete": [14, 17]
+}
+
+---
+
+CATEGORY
+[x] GET    /categories                  → list (avec parent si besoin de l'arbre)
+[x] POST   /categories                  → create > category
+[x] GET    /categories/{id}             → show > category + parent + children
+[x] PATCH  /categories/{id}             → update > category
+[x] DELETE /categories/{id}             → delete
+[x] GET    /categories/{id}/products    → les products de cette categorie
+
+PRODUCTS
+[x] GET    /products                    → list (categories + optionValues, sans variants)
+[] POST   /products                    → create > product complet (tout)
+[x] GET    /products/{id}               → show > product + categories + optionValues + variants
+[] PATCH  /products/{id}               → update (infos + sync categories) > product + categories + optionValues
+[] DELETE /products/{id}               → delete
+
+VARIANTS
+[] GET    /products/{id}/variants      → list (sans product)
+[] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
+[] GET    /variants/{id}               → show > variant complet + product light
+[] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
+[] DELETE /variants/{id}               → delete
+
+CURRENCIES (only list)
+[x] GET    /currencies                  → list
+
+UNITS (pas de show)
+[] GET    /units                       → list
+[] POST   /units                       → create > unit
+[] PATCH  /units/{id}                  → update > unit
+[] DELETE /units/{id}                  → delete
+
+OPTIONS
+[] GET    /options                     → list (sans values)
+[] POST   /options                     → create (avec values) > option + values
+[] GET    /options/{id}                → show > option + values
+[] PATCH  /options/{id}                → update (infos + sync values, supprime liaisons orphelines) > option + values
+[] DELETE /options/{id}                → delete options and values
+
+PRICES
+[] PATCH  /variants/{id}/prices        → addMany+updateMany+deleteMany > toutes les prices du variant
+{ "create": [...], "update": [...], "delete": [...] }
+
+
+
+bundle

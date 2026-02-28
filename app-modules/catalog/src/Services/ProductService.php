@@ -22,7 +22,7 @@ class ProductService
     public function list(ProductFilterDTO $filters): ProductCollection
     {
         $query = Product::query()->with([
-            'categories', 'tags', 'optionValues.option',
+            'categories', 'optionValues.option',
         ]);
 
         if ($filters->handle) {
@@ -51,7 +51,6 @@ class ProductService
     {
         $product->load([
             'categories',
-            'tags',
             'optionValues.option',
             'variants' => [
                 'product',
@@ -66,42 +65,16 @@ class ProductService
 
     public function create(ProductDTO $dto): ProductResource
     {
-        $category = new Product();
-
-        $category->fill([
-            'name'      => $dto->name,
-            'parent_id' => $dto->parent_id,
-            'is_active' => $dto->is_active,
-        ]);
-
-        $category->handle = HandleGenerator::generate(
-            $dto->name,
-            $category->getTable()
-        );
-
-        DB::transaction(fn () => $category->save());
-
-        return ProductResource::make($category->load(['bloodline']));
+        //
     }
 
     public function update(Product $category, ProductDTO $dto): ProductResource
     {
-        $category->fill([
-            'name'      => $dto->name,
-            'parent_id' => $dto->parent_id,
-            'is_active' => $dto->is_active,
-        ]);
-
-        DB::transaction(fn () => $category->save());
-
-        return ProductResource::make($category->load(['bloodline']));
+        //
     }
 
     public function delete(Product $category): void
     {
-        DB::transaction(function () use ($category): void {
-            $category->products()->sync([]);
-            $category->delete();
-        });
+        //
     }
 }
