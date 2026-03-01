@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string|null $symbol
  * @property int $ratio
  * @property string $unit_group
+ * @property bool $is_builtin
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  *
@@ -29,6 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Unit whereRatio($value)
  * @method static Builder<static>|Unit whereSymbol($value)
  * @method static Builder<static>|Unit whereUnitGroup($value)
+ * @method static Builder<static>|Unit whereIsBuiltin($value)
  * @method static Builder<static>|Unit whereUpdatedAt($value)
  *
  * @mixin \Eloquent
@@ -45,6 +47,7 @@ class Unit extends Model
         'ratio',
         'symbol',
         'unit_group',
+        'is_builtin',
     ];
 
     protected $casts = [
@@ -54,6 +57,7 @@ class Unit extends Model
         'ratio'      => 'integer',
         'symbol'     => 'string',
         'unit_group' => 'string',
+        'is_builtin' => 'boolean',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',
     ];

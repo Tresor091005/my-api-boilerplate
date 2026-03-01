@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
-use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\DTO\ProductDTO;
 use Lahatre\Catalog\DTO\ProductFilterDTO;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Shared\Support\HandleGenerator;
 
 class ProductService
 {
@@ -56,7 +54,7 @@ class ProductService
                 'product',
                 'optionValues.option',
                 'unit',
-                'prices.currency'
+                'prices.currency',
             ],
         ]);
 

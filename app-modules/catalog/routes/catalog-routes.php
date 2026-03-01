@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Lahatre\Catalog\Http\Controllers\CategoryController;
 use Lahatre\Catalog\Http\Controllers\CurrencyController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
+use Lahatre\Catalog\Http\Controllers\UnitController;
 
 /* -----------------------------------------------------------------
  | Catalog endpoints
@@ -25,7 +26,9 @@ Route::group([
         ]);
 
         Route::get('categories/{category}/products', [CategoryController::class, 'viewProducts'])->name('categories.view-products');
-        
+
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
+
+        Route::apiResource('units', UnitController::class)->except(['show']);
     });
 });

@@ -33,9 +33,7 @@ class ProductVariantResource extends JsonResource
             'is_active'     => $this->is_active,
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
-            'options' => $this->optionValues->values()->mapWithKeys(function ($optionValue, $index) {
-                return [$optionValue->option->name => $optionValue->value];
-            }),
+            'options'       => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
             'unit'          => UnitResource::make($this->whenLoaded('unit')),
             'prices'        => PriceResource::collection($this->whenLoaded('prices')),
         ];

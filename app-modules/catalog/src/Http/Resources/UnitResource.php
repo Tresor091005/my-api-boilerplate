@@ -25,6 +25,7 @@ class UnitResource extends JsonResource
             'ratio'      => $this->ratio,
             'symbol'     => $this->symbol,
             'unit_group' => $this->unit_group,
+            'is_builtin' => $this->is_builtin,
         ];
     }
 }

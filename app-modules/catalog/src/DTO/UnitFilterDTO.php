@@ -6,9 +6,10 @@ namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Validation\Rule;
 use Lahatre\Shared\DTO\LahatreDTO;
+use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
-class CurrencyFilterDTO extends LahatreDTO
+class UnitFilterDTO extends LahatreDTO
 {
     public int $per_page;
 
@@ -22,10 +23,15 @@ class CurrencyFilterDTO extends LahatreDTO
 
     public ?string $name = null;
 
+    public ?string $unit_group = null;
+
+    public ?bool $is_builtin = null;
+
     protected function casts(): array
     {
         return [
-            'per_page' => new IntegerCast(),
+            'per_page'   => new IntegerCast(),
+            'is_builtin' => new BooleanCast(),
         ];
     }
 
@@ -43,10 +49,12 @@ class CurrencyFilterDTO extends LahatreDTO
         return [
             'per_page'   => ['integer', 'min:1', 'max:100'],
             'cursor'     => ['nullable', 'string'],
-            'sort_by'    => ['string', Rule::in(['code', 'name', 'created_at', 'updated_at'])],
+            'sort_by'    => ['string', Rule::in(['code', 'name', 'unit_group', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
             'code'       => ['nullable', 'string', 'max:255'],
             'name'       => ['nullable', 'string', 'max:255'],
+            'unit_group' => ['nullable', 'string', 'max:255'],
+            'is_builtin' => ['nullable', 'boolean'],
         ];
     }
 }

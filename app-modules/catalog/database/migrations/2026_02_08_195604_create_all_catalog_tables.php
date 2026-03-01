@@ -30,6 +30,7 @@ return new class() extends Migration
             $table->string('symbol', 10)->nullable();
             $table->unsignedInteger('ratio');
             $table->text('unit_group');
+            $table->boolean('is_builtin')->default(false);
             $table->timestamps();
 
             $table->unique(['unit_group', 'ratio']);

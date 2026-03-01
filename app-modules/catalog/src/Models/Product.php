@@ -20,7 +20,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read ProductTag|VariantOptionValue|ProductCategory|null $pivot
+ * @property-read VariantOptionValue|ProductCategory|null $pivot
  * @property-read Collection<int, Category> $categories
  * @property-read int|null $categories_count
  * @property-read Collection<int, OptionValue> $optionValues

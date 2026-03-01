@@ -16,35 +16,35 @@ class UnitSeeder extends Seeder
     {
         $units = [
             // Mass Group
-            ['code' => 'mg', 'name' => 'Milligram', 'ratio' => 1,          'symbol' => 'mg', 'unit_group' => 'mass'],
-            ['code' => 'g',  'name' => 'Gram',      'ratio' => 1_000,      'symbol' => 'g',  'unit_group' => 'mass'],
-            ['code' => 'kg', 'name' => 'Kilogram',  'ratio' => 1_000_000,  'symbol' => 'Kg', 'unit_group' => 'mass'],
-            ['code' => 't',  'name' => 'Tonne',     'ratio' => 1_000_000_000, 'symbol' => 'T',  'unit_group' => 'mass'],
+            ['code' => 'mg', 'name' => 'Milligram', 'ratio' => 1,          'symbol' => 'mg', 'unit_group' => 'mass', 'is_builtin' => true],
+            ['code' => 'g',  'name' => 'Gram',      'ratio' => 1_000,      'symbol' => 'g',  'unit_group' => 'mass', 'is_builtin' => true],
+            ['code' => 'kg', 'name' => 'Kilogram',  'ratio' => 1_000_000,  'symbol' => 'Kg', 'unit_group' => 'mass', 'is_builtin' => true],
+            ['code' => 't',  'name' => 'Tonne',     'ratio' => 1_000_000_000, 'symbol' => 'T',  'unit_group' => 'mass', 'is_builtin' => true],
 
             // Length Group
-            ['code' => 'mm', 'name' => 'Millimeter', 'ratio' => 1,       'symbol' => 'mm', 'unit_group' => 'length'],
-            ['code' => 'cm', 'name' => 'Centimeter', 'ratio' => 10,      'symbol' => 'cm', 'unit_group' => 'length'],
-            ['code' => 'dm', 'name' => 'Decimeter',  'ratio' => 100,     'symbol' => 'dm', 'unit_group' => 'length'],
-            ['code' => 'm',  'name' => 'Meter',      'ratio' => 1_000,    'symbol' => 'm',  'unit_group' => 'length'],
-            ['code' => 'km', 'name' => 'Kilometer',  'ratio' => 1_000_000, 'symbol' => 'Km', 'unit_group' => 'length'],
+            ['code' => 'mm', 'name' => 'Millimeter', 'ratio' => 1,       'symbol' => 'mm', 'unit_group' => 'length', 'is_builtin' => true],
+            ['code' => 'cm', 'name' => 'Centimeter', 'ratio' => 10,      'symbol' => 'cm', 'unit_group' => 'length', 'is_builtin' => true],
+            ['code' => 'dm', 'name' => 'Decimeter',  'ratio' => 100,     'symbol' => 'dm', 'unit_group' => 'length', 'is_builtin' => true],
+            ['code' => 'm',  'name' => 'Meter',      'ratio' => 1_000,    'symbol' => 'm',  'unit_group' => 'length', 'is_builtin' => true],
+            ['code' => 'km', 'name' => 'Kilometer',  'ratio' => 1_000_000, 'symbol' => 'Km', 'unit_group' => 'length', 'is_builtin' => true],
 
             // Volume Group
-            ['code' => 'ml', 'name' => 'Milliliter', 'ratio' => 1,    'symbol' => 'ml', 'unit_group' => 'volume'],
-            ['code' => 'cl', 'name' => 'Centiliter', 'ratio' => 10,   'symbol' => 'cl', 'unit_group' => 'volume'],
-            ['code' => 'dl', 'name' => 'Deciliter',  'ratio' => 100,  'symbol' => 'dl', 'unit_group' => 'volume'],
-            ['code' => 'l',  'name' => 'Liter',      'ratio' => 1_000, 'symbol' => 'L',  'unit_group' => 'volume'],
+            ['code' => 'ml', 'name' => 'Milliliter', 'ratio' => 1,    'symbol' => 'ml', 'unit_group' => 'volume', 'is_builtin' => true],
+            ['code' => 'cl', 'name' => 'Centiliter', 'ratio' => 10,   'symbol' => 'cl', 'unit_group' => 'volume', 'is_builtin' => true],
+            ['code' => 'dl', 'name' => 'Deciliter',  'ratio' => 100,  'symbol' => 'dl', 'unit_group' => 'volume', 'is_builtin' => true],
+            ['code' => 'l',  'name' => 'Liter',      'ratio' => 1_000, 'symbol' => 'L',  'unit_group' => 'volume', 'is_builtin' => true],
 
             // Carton Group
-            ['code' => 'ct', 'name' => 'Carton', 'ratio' => 1, 'symbol' => null, 'unit_group' => 'packaging'],
+            ['code' => 'ct', 'name' => 'Carton', 'ratio' => 1, 'symbol' => null, 'unit_group' => 'packaging', 'is_builtin' => true],
 
             // Bottle Group
-            ['code' => 'b', 'name' => 'Bottle', 'ratio' => 1,  'symbol' => 'b', 'unit_group' => 'bottle'],
-            ['code' => 'b-6', 'name' => 'Bottle (6 pack)', 'ratio' => 6,  'symbol' => 'b6', 'unit_group' => 'bottle'],
-            ['code' => 'b-12', 'name' => 'Bottle (12 pack)', 'ratio' => 12, 'symbol' => 'b12', 'unit_group' => 'bottle'],
-            ['code' => 'b-24', 'name' => 'Bottle (24 pack)', 'ratio' => 24, 'symbol' => 'b24', 'unit_group' => 'bottle'],
+            ['code' => 'b', 'name' => 'Bottle', 'ratio' => 1,  'symbol' => 'b', 'unit_group' => 'bottle', 'is_builtin' => true],
+            ['code' => 'b-6', 'name' => 'Bottle (6 pack)', 'ratio' => 6,  'symbol' => 'b6', 'unit_group' => 'bottle', 'is_builtin' => true],
+            ['code' => 'b-12', 'name' => 'Bottle (12 pack)', 'ratio' => 12, 'symbol' => 'b12', 'unit_group' => 'bottle', 'is_builtin' => true],
+            ['code' => 'b-24', 'name' => 'Bottle (24 pack)', 'ratio' => 24, 'symbol' => 'b24', 'unit_group' => 'bottle', 'is_builtin' => true],
 
             // Bundle Group
-            ['code' => 'bundle', 'name' => 'Bundle', 'ratio' => 1, 'symbol' => null, 'unit_group' => 'bundle'],
+            ['code' => 'bundle', 'name' => 'Bundle', 'ratio' => 1, 'symbol' => null, 'unit_group' => 'bundle', 'is_builtin' => true],
         ];
 
         foreach ($units as $unitData) {

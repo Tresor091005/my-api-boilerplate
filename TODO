@@ -15,14 +15,6 @@ Resource design
     update a variant would be for unique and could cause inconsistence with creation but variant detail + unit only, prices will have his own, addmany-update-deletemany
 
 
-
-PATCH /variants/{id}/prices
-{
-  "create": [...],
-  "update": [{ "id": 12, ... }],
-  "delete": [14, 17]
-}
-
 ---
 
 CATEGORY
@@ -51,7 +43,7 @@ CURRENCIES (only list)
 [x] GET    /currencies                  → list
 
 UNITS (pas de show)
-[] GET    /units                       → list
+[x] GET    /units                       → list
 [] POST   /units                       → create > unit
 [] PATCH  /units/{id}                  → update > unit
 [] DELETE /units/{id}                  → delete
@@ -69,4 +61,7 @@ PRICES
 
 
 
-bundle
+ADDITONS
+- Bundles
+- Stocks
+- Tags

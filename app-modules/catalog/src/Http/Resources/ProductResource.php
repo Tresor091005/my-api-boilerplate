@@ -34,7 +34,7 @@ class ProductResource extends JsonResource
                 ])
                 ->values()
             ),
-            'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
+            'variants'   => ProductVariantResource::collection($this->whenLoaded('variants')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];
     }
