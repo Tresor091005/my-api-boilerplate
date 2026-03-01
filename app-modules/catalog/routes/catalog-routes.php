@@ -29,6 +29,7 @@ Route::group([
 
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
 
-        Route::apiResource('units', UnitController::class)->except(['show']);
+        Route::get('units', [UnitController::class, 'index'])->name('units.index');
+        Route::post('units/sync', [UnitController::class, 'sync'])->name('units.sync');
     });
 });

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
-use Lahatre\Catalog\Models\Unit;
 
 class UnitPolicy
 {
@@ -18,52 +17,11 @@ class UnitPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can create|update models.
      */
-    public function retrieve(Authorizable $user, Unit $model): bool
+    public function sync(Authorizable $user): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(Authorizable $user): bool
-    {
-        return $user->can('units.create');
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(Authorizable $user, Unit $model): bool
-    {
-        return $user->can('units.update') &&
-            $model->is_builtin === false;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(Authorizable $user, Unit $model): bool
-    {
-        return $user->can('units.delete') &&
-            $model->is_builtin === false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(Authorizable $user, Unit $model): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(Authorizable $user, Unit $model): bool
-    {
-        return false;
+        return $user->can('units.create') ||
+            $user->can('units.update');
     }
 }

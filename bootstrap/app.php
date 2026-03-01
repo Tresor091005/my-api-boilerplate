@@ -32,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AssertionException $e, $request) {
             if ($request->expectsJson()) {
-                response()->json([
+                return response()->json([
                     'message' => $e->getMessage(),
                     'errors'  => [
                         'type'    => class_basename($e),
@@ -44,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson()) {
-                response()->json([
+                return response()->json([
                     'message' => 'Validation failed',
                     'errors'  => $e->errors(),
                 ], 422);
@@ -53,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
             if ($request->expectsJson()) {
-                response()->json([
+                return response()->json([
                     'message' => $e->getMessage(),
                 ], 403);
             }

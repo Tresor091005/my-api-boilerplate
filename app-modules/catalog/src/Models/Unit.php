@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\Catalog\Database\Factories\UnitFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -17,6 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property int $ratio
  * @property string $unit_group
  * @property bool $is_builtin
+ * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  *
@@ -32,6 +34,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Unit whereUnitGroup($value)
  * @method static Builder<static>|Unit whereIsBuiltin($value)
  * @method static Builder<static>|Unit whereUpdatedAt($value)
+ * @method static Builder<static>|Unit whereIsActive($value)
+ * @method static UnitFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -48,6 +52,7 @@ class Unit extends Model
         'symbol',
         'unit_group',
         'is_builtin',
+        'is_active',
     ];
 
     protected $casts = [
@@ -58,7 +63,13 @@ class Unit extends Model
         'symbol'     => 'string',
         'unit_group' => 'string',
         'is_builtin' => 'boolean',
+        'is_active'  => 'boolean',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',
     ];
+
+    protected static function newFactory(): UnitFactory
+    {
+        return UnitFactory::new();
+    }
 }

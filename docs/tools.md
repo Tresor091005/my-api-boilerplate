@@ -15,6 +15,7 @@ Ce document référence les outils majeurs intégrés à ce projet, chacun accom
 These documents showcase how core principles and tools are combined to build complete features. They serve as practical examples and blueprints for future development.
 
 -   **Category CRUD:** A deep-dive into the implementation of a hierarchical CRUD module, demonstrating patterns for services, DTOs, assertions, and more. [En savoir plus](features/catalog-categories.md)
+-   **Unit Sync:** A high-performance synchronization feature for unit groups, demonstrating bulk operations (UPSERT), custom validation rules, and business assertions. [En savoir plus](features/catalog-units.md)
 
 ## Qualité de Code & Automatisation
 
