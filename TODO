@@ -42,11 +42,9 @@ VARIANTS
 CURRENCIES (only list)
 [x] GET    /currencies                  → list
 
-UNITS (pas de show)
-[x] GET    /units                       → list
-[] POST   /units                       → create > unit
-[] PATCH  /units/{id}                  → update > unit
-[] DELETE /units/{id}                  → delete
+UNITS (pas de delete)
+[x] GET    /units                      → list
+[x] POST   /units/sync                 → create & update
 
 OPTIONS
 [] GET    /options                     → list (sans values)

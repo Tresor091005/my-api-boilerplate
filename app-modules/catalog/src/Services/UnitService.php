@@ -96,7 +96,7 @@ class UnitService
         ));
 
         return UnitCollection::make(
-            Unit::whereIn('id', collect($upsertData)->pluck('id'))->get()
+            Unit::where('unit_group', $groupHandle)->get()
         );
     }
 }
