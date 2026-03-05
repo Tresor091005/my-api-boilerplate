@@ -17,6 +17,10 @@ These documents showcase how core principles and tools are combined to build com
 -   **Category CRUD:** A deep-dive into the implementation of a hierarchical CRUD module, demonstrating patterns for services, DTOs, assertions, and more. [En savoir plus](features/catalog-categories.md)
 -   **Unit Sync:** A high-performance synchronization feature for unit groups, demonstrating bulk operations (UPSERT), custom validation rules, and business assertions. [En savoir plus](features/catalog-units.md)
 
+## Infrastructure & Environnement
+
+-   **Docker & FrankenPHP :** Une infrastructure multi-conteneurs optimisée pour le développement avec FrankenPHP (Caddy), Reverb, Horizon et un scheduler dédié. [En savoir plus](infrastructure/docker.md)
+
 ## Qualité de Code & Automatisation
 
 L'ensemble de ces outils garantit que chaque commit respecte un haut niveau de qualité. [En savoir plus sur notre philosophie de la qualité](code-quality.md).

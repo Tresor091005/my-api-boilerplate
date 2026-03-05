@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "dedoc/scramble": "^0.13.10",
+        "genealabs/laravel-model-caching": "^13.0",
         "internachi/modular": "^2.3",
         "lahatre/catalog": "*",
         "lahatre/iam": "*",
