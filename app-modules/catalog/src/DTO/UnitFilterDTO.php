@@ -34,7 +34,7 @@ class UnitFilterDTO extends LahatreDTO
         return [
             'per_page'   => new IntegerCast(),
             'is_builtin' => new BooleanCast(),
-            'is_active' => new BooleanCast(),
+            'is_active'  => new BooleanCast(),
         ];
     }
 
@@ -58,7 +58,7 @@ class UnitFilterDTO extends LahatreDTO
             'name'       => ['nullable', 'string', 'max:255'],
             'unit_group' => ['nullable', 'string', 'max:255'],
             'is_builtin' => ['nullable', 'boolean'],
-            'is_active' => ['nullable', 'boolean'],
+            'is_active'  => ['nullable', 'boolean'],
         ];
     }
 }

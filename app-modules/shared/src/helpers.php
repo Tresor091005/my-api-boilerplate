@@ -1,8 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
-use Illuminate\Support\Facades\Cache;
 use Lahatre\Catalog\Models\Currency;
 use Lahatre\Catalog\Models\Unit;
 use Lahatre\Iam\Auth\AuthContext;
@@ -31,8 +29,7 @@ if (!function_exists('getDefaultTeamId')) {
 if (!function_exists('currency')) {
     function currency(string $code): Currency
     {
-        return Cache::remember("currency:{$code}", 3600, fn () => Currency::where('code', $code)->firstOrFail()
-        );
+        return Currency::where('code', $code)->firstOrFail();
     }
 }
 
@@ -58,8 +55,7 @@ if (!function_exists('toMinor')) {
 if (!function_exists('unit')) {
     function unit(string $code): Unit
     {
-        return Cache::remember("unit:{$code}", 3600, fn () => Unit::where('code', $code)->firstOrFail()
-        );
+        return Unit::where('code', $code)->firstOrFail();
     }
 }
 
