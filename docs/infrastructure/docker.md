@@ -23,16 +23,34 @@ Tous ces services utilisent le même `Dockerfile` pour garantir la cohérence de
 ### Services d'Infrastructure
 -   **`db` :** Base de données **PostgreSQL 18** (Alpine).
 -   **`redis` :** Serveur **Redis 8** (Alpine) pour le cache, les queues et Reverb.
+-   **`redis_limiter` :** Instance **Redis 8** dédiée exclusivement au rate limiting avec une politique `noeviction` pour garantir la fiabilité des compteurs.
 -   **`mailpit` :** Outil de capture d'emails pour le développement (Interface web sur le port 8025).
 
 ## 3. Optimisations de Développement
+## 4. Commandes Utiles (via Makefile)
 
--   **Alias Artisan :** Un alias `a` est configuré dans le `.bashrc` du conteneur (`alias a='php artisan'`) pour accélérer les commandes en ligne de commande.
--   **Healthchecks :** Chaque service possède des tests de santé (`healthcheck`) pour garantir que les dépendances (DB, Redis) sont prêtes avant le démarrage de l'application.
--   **Permissions :** Le Dockerfile gère proprement les IDs d'utilisateur (1000:1000) pour éviter les problèmes de permissions sur les fichiers montés en volume.
+Pour garantir que toutes les commandes sont exécutées dans le contexte du conteneur (PHP 8.4, extensions, permissions), un `Makefile` est fourni à la racine du projet. **Il est fortement recommandé d'utiliser ces raccourcis.**
 
-## 4. Commandes Utiles
+### Gestion des Conteneurs
+-   **`make up`** : Démarre les conteneurs et entre dans le shell de l'application.
+-   **`make down`** : Arrête les conteneurs.
+-   **`make rs`** : Redémarre l'environnement.
+-   **`make ps`** : Liste les conteneurs actifs.
+-   **`make logs <service>`** : Affiche les logs d'un service (ex: `make logs app`).
 
--   Démarrer l'environnement : `docker-compose up -d`
--   Voir les logs : `docker-compose logs -f`
--   Accéder au conteneur app : `docker-compose exec -u www-data app bash`
+### Commandes Application (Exécutées dans Docker)
+-   **`make a <cmd>`** : Alias pour `php artisan` (ex: `make a migrate`).
+-   **`make c <cmd>`** : Alias pour `composer` (ex: `make c install`).
+-   **`make test`** : Lance la suite de tests Pest.
+-   **`make pint`** : Lance le formateur Laravel Pint.
+-   **`make phpstan`** : Lance l'analyse statique PHPStan (Larastan).
+-   **`make rector`** : Lance les refactorings automatisés Rector.
+
+## 5. Alias Internes (Inside Container)
+
+Si vous êtes déjà à l'intérieur du conteneur (via `make up` ou `docker compose exec`), un alias `a` est configuré dans le `.bashrc` (`alias a='php artisan'`) pour accélérer vos commandes habituelles.
+
+## 6. Infrastructure & Healthchecks
+
+-   **Healthchecks** : Chaque service possède des tests de santé (`healthcheck`) pour garantir que les dépendances (DB, Redis) sont prêtes avant le démarrage de l'application.
+-   **Permissions** : Le Dockerfile gère proprement les IDs d'utilisateur (1000:1000) pour éviter les problèmes de permissions sur les fichiers montés en volume.

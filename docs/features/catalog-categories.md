@@ -79,7 +79,7 @@ We use DTOs to structure and validate all incoming data, as detailed in the [Cre
 
 The `Lahatre\Catalog\Http\Controllers\CategoryController` is intentionally "thin." Its sole responsibility is to handle the HTTP layer.
 
--   **Orchestration:** It parses the HTTP request, authorizes the action using the `CategoryPolicy`, validates the input using the appropriate DTO, calls the `CategoryService`, and formats the output using the `CategoryResource` and `ApiResponse` class.
+-   **Orchestration:** It parses the HTTP request, authorizes the action using the `CategoryPolicy`, validates the input using the appropriate DTO, calls the `CategoryService`, and formats the output using the `CategoryResource`.
 -   **Separation of Concerns:** It contains no business logic. All logic is delegated to other layers, making the controller easy to read and maintain.
 
 ### API Resource (`CategoryResource.php`): The Presentation Layer

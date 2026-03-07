@@ -29,6 +29,33 @@ ps: ## Liste les conteneurs en cours d'exécution
 	@echo "$(CYAN)Conteneurs en cours d'exécution :$(NC)"
 	@docker compose ps
 
+# -------------------------------------------------
+# Commandes Application (Exécutées dans Docker)
+# -------------------------------------------------
+
+.PHONY: artisan a composer c test pint rector phpstan tsc
+
+artisan a: ## Exécute php artisan dans le conteneur (ex: make a migrate)
+	@docker compose exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
+
+composer c: ## Exécute composer dans le conteneur (ex: make c install)
+	@docker compose exec app composer $(filter-out $@,$(MAKECMDGOALS))
+
+test: ## Exécute les tests Pest
+	@docker compose exec app php artisan test $(filter-out $@,$(MAKECMDGOALS))
+
+pint: ## Exécute Laravel Pint
+	@docker compose exec app ./vendor/bin/pint $(filter-out $@,$(MAKECMDGOALS))
+
+rector: ## Exécute Rector
+	@docker compose exec app ./vendor/bin/rector process $(filter-out $@,$(MAKECMDGOALS))
+
+phpstan: ## Exécute PHPStan (Larastan)
+	@docker compose exec app ./vendor/bin/phpstan analyse $(filter-out $@,$(MAKECMDGOALS))
+
+tsc: ## Exécute le check TypeScript
+	@docker compose exec app ./vendor/bin/tsc $(filter-out $@,$(MAKECMDGOALS))
+
 logs: ## Affiche les logs d'un service (ex: make logs app)
 	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
 		echo "$(YELLOW)Usage: make logs <nom_du_service>$(NC)"; \

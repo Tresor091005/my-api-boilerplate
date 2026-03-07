@@ -21,7 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->appendToGroup('api', ForceJsonResponse::class);
+        $middleware->appendToGroup('api', [
+            ForceJsonResponse::class,
+            'throttle:api',
+        ]);
 
         $middleware->group('auth.api', [
             'auth:sanctum',
