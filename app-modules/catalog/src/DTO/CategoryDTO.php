@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\DTO;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
@@ -33,7 +34,7 @@ class CategoryDTO extends LahatreDTO
     protected function beforeValidation(array $data): array
     {
         if (isset($data['name'])) {
-            $data['name'] = (string) str($data['name'])->sanitize();
+            $data['name'] = Str::sanitize($data['name']);
         }
 
         return $data;

@@ -76,6 +76,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereDepth($operator, $value = null)
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category withGlobalScopes(array $scopes)
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category withRelationshipExpression($direction, callable $constraint, $initialDepth, $from = null, $maxDepth = null)
+ * @method static CategoryFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

@@ -27,7 +27,7 @@ return new class() extends Migration
             DB::table('catalog_currencies')->updateOrInsert(
                 ['code' => $currency['code']],
                 array_merge($currency, [
-                    'id'         => (string) Str::uuid(),
+                    'id'         => (string) Str::uuid7(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])
@@ -65,7 +65,7 @@ return new class() extends Migration
             DB::table('catalog_units')->updateOrInsert(
                 ['code' => $unit['code'], 'unit_group' => $unit['unit_group']],
                 array_merge($unit, [
-                    'id'         => (string) Str::uuid(),
+                    'id'         => (string) Str::uuid7(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])

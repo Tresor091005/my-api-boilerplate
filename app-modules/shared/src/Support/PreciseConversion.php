@@ -57,7 +57,7 @@ class PreciseConversion
      */
     public static function convertUnit(string $amount, Unit $from, Unit $to): string
     {
-        if ($from->unit_group !== $to->unit_group) {
+        if ($from->group_id !== $to->group_id) {
             throw new InvalidArgumentException(
                 "Cannot convert {$from->code} to {$to->code}: different unit groups"
             );
@@ -79,7 +79,7 @@ class PreciseConversion
      */
     public static function convertUnitToBase(string $amount, Unit $unit): array
     {
-        $baseUnit = Unit::where('unit_group', $unit->unit_group)
+        $baseUnit = Unit::where('group_id', $unit->group_id)
             ->where('ratio', 1)
             ->firstOrFail();
 
@@ -96,7 +96,7 @@ class PreciseConversion
      */
     public static function convertUnitFromBase(string $amount, Unit $toUnit): array
     {
-        $baseUnit = Unit::where('unit_group', $toUnit->unit_group)
+        $baseUnit = Unit::where('group_id', $toUnit->group_id)
             ->where('ratio', 1)
             ->firstOrFail();
 

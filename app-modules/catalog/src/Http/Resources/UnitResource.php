@@ -19,14 +19,12 @@ class UnitResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'code'       => $this->code,
-            'name'       => $this->name,
-            'ratio'      => $this->ratio,
-            'symbol'     => $this->symbol,
-            'unit_group' => $this->unit_group,
-            'is_builtin' => $this->is_builtin,
-            'is_active'  => $this->is_active,
+            'id'     => $this->id,
+            'code'   => $this->code,
+            'name'   => $this->name,
+            'ratio'  => $this->ratio,
+            'symbol' => $this->symbol,
+            'group'  => UnitGroupResource::make($this->whenLoaded('group')),
         ];
     }
 }

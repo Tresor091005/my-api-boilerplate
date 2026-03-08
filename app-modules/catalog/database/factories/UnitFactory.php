@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Lahatre\Catalog\Models\Unit;
+use Lahatre\Catalog\Models\UnitGroup;
 
 /**
  * @extends Factory<Unit>
@@ -25,13 +26,11 @@ class UnitFactory extends Factory
         $name = $this->faker->unique()->word();
 
         return [
-            'code'       => Str::slug($name),
-            'name'       => $name,
-            'symbol'     => Str::upper(Str::limit($name, 2, '')),
-            'ratio'      => $this->faker->numberBetween(1, 1000),
-            'unit_group' => $this->faker->word(),
-            'is_builtin' => false,
-            'is_active'  => true,
+            'code'     => Str::slug($name),
+            'name'     => $name,
+            'symbol'   => Str::upper(Str::limit($name, 2, '')),
+            'ratio'    => $this->faker->numberBetween(1, 1000),
+            'group_id' => UnitGroup::factory(),
         ];
     }
 }

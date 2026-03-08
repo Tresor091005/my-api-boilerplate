@@ -6,14 +6,13 @@ namespace Lahatre\Catalog\Assertions;
 
 use Illuminate\Support\Collection;
 use Lahatre\Catalog\DTO\UnitDataDTO;
-use Lahatre\Catalog\Exceptions\Unit\UnitActiveLimitException;
-use Lahatre\Catalog\Exceptions\Unit\UnitBaseDeactivationException;
 use Lahatre\Catalog\Exceptions\Unit\UnitBaseRequiredException;
 use Lahatre\Catalog\Exceptions\Unit\UnitBuiltInUpdateException;
 use Lahatre\Catalog\Exceptions\Unit\UnitDuplicateRatioException;
 use Lahatre\Catalog\Exceptions\Unit\UnitGroupMismatchException;
 use Lahatre\Catalog\Exceptions\Unit\UnitRatioConflictException;
 use Lahatre\Catalog\Exceptions\Unit\UnitRatioImmutableException;
+use Lahatre\Catalog\Exceptions\Unit\UnitRatioRequiredException;
 use Lahatre\Catalog\Models\Unit;
 
 class UnitAssertion
@@ -21,49 +20,38 @@ class UnitAssertion
     /**
      * Asserts that the unit group can be synchronized.
      *
-     * This method validates that:
-     * - There are no duplicate ratios in the request.
-     * - For new groups, exactly one unit has a ratio of 1.
-     * - Existing units belong to the specified group and are not built-in.
-     * - The base unit (ratio 1) is not being deactivated.
-     * - Existing unit ratios are not being modified.
-     * - New units do not conflict with existing ratios in the group.
-     *
-     * @param  string  $groupHandle  The handle of the unit group.
+     * @param  string|null  $groupId  The ID of the unit group (null if creating).
      * @param  Collection<int, UnitDataDTO>  $units  The collection of unit DTOs to validate.
      * @param  Collection<int, Unit>  $existingUnits  The already loaded existing units.
+     * @param  bool  $isGroupBuiltin  Whether the unit group is built-in.
      *
      * @throws UnitDuplicateRatioException
      * @throws UnitBaseRequiredException
      * @throws UnitGroupMismatchException
      * @throws UnitBuiltInUpdateException
-     * @throws UnitBaseDeactivationException
      * @throws UnitRatioImmutableException
      * @throws UnitRatioConflictException
-     * @throws UnitActiveLimitException
      */
-    public function assertCanSync(string $groupHandle, Collection $units, Collection $existingUnits): void
+    public function assertCanSync(?string $groupId, Collection $units, Collection $existingUnits, bool $isGroupBuiltin): void
     {
-        $this->assertUniqueRatiosInPayload($units);
-        $this->assertActiveLimit($units, $existingUnits);
+        if ($isGroupBuiltin) {
+            throw new UnitBuiltInUpdateException();
+        }
 
-        $isNewGroup = $existingUnits->isEmpty();
+        $this->assertUniqueRatiosInPayload($units);
+
+        $isNewGroup = $groupId === null;
+        $groupLabel = $groupId ?? 'new-group';
 
         if ($isNewGroup) {
-            $this->assertHasBaseUnitForNewGroup($units);
-        } else {
-            foreach ($units as $u) {
-                if ($u->id) {
-                    $existingUnit = $existingUnits->firstWhere('id', $u->id);
+            $this->assertHasBaseUnit($units);
+        }
 
-                    if (!$existingUnit) {
-                        throw new UnitGroupMismatchException($u->id, $groupHandle);
-                    }
-
-                    $this->assertCanUpdateExistingUnit($existingUnit, $u);
-                } else {
-                    $this->assertCanAddNewUnitToGroup($existingUnits, $u, $groupHandle);
-                }
+        foreach ($units as $u) {
+            if ($u->id) {
+                $this->assertCanUpdateExistingUnit($existingUnits, $u, $groupLabel);
+            } else {
+                $this->assertCanAddNewUnitToGroup($existingUnits, $u, $groupLabel);
             }
         }
     }
@@ -84,44 +72,15 @@ class UnitAssertion
     }
 
     /**
-     * Asserts that the group will not exceed the limit of active units.
-     *
-     * @param  Collection<int, UnitDataDTO>  $units
-     * @param  Collection<int, Unit>  $existingUnits
-     *
-     * @throws UnitActiveLimitException
-     */
-    protected function assertActiveLimit(Collection $units, Collection $existingUnits): void
-    {
-        $payloadIds = $units->pluck('id')->filter()->toArray();
-
-        // Logic: Total Active = (Active in DB but NOT in payload) + (Active in payload)
-        // This avoids double-counting existing units that are updated in the payload.
-        $stillActiveInDb = $existingUnits->where('is_active', true)
-            ->whereNotIn('id', $payloadIds)
-            ->count();
-
-        $activeInPayload = $units->where('is_active', true)->count();
-
-        if (($stillActiveInDb + $activeInPayload) > 10) {
-            throw new UnitActiveLimitException(10);
-        }
-    }
-
-    /**
-     * Asserts that a new group contains exactly one base unit (ratio 1).
+     * Asserts that the payload contains exactly one base unit (ratio 1).
      *
      * @param  Collection<int, UnitDataDTO>  $units
      *
      * @throws UnitBaseRequiredException
      */
-    protected function assertHasBaseUnitForNewGroup(Collection $units): void
+    protected function assertHasBaseUnit(Collection $units): void
     {
         $ratios = $units->pluck('ratio');
-
-        if ($ratios->contains(null)) {
-            throw new UnitBaseRequiredException();
-        }
 
         if ($ratios->filter(fn ($r): bool => $r === 1)->count() !== 1) {
             throw new UnitBaseRequiredException();
@@ -131,20 +90,16 @@ class UnitAssertion
     /**
      * Asserts that an existing unit can be updated with the provided data.
      *
-     * Prevents modifying built-in units, changing ratios, or deactivating the base unit.
-     *
      * @throws UnitBuiltInUpdateException
-     * @throws UnitBaseDeactivationException
      * @throws UnitRatioImmutableException
+     * @throws UnitGroupMismatchException
      */
-    protected function assertCanUpdateExistingUnit(Unit $existingUnit, UnitDataDTO $updateData): void
+    protected function assertCanUpdateExistingUnit(Collection $existingUnits, UnitDataDTO $updateData, string $groupLabel): void
     {
-        if ($existingUnit->is_builtin) {
-            throw new UnitBuiltInUpdateException();
-        }
+        $existingUnit = $existingUnits->firstWhere('id', $updateData->id);
 
-        if ($existingUnit->ratio === 1 && !$updateData->is_active) {
-            throw new UnitBaseDeactivationException();
+        if (!$existingUnit) {
+            throw new UnitGroupMismatchException($updateData->id, $groupLabel);
         }
 
         if ($updateData->ratio !== null && (int) $updateData->ratio !== (int) $existingUnit->ratio) {
@@ -155,24 +110,17 @@ class UnitAssertion
     /**
      * Asserts that a new unit can be added to an existing group.
      *
-     * Ensures the new ratio is not 1 and does not conflict with existing ratios.
-     *
      * @throws UnitRatioConflictException
+     * @throws UnitRatioRequiredException
      */
-    protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitDataDTO $newData, string $groupHandle): void
+    protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitDataDTO $newData, string $groupLabel): void
     {
         if ($newData->ratio === null) {
-            return;
+            throw new UnitRatioRequiredException();
         }
 
-        $ratio = (int) $newData->ratio;
-
-        if ($ratio === 1) {
-            throw new UnitRatioConflictException(1, $groupHandle);
-        }
-
-        if ($existingUnits->contains('ratio', $ratio)) {
-            throw new UnitRatioConflictException($ratio, $groupHandle);
+        if ($existingUnits->contains('ratio', $newData->ratio)) {
+            throw new UnitRatioConflictException($newData->ratio, $groupLabel);
         }
     }
 }

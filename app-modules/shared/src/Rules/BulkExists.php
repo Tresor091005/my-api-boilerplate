@@ -19,12 +19,14 @@ class BulkExists implements ValidationRule
      * @param  string  $column  The column to check (defaults to id).
      * @param  string  $keyInArray  The key to extract from the array of objects (if applicable).
      * @param  string  $type  The expected data type: 'uuid', 'string', 'int'.
+     * @param  bool  $handleSoftDelete  Whether to filter out soft deleted records.
      */
     public function __construct(
         protected string $table,
         protected string $column = 'id',
         protected ?string $keyInArray = null,
-        protected string $type = 'uuid'
+        protected string $type = 'uuid',
+        protected bool $handleSoftDelete = false
     ) {}
 
     /**
@@ -60,9 +62,14 @@ class BulkExists implements ValidationRule
             return;
         }
 
-        $existingCount = DB::table($this->table)
-            ->whereIn($this->column, $validIds->toArray())
-            ->count();
+        $query = DB::table($this->table)
+            ->whereIn($this->column, $validIds->toArray());
+
+        if ($this->handleSoftDelete) {
+            $query->whereNull('deleted_at');
+        }
+
+        $existingCount = $query->count();
 
         if ($existingCount !== $validIds->count()) {
             $fail(__('shared::validation.bulk_exists', ['attribute' => $attribute]));

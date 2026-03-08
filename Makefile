@@ -12,7 +12,7 @@ NC := \033[0m
 # Commandes Docker
 # -------------------------------------------------
 
-.PHONY: up down restart ps logs
+.PHONY: up down restart ps logs bash
 
 up: ## Démarre les conteneurs Docker
 	@echo "$(GREEN)Démarrage des conteneurs...$(NC)"
@@ -34,6 +34,9 @@ ps: ## Liste les conteneurs en cours d'exécution
 # -------------------------------------------------
 
 .PHONY: artisan a composer c test pint rector phpstan tsc
+
+sh: ## Ouvre le terminal du conteneur app
+	@docker compose exec app bash
 
 artisan a: ## Exécute php artisan dans le conteneur (ex: make a migrate)
 	@docker compose exec app php artisan $(filter-out $@,$(MAKECMDGOALS))

@@ -23,18 +23,15 @@ class UnitFilterDTO extends LahatreDTO
 
     public ?string $name = null;
 
-    public ?string $unit_group = null;
+    public ?string $group = null;
 
     public ?bool $is_builtin = null;
-
-    public ?bool $is_active = null;
 
     protected function casts(): array
     {
         return [
             'per_page'   => new IntegerCast(),
             'is_builtin' => new BooleanCast(),
-            'is_active'  => new BooleanCast(),
         ];
     }
 
@@ -52,13 +49,12 @@ class UnitFilterDTO extends LahatreDTO
         return [
             'per_page'   => ['integer', 'min:1', 'max:100'],
             'cursor'     => ['nullable', 'string'],
-            'sort_by'    => ['string', Rule::in(['code', 'name', 'unit_group', 'created_at', 'updated_at'])],
+            'sort_by'    => ['string', Rule::in(['code', 'name', 'group', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
             'code'       => ['nullable', 'string', 'max:255'],
             'name'       => ['nullable', 'string', 'max:255'],
-            'unit_group' => ['nullable', 'string', 'max:255'],
+            'group'      => ['nullable', 'string', 'max:255'],
             'is_builtin' => ['nullable', 'boolean'],
-            'is_active'  => ['nullable', 'boolean'],
         ];
     }
 }
