@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Lahatre\Shared\Traits\SharedTraits;
+
+class {{ClassName}} extends Model
+{
+    use SharedTraits;
+
+    protected $table = '{{TableName}}';
+
+    public $incrementing = false;
+
+    protected $fillable = [
+        //
+    ];
+
+    protected $casts = [
+        'id'         => 'string',
+        'created_at' => 'immutable_datetime',
+        'updated_at' => 'immutable_datetime',
+    ];
+
+    /* -----------------------------------------------------------------
+     | Attributes
+     | -----------------------------------------------------------------
+     */
+
+    // protected function name(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn (string $value) => ucfirst($value),
+    //     );
+    // }
+
+    /* -----------------------------------------------------------------
+     | Relations
+     | -----------------------------------------------------------------
+     */
+
+    // public function relation(): BelongsTo
+    // {
+    //     return $this->belongsTo(Related::class, 'foreign_id', 'id');
+    // }
+
+    /* -----------------------------------------------------------------
+     | Scopes
+     | -----------------------------------------------------------------
+     */
+
+    // public function scopeActive(Builder $query): void
+    // {
+    //     $query->where('is_active', true);
+    // }
+}

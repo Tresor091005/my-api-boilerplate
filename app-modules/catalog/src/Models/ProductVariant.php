@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -87,20 +88,26 @@ class ProductVariant extends Model
         'updated_at'   => 'immutable_datetime',
     ];
 
-    public function getOptionsLabelAttribute(): string
+    protected function optionsLabel(): Attribute
     {
-        return $this->optionValues
-            ->map(fn (OptionValue $optionValue): string => "[{$optionValue->option->name}: {$optionValue->value}]")
-            ->implode(' ');
+        return Attribute::make(
+            get: fn (): string => $this->optionValues
+                ->map(fn (OptionValue $optionValue): string => "[{$optionValue->option->name}: {$optionValue->value}]")
+                ->implode(' ')
+        );
     }
 
-    public function getNameAttribute(): string
+    protected function name(): Attribute
     {
-        $label = $this->options_label;
+        return Attribute::make(
+            get: function (): string {
+                $label = $this->options_label;
 
-        return $label !== ''
-            ? "{$this->product->name} {$label}"
-            : $this->product->name;
+                return $label !== ''
+                    ? "{$this->product->name} {$label}"
+                    : $this->product->name;
+            }
+        );
     }
 
     public function product(): BelongsTo

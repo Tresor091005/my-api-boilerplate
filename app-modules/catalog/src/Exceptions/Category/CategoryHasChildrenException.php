@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Catalog\Exceptions;
+namespace Lahatre\Catalog\Exceptions\Category;
 
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Shared\Exceptions\AssertionException;

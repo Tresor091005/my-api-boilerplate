@@ -6,14 +6,14 @@ namespace Lahatre\Catalog\Assertions;
 
 use Illuminate\Support\Collection;
 use Lahatre\Catalog\DTO\UnitDataDTO;
-use Lahatre\Catalog\Exceptions\UnitActiveLimitException;
-use Lahatre\Catalog\Exceptions\UnitBaseDeactivationException;
-use Lahatre\Catalog\Exceptions\UnitBaseRequiredException;
-use Lahatre\Catalog\Exceptions\UnitBuiltInUpdateException;
-use Lahatre\Catalog\Exceptions\UnitDuplicateRatioException;
-use Lahatre\Catalog\Exceptions\UnitGroupMismatchException;
-use Lahatre\Catalog\Exceptions\UnitRatioConflictException;
-use Lahatre\Catalog\Exceptions\UnitRatioImmutableException;
+use Lahatre\Catalog\Exceptions\Unit\UnitActiveLimitException;
+use Lahatre\Catalog\Exceptions\Unit\UnitBaseDeactivationException;
+use Lahatre\Catalog\Exceptions\Unit\UnitBaseRequiredException;
+use Lahatre\Catalog\Exceptions\Unit\UnitBuiltInUpdateException;
+use Lahatre\Catalog\Exceptions\Unit\UnitDuplicateRatioException;
+use Lahatre\Catalog\Exceptions\Unit\UnitGroupMismatchException;
+use Lahatre\Catalog\Exceptions\Unit\UnitRatioConflictException;
+use Lahatre\Catalog\Exceptions\Unit\UnitRatioImmutableException;
 use Lahatre\Catalog\Models\Unit;
 
 class UnitAssertion

@@ -25,7 +25,7 @@ Route::group([
             'products'   => ProductController::class,
         ]);
 
-        Route::get('categories/{category}/products', [CategoryController::class, 'viewProducts'])->name('categories.view-products');
+        Route::get('categories/{category}/products', [CategoryController::class, 'products'])->name('categories.products');
 
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
 

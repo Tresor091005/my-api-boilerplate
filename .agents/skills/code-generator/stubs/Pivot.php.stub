@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Models;
+
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use Lahatre\Shared\Traits\SharedTraits;
+
+class {{ClassName}} extends Pivot
+{
+    use SharedTraits;
+
+    protected $table = '{{TableName}}';
+
+    public $incrementing = false;
+
+    protected $casts = [
+        'id'         => 'string',
+        'created_at' => 'immutable_datetime',
+        'updated_at' => 'immutable_datetime',
+    ];
+
+    /* -----------------------------------------------------------------
+     | Attributes
+     | -----------------------------------------------------------------
+     */
+
+    /* -----------------------------------------------------------------
+     | Relations
+     | -----------------------------------------------------------------
+     */
+}

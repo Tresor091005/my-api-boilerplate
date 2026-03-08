@@ -4,57 +4,57 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Controllers;
 
-use App\Models\Company\CompanyMember;
-use App\Models\User\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
-use Lahatre\Iam\Http\Requests\LoginRequest;
+use Illuminate\Http\Request;
+use Lahatre\Iam\DTO\LoginDTO;
+use Lahatre\Iam\Http\Resources\AuthResource;
+use Lahatre\Iam\Services\AuthService;
 
 class AuthController
 {
-    public function login(LoginRequest $request, string $type): JsonResponse
+    public function __construct(
+        protected AuthService $authService
+    ) {}
+
+    /**
+     * Authenticate a user and return an AuthResource.
+     */
+    public function login(Request $request, string $type): AuthResource
     {
-        $authenticatable = match ($type) {
-            'user'           => User::where('email', $request->email)->first(),
-            'company-member' => CompanyMember::where('email', $request->email)->first(),
-            default          => null,
-        };
+        $dto = LoginDTO::fromArray(array_merge($request->all(), ['type' => $type]));
 
-        if (!$authenticatable || !Hash::check($request->password, $authenticatable->password)) {
-            return response()->json([
-                'message' => 'Invalid login details',
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        $metadata = match ($type) {
-            'user'           => ['type' => 'user', 'company_id' => null],
-            'company-member' => ['type' => 'agent', 'company_id' => $authenticatable->company_id],
-            default          => null,
-        };
-
-        $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
-        $token->accessToken->update(['metadata' => $metadata]);
-
-        return response()->json([
-            'access_token' => $token->plainTextToken,
-            'token_type'   => 'Bearer',
-            'user'         => $authenticatable,
-        ]);
+        return $this->authService->login($dto);
     }
 
+    /**
+     * Get the authenticated user.
+     */
     public function me(): JsonResponse
     {
         return response()->json(authContext()->user());
     }
 
+    /**
+     * Log out the current user.
+     */
     public function logout(): JsonResponse
     {
-        $user = authContext()->user();
-        $user->currentAccessToken()->delete();
+        $this->authService->logout(authContext()->user());
 
         return response()->json([
-            'message' => 'Successfully logged out',
+            'message' => __('iam::messages.auth.logged_out'),
+        ]);
+    }
+
+    /**
+     * Switch the current user role.
+     */
+    public function switchUserRole(Request $request): JsonResponse
+    {
+        $this->authService->switchUserRole(authContext()->user(), $request->input('role_id'));
+
+        return response()->json([
+            'message' => __('iam::messages.auth.role_switched'),
         ]);
     }
 }

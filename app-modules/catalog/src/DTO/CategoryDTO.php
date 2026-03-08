@@ -32,6 +32,10 @@ class CategoryDTO extends LahatreDTO
 
     protected function beforeValidation(array $data): array
     {
+        if (isset($data['name'])) {
+            $data['name'] = (string) str($data['name'])->sanitize();
+        }
+
         return $data;
     }
 

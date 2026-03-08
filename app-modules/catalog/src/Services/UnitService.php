@@ -11,9 +11,10 @@ use Lahatre\Catalog\DTO\UnitFilterDTO;
 use Lahatre\Catalog\DTO\UnitSyncDTO;
 use Lahatre\Catalog\Http\Resources\UnitCollection;
 use Lahatre\Catalog\Models\Unit;
+use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
 
-class UnitService
+class UnitService implements StandaloneService
 {
     public function __construct(
         protected UnitAssertion $unitAssertion

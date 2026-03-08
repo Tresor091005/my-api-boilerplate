@@ -51,7 +51,7 @@ it('ensures all api routes are throttled correctly', function (): void {
         $uri = $route->uri();
 
         // Check if any throttle middleware is applied
-        $hasThrottle = collect($middleware)->contains(fn ($m) => is_string($m) && (
+        $hasThrottle = collect($middleware)->contains(fn ($m): bool => is_string($m) && (
             str_starts_with($m, 'throttle:') ||
             str_starts_with($m, ThrottleRequests::class)
         ));
@@ -60,14 +60,14 @@ it('ensures all api routes are throttled correctly', function (): void {
 
         // Specific checks for login/register
         if (str_contains((string) $uri, 'login') || str_contains((string) $uri, 'register')) {
-            $hasAuthThrottle = collect($middleware)->contains(fn ($m) => is_string($m) && (
+            $hasAuthThrottle = collect($middleware)->contains(fn ($m): bool => is_string($m) && (
                 $m === 'throttle:auth' ||
                 $m === ThrottleRequests::class.':auth'
             ));
             expect($hasAuthThrottle)->toBeTrue("Route [{$uri}] should use 'throttle:auth'.");
         } else {
             // All other API routes should use 'throttle:api' (via group)
-            $hasApiThrottle = collect($middleware)->contains(fn ($m) => is_string($m) && (
+            $hasApiThrottle = collect($middleware)->contains(fn ($m): bool => is_string($m) && (
                 $m === 'throttle:api' ||
                 $m === ThrottleRequests::class.':api'
             ));

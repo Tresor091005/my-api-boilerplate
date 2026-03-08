@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Policies;
+
+use Illuminate\Contracts\Auth\Access\Authorizable;
+use Lahatre\{{Module}}\Models\{{Entity}};
+
+class {{ClassName}}
+{
+    public function list(Authorizable $user): bool
+    {
+        return $user->can('{{PermissionPrefix}}.list');
+    }
+
+    public function retrieve(Authorizable $user, {{Entity}} $model): bool
+    {
+        return $user->can('{{PermissionPrefix}}.retrieve');
+    }
+
+    public function create(Authorizable $user): bool
+    {
+        return $user->can('{{PermissionPrefix}}.create');
+    }
+
+    public function update(Authorizable $user, {{Entity}} $model): bool
+    {
+        return $user->can('{{PermissionPrefix}}.update');
+    }
+
+    public function delete(Authorizable $user, {{Entity}} $model): bool
+    {
+        return $user->can('{{PermissionPrefix}}.delete');
+    }
+
+    public function restore(Authorizable $user, {{Entity}} $model): bool
+    {
+        return false;
+    }
+
+    public function forceDelete(Authorizable $user, {{Entity}} $model): bool
+    {
+        return false;
+    }
+}

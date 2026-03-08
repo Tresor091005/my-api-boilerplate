@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Lahatre\{{Module}}\Models\{{Entity}};
+
+class {{ClassName}} extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Natural code with firstOrCreate for idempotency
+        {{Entity}}::firstOrCreate(
+            ['handle' => '{{Handle}}'],
+            [
+                'name' => '{{Name}}',
+                'is_active' => true,
+            ]
+        );
+    }
+}

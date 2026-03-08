@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Catalog\Exceptions;
+namespace Lahatre\Catalog\Exceptions\Unit;
 
 use Lahatre\Shared\Exceptions\AssertionException;
 

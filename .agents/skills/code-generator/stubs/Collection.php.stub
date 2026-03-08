@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Http\Resources;
+
+use App\Http\Resources\BaseCollection;
+
+class {{ClassName}} extends BaseCollection
+{
+    // Uses standard BaseCollection logic for pagination
+}

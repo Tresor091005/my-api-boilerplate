@@ -10,8 +10,9 @@ use Lahatre\Catalog\DTO\ProductFilterDTO;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Shared\Contracts\Services\StandaloneService;
 
-class ProductService
+class ProductService implements StandaloneService
 {
     public function __construct(
         protected ProductAssertion $productAssertion

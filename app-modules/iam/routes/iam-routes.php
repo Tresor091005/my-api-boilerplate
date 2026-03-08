@@ -26,7 +26,7 @@ Route::group([
         ], function (): void {
             Route::get('/me', [AuthController::class, 'me'])->name('me');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-            Route::post('/switch-user-role', [AuthController::class, 'switchUserRole'])->name('switchuserrole');
+            Route::post('/switch-user-role', [AuthController::class, 'switchUserRole'])->name('switch-user-role');
         });
     });
 });

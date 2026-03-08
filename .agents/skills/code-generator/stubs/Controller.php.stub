@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Http\Controllers;
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Lahatre\{{Module}}\DTO\{{Entity}}DTO;
+use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\{{Module}}\Services\{{Entity}}Service;
+
+class {{ClassName}}
+{
+    public function __construct(
+        protected {{Entity}}Service $service
+    ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        Gate::authorize('list', {{Entity}}::class);
+
+        // $filters = {{Entity}}FilterDTO::fromRequest($request);
+        // return $this->service->list($filters);
+        
+        return response()->json([]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        Gate::authorize('create', {{Entity}}::class);
+
+        $dto = {{Entity}}DTO::fromRequest($request);
+
+        $response = $this->service->create($dto);
+
+        return response()->json($response, 201);
+    }
+
+    public function show({{Entity}} $model): JsonResponse
+    {
+        Gate::authorize('retrieve', $model);
+
+        $response = $this->service->retrieve($model);
+
+        return response()->json($response);
+    }
+
+    public function update(Request $request, {{Entity}} $model): JsonResponse
+    {
+        Gate::authorize('update', $model);
+
+        $dto = {{Entity}}DTO::forUpdate($request, $model);
+
+        $response = $this->service->update($model, $dto);
+
+        return response()->json($response);
+    }
+
+    public function destroy({{Entity}} $model): JsonResponse
+    {
+        Gate::authorize('delete', $model);
+
+        $this->service->delete($model);
+
+        return response()->json(null, 204);
+    }
+}

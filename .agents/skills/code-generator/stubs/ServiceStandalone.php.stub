@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Services;
+
+use Illuminate\Support\Facades\DB;
+use Lahatre\{{Module}}\Assertions\{{Entity}}Assertion;
+use Lahatre\{{Module}}\DTO\{{Entity}}DTO;
+use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
+use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\Shared\Services\Contracts\StandaloneService;
+
+class {{ClassName}} implements StandaloneService
+{
+    public function __construct(
+        protected {{Entity}}Assertion $assertion
+    ) {}
+
+    public function create({{Entity}}DTO $dto): {{Entity}}Resource
+    {
+        $model = new {{Entity}}();
+
+        $model->fill([
+            'name' => $dto->name,
+            // Explicit mapping
+        ]);
+
+        DB::transaction(fn () => $model->save());
+
+        return {{Entity}}Resource::make($model);
+    }
+}

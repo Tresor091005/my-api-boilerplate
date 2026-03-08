@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Lahatre\Catalog\Database\Factories\CategoryFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
@@ -105,5 +106,10 @@ class Category extends Model
     {
         return $this->belongsToMany(Product::class, 'catalog_product_categories', 'category_id', 'product_id')
             ->using(ProductCategory::class);
+    }
+
+    protected static function newFactory(): CategoryFactory
+    {
+        return CategoryFactory::new();
     }
 }

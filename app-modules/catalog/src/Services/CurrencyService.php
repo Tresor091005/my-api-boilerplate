@@ -7,8 +7,9 @@ namespace Lahatre\Catalog\Services;
 use Lahatre\Catalog\DTO\CurrencyFilterDTO;
 use Lahatre\Catalog\Http\Resources\CurrencyCollection;
 use Lahatre\Catalog\Models\Currency;
+use Lahatre\Shared\Contracts\Services\StandaloneService;
 
-class CurrencyService
+class CurrencyService implements StandaloneService
 {
     public function list(CurrencyFilterDTO $filters): CurrencyCollection
     {

@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Assertions;
+
+use Illuminate\Support\Collection;
+use Lahatre\{{Module}}\Exceptions\{{Entity}}BusinessException;
+use Lahatre\{{Module}}\Models\{{Entity}};
+
+class {{ClassName}}
+{
+    /**
+     * Asserts that {{Entity}} can perform action.
+     * [Describe business intention here]
+     *
+     * @param  {{Entity}}  $entity
+     * @param  Collection<int, mixed>  $data  [Example of complex type doc]
+     *
+     * @throws {{Entity}}BusinessException If business rule is violated.
+     */
+    public function assertCanPerformAction({{Entity}} $entity, Collection $data): void
+    {
+        // if (violation) {
+        //     throw new {{Entity}}BusinessException($entity);
+        // }
+    }
+}

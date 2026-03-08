@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Exceptions\{{Entity}};
+
+use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\Shared\Exceptions\AssertionException;
+
+class {{ClassName}} extends AssertionException
+{
+    public function __construct({{Entity}} $entity)
+    {
+        parent::__construct(
+            __('{{ModuleLower}}::exceptions.{{TranslationKey}}'),
+            [
+                '{{EntityLower}}_id' => $entity->id,
+                // Add more context if needed
+            ]
+        );
+    }
+}

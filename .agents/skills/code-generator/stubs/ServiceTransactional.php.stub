@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Services\{{ParentEntity}};
+
+use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\Shared\Services\Contracts\TransactionalService;
+
+/**
+ * Shared logic for {{Entity}}, designed to run within a parent transaction.
+ */
+class {{ClassName}} implements TransactionalService
+{
+    public function process({{Entity}} $model, array $data): void
+    {
+        // Logic without DB::transaction
+        $model->update($data);
+    }
+}

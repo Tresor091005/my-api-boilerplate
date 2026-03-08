@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin \Lahatre\{{Module}}\Models\{{Entity}}
+ */
+class {{ClassName}} extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'         => $this->id,
+            'name'       => $this->name,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+
+            // Relations
+            // 'items' => BundleItemResource::collection($this->whenLoaded('items')),
+        ];
+    }
+}

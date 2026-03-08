@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Assertions;
 
-use Lahatre\Catalog\Exceptions\CategoryCannotBeDescendantParentException;
-use Lahatre\Catalog\Exceptions\CategoryHasChildrenException;
+use Lahatre\Catalog\Exceptions\Category\CategoryCannotBeDescendantParentException;
+use Lahatre\Catalog\Exceptions\Category\CategoryHasChildrenException;
 use Lahatre\Catalog\Models\Category;
 
 class CategoryAssertion

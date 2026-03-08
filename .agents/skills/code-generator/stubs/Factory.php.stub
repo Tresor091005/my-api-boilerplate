@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Lahatre\{{Module}}\Models\{{Entity}};
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\{{Module}}\Models\{{Entity}}>
+ */
+class {{ClassName}} extends Factory
+{
+    protected $model = {{Entity}}::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name'      => $this->faker->word(),
+            'is_active' => true,
+        ];
+    }
+}

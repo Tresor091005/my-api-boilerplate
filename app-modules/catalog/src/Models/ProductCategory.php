@@ -31,6 +31,8 @@ class ProductCategory extends Pivot
 
     protected $table = 'catalog_product_categories';
 
+    public $incrementing = false;
+
     protected $casts = [
         'id'          => 'string',
         'product_id'  => 'string',

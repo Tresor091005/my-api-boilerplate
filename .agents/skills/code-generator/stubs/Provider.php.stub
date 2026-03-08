@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class {{ClassName}} extends ServiceProvider
+{
+    public function register(): void
+    {
+        // $this->mergeConfigFrom(__DIR__.'/../../config/{{Config}}.php', '{{Config}}');
+    }
+
+    public function boot(): void
+    {
+        // Specific module boot logic (Sanctum, MorphMap, etc.)
+    }
+}

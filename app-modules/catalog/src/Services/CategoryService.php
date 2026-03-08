@@ -13,9 +13,10 @@ use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Http\Resources\CategoryResource;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
 
-class CategoryService
+class CategoryService implements StandaloneService
 {
     public function __construct(
         protected CategoryAssertion $categoryAssertion
@@ -99,12 +100,12 @@ class CategoryService
         });
     }
 
-    public function viewProducts(Category $category): ResourceCollection
+    public function products(Category $category): ResourceCollection
     {
         return ProductResource::collection(
-            $category->products->load([
+            $category->products()->with([
                 'optionValues.option',
-            ])
+            ])->get()
         );
     }
 }

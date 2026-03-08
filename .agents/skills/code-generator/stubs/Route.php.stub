@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Route;
+
+/* -----------------------------------------------------------------
+ | {{ModuleName}} endpoints
+ | -----------------------------------------------------------------
+ */
+Route::group([
+    'as'         => 'lahatre.{{ModuleLower}}.',
+    'prefix'     => 'v1/{{ModuleLower}}',
+    'middleware' => 'api',
+], function (): void {
+    Route::group([
+        'middleware' => 'auth.api',
+    ], function (): void {
+        // Route::apiResources([
+        //     '{{ResourceLower}}' => {{ResourceClassName}}Controller::class,
+        // ]);
+
+        // Additional routes here
+    });
+});
