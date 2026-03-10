@@ -83,17 +83,16 @@ class ProductService implements StandaloneService
 
         DB::transaction(function () use ($product, $dto): void {
             $product->save();
+
             $product->categories()->sync($dto->categories ?? []);
 
-            if ($dto->variants) {
-                $this->productVariantService->add($product, $dto->variants);
-            }
+            $this->productVariantService->add($product, $dto->variants ?? collect());
         });
 
         return ProductResource::make($product->load([
             'categories', 'optionValues.option',
             'variants' => [
-                'product', 'optionValues.option', 'unitGroup', 'prices.currency',
+                'product', 'optionValues.option', 'unitGroup', 'prices.currency', // TODO prices+currency
             ],
         ]));
     }

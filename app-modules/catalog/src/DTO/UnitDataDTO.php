@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\DTO;
 
+use Lahatre\Shared\DTO\LahatreDTO;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
-use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
-class UnitDataDTO extends ValidatedDTO
+class UnitDataDTO extends LahatreDTO
 {
     public ?string $id = null;
 

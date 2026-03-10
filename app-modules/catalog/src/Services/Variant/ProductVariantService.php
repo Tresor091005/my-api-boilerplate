@@ -9,11 +9,17 @@ use Illuminate\Support\Str;
 use Lahatre\Catalog\DTO\ProductVariantDataDTO;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\VariantOptionValue;
+use Lahatre\Catalog\Services\Option\OptionService;
 use Lahatre\Shared\Contracts\Services\TransactionalService;
 use Lahatre\Shared\Support\SkuGenerator;
 
 class ProductVariantService implements TransactionalService
 {
+    public function __construct(
+        protected OptionService $optionService
+    ) {}
+
     /**
      * @param  Collection<int, ProductVariantDataDTO>  $variantsData
      * @return array<int, string>
@@ -26,7 +32,7 @@ class ProductVariantService implements TransactionalService
 
         $now = now();
 
-        $rows = $variantsData->map(function (ProductVariantDataDTO $variantDto) use ($product, $now): array {
+        $variantRows = $variantsData->map(function (ProductVariantDataDTO $variantDto) use ($product, $now): array {
             return [
                 'id'            => (string) Str::uuid7(),
                 'product_id'    => $product->id,
@@ -39,8 +45,40 @@ class ProductVariantService implements TransactionalService
             ];
         });
 
-        ProductVariant::insert($rows->all());
+        ProductVariant::insert($variantRows->all());
 
-        return $rows->pluck('id')->all();
+        $allOptionsFromVariants = $variantsData->flatMap(fn (ProductVariantDataDTO $v): array => $v->options ?? []);
+        $optionValuesMap = $this->optionService->getOrCreate($allOptionsFromVariants);
+
+        $pivotRows = [];
+        foreach ($variantsData as $index => $variantDto) {
+            if (empty($variantDto->options)) {
+                continue;
+            }
+
+            $variantId = $variantRows[$index]['id'];
+
+            foreach ($variantDto->options as $optionData) {
+                $mapKey = $optionData['name'].'-'.$optionData['value'];
+
+                $optionValue = $optionValuesMap->get($mapKey);
+
+                if ($optionValue) {
+                    $pivotRows[] = [
+                        'id'              => (string) Str::uuid7(),
+                        'product_id'      => $product->id,
+                        'variant_id'      => $variantId,
+                        'option_id'       => $optionValue->option_id,
+                        'option_value_id' => $optionValue->id,
+                    ];
+                }
+            }
+        }
+
+        if (!empty($pivotRows)) {
+            VariantOptionValue::insert($pivotRows);
+        }
+
+        return $variantRows->pluck('id')->all();
     }
 }

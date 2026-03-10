@@ -6,10 +6,10 @@ namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
+use Lahatre\Shared\DTO\LahatreDTO;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
-use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
-class ProductVariantDataDTO extends ValidatedDTO
+class ProductVariantDataDTO extends LahatreDTO
 {
     public ?string $sku = null;
 
@@ -44,6 +44,13 @@ class ProductVariantDataDTO extends ValidatedDTO
             $data['sku'] = Str::toUpper($data['sku']);
         }
 
+        if (isset($data['options']) && is_array($data['options'])) {
+            $data['options'] = array_map(fn (array $option) => [
+                'name'  => isset($option['name']) ? Str::normalize($option['name']) : null,
+                'value' => isset($option['value']) ? Str::normalize($option['value']) : null,
+            ], $data['options']);
+        }
+
         return $data;
     }
 
@@ -58,5 +65,18 @@ class ProductVariantDataDTO extends ValidatedDTO
             'options.*.name'  => ['required_with:options', 'string', 'max:255'],
             'options.*.value' => ['required_with:options', 'string', 'max:255'],
         ];
+    }
+
+    protected function after(Validator $validator): void
+    {
+        if (empty($this->dtoData['options'])) {
+            return;
+        }
+
+        $names = collect($this->dtoData['options'])->pluck('name');
+
+        if ($names->unique()->count() !== $names->count()) {
+            $validator->errors()->add('options', __('catalog::validation.duplicate_option_names'));
+        }
     }
 }

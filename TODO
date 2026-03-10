@@ -27,17 +27,17 @@ CATEGORY
 
 PRODUCTS
 [x] GET    /products                    → list (categories + optionValues, sans variants)
-[] POST   /products                    → create > product complet (tout)
+[ ] POST   /products                    → create > product complet (tout)
 [x] GET    /products/{id}               → show > product + categories + optionValues + variants
-[] PATCH  /products/{id}               → update (infos + sync categories) > product + categories + optionValues
-[] DELETE /products/{id}               → delete
+[x] PATCH  /products/{id}               → update (infos + sync categories) > product + categories
+[ ] DELETE /products/{id}               → delete
 
 VARIANTS
-[] GET    /products/{id}/variants      → list (sans product)
-[] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
-[] GET    /variants/{id}               → show > variant complet + product light
-[] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
-[] DELETE /variants/{id}               → delete
+[ ] GET    /products/{id}/variants      → list (sans product)
+[ ] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
+[ ] GET    /variants/{id}               → show > variant complet + product light
+[ ] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
+[ ] DELETE /variants/{id}               → delete
 
 CURRENCIES (only list)
 [x] GET    /currencies                  → list
@@ -45,16 +45,17 @@ CURRENCIES (only list)
 UNITS (pas de delete)
 [x] GET    /units                      → list
 [x] POST   /units/sync                 → create & update
+[ ] DELETE /units                      → delete
 
 OPTIONS
-[] GET    /options                     → list (sans values)
-[] POST   /options                     → create (avec values) > option + values
-[] GET    /options/{id}                → show > option + values
-[] PATCH  /options/{id}                → update (infos + sync values, supprime liaisons orphelines) > option + values
-[] DELETE /options/{id}                → delete options and values
+[ ] GET    /options                     → list (sans values)
+[ ] POST   /options                     → create (avec values) > option + values
+[ ] GET    /options/{id}                → show > option + values
+[ ] PATCH  /options/{id}                → update (infos + sync values, supprime liaisons orphelines) > option + values
+[ ] DELETE /options/{id}                → delete options and values
 
 PRICES
-[] PATCH  /variants/{id}/prices        → addMany+updateMany+deleteMany > toutes les prices du variant
+[ ] PATCH  /variants/{id}/prices        → addMany+updateMany+deleteMany > toutes les prices du variant
 { "create": [...], "update": [...], "delete": [...] }
 
 
