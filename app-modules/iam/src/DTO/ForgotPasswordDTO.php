@@ -7,11 +7,9 @@ namespace Lahatre\Iam\DTO;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
-class LoginDTO extends LahatreDTO
+class ForgotPasswordDTO extends LahatreDTO
 {
     public string $email;
-
-    public string $password;
 
     protected function casts(): array
     {
@@ -31,8 +29,7 @@ class LoginDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'string', 'email'],
         ];
     }
 

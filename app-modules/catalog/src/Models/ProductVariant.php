@@ -18,12 +18,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $product_id
  * @property string $sku
- * @property string|null $unit_code
- * @property int $min_quantity
- * @property int|null $max_quantity
- * @property int $step
- * @property bool $is_default
- * @property bool $is_stockable
+ * @property string|null $unit_group_id
+ * @property bool $manage_stock
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -33,7 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
  * @property-read Product $product
- * @property-read Unit|null $unit
+ * @property-read UnitGroup|null $unitGroup
  * @property-read Collection<int, Price> $prices
  * @property-read int|null $prices_count
  *
@@ -43,14 +39,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant whereCreatedAt($value)
  * @method static Builder<static>|ProductVariant whereId($value)
  * @method static Builder<static>|ProductVariant whereIsActive($value)
- * @method static Builder<static>|ProductVariant whereIsDefault($value)
- * @method static Builder<static>|ProductVariant whereIsStockable($value)
- * @method static Builder<static>|ProductVariant whereMaxQuantity($value)
- * @method static Builder<static>|ProductVariant whereMinQuantity($value)
+ * @method static Builder<static>|ProductVariant whereManageStock($value)
  * @method static Builder<static>|ProductVariant whereProductId($value)
  * @method static Builder<static>|ProductVariant whereSku($value)
- * @method static Builder<static>|ProductVariant whereStep($value)
- * @method static Builder<static>|ProductVariant whereUnitCode($value)
+ * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
  * @method static Builder<static>|ProductVariant whereUpdatedAt($value)
  *
  * @mixin \Eloquent
@@ -64,28 +56,20 @@ class ProductVariant extends Model
     protected $fillable = [
         'product_id',
         'sku',
-        'unit_code',
-        'min_quantity',
-        'max_quantity',
-        'step',
-        'is_default',
-        'is_stockable',
+        'unit_group_id',
+        'manage_stock',
         'is_active',
     ];
 
     protected $casts = [
-        'id'           => 'string',
-        'product_id'   => 'string',
-        'sku'          => 'string',
-        'unit_code'    => 'string',
-        'min_quantity' => 'integer',
-        'max_quantity' => 'integer',
-        'step'         => 'integer',
-        'is_default'   => 'boolean',
-        'is_stockable' => 'boolean',
-        'is_active'    => 'boolean',
-        'created_at'   => 'immutable_datetime',
-        'updated_at'   => 'immutable_datetime',
+        'id'            => 'string',
+        'product_id'    => 'string',
+        'sku'           => 'string',
+        'unit_group_id' => 'string',
+        'manage_stock'  => 'boolean',
+        'is_active'     => 'boolean',
+        'created_at'    => 'immutable_datetime',
+        'updated_at'    => 'immutable_datetime',
     ];
 
     protected function optionsLabel(): Attribute
@@ -115,9 +99,9 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
-    public function unit(): BelongsTo
+    public function unitGroup(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_code', 'code');
+        return $this->belongsTo(UnitGroup::class, 'unit_group_id', 'id');
     }
 
     public function optionValues(): BelongsToMany

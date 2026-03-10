@@ -120,4 +120,7 @@ class UnitService implements StandaloneService
             return UnitGroupResource::make($group->load('units'));
         });
     }
+
+    // TODO : cannot delete group attached to variant ;
+    // cannot delete group attached to units ;
 }

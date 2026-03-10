@@ -9,14 +9,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Support\Carbon;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
-use Lahatre\Shared\Traits\HasAuthenticatableTraits;
-use Lahatre\Shared\Traits\SharedTraits;
+use Lahatre\Shared\Models\Authenticatable;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -67,8 +65,6 @@ use Laravel\Sanctum\PersonalAccessToken;
  */
 class CompanyMember extends Authenticatable
 {
-    use HasAuthenticatableTraits, SharedTraits;
-
     /**
      * The attributes that are mass assignable.
      *

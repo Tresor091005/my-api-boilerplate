@@ -6,9 +6,12 @@ namespace Lahatre\Iam\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Lahatre\Iam\DTO\ForgotPasswordDTO;
 use Lahatre\Iam\DTO\LoginDTO;
+use Lahatre\Iam\DTO\ResetPasswordDTO;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Services\AuthService;
+use Lahatre\Shared\Enums\AuthAccountType;
 
 class AuthController
 {
@@ -19,11 +22,11 @@ class AuthController
     /**
      * Authenticate a user and return an AuthResource.
      */
-    public function login(Request $request, string $type): AuthResource
+    public function login(Request $request, AuthAccountType $type): AuthResource
     {
-        $dto = LoginDTO::fromArray(array_merge($request->all(), ['type' => $type]));
+        $dto = LoginDTO::fromRequest($request);
 
-        return $this->authService->login($dto);
+        return $this->authService->login($type, $dto);
     }
 
     /**
@@ -51,10 +54,30 @@ class AuthController
      */
     public function switchUserRole(Request $request): JsonResponse
     {
+        // TODO validation missing
         $this->authService->switchUserRole(authContext()->user(), $request->input('role_id'));
 
         return response()->json([
             'message' => __('iam::messages.auth.role_switched'),
         ]);
+    }
+
+    public function forgotPassword(Request $request, AuthAccountType $type): JsonResponse
+    {
+        $dto = ForgotPasswordDTO::fromRequest($request);
+
+        $token = $this->authService->forgotPassword($type, $dto->email);
+
+        return response()->json(compact('token'));
+    }
+
+    public function resetPassword(Request $request, AuthAccountType $type): JsonResponse
+    {
+        // TODO validation missing
+        $dto = ResetPasswordDTO::fromRequest($request);
+
+        $this->authService->resetPassword($type, $dto);
+
+        return response()->json(['detail' => true]);
     }
 }

@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
-use App\Models\Company\CompanyMember;
-use App\Models\User\User;
-use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Lahatre\Iam\Auth\PersonalAccessToken;
 use Lahatre\Iam\DTO\LoginDTO;
+use Lahatre\Iam\DTO\ResetPasswordDTO;
 use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
+use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
-use Laravel\Sanctum\PersonalAccessToken;
+use Lahatre\Shared\Enums\AuthAccountType;
+use Lahatre\Shared\Models\Authenticatable;
 
 class AuthService implements StandaloneService
 {
@@ -21,22 +24,18 @@ class AuthService implements StandaloneService
      *
      * @throws InvalidLoginException
      */
-    public function login(LoginDTO $dto): AuthResource
+    public function login(AuthAccountType $type, LoginDTO $dto): AuthResource
     {
-        $authenticatable = match ($dto->type) {
-            'user'           => User::where('email', $dto->email)->first(),
-            'company-member' => CompanyMember::where('email', $dto->email)->first(),
-            default          => null,
-        };
+        /** @var Authenticatable|null $authenticatable */
+        $authenticatable = $type->model()::where('email', $dto->email)->first();
 
         if (!$authenticatable || !Hash::check($dto->password, $authenticatable->password)) {
             throw new InvalidLoginException();
         }
 
-        $metadata = match ($dto->type) {
+        $metadata = match ($type->value) {
             'user'           => ['type' => 'user', 'company_id' => null],
             'company-member' => ['type' => 'agent', 'company_id' => $authenticatable->company_id],
-            default          => null,
         };
 
         $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
@@ -61,12 +60,56 @@ class AuthService implements StandaloneService
      */
     public function switchUserRole(Authenticatable $user, string $roleId): void
     {
-        /** @var \Lahatre\Iam\Auth\PersonalAccessToken $token */
+        /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();
 
         $metadata = $token->metadata ?? [];
         $metadata['role_id'] = $roleId;
 
         $token->update(['metadata' => $metadata]);
+    }
+
+    /**
+     * Forgot password
+     */
+    public function forgotPassword(AuthAccountType $type, string $email): string
+    {
+        $class = $type->model();
+        $user = $class::where('email', $email)->first();
+
+        if (!$user) {
+            return '';
+        }
+
+        $token = Password::broker($type->authProvider())->createToken($user);
+
+        $link = 'http://localhost:8000/auth/reset-password?'.http_build_query([
+            'token' => $token,
+            'email' => $email,
+        ]);
+
+        return $link;
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(AuthAccountType $type, ResetPasswordDTO $dto): void
+    {
+        $status = DB::transaction(fn () => Password::broker($type->authProvider())->reset(
+            [
+                'email'    => $dto->email,
+                'password' => $dto->password,
+                'token'    => $dto->token,
+            ],
+            function (Authenticatable $user, string $password) {
+                $user->fill(['password' => $password]);
+                $user->save();
+            }
+        ));
+
+        if ($status !== Password::PASSWORD_RESET) {
+            throw new ResetPasswordFailedException();
+        }
     }
 }

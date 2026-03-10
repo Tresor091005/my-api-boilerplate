@@ -18,8 +18,11 @@ Route::group([
         'as'     => 'auth.',
         'prefix' => 'auth',
     ], function (): void {
-        Route::post('/{type}/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth')->name('register');
+
+        Route::post('/{type}/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
+        Route::post('/{type}/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth')->name('forgot-password');
+        Route::post('/{type}/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth')->name('reset-password');
 
         Route::group([
             'middleware' => ['auth.api'],

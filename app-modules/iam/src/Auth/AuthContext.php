@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Auth;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\Shared\Models\Authenticatable;
 
 class AuthContext
 {

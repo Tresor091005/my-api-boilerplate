@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\DTO\ProductDTO;
 use Lahatre\Catalog\DTO\ProductFilterDTO;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Services\Variant\ProductVariantService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Shared\Support\HandleGenerator;
 
 class ProductService implements StandaloneService
 {
     public function __construct(
-        protected ProductAssertion $productAssertion
+        protected ProductAssertion $productAssertion,
+        protected ProductVariantService $productVariantService
     ) {}
 
     public function list(ProductFilterDTO $filters): ProductCollection
@@ -39,11 +43,11 @@ class ProductService implements StandaloneService
 
         $query->orderBy($filters->sort_by, $filters->sort_order);
 
-        $categories = $filters->cursor
+        $products = $filters->cursor
             ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
             : $query->cursorPaginate($filters->per_page);
 
-        return ProductCollection::make($categories);
+        return ProductCollection::make($products);
     }
 
     public function retrieve(Product $product): ProductResource
@@ -54,7 +58,7 @@ class ProductService implements StandaloneService
             'variants' => [
                 'product',
                 'optionValues.option',
-                'unit',
+                'unitGroup',
                 'prices.currency',
             ],
         ]);
@@ -64,16 +68,56 @@ class ProductService implements StandaloneService
 
     public function create(ProductDTO $dto): ProductResource
     {
-        //
+        $product = new Product();
+
+        $product->fill([
+            'name'        => $dto->name,
+            'description' => $dto->description,
+            'is_active'   => $dto->is_active,
+        ]);
+
+        $product->handle = HandleGenerator::generate(
+            $dto->name,
+            $product->getTable()
+        );
+
+        DB::transaction(function () use ($product, $dto): void {
+            $product->save();
+            $product->categories()->sync($dto->categories ?? []);
+
+            if ($dto->variants) {
+                $this->productVariantService->add($product, $dto->variants);
+            }
+        });
+
+        return ProductResource::make($product->load([
+            'categories', 'optionValues.option',
+            'variants' => [
+                'product', 'optionValues.option', 'unitGroup', 'prices.currency',
+            ],
+        ]));
     }
 
-    public function update(Product $category, ProductDTO $dto): ProductResource
+    public function update(Product $product, ProductDTO $dto): ProductResource
     {
-        //
+        $product->fill([
+            'name'        => $dto->name,
+            'description' => $dto->description,
+            'is_active'   => $dto->is_active,
+        ]);
+
+        DB::transaction(function () use ($product, $dto): void {
+            $product->save();
+            if ($dto->categories !== null) {
+                $product->categories()->sync($dto->categories);
+            }
+        });
+
+        return ProductResource::make($product->load(['categories']));
     }
 
-    public function delete(Product $category): void
+    public function delete(Product $product): void
     {
-        //
+        // TODO: Implementation with assertions and cleanup
     }
 }

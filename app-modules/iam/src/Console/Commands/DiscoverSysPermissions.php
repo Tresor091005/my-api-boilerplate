@@ -21,7 +21,7 @@ class DiscoverSysPermissions extends Command
 
     public function handle(): int
     {
-        $this->info('Starting permission discovery...');
+        $this->info(__('iam::console.discovery.starting'));
 
         // Reset the permission cache
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
@@ -30,7 +30,7 @@ class DiscoverSysPermissions extends Command
         $actions = ['list', 'retrieve', 'create', 'update', 'delete'];
         $modulesPath = config('app-modules.modules_directory', 'app-modules');
 
-        $this->info("Scanning for models in: {$modulesPath}/*/src/Models");
+        $this->info(__('iam::console.discovery.scanning', ['path' => $modulesPath.'/*/src/Models']));
 
         $modelFiles = File::glob(base_path($modulesPath).'/*/src/Models/*.php');
 
@@ -43,7 +43,7 @@ class DiscoverSysPermissions extends Command
 
             $modelName = Str::plural(Str::snake(class_basename($class)));
 
-            $this->line("Discovered model: {$class} -> {$modelName}");
+            $this->line(__('iam::console.discovery.discovered_model', ['class' => $class, 'model' => $modelName]));
 
             foreach ($actions as $action) {
                 $permissionName = "{$modelName}.{$action}";
@@ -53,15 +53,15 @@ class DiscoverSysPermissions extends Command
                         'guard_name' => $guardName,
                     ],
                     [
-                        'title'       => ucfirst($action).' '.$modelName,
-                        'description' => "Allow to {$action} {$modelName}",
+                        'title'       => __('iam::console.permissions.title', ['action' => ucfirst($action), 'model' => $modelName]),
+                        'description' => __('iam::console.permissions.description', ['action' => $action, 'model' => $modelName]),
                     ]
                 );
-                $this->line("  ✔ Created permission: {$permissionName}");
+                $this->line(__('iam::console.discovery.created_permission', ['name' => $permissionName]));
             }
         }
 
-        $this->info('Model permissions discovery completed. Syncing roles...');
+        $this->info(__('iam::console.discovery.completed_syncing'));
 
         // Create Administrator role and assign all permissions
         $adminRole = Role::updateOrCreate(
@@ -71,12 +71,12 @@ class DiscoverSysPermissions extends Command
             ],
             [
                 'is_builtin'  => true,
-                'description' => 'Administrator with all permissions.',
+                'description' => __('iam::console.roles.administrator.description'),
             ]
         );
         $allPermissions = Permission::where('guard_name', $guardName)->get();
         $adminRole->syncPermissions($allPermissions);
-        $this->line('✔ Synced Administrator role.');
+        $this->line(__('iam::console.discovery.synced_administrator'));
 
         // Create a Default role with basic read-only permissions
         $defaultRole = Role::updateOrCreate(
@@ -86,7 +86,7 @@ class DiscoverSysPermissions extends Command
             ],
             [
                 'is_builtin'  => true,
-                'description' => 'Default role with basic access.',
+                'description' => __('iam::console.roles.default.description'),
             ]
         );
         $readPermissions = Permission::where('guard_name', $guardName)
@@ -95,12 +95,12 @@ class DiscoverSysPermissions extends Command
                     ->orWhere('name', 'like', '%.retrieve');
             })->get();
         $defaultRole->syncPermissions($readPermissions);
-        $this->line('✔ Synced Default role.');
+        $this->line(__('iam::console.discovery.synced_default'));
 
         // Reset the permission cache again
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $this->info('Permission discovery and role synchronization completed successfully!');
+        $this->info(__('iam::console.discovery.success'));
 
         return self::SUCCESS;
     }

@@ -7,9 +7,11 @@ namespace Lahatre\Iam\DTO;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
-class LoginDTO extends LahatreDTO
+class ResetPasswordDTO extends LahatreDTO
 {
     public string $email;
+
+    public string $token;
 
     public string $password;
 
@@ -32,7 +34,9 @@ class LoginDTO extends LahatreDTO
     {
         return [
             'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'token'    => ['required', 'string', 'max:200'],
+            'password' => ['required', 'string', 'confirmed'],
+            // TODO password rules for this
         ];
     }
 

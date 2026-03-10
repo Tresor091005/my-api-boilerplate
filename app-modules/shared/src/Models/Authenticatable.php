@@ -2,17 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Shared\Traits;
+namespace Lahatre\Shared\Models;
 
+use Illuminate\Foundation\Auth\User as BaseAuthenticatable;
 use Illuminate\Notifications\Notifiable;
+use Lahatre\Shared\Traits\SharedTraits;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-trait HasAuthenticatableTraits
+/**
+ * @property string $id
+ * @property string $email
+ * @property string $password
+ */
+abstract class Authenticatable extends BaseAuthenticatable
 {
-    use HasApiTokens;
-    use HasRoles;
-    use Notifiable;
+    use HasApiTokens, HasRoles, Notifiable;
+    use SharedTraits;
 
     // This config force use of a single guard by spatie/laravel-permissions
     // Should be equal to config('auth.defaults.guard') value

@@ -10,7 +10,7 @@ use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Models\Unit;
+use Lahatre\Catalog\Models\UnitGroup;
 
 class ProductSeeder extends Seeder
 {
@@ -19,11 +19,9 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // Fetch common units needed for variants
-        $kgUnit = Unit::where('code', 'kg')->first();
-        $gUnit = Unit::where('code', 'g')->first();
-        $mlUnit = Unit::where('code', 'ml')->first();
-        $ctUnit = Unit::where('code', 'ct')->first();
+        // Fetch common unit groups needed for variants
+        $massGroup = UnitGroup::where('name', 'mass')->first();
+        $packagingGroup = UnitGroup::where('name', 'packaging')->first();
 
         // Fetch product options and values
         $colorOption = Option::where('code', 'color')->first();
@@ -58,18 +56,16 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'IP15P-BLA-128',
-                        'unit_code'     => $gUnit->code, // Example: for a phone, might be unit of weight
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$blackColor, $storage128GB, $ram8GB],
                         'price'         => 750000,
                     ],
                     [
                         'sku'           => 'IP15P-SIL-256',
-                        'unit_code'     => $gUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => false,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$silverColor, $storage256GB, $ram16GB],
                         'price'         => 850000,
@@ -85,18 +81,16 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'SGS24-WHI-256',
-                        'unit_code'     => $gUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$whiteColor, $storage256GB],
                         'price'         => 650000,
                     ],
                     [
                         'sku'           => 'SGS24-BLU-512',
-                        'unit_code'     => $gUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => false,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$blueColor, $storage512GB],
                         'price'         => 780000,
@@ -112,18 +106,16 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'MBP16-SG-16-512',
-                        'unit_code'     => $kgUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$spaceGrayColor, $ram16GB, $storage512GB],
                         'price'         => 1500000,
                     ],
                     [
                         'sku'           => 'MBP16-SG-32-1TB',
-                        'unit_code'     => $kgUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => false,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$spaceGrayColor, $ram32GB, $storage1TB],
                         'price'         => 2100000,
@@ -139,9 +131,8 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'AW-M18-BLA-32-1TB',
-                        'unit_code'     => $kgUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$blackColor, $ram32GB, $storage1TB],
                         'price'         => 2500000,
@@ -157,9 +148,8 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'USB-C-HUB-SIL',
-                        'unit_code'     => $gUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
                         'option_values' => [$silverColor],
                         'price'         => 25000,
@@ -175,11 +165,10 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'WDT-OAK',
-                        'unit_code'     => $kgUnit->code,
-                        'min_quantity'  => 1,
-                        'is_default'    => true,
+                        'unit_group_id' => $massGroup?->id,
+                        'manage_stock'  => true,
                         'is_active'     => true,
-                        'option_values' => [], // No specific options for this example
+                        'option_values' => [],
                         'price'         => 175000,
                     ],
                 ],
