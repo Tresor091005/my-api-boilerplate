@@ -28,14 +28,14 @@ class UnitService implements StandaloneService
         $query = Unit::query()->with('group');
 
         if ($filters->code) {
-            $query->where('code', 'like', "%{$filters->code}%");
+            $query->where('code', 'like', "$filters->code}%");
         }
         if ($filters->name) {
-            $query->where('name', 'like', "%{$filters->name}%");
+            $query->where('name', 'like', "$filters->name}%");
         }
         if ($filters->group) {
             $query->whereHas('group', function ($q) use ($filters): void {
-                $q->where('name', 'like', "%{$filters->group}%");
+                $q->where('name', 'like', "$filters->group}%");
             });
         }
         if ($filters->is_builtin !== null) {
