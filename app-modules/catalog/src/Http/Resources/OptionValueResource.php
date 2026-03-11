@@ -22,7 +22,6 @@ class OptionValueResource extends JsonResource
     {
         return [
             'id'    => $this->id,
-            'code'  => $this->code,
             'value' => $this->value,
         ];
     }

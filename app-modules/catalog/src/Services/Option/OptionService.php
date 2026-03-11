@@ -49,9 +49,9 @@ class OptionService implements TransactionalService
             }
 
             return [
-                'id'        => (string) Str::uuid7(),
-                'option_id' => $option->id,
-                'value'     => $item['value'],
+                'id'         => (string) Str::uuid7(),
+                'option_id'  => $option->id,
+                'value'      => $item['value'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

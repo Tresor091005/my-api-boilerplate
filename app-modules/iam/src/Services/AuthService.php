@@ -35,7 +35,7 @@ class AuthService implements StandaloneService
 
         $metadata = match ($type->value) {
             'user'           => ['type' => 'user', 'company_id' => null],
-            'company-member' => ['type' => 'agent', 'company_id' => $authenticatable->company_id],
+            'company-member' => ['type' => 'agent', 'company_id' => data_get($authenticatable, 'company_id')],
         };
 
         $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
@@ -102,7 +102,7 @@ class AuthService implements StandaloneService
                 'password' => $dto->password,
                 'token'    => $dto->token,
             ],
-            function (Authenticatable $user, string $password) {
+            function (Authenticatable $user, string $password): void {
                 $user->fill(['password' => $password]);
                 $user->save();
             }

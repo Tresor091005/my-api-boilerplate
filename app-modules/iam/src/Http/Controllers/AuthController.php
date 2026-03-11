@@ -68,7 +68,7 @@ class AuthController
 
         $token = $this->authService->forgotPassword($type, $dto->email);
 
-        return response()->json(compact('token'));
+        return response()->json(['token' => $token]);
     }
 
     public function resetPassword(Request $request, AuthAccountType $type): JsonResponse

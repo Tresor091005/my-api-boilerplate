@@ -45,7 +45,7 @@ class ProductVariantDataDTO extends LahatreDTO
         }
 
         if (isset($data['options']) && is_array($data['options'])) {
-            $data['options'] = array_map(fn (array $option) => [
+            $data['options'] = array_map(fn (array $option): array => [
                 'name'  => isset($option['name']) ? Str::normalize($option['name']) : null,
                 'value' => isset($option['value']) ? Str::normalize($option['value']) : null,
             ], $data['options']);

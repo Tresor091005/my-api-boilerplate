@@ -14,7 +14,6 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
- * @property string $code
  * @property string $name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -27,7 +26,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Option newModelQuery()
  * @method static Builder<static>|Option newQuery()
  * @method static Builder<static>|Option query()
- * @method static Builder<static>|Option whereCode($value)
  * @method static Builder<static>|Option whereCreatedAt($value)
  * @method static Builder<static>|Option whereId($value)
  * @method static Builder<static>|Option whereName($value)
@@ -42,13 +40,11 @@ class Option extends Model
     protected $table = 'catalog_options';
 
     protected $fillable = [
-        'code',
         'name',
     ];
 
     protected $casts = [
         'id'         => 'string',
-        'code'       => 'string',
         'name'       => 'string',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',

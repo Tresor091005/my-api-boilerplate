@@ -32,18 +32,16 @@ class ProductVariantService implements TransactionalService
 
         $now = now();
 
-        $variantRows = $variantsData->map(function (ProductVariantDataDTO $variantDto) use ($product, $now): array {
-            return [
-                'id'            => (string) Str::uuid7(),
-                'product_id'    => $product->id,
-                'sku'           => $variantDto->sku ?? SkuGenerator::generate($product->name),
-                'unit_group_id' => $variantDto->unit_group_id,
-                'manage_stock'  => $variantDto->manage_stock,
-                'is_active'     => $variantDto->is_active,
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            ];
-        });
+        $variantRows = $variantsData->map(fn (ProductVariantDataDTO $variantDto): array => [
+            'id'            => (string) Str::uuid7(),
+            'product_id'    => $product->id,
+            'sku'           => $variantDto->sku ?? SkuGenerator::generate($product->name),
+            'unit_group_id' => $variantDto->unit_group_id,
+            'manage_stock'  => $variantDto->manage_stock,
+            'is_active'     => $variantDto->is_active,
+            'created_at'    => $now,
+            'updated_at'    => $now,
+        ]);
 
         ProductVariant::insert($variantRows->all());
 
@@ -75,7 +73,7 @@ class ProductVariantService implements TransactionalService
             }
         }
 
-        if (!empty($pivotRows)) {
+        if ($pivotRows !== []) {
             VariantOptionValue::insert($pivotRows);
         }
 

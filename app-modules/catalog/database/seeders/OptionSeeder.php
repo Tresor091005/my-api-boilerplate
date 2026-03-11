@@ -17,46 +17,42 @@ class OptionSeeder extends Seeder
     {
         $optionsData = [
             [
-                'code'   => 'color',
-                'name'   => 'Color',
+                'name'   => 'color',
                 'values' => [
-                    ['code' => 'black', 'value' => 'Black'],
-                    ['code' => 'white', 'value' => 'White'],
-                    ['code' => 'silver', 'value' => 'Silver'],
-                    ['code' => 'space-gray', 'value' => 'Space Gray'],
-                    ['code' => 'blue', 'value' => 'Blue'],
-                    ['code' => 'red', 'value' => 'Red'],
+                    ['value' => 'black'],
+                    ['value' => 'white'],
+                    ['value' => 'silver'],
+                    ['value' => 'space-gray'],
+                    ['value' => 'blue'],
+                    ['value' => 'red'],
                 ],
             ],
             [
-                'code'   => 'size',
-                'name'   => 'Size',
+                'name'   => 'size',
                 'values' => [
-                    ['code' => 's', 'value' => 'Small'],
-                    ['code' => 'm', 'value' => 'Medium'],
-                    ['code' => 'l', 'value' => 'Large'],
-                    ['code' => 'xl', 'value' => 'X-Large'],
+                    ['value' => 's'],
+                    ['value' => 'm'],
+                    ['value' => 'l'],
+                    ['value' => 'xl'],
                 ],
             ],
             [
-                'code'   => 'storage',
-                'name'   => 'Storage',
+                'name'   => 'storage',
                 'values' => [
-                    ['code' => '64gb', 'value' => '64 GB'],
-                    ['code' => '128gb', 'value' => '128 GB'],
-                    ['code' => '256gb', 'value' => '256 GB'],
-                    ['code' => '512gb', 'value' => '512 GB'],
-                    ['code' => '1tb', 'value' => '1 TB'],
+                    ['value' => '64gb'],
+                    ['value' => '128gb'],
+                    ['value' => '256gb'],
+                    ['value' => '512gb'],
+                    ['value' => '1tb'],
                 ],
             ],
             [
-                'code'   => 'ram',
-                'name'   => 'RAM',
+                'name'   => 'ram',
                 'values' => [
-                    ['code' => '8gb', 'value' => '8 GB'],
-                    ['code' => '16gb', 'value' => '16 GB'],
-                    ['code' => '32gb', 'value' => '32 GB'],
-                    ['code' => '64gb', 'value' => '64 GB'],
+                    ['value' => '8gb'],
+                    ['value' => '16gb'],
+                    ['value' => '32gb'],
+                    ['value' => '64gb'],
                 ],
             ],
         ];
@@ -66,7 +62,7 @@ class OptionSeeder extends Seeder
             unset($optionData['values']);
 
             $Option = Option::firstOrCreate(
-                ['code' => $optionData['code']],
+                ['name' => $optionData['name']],
                 $optionData
             );
 
@@ -74,7 +70,7 @@ class OptionSeeder extends Seeder
                 OptionValue::firstOrCreate(
                     [
                         'option_id' => $Option->id,
-                        'code'      => $optionValueData['code'],
+                        'value'     => $optionValueData['value'],
                     ],
                     $optionValueData
                 );
