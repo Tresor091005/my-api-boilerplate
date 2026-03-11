@@ -8,11 +8,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\Shared\DTO\LahatreDTO;
 use Lahatre\Shared\Rules\BulkExists;
-use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
-use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
-use WendellAdriel\ValidatedDTO\Casting\CollectionCast;
-use WendellAdriel\ValidatedDTO\Casting\DTOCast;
-use WendellAdriel\ValidatedDTO\Casting\StringCast;
 
 class ProductDTO extends LahatreDTO
 {
@@ -31,9 +26,9 @@ class ProductDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'is_active'  => new BooleanCast(),
-            'categories' => new ArrayCast(new StringCast()),
-            'variants'   => new CollectionCast(new DTOCast(ProductVariantDataDTO::class)),
+            'is_active'  => 'bool',
+            'categories' => 'array:string',
+            'variants'   => 'collection:' . ProductVariantDataDTO::class,
         ];
     }
 
@@ -61,7 +56,7 @@ class ProductDTO extends LahatreDTO
             'is_active'   => ['boolean'],
             'categories'  => ['nullable', 'array', new BulkExists('catalog_categories')],
             'variants'    => [
-                $this->isUpdate() ? 'prohibited' : 'nullable',
+                $this->modelId ? 'prohibited' : 'nullable',
                 'array',
                 new BulkExists('catalog_unit_groups', 'id', 'unit_group_id', 'uuid', true),
             ],

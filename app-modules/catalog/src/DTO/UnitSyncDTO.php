@@ -9,8 +9,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Lahatre\Shared\DTO\LahatreDTO;
 use Lahatre\Shared\Rules\BulkExists;
-use WendellAdriel\ValidatedDTO\Casting\CollectionCast;
-use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 
 class UnitSyncDTO extends LahatreDTO
 {
@@ -24,7 +22,7 @@ class UnitSyncDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'units' => new CollectionCast(new DTOCast(UnitDataDTO::class)),
+            'units' => 'collection:' . UnitDataDTO::class,
         ];
     }
 

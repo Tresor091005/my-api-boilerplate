@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\DTO;
 
 use Lahatre\Shared\DTO\LahatreDTO;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
 class UnitDataDTO extends LahatreDTO
 {
@@ -20,7 +19,7 @@ class UnitDataDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'ratio' => new IntegerCast(),
+            'ratio' => 'integer',
         ];
     }
 

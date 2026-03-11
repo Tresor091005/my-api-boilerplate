@@ -7,7 +7,6 @@ namespace Lahatre\Catalog\DTO;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
-use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 
 class CategoryDTO extends LahatreDTO
 {
@@ -20,7 +19,7 @@ class CategoryDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'is_active' => new BooleanCast(),
+            'is_active' => 'boolean',
         ];
     }
 

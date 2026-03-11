@@ -6,8 +6,6 @@ namespace Lahatre\{{Module}}\DTO;
 
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
-use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
 class {{ClassName}} extends LahatreDTO
 {
@@ -17,8 +15,8 @@ class {{ClassName}} extends LahatreDTO
     protected function casts(): array
     {
         return [
-            // 'per_page'  => new IntegerCast(),
-            // 'is_active' => new BooleanCast(),
+            // 'per_page'  => 'integer',
+            // 'is_active' => 'boolean',
         ];
     }
 

@@ -6,7 +6,6 @@ namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Validation\Rule;
 use Lahatre\Shared\DTO\LahatreDTO;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
 class CurrencyFilterDTO extends LahatreDTO
 {
@@ -25,7 +24,7 @@ class CurrencyFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'per_page' => new IntegerCast(),
+            'per_page' => 'integer',
         ];
     }
 

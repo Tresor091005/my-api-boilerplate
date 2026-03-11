@@ -7,7 +7,6 @@ namespace Lahatre\Catalog\DTO;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
-use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 
 class ProductVariantDataDTO extends LahatreDTO
 {
@@ -25,8 +24,8 @@ class ProductVariantDataDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'manage_stock' => new BooleanCast(),
-            'is_active'    => new BooleanCast(),
+            'manage_stock' => 'boolean',
+            'is_active'    => 'boolean',
         ];
     }
 
