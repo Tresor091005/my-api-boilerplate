@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b7a59af4e51480001ece60fa43bbf3dc",
+    "content-hash": "32f6874293c0443a4d69c67503533bf5",
     "packages": [
         {
             "name": "brick/math",
@@ -2938,16 +2938,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.8.0",
+            "version": "2.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "4efa10c1e56488e658d10adf7b7b7dcd19940bfb"
+                "reference": "84b1ca48347efdbe775426f108622a42735a6579"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/4efa10c1e56488e658d10adf7b7b7dcd19940bfb",
-                "reference": "4efa10c1e56488e658d10adf7b7b7dcd19940bfb",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/84b1ca48347efdbe775426f108622a42735a6579",
+                "reference": "84b1ca48347efdbe775426f108622a42735a6579",
                 "shasum": ""
             },
             "require": {
@@ -2972,9 +2972,9 @@
                 "phpstan/phpstan": "^1.8.2",
                 "phpunit/phpunit": "^9.5.21 || ^10.5.9 || ^11.0.0",
                 "scrutinizer/ocular": "^1.8.1",
-                "symfony/finder": "^5.3 | ^6.0 | ^7.0",
-                "symfony/process": "^5.4 | ^6.0 | ^7.0",
-                "symfony/yaml": "^2.3 | ^3.0 | ^4.0 | ^5.0 | ^6.0 | ^7.0",
+                "symfony/finder": "^5.3 | ^6.0 | ^7.0 || ^8.0",
+                "symfony/process": "^5.4 | ^6.0 | ^7.0 || ^8.0",
+                "symfony/yaml": "^2.3 | ^3.0 | ^4.0 | ^5.0 | ^6.0 | ^7.0 || ^8.0",
                 "unleashedtech/php-coding-standard": "^3.1.1",
                 "vimeo/psalm": "^4.24.0 || ^5.0.0 || ^6.0.0"
             },
@@ -3041,7 +3041,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-26T21:48:24+00:00"
+            "time": "2026-03-05T21:37:03+00:00"
         },
         {
             "name": "league/config",
@@ -9243,81 +9243,6 @@
                 }
             ],
             "time": "2024-11-21T01:49:47+00:00"
-        },
-        {
-            "name": "wendelladriel/laravel-validated-dto",
-            "version": "v4.4.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/WendellAdriel/laravel-validated-dto.git",
-                "reference": "3c97d385fad6170c3efbeec90df343249c613900"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/WendellAdriel/laravel-validated-dto/zipball/3c97d385fad6170c3efbeec90df343249c613900",
-                "reference": "3c97d385fad6170c3efbeec90df343249c613900",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/console": "^11.0|^12.0",
-                "illuminate/database": "^11.0|^12.0",
-                "illuminate/http": "^11.0|^12.0",
-                "illuminate/support": "^11.0|^12.0",
-                "illuminate/validation": "^11.0|^12.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.21",
-                "orchestra/testbench": "^9.0|^10.0",
-                "pestphp/pest": "^2.0|^3.0",
-                "pestphp/pest-plugin-faker": "^2.0|^3.0",
-                "spatie/typescript-transformer": "^2.4"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "WendellAdriel\\ValidatedDTO\\Providers\\ValidatedDTOServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "WendellAdriel\\ValidatedDTO\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Wendell Adriel",
-                    "email": "wendelladriel.ti@gmail.com"
-                }
-            ],
-            "description": "Data Transfer Objects with validation for Laravel applications",
-            "keywords": [
-                "Data Transfer Object",
-                "dto",
-                "laravel",
-                "validation"
-            ],
-            "support": {
-                "issues": "https://github.com/WendellAdriel/laravel-validated-dto/issues",
-                "source": "https://github.com/WendellAdriel/laravel-validated-dto"
-            },
-            "funding": [
-                {
-                    "url": "https://www.paypal.me/wendelladriel",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/WendellAdriel",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-01-16T18:37:23+00:00"
         }
     ],
     "packages-dev": [
