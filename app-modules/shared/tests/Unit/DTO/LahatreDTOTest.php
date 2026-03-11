@@ -8,16 +8,27 @@ use Lahatre\Shared\DTO\LahatreDTO;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Validator;
 
 class NestedDTO extends LahatreDTO
 {
     public string $name;
+
+    protected function defaults(): array
+    {
+        return [];
+    }
 
     protected function rules(): array
     {
         return [
             'name' => 'required|string',
         ];
+    }
+
+    protected function casts(): array
+    {
+        return [];
     }
 }
 
@@ -73,7 +84,6 @@ class TestDTO extends LahatreDTO
     }
 }
 
-
 it('casts simple types from strings', function () {
     $dto = new TestDTO([
         'title' => 'Hello',
@@ -102,7 +112,7 @@ it('merges defaults', function () {
         ->and($dto->age)->toBe(18);
 });
 
-it('executes before hook', function () {
+it('executes beforeValidation hook', function () {
     $dto = new TestDTO(['title' => 'Hello World']);
 
     expect($dto->slug)->toBe('hello-world');
@@ -170,4 +180,27 @@ it('handles forUpdate', function () {
     expect($dto->title)->toBe('New Title')
         ->and($dto->age)->toBe(30)
         ->and($dto->toArray()['title'])->toBe('New Title');
+});
+
+it('resolves from JSON', function () {
+    $json = json_encode([
+        'title' => 'JSON Title',
+        'age' => 40,
+        'is_active' => true
+    ]);
+
+    $dto = TestDTO::fromJson($json);
+
+    expect($dto->title)->toBe('JSON Title')
+        ->and($dto->age)->toBe(40);
+});
+
+it('sanitizes strings automatically', function () {
+    $dto = new TestDTO([
+        'title' => '  Hello   World  ',
+        'age' => 20,
+        'is_active' => true
+    ]);
+
+    expect($dto->title)->toBe('Hello World');
 });

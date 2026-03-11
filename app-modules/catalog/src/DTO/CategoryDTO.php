@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Support\Str;
-use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
 class CategoryDTO extends LahatreDTO
@@ -19,7 +18,7 @@ class CategoryDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'is_active' => 'bool',
         ];
     }
 
@@ -46,10 +45,5 @@ class CategoryDTO extends LahatreDTO
             'parent_id' => ['nullable', 'string', 'exists:catalog_categories,id'],
             'is_active' => ['required', 'boolean'],
         ];
-    }
-
-    protected function after(Validator $validator): void
-    {
-        //
     }
 }

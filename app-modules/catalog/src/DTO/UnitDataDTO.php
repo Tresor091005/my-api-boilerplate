@@ -19,7 +19,7 @@ class UnitDataDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'ratio' => 'integer',
+            'ratio' => 'int',
         ];
     }
 

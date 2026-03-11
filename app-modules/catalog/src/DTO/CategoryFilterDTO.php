@@ -28,8 +28,8 @@ class CategoryFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'per_page'  => 'integer',
-            'is_active' => 'boolean',
+            'per_page'  => 'int',
+            'is_active' => 'bool',
         ];
     }
 
@@ -55,6 +55,4 @@ class CategoryFilterDTO extends LahatreDTO
             'parent_id'  => ['nullable', 'string'],
         ];
     }
-
-    // TODO generation command
 }

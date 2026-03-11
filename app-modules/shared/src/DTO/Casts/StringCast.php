@@ -8,6 +8,6 @@ class StringCast implements Castable
 {
     public function cast(string $key, mixed $value): string
     {
-        return (string) $value;
+        return trim(preg_replace('/\s+/', ' ', (string) $value));
     }
 }

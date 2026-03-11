@@ -24,7 +24,7 @@ class CurrencyFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'per_page' => 'integer',
+            'per_page' => 'int',
         ];
     }
 

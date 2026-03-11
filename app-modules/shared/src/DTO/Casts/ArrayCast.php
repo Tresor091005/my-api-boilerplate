@@ -10,7 +10,9 @@ class ArrayCast implements Castable
 
     public function cast(string $key, mixed $value): array
     {
-        if (is_null($value)) return [];
+        if (is_null($value)) {
+            return [];
+        }
 
         if (is_string($value)) {
             $decoded = json_decode($value, true);
@@ -20,7 +22,7 @@ class ArrayCast implements Castable
         }
 
         if ($this->subCast) {
-            return array_map(fn($item) => $this->subCast->cast($key, $item), $value);
+            return array_map(fn ($item) => $this->subCast->cast($key, $item), $value);
         }
 
         return $value;

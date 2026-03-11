@@ -17,7 +17,7 @@ class CollectionCast implements Castable
         return collect($array)
             ->when(
                 $this->type,
-                fn($col) => $col->map(fn($item) => $this->type->cast($key, $item))
+                fn ($col) => $col->map(fn ($item) => $this->type->cast($key, $item))
             );
     }
 }

@@ -28,8 +28,8 @@ class UnitFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'per_page'   => 'integer',
-            'is_builtin' => 'boolean',
+            'per_page'   => 'int',
+            'is_builtin' => 'bool',
         ];
     }
 

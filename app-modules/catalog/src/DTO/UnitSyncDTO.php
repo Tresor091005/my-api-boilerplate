@@ -22,7 +22,7 @@ class UnitSyncDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'units' => 'collection:' . UnitDataDTO::class,
+            'units' => 'collection:'.UnitDataDTO::class,
         ];
     }
 
@@ -62,5 +62,10 @@ class UnitSyncDTO extends LahatreDTO
                 new BulkExists('catalog_units', 'id', 'id', 'uuid', true),
             ],
         ];
+    }
+
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        //
     }
 }

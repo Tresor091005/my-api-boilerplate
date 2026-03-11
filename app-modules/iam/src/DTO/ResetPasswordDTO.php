@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\DTO;
 
-use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
 class ResetPasswordDTO extends LahatreDTO
@@ -25,11 +24,6 @@ class ResetPasswordDTO extends LahatreDTO
         return [];
     }
 
-    protected function beforeValidation(array $data): array
-    {
-        return $data;
-    }
-
     protected function rules(): array
     {
         return [
@@ -38,10 +32,5 @@ class ResetPasswordDTO extends LahatreDTO
             'password' => ['required', 'string', 'confirmed'],
             // TODO password rules for this
         ];
-    }
-
-    protected function after(Validator $validator): void
-    {
-        //
     }
 }
