@@ -15,6 +15,7 @@ use Lahatre\Shared\DTO\Casts\FloatCast;
 use Lahatre\Shared\DTO\Casts\IntegerCast;
 use Lahatre\Shared\DTO\Casts\ObjectCast;
 use Lahatre\Shared\DTO\Casts\StringCast;
+use Lahatre\Shared\DTO\LahatreDTO;
 
 trait HasCasting
 {
@@ -104,7 +105,7 @@ trait HasCasting
      */
     protected function resolveComplexCast(string $cast): Castable
     {
-        if (is_subclass_of($cast, \Lahatre\Shared\DTO\LahatreDTO::class)) {
+        if (is_subclass_of($cast, LahatreDTO::class)) {
             return new DTOCast($cast);
         }
 

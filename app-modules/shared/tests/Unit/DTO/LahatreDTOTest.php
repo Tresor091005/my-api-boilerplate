@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Lahatre\Shared\Tests\Unit\DTO;
 
-use Lahatre\Shared\DTO\LahatreDTO;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Http\Request;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Validation\Validator;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Lahatre\Shared\DTO\LahatreDTO;
 
 class NestedDTO extends LahatreDTO
 {
@@ -35,18 +35,24 @@ class NestedDTO extends LahatreDTO
 class TestDTO extends LahatreDTO
 {
     public string $title;
+
     public string $slug;
+
     public int $age;
+
     public bool $is_active;
-    public ?\Carbon\CarbonImmutable $published_at;
-    public ?NestedDTO $nested;
+
+    public ?CarbonImmutable $published_at = null;
+
+    public ?NestedDTO $nested = null;
+
     /** @var NestedDTO[] */
     public array $items;
 
     protected function defaults(): array
     {
         return [
-            'age' => 18,
+            'age'       => 18,
             'is_active' => false,
         ];
     }
@@ -56,89 +62,90 @@ class TestDTO extends LahatreDTO
         if (isset($data['title'])) {
             $data['slug'] = strtolower(str_replace(' ', '-', $data['title']));
         }
+
         return $data;
     }
 
     protected function rules(): array
     {
         return [
-            'title' => 'required|string',
-            'slug' => 'required|string',
-            'age' => 'required|integer',
-            'is_active' => 'required|boolean',
+            'title'        => 'required|string',
+            'slug'         => 'required|string',
+            'age'          => 'required|integer',
+            'is_active'    => 'required|boolean',
             'published_at' => 'nullable|date',
-            'nested' => 'nullable|array',
-            'items' => 'nullable|array',
+            'nested'       => 'nullable|array',
+            'items'        => 'nullable|array',
         ];
     }
 
     protected function casts(): array
     {
         return [
-            'nested' => NestedDTO::class,
-            'items' => 'array:' . NestedDTO::class,
-            'age' => 'int',
-            'is_active' => 'bool',
+            'nested'       => NestedDTO::class,
+            'items'        => 'array:'.NestedDTO::class,
+            'age'          => 'int',
+            'is_active'    => 'bool',
             'published_at' => 'immutable_datetime',
         ];
     }
 }
 
-it('casts simple types from strings', function () {
+it('casts simple types from strings', function (): void {
     $dto = new TestDTO([
-        'title' => 'Hello',
-        'age' => '25',
-        'is_active' => '1'
+        'title'     => 'Hello',
+        'age'       => '25',
+        'is_active' => '1',
     ]);
 
     expect($dto->age)->toBe(25)
         ->and($dto->is_active)->toBeTrue();
 });
 
-it('casts immutable datetimes', function () {
+it('casts immutable datetimes', function (): void {
     $dto = new TestDTO([
-        'title' => 'Hello',
-        'published_at' => '2026-03-11 10:00:00'
+        'title'        => 'Hello',
+        'published_at' => '2026-03-11 10:00:00',
     ]);
 
-    expect($dto->published_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class)
+    expect($dto->published_at)->toBeInstanceOf(CarbonImmutable::class)
         ->and($dto->published_at->format('Y-m-d'))->toBe('2026-03-11');
 });
 
-it('merges defaults', function () {
+it('merges defaults', function (): void {
     $dto = new TestDTO(['title' => 'Hello World']);
 
     expect($dto->title)->toBe('Hello World')
         ->and($dto->age)->toBe(18);
 });
 
-it('executes beforeValidation hook', function () {
+it('executes beforeValidation hook', function (): void {
     $dto = new TestDTO(['title' => 'Hello World']);
 
     expect($dto->slug)->toBe('hello-world');
 });
 
-it('validates data', function () {
-    expect(fn() => new TestDTO([]))->toThrow(ValidationException::class);
+it('validates data', function (): void {
+    expect(fn (): TestDTO => new TestDTO([]))->toThrow(ValidationException::class);
 });
 
-it('casts nested DTO', function () {
+it('casts nested DTO', function (): void {
     $dto = new TestDTO([
-        'title' => 'Hello',
-        'nested' => ['name' => 'John Doe']
+        'title'  => 'Hello',
+        'nested' => ['name' => 'John Doe'],
     ]);
 
     expect($dto->nested)->toBeInstanceOf(NestedDTO::class)
         ->and($dto->nested->name)->toBe('John Doe');
 });
 
-it('casts array of DTOs', function () {
+it('casts array of DTOs', function (): void {
     $dto = new TestDTO([
         'title' => 'Hello',
         'items' => [
             ['name' => 'Item 1'],
             ['name' => 'Item 2'],
-        ]
+        ],
     ]);
 
     expect($dto->items)->toBeArray()
@@ -147,11 +154,11 @@ it('casts array of DTOs', function () {
         ->and($dto->items[1]->name)->toBe('Item 2');
 });
 
-it('converts to array recursively', function () {
+it('converts to array recursively', function (): void {
     $dto = new TestDTO([
-        'title' => 'Hello',
+        'title'  => 'Hello',
         'nested' => ['name' => 'John Doe'],
-        'items' => [['name' => 'Item 1']]
+        'items'  => [['name' => 'Item 1']],
     ]);
 
     $array = $dto->toArray();
@@ -161,20 +168,29 @@ it('converts to array recursively', function () {
         ->and($array['items'][0]['name'])->toBe('Item 1');
 });
 
-it('handles forUpdate', function () {
+it('handles forUpdate', function (): void {
     // Mock a model
-    $model = new class extends Model {
+    $model = new class() extends Model
+    {
         protected $attributes = [
-            'id' => 123,
+            'id'    => 123,
             'title' => 'Old Title',
-            'age' => 30
+            'age'   => 30,
         ];
-        public function getKey() { return 123; }
-        public function getAttributes() { return $this->attributes; }
+
+        public function getKey()
+        {
+            return 123;
+        }
+
+        public function getAttributes()
+        {
+            return $this->attributes;
+        }
     };
 
     $request = new Request(['title' => 'New Title']);
-    
+
     $dto = TestDTO::forUpdate($request, $model);
 
     expect($dto->title)->toBe('New Title')
@@ -182,11 +198,11 @@ it('handles forUpdate', function () {
         ->and($dto->toArray()['title'])->toBe('New Title');
 });
 
-it('resolves from JSON', function () {
+it('resolves from JSON', function (): void {
     $json = json_encode([
-        'title' => 'JSON Title',
-        'age' => 40,
-        'is_active' => true
+        'title'     => 'JSON Title',
+        'age'       => 40,
+        'is_active' => true,
     ]);
 
     $dto = TestDTO::fromJson($json);
@@ -195,11 +211,11 @@ it('resolves from JSON', function () {
         ->and($dto->age)->toBe(40);
 });
 
-it('sanitizes strings automatically', function () {
+it('sanitizes strings automatically', function (): void {
     $dto = new TestDTO([
-        'title' => '  Hello   World  ',
-        'age' => 20,
-        'is_active' => true
+        'title'     => '  Hello   World  ',
+        'age'       => 20,
+        'is_active' => true,
     ]);
 
     expect($dto->title)->toBe('Hello World');

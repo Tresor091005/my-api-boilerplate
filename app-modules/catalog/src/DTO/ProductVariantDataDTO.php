@@ -66,7 +66,7 @@ class ProductVariantDataDTO extends LahatreDTO
         ];
     }
 
-    protected function withValidator(\Illuminate\Validation\Validator $validator): void
+    protected function withValidator(Validator $validator): void
     {
         if (empty($this->dtoData['options'])) {
             return;

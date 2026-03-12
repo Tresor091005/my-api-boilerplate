@@ -22,7 +22,7 @@ class EnumCast implements Castable
         if (is_subclass_of($this->enumClass, BackedEnum::class)) {
             $result = $this->enumClass::tryFrom($value);
             if ($result === null) {
-                throw new \ValueError("Invalid value '$value' for enum {$this->enumClass}");
+                throw new \ValueError(__('shared::exceptions.enum.invalid_value', ['value' => $value, 'enum_class' => $this->enumClass]));
             }
 
             return $result;
@@ -34,6 +34,6 @@ class EnumCast implements Castable
             }
         }
 
-        throw new \ValueError("Invalid value '$value' for enum {$this->enumClass}");
+        throw new \ValueError(__('shared::exceptions.enum.invalid_value', ['value' => $value, 'enum_class' => $this->enumClass]));
     }
 }

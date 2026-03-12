@@ -22,7 +22,7 @@ class ArrayCast implements Castable
         }
 
         if ($this->subCast) {
-            return array_map(fn ($item) => $this->subCast->cast($key, $item), $value);
+            return array_map(fn ($item): mixed => $this->subCast->cast($key, $item), $value);
         }
 
         return $value;

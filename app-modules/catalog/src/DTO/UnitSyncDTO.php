@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\DTO;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 use Lahatre\Shared\Rules\BulkExists;
 
@@ -64,7 +65,7 @@ class UnitSyncDTO extends LahatreDTO
         ];
     }
 
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
         //
     }

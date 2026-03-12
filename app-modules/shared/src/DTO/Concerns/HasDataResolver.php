@@ -18,7 +18,7 @@ trait HasDataResolver
     {
         $jsonDecoded = json_decode($json, true);
         if (!is_array($jsonDecoded)) {
-            throw new \RuntimeException('Invalid JSON provided.');
+            throw new \RuntimeException(__('shared::exceptions.dto.invalid_json'));
         }
 
         return new static($jsonDecoded);

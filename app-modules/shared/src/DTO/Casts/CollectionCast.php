@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 class CollectionCast implements Castable
 {
-    public function __construct(private ?Castable $type = null) {}
+    public function __construct(private readonly ?Castable $type = null) {}
 
     public function cast(string $key, mixed $value): Collection
     {
@@ -17,7 +17,7 @@ class CollectionCast implements Castable
         return collect($array)
             ->when(
                 $this->type,
-                fn ($col) => $col->map(fn ($item) => $this->type->cast($key, $item))
+                fn ($col) => $col->map(fn ($item): mixed => $this->type->cast($key, $item))
             );
     }
 }

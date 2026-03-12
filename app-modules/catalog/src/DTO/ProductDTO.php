@@ -28,7 +28,7 @@ class ProductDTO extends LahatreDTO
         return [
             'is_active'  => 'bool',
             'categories' => 'array:string',
-            'variants'   => 'collection:' . ProductVariantDataDTO::class,
+            'variants'   => 'collection:'.ProductVariantDataDTO::class,
         ];
     }
 

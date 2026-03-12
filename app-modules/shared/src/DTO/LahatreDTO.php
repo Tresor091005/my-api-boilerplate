@@ -34,17 +34,10 @@ abstract class LahatreDTO implements Arrayable, JsonSerializable
     protected array $dtoData = [];
 
     /**
-     * The ID of the model being updated (if applicable).
-     */
-    protected int|string|null $modelId = null;
-
-    /**
      * Create a new DTO instance.
      */
-    public function __construct(array $data = [], int|string|null $modelId = null)
+    public function __construct(array $data = [], protected int|string|null $modelId = null)
     {
-        $this->modelId = $modelId;
-
         // 1. Merge Defaults
         $data = array_merge($this->defaults(), $data);
 
@@ -74,7 +67,7 @@ abstract class LahatreDTO implements Arrayable, JsonSerializable
     {
         foreach ($data as $key => $value) {
             if (is_string($value)) {
-                $value = trim(preg_replace('/\s+/', ' ', $value));
+                $value = trim((string) preg_replace('/\s+/', ' ', $value));
                 $data[$key] = $value === '' ? null : $value;
             } elseif (is_array($value)) {
                 $data[$key] = $this->sanitize($value);
@@ -154,7 +147,7 @@ abstract class LahatreDTO implements Arrayable, JsonSerializable
         }
 
         if (is_array($value)) {
-            return array_map(fn ($item) => $this->transformValueForArray($item), $value);
+            return array_map($this->transformValueForArray(...), $value);
         }
 
         return $value;
