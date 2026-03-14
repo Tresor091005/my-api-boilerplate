@@ -22,7 +22,7 @@ return new class() extends Migration
                 ->nullable()
                 ->after('sku')
                 ->index()
-                ->constrained('catalog_unit_groups')
+                ->constrained('master_unit_groups')
                 ->onDelete('restrict');
 
             // Remove min_qt, max_qt and step
@@ -52,7 +52,7 @@ return new class() extends Migration
                 ->index();
             $table->foreign('unit_code')
                 ->references('code')
-                ->on('catalog_units')
+                ->on('master_units')
                 ->onDelete('restrict');
 
             $table->integer('min_quantity')->default(1)->after('unit_code');

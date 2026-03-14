@@ -7,7 +7,7 @@ namespace Lahatre\Catalog\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Models\Unit;
+use Lahatre\Master\Models\Unit;
 
 class BundleSeeder extends Seeder
 {

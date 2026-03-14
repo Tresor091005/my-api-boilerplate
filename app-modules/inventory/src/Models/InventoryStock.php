@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Lahatre\Catalog\Models\Currency;
-use Lahatre\Catalog\Models\Unit;
+use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -23,7 +23,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $currency_code
  * @property int $quantity
  * @property int $remaining
- * @property string $unit_id
+ * @property string $unit_code
  * @property CarbonImmutable|null $peremption_date
  * @property array|null $metadata
  * @property CarbonImmutable|null $created_at
@@ -51,10 +51,14 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock wherePeremptionDate($value)
  * @method static Builder<static>|InventoryStock whereQuantity($value)
  * @method static Builder<static>|InventoryStock whereUnitCost($value)
- * @method static Builder<static>|InventoryStock whereUnitId($value)
+ * @method static Builder<static>|InventoryStock whereUnitCode($value)
  * @method static Builder<static>|InventoryStock whereUpdatedAt($value)
  * @method static Builder<static>|InventoryStock withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryStock withoutTrashed()
+ *
+ * @property string $unit_id
+ *
+ * @method static Builder<static>|InventoryStock whereUnitId($value)
  *
  * @mixin \Eloquent
  */
@@ -72,7 +76,7 @@ class InventoryStock extends Model
         'currency_code',
         'quantity',
         'remaining',
-        'unit_id',
+        'unit_code',
         'peremption_date',
         'metadata',
     ];
@@ -85,7 +89,7 @@ class InventoryStock extends Model
         'currency_code'   => 'string',
         'quantity'        => 'integer',
         'remaining'       => 'integer',
-        'unit_id'         => 'string',
+        'unit_code'       => 'string',
         'peremption_date' => 'immutable_datetime',
         'metadata'        => 'array',
         'created_at'      => 'immutable_datetime',
@@ -105,7 +109,7 @@ class InventoryStock extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_id', 'id'); // TODO : can't depend on catalog
+        return $this->belongsTo(Unit::class, 'unit_code', 'code');
     }
 
     public function currency(): BelongsTo

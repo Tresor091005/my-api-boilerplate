@@ -13,30 +13,6 @@ return new class() extends Migration
      */
     public function up(): void
     {
-        // Independent Tables
-        Schema::create('catalog_currencies', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->string('code', 3)->unique()->index();
-            $table->text('name');
-            $table->string('symbol', 10);
-            $table->integer('precision')->default(2);
-            $table->timestamps();
-        });
-
-        Schema::create('catalog_units', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->string('code')->unique()->index();
-            $table->text('name');
-            $table->string('symbol', 10)->nullable();
-            $table->unsignedInteger('ratio');
-            $table->text('unit_group');
-            $table->boolean('is_builtin')->default(false);
-            $table->timestamps();
-
-            $table->unique(['unit_group', 'ratio']);
-            // TODO: application check for ratio == 1 per unit_group
-        });
-
         Schema::create('catalog_categories', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->text('handle')->unique()->index();
@@ -87,7 +63,7 @@ return new class() extends Migration
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
                 ->references('code')
-                ->on('catalog_currencies')
+                ->on('master_currencies')
                 ->onDelete('restrict');
             $table->integer('min_quantity')->default(1);
             $table->integer('max_quantity')->nullable();
@@ -110,7 +86,7 @@ return new class() extends Migration
                 ->index();
             $table->foreign('unit_code')
                 ->references('code')
-                ->on('catalog_units')
+                ->on('master_units')
                 ->onDelete('restrict');
             $table->integer('step')->default(1);
             $table->boolean('is_active')->default(false);
@@ -153,7 +129,7 @@ return new class() extends Migration
                 ->index();
             $table->foreign('unit_code')
                 ->references('code')
-                ->on('catalog_units')
+                ->on('master_units')
                 ->onDelete('restrict');
             $table->integer('min_quantity')->default(1);
             $table->integer('max_quantity')->nullable();
@@ -203,7 +179,5 @@ return new class() extends Migration
         Schema::dropIfExists('catalog_options');
         Schema::dropIfExists('catalog_products');
         Schema::dropIfExists('catalog_categories');
-        Schema::dropIfExists('catalog_units');
-        Schema::dropIfExists('catalog_currencies');
     }
 };

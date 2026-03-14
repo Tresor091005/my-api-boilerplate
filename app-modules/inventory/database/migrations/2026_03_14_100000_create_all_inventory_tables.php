@@ -50,14 +50,16 @@ return new class() extends Migration
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
                 ->references('code')
-                ->on('catalog_currencies')
+                ->on('master_currencies')
                 ->onDelete('restrict');
 
             $table->bigInteger('quantity');
             $table->bigInteger('remaining');
-            $table->foreignUuid('unit_id')
-                ->index()
-                ->constrained('catalog_units')
+            $table->string('unit_code')
+                ->index();
+            $table->foreign('unit_code')
+                ->references('code')
+                ->on('master_units')
                 ->onDelete('restrict');
 
             $table->timestamp('peremption_date')->nullable();
@@ -99,16 +101,18 @@ return new class() extends Migration
                 ->onDelete('restrict');
 
             $table->bigInteger('quantity');
-            $table->foreignUuid('unit_id')
-                ->index()
-                ->constrained('catalog_units')
+            $table->string('unit_code')
+                ->index();
+            $table->foreign('unit_code')
+                ->references('code')
+                ->on('master_units')
                 ->onDelete('restrict');
 
             $table->bigInteger('unit_cost');
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
                 ->references('code')
-                ->on('catalog_currencies')
+                ->on('master_currencies')
                 ->onDelete('restrict');
 
             $table->timestamp('peremption_date')->nullable();

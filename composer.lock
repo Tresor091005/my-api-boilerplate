@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "889ce2cfdf50e6e4fd1d2f437e7c2734",
+    "content-hash": "48a9e296f5759d33caab8a78c2b9fe92",
     "packages": [
         {
             "name": "brick/math",
@@ -2232,6 +2232,38 @@
                     "Lahatre\\Inventory\\Tests\\": "tests/",
                     "Lahatre\\Inventory\\Database\\Factories\\": "database/factories/",
                     "Lahatre\\Inventory\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "lahatre/master",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/master",
+                "reference": "235f47ce175074ba77788a0a4da9da696bb628fb"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Master\\Providers\\MasterServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Master\\": "src/",
+                    "Lahatre\\Master\\Tests\\": "tests/",
+                    "Lahatre\\Master\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Master\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "license": [

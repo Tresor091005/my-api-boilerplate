@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Master\Http\Resources\UnitGroupResource;
 
 /**
  * @mixin ProductVariant

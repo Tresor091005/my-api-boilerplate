@@ -10,7 +10,7 @@ use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Models\UnitGroup;
+use Lahatre\Master\Models\UnitGroup;
 
 class ProductSeeder extends Seeder
 {

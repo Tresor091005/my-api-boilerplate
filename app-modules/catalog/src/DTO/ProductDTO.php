@@ -58,7 +58,7 @@ class ProductDTO extends LahatreDTO
             'variants'    => [
                 $this->modelId ? 'prohibited' : 'nullable',
                 'array',
-                new BulkExists('catalog_unit_groups', 'id', 'unit_group_id', 'uuid', true),
+                new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true),
             ],
         ];
     }

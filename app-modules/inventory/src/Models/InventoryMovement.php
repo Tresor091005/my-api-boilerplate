@@ -8,9 +8,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Lahatre\Catalog\Models\Currency;
-use Lahatre\Catalog\Models\Unit;
 use Lahatre\Inventory\Enums\MovementType;
+use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -21,7 +21,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $stock_id
  * @property string $location_id
  * @property int $quantity
- * @property string $unit_id
+ * @property string $unit_code
  * @property int $unit_cost
  * @property string $currency_code
  * @property CarbonImmutable|null $peremption_date
@@ -48,8 +48,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement wherePeremptionDate($value)
  * @method static Builder<static>|InventoryMovement whereQuantity($value)
  * @method static Builder<static>|InventoryMovement whereUnitCost($value)
- * @method static Builder<static>|InventoryMovement whereUnitId($value)
+ * @method static Builder<static>|InventoryMovement whereUnitCode($value)
  * @method static Builder<static>|InventoryMovement whereUpdatedAt($value)
+ *
+ * @property string $unit_id
+ *
+ * @method static Builder<static>|InventoryMovement whereUnitId($value)
  *
  * @mixin \Eloquent
  */
@@ -66,7 +70,7 @@ class InventoryMovement extends Model
         'stock_id',
         'location_id',
         'quantity',
-        'unit_id',
+        'unit_code',
         'unit_cost',
         'currency_code',
         'peremption_date',
@@ -80,7 +84,7 @@ class InventoryMovement extends Model
         'stock_id'        => 'string',
         'location_id'     => 'string',
         'quantity'        => 'integer',
-        'unit_id'         => 'string',
+        'unit_code'       => 'string',
         'unit_cost'       => 'integer',
         'currency_code'   => 'string',
         'peremption_date' => 'immutable_datetime',
@@ -110,7 +114,7 @@ class InventoryMovement extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_id', 'id'); // TODO FIX catalog deps
+        return $this->belongsTo(Unit::class, 'unit_code', 'code');
     }
 
     public function currency(): BelongsTo

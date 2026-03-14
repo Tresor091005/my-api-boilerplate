@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 use Illuminate\Support\Facades\DB;
-use Lahatre\Catalog\Models\Currency;
-use Lahatre\Catalog\Models\Unit;
 use Lahatre\Iam\Auth\AuthContext;
-use Lahatre\Shared\Support\PreciseConversion;
+use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Models\Unit;
+use Lahatre\Master\Support\PreciseConversion;
 
 if (!function_exists('ensure_transaction')) {
     /**
