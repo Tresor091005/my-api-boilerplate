@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Career\Job;
 use App\Models\Company\CompanyMember;
+use App\Models\Tag;
 use App\Models\User\User;
 use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
@@ -49,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
         $registry->register([
             'user'           => User::class,
             'company_member' => CompanyMember::class,
+            'job'            => Job::class,
+            'tag'            => Tag::class,
         ]);
     }
 

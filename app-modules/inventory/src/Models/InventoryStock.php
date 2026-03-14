@@ -43,6 +43,18 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock whereItemId($value)
  * @method static Builder<static>|InventoryStock whereLocationId($value)
  * @method static Builder<static>|InventoryStock whereRemaining($value)
+ * @method static Builder<static>|InventoryStock onlyTrashed()
+ * @method static Builder<static>|InventoryStock whereCreatedAt($value)
+ * @method static Builder<static>|InventoryStock whereCurrencyCode($value)
+ * @method static Builder<static>|InventoryStock whereDeletedAt($value)
+ * @method static Builder<static>|InventoryStock whereMetadata($value)
+ * @method static Builder<static>|InventoryStock wherePeremptionDate($value)
+ * @method static Builder<static>|InventoryStock whereQuantity($value)
+ * @method static Builder<static>|InventoryStock whereUnitCost($value)
+ * @method static Builder<static>|InventoryStock whereUnitId($value)
+ * @method static Builder<static>|InventoryStock whereUpdatedAt($value)
+ * @method static Builder<static>|InventoryStock withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|InventoryStock withoutTrashed()
  *
  * @mixin \Eloquent
  */

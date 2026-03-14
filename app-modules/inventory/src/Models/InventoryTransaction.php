@@ -30,6 +30,11 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryTransaction query()
  * @method static Builder<static>|InventoryTransaction whereId($value)
  * @method static Builder<static>|InventoryTransaction whereTransactionType($value)
+ * @method static Builder<static>|InventoryTransaction whereCreatedAt($value)
+ * @method static Builder<static>|InventoryTransaction whereMetadata($value)
+ * @method static Builder<static>|InventoryTransaction whereReferenceId($value)
+ * @method static Builder<static>|InventoryTransaction whereReferenceType($value)
+ * @method static Builder<static>|InventoryTransaction whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

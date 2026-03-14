@@ -32,6 +32,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem whereId($value)
  * @method static Builder<static>|InventoryItem whereItemableType($value)
  * @method static Builder<static>|InventoryItem whereItemableId($value)
+ * @method static Builder<static>|InventoryItem onlyTrashed()
+ * @method static Builder<static>|InventoryItem whereCreatedAt($value)
+ * @method static Builder<static>|InventoryItem whereDeletedAt($value)
+ * @method static Builder<static>|InventoryItem whereUpdatedAt($value)
+ * @method static Builder<static>|InventoryItem withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|InventoryItem withoutTrashed()
  *
  * @mixin \Eloquent
  */

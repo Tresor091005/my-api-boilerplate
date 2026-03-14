@@ -30,6 +30,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryLocation whereId($value)
  * @method static Builder<static>|InventoryLocation whereExternalType($value)
  * @method static Builder<static>|InventoryLocation whereExternalId($value)
+ * @method static Builder<static>|InventoryLocation onlyTrashed()
+ * @method static Builder<static>|InventoryLocation whereCreatedAt($value)
+ * @method static Builder<static>|InventoryLocation whereDeletedAt($value)
+ * @method static Builder<static>|InventoryLocation whereUpdatedAt($value)
+ * @method static Builder<static>|InventoryLocation withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|InventoryLocation withoutTrashed()
  *
  * @mixin \Eloquent
  */

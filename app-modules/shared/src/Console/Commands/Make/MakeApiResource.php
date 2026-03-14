@@ -40,11 +40,8 @@ class MakeApiResource extends GeneratorCommand
     protected function getOptions()
     {
         return [
-
-            ['model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the resource applies to.'],
-
-            ['force', null, InputOption::VALUE_NONE, 'Create the class even if the resource already exists.'],
-
+            new InputOption('model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the resource applies to.'),
+            new InputOption('force', null, InputOption::VALUE_NONE, 'Create the class even if the resource already exists.'),
         ];
     }
 

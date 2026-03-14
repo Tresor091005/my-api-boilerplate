@@ -36,7 +36,7 @@ abstract class LahatreDTO implements Arrayable, JsonSerializable
     /**
      * Create a new DTO instance.
      */
-    public function __construct(array $data = [], protected int|string|null $modelId = null)
+    final public function __construct(array $data = [], protected int|string|null $modelId = null)
     {
         // 1. Merge Defaults
         $data = array_merge($this->defaults(), $data);

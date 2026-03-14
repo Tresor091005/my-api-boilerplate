@@ -41,6 +41,15 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement whereMovementType($value)
  * @method static Builder<static>|InventoryMovement whereTransactionId($value)
  * @method static Builder<static>|InventoryMovement whereStockId($value)
+ * @method static Builder<static>|InventoryMovement whereCreatedAt($value)
+ * @method static Builder<static>|InventoryMovement whereCurrencyCode($value)
+ * @method static Builder<static>|InventoryMovement whereItemId($value)
+ * @method static Builder<static>|InventoryMovement whereLocationId($value)
+ * @method static Builder<static>|InventoryMovement wherePeremptionDate($value)
+ * @method static Builder<static>|InventoryMovement whereQuantity($value)
+ * @method static Builder<static>|InventoryMovement whereUnitCost($value)
+ * @method static Builder<static>|InventoryMovement whereUnitId($value)
+ * @method static Builder<static>|InventoryMovement whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

@@ -77,8 +77,8 @@ it('ensures all api routes are throttled correctly', function (): void {
 });
 
 it('uses the dedicated limiter cache store', function (): void {
-    /** @var \Illuminate\Cache\RateLimiter $rateLimiter */
-    $rateLimiter = app(\Illuminate\Cache\RateLimiter::class);
+    /** @var Illuminate\Cache\RateLimiter $rateLimiter */
+    $rateLimiter = app(Illuminate\Cache\RateLimiter::class);
 
     // Using reflection to check the cache driver of the rate limiter
     $reflection = new ReflectionClass($rateLimiter);

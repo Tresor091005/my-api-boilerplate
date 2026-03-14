@@ -17,12 +17,10 @@ class InventoryService implements InventoryInterface
 {
     public function createLocation(HasInventoryLocation $model): InventoryLocation
     {
-        return ensure_transaction(function () use ($model) {
-            return InventoryLocation::firstOrCreate([
-                'external_type' => $model->getMorphClass(),
-                'external_id'   => $model->getKey(),
-            ]);
-        });
+        return ensure_transaction(fn () => InventoryLocation::firstOrCreate([
+            'external_type' => $model->getMorphClass(),
+            'external_id'   => $model->getKey(),
+        ]));
     }
 
     /**
@@ -39,14 +37,14 @@ class InventoryService implements InventoryInterface
 
             $firstType = $models->first()->getMorphClass();
 
-            if ($models->some(fn ($m) => $m->getMorphClass() !== $firstType)) {
+            if ($models->some(fn ($m): bool => $m->getMorphClass() !== $firstType)) {
                 throw new \InvalidArgumentException('All models must be of the same type, mixed types given.');
             }
 
             $now = now();
             $externalIds = [];
 
-            $data = $models->map(function (HasInventoryLocation $model) use ($now, $firstType, &$externalIds) {
+            $data = $models->map(function (HasInventoryLocation $model) use ($now, $firstType, &$externalIds): array {
                 $externalIds[] = $model->getKey();
 
                 return [
@@ -69,12 +67,10 @@ class InventoryService implements InventoryInterface
 
     public function createItem(HasInventoryItem $model): InventoryItem
     {
-        return ensure_transaction(function () use ($model) {
-            return InventoryItem::firstOrCreate([
-                'itemable_type' => $model->getMorphClass(),
-                'itemable_id'   => $model->getKey(),
-            ]);
-        });
+        return ensure_transaction(fn () => InventoryItem::firstOrCreate([
+            'itemable_type' => $model->getMorphClass(),
+            'itemable_id'   => $model->getKey(),
+        ]));
     }
 
     /**
@@ -91,14 +87,14 @@ class InventoryService implements InventoryInterface
 
             $firstType = $models->first()->getMorphClass();
 
-            if ($models->some(fn ($m) => $m->getMorphClass() !== $firstType)) {
+            if ($models->some(fn ($m): bool => $m->getMorphClass() !== $firstType)) {
                 throw new \InvalidArgumentException('All models must be of the same type, mixed types given.');
             }
 
             $now = now();
             $externalIds = [];
 
-            $data = $models->map(function (HasInventoryItem $model) use ($now, $firstType, &$externalIds) {
+            $data = $models->map(function (HasInventoryItem $model) use ($now, $firstType, &$externalIds): array {
                 $externalIds[] = $model->getKey();
 
                 return [
@@ -147,14 +143,14 @@ class InventoryService implements InventoryInterface
 
     public function deleteLocation(string $id): void
     {
-        return ensure_transaction(function () use ($id) {
+        ensure_transaction(function () use ($id): void {
             InventoryLocation::findOrFail($id)->delete();
         });
     }
 
     public function deleteItem(string $id): void
     {
-        return ensure_transaction(function () use ($id) {
+        ensure_transaction(function () use ($id): void {
             InventoryItem::findOrFail($id)->delete();
         });
     }

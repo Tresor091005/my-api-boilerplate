@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // use Lahatre\Inventory\Http\Controllers\InventoryController;
 
 // Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');
