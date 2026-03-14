@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Company\CompanyMember;
+use App\Models\User\User;
 use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
+use Lahatre\Shared\Registries\MorphMapRegistry;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,10 +31,11 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(MorphMapRegistry $registry): void
     {
         Date::use(CarbonImmutable::class);
         Model::shouldBeStrict(!app()->isProduction());
+        Relation::requireMorphMap(true);
 
         $this->registerStrMacros();
 
@@ -40,6 +45,11 @@ class AppServiceProvider extends ServiceProvider
                     SecurityScheme::http('bearer', 'Sanctum')
                 );
             });
+
+        $registry->register([
+            'user'           => User::class,
+            'company_member' => CompanyMember::class,
+        ]);
     }
 
     private function registerStrMacros(): void
