@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $external_type
  * @property string $external_id
+ * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -36,6 +37,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryLocation whereUpdatedAt($value)
  * @method static Builder<static>|InventoryLocation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryLocation withoutTrashed()
+ * @method static Builder<static>|InventoryLocation whereIsActive($value)
  *
  * @mixin \Eloquent
  */
@@ -49,12 +51,14 @@ class InventoryLocation extends Model
     protected $fillable = [
         'external_type',
         'external_id',
+        'is_active',
     ];
 
     protected $casts = [
         'id'            => 'string',
         'external_type' => 'string',
         'external_id'   => 'string',
+        'is_active'     => 'boolean',
         'created_at'    => 'immutable_datetime',
         'updated_at'    => 'immutable_datetime',
         'deleted_at'    => 'immutable_datetime',

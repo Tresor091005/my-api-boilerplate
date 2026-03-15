@@ -14,13 +14,15 @@ use Lahatre\Master\Http\Resources\UnitCollection;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
 
 class UnitService implements StandaloneService
 {
     public function __construct(
-        protected UnitAssertion $unitAssertion
+        protected UnitAssertion $unitAssertion,
+        protected UnitCache $unitCache
     ) {}
 
     public function list(UnitFilterDTO $filters): UnitCollection
@@ -115,6 +117,8 @@ class UnitService implements StandaloneService
                     ['id'],
                     ['name', 'symbol', 'updated_at']
                 );
+
+                DB::afterCommit(fn () => $this->unitCache->rewarmUnits());
             }
 
             return UnitGroupResource::make($group->load('units'));

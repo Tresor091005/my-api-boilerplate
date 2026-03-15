@@ -17,6 +17,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $itemable_type
  * @property string $itemable_id
+ * @property string|null $sku
+ * @property string|null $base_unit_code
+ * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -38,6 +41,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem whereUpdatedAt($value)
  * @method static Builder<static>|InventoryItem withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryItem withoutTrashed()
+ * @method static Builder<static>|InventoryItem whereBaseUnitCode($value)
+ * @method static Builder<static>|InventoryItem whereIsActive($value)
+ * @method static Builder<static>|InventoryItem whereSku($value)
  *
  * @mixin \Eloquent
  */
@@ -51,15 +57,21 @@ class InventoryItem extends Model
     protected $fillable = [
         'itemable_type',
         'itemable_id',
+        'sku',
+        'base_unit_code',
+        'is_active',
     ];
 
     protected $casts = [
-        'id'            => 'string',
-        'itemable_type' => 'string',
-        'itemable_id'   => 'string',
-        'created_at'    => 'immutable_datetime',
-        'updated_at'    => 'immutable_datetime',
-        'deleted_at'    => 'immutable_datetime',
+        'id'             => 'string',
+        'itemable_type'  => 'string',
+        'itemable_id'    => 'string',
+        'sku'            => 'string',
+        'base_unit_code' => 'string',
+        'is_active'      => 'boolean',
+        'created_at'     => 'immutable_datetime',
+        'updated_at'     => 'immutable_datetime',
+        'deleted_at'     => 'immutable_datetime',
     ];
 
     public function itemable(): MorphTo

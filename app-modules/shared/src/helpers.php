@@ -6,6 +6,7 @@ use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Support\PreciseConversion;
+use Lahatre\Master\Support\UnitCache;
 
 if (!function_exists('ensure_transaction')) {
     /**
@@ -50,7 +51,7 @@ if (!function_exists('getDefaultTeamId')) {
 if (!function_exists('currency')) {
     function currency(string $code): Currency
     {
-        return Currency::where('code', $code)->firstOrFail();
+        return app(UnitCache::class)->getCurrencyByCode($code);
     }
 }
 
@@ -76,7 +77,7 @@ if (!function_exists('toMinor')) {
 if (!function_exists('unit')) {
     function unit(string $code): Unit
     {
-        return Unit::where('code', $code)->firstOrFail();
+        return app(UnitCache::class)->getByCode($code);
     }
 }
 

@@ -79,9 +79,7 @@ class PreciseConversion
      */
     public static function convertUnitToBase(string $amount, Unit $unit): array
     {
-        $baseUnit = Unit::where('group_id', $unit->group_id)
-            ->where('ratio', 1)
-            ->firstOrFail();
+        $baseUnit = app(UnitCache::class)->getBaseUnit($unit->group_id);
 
         return [
             'amount' => self::convertUnit($amount, $unit, $baseUnit),
@@ -96,9 +94,7 @@ class PreciseConversion
      */
     public static function convertUnitFromBase(string $amount, Unit $toUnit): array
     {
-        $baseUnit = Unit::where('group_id', $toUnit->group_id)
-            ->where('ratio', 1)
-            ->firstOrFail();
+        $baseUnit = app(UnitCache::class)->getBaseUnit($toUnit->group_id);
 
         return [
             'amount' => self::convertUnit($amount, $baseUnit, $toUnit),

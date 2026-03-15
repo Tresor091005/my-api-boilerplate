@@ -8,6 +8,6 @@ enum TransactionType: string
 {
     case In = 'in';
     case Out = 'out';
-    case Adjustement = 'adjustment';
+    case Adjustment = 'adjustment';
     case Transfer = 'transfer';
 }

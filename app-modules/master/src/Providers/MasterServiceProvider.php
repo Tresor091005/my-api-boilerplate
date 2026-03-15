@@ -8,11 +8,15 @@ use Illuminate\Support\ServiceProvider;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 
 class MasterServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->scoped(UnitCache::class);
+    }
 
     public function boot(MorphMapRegistry $registry): void
     {

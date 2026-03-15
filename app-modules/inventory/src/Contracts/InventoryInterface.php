@@ -29,12 +29,12 @@ interface InventoryInterface
     public function createManyItems(array|Collection $models): Collection;
 
     /**
-     * @param  array{external_type?: string, external_id?: string}  $data
+     * @param  array{is_active?: bool}  $data
      */
     public function updateLocation(string $id, array $data): InventoryLocation;
 
     /**
-     * @param  array{itemable_type?: string, itemable_id?: string}  $data
+     * @param  array{sku?: string, is_active?: bool}  $data
      */
     public function updateItem(string $id, array $data): InventoryItem;
 
@@ -52,7 +52,7 @@ interface InventoryInterface
      *         item_id: string,
      *         location_id: string,
      *         quantity: int,
-     *         unit_id: string,
+     *         unit_code: string,
      *         unit_cost: int,
      *         currency_code: string,
      *         peremption_date?: string|\DateTimeInterface

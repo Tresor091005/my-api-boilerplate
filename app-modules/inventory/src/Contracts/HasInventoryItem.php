@@ -20,8 +20,7 @@ interface HasInventoryItem
 
     public function getMorphClass(): string;
 
-    /**
-     * @return string|int
-     */
-    public function getKey();
+    public function getKey(): string|int;
+
+    public function getUnitGroupId(): string;
 }
