@@ -34,7 +34,7 @@ interface InventoryInterface
     public function updateLocation(string $id, array $data): InventoryLocation;
 
     /**
-     * @param  array{sku?: string, is_active?: bool}  $data
+     * @param  array{sku?: string, is_active?: bool, deduction_strategy?: string}  $data
      */
     public function updateItem(string $id, array $data): InventoryItem;
 

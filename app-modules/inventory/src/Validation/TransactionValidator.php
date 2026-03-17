@@ -6,10 +6,12 @@ namespace Lahatre\Inventory\Validation;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Inventory\Models\InventoryStock;
 
 class TransactionValidator
 {
@@ -96,6 +98,47 @@ class TransactionValidator
                         }
                     }
                 },
+                // Rule 8: Bulk Stock IDs validation
+                function (string $attribute, mixed $value, $fail): void {
+                    $allStockIds = collect($value)->pluck('stock_ids')->flatten()->filter()->unique();
+
+                    if ($allStockIds->isEmpty()) {
+                        return;
+                    }
+
+                    $stocks = InventoryStock::whereIn('id', $allStockIds)->get(['id', 'item_id', 'location_id']);
+
+                    if ($stocks->count() !== $allStockIds->count()) {
+                        $fail('One or more stock IDs are invalid.');
+                    }
+
+                    foreach ($value as $index => $m) {
+                        if (empty($m['stock_ids'])) {
+                            continue;
+                        }
+
+                        foreach ($m['stock_ids'] as $sid) {
+                            $stock = $stocks->firstWhere('id', $sid);
+
+                            if ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
+                                $fail("Stock ID {$sid} does not belong to the correct item and location for movement at index {$index}.");
+                            }
+                        }
+                    }
+                },
+                // Rule 9: Required stock_ids for manual strategy
+                function (string $attribute, mixed $value, $fail): void {
+                    foreach ($value as $index => $m) {
+                        $strategy = $m['strategy'] ?? null;
+                        if (is_string($strategy)) {
+                            $strategy = DeductionStrategy::tryFrom($strategy);
+                        }
+
+                        if ($strategy === DeductionStrategy::Manual && (empty($m['stock_ids']))) {
+                            $fail("movements.{$index}.stock_ids is required when strategy is manual.");
+                        }
+                    }
+                },
             ],
 
             'movements.*.item_id'         => ['required', 'string'],
@@ -106,6 +149,9 @@ class TransactionValidator
             'movements.*.unit_cost'       => ['nullable', 'integer', 'min:0'],
             'movements.*.currency_code'   => ['nullable', 'string'],
             'movements.*.peremption_date' => ['nullable', 'date'],
+            'movements.*.strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
+            'movements.*.stock_ids'       => ['nullable', 'array'],
+            'movements.*.metadata'        => ['nullable', 'array'],
         ];
     }
 }

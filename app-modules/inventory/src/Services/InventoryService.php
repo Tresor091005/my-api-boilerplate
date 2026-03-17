@@ -12,6 +12,7 @@ use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\DTO\MovementDataDTO;
 use Lahatre\Inventory\DTO\TransactionDataDTO;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
@@ -167,8 +168,9 @@ class InventoryService implements InventoryInterface
         return ensure_transaction(function () use ($id, $data) {
             $item = InventoryItem::findOrFail($id);
             $item->fill([
-                'sku'       => $data['sku'] ?? $item->sku,
-                'is_active' => $data['is_active'] ?? $item->is_active,
+                'sku'                => $data['sku'] ?? $item->sku,
+                'is_active'          => $data['is_active'] ?? $item->is_active,
+                'deduction_strategy' => $data['deduction_strategy'] ?? $item->deduction_strategy,
             ]);
             $item->save();
 
@@ -239,6 +241,7 @@ class InventoryService implements InventoryInterface
                 'remaining'       => (int) $qtyInBase,
                 'unit_code'       => $item->base_unit_code,
                 'peremption_date' => $m->peremption_date,
+                'metadata'        => $m->metadata,
             ]);
 
             InventoryMovement::create([
@@ -252,6 +255,7 @@ class InventoryService implements InventoryInterface
                 'unit_cost'       => $m->unit_cost,
                 'currency_code'   => $m->currency_code,
                 'peremption_date' => $m->peremption_date,
+                'metadata'        => $m->metadata,
             ]);
         }
     }
@@ -262,19 +266,18 @@ class InventoryService implements InventoryInterface
             $item = $items->firstWhere('id', $m->item_id);
             $qtyToDeduct = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
-            $this->applyFifoDeduction($tx, $m, $item, $qtyToDeduct);
+            $this->applyDeduction($tx, $m, $item, $qtyToDeduct);
         }
     }
 
-    protected function applyFifoDeduction(InventoryTransaction $tx, MovementDataDTO $m, InventoryItem $item, string $qtyToDeduct): void
+    protected function applyDeduction(InventoryTransaction $tx, MovementDataDTO $m, InventoryItem $item, string $qtyToDeduct): void
     {
-        /** @var Collection<int, InventoryStock> $stocks */
-        $stocks = InventoryStock::where('item_id', $m->item_id)
-            ->where('location_id', $m->location_id)
-            ->where('remaining', '>', 0)
-            ->orderBy('created_at', 'asc')
-            ->lockForUpdate()
-            ->get();
+        $strategy = $m->strategy
+            ?? $item->deduction_strategy
+            ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+            ?? DeductionStrategy::Fifo;
+
+        $stocks = $this->getStocksForDeduction($m, $strategy);
 
         $totalAvailable = (string) $stocks->sum('remaining');
 
@@ -319,6 +322,23 @@ class InventoryService implements InventoryInterface
         }
     }
 
+    protected function getStocksForDeduction(
+        MovementDataDTO $m,
+        DeductionStrategy $strategy
+    ): Collection {
+        $query = InventoryStock::where('item_id', $m->item_id)
+            ->where('location_id', $m->location_id)
+            ->where('remaining', '>', 0)
+            ->lockForUpdate();
+
+        return match ($strategy) {
+            DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
+            DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
+                ->orderBy('created_at', 'asc')->get(),
+            DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)->get(),
+        };
+    }
+
     protected function processTransferMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
     {
         foreach ($dto->movements as $m) {
@@ -326,7 +346,7 @@ class InventoryService implements InventoryInterface
             $qtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             if ($m->type === MovementType::Out) {
-                $this->applyFifoDeduction($tx, $m, $item, $qtyInBase);
+                $this->applyDeduction($tx, $m, $item, $qtyInBase);
             } else {
                 $stock = InventoryStock::create([
                     'item_id'         => $m->item_id,
@@ -337,6 +357,7 @@ class InventoryService implements InventoryInterface
                     'remaining'       => (int) $qtyInBase,
                     'unit_code'       => $item->base_unit_code,
                     'peremption_date' => $m->peremption_date,
+                    'metadata'        => $m->metadata,
                 ]);
 
                 InventoryMovement::create([
@@ -350,6 +371,7 @@ class InventoryService implements InventoryInterface
                     'unit_cost'       => $m->unit_cost,
                     'currency_code'   => $m->currency_code,
                     'peremption_date' => $m->peremption_date,
+                    'metadata'        => $m->metadata,
                 ]);
             }
         }
@@ -377,6 +399,7 @@ class InventoryService implements InventoryInterface
                     'quantity'      => (int) $delta,
                     'remaining'     => (int) $delta,
                     'unit_code'     => $item->base_unit_code,
+                    'metadata'      => $m->metadata,
                 ]);
 
                 InventoryMovement::create([
@@ -389,9 +412,10 @@ class InventoryService implements InventoryInterface
                     'unit_code'      => $item->base_unit_code,
                     'unit_cost'      => 0,
                     'currency_code'  => $m->currency_code,
+                    'metadata'       => $m->metadata,
                 ]);
             } elseif ($cmp < 0) {
-                $this->applyFifoDeduction($tx, $m, $item, bcsub('0', $delta, 10));
+                $this->applyDeduction($tx, $m, $item, bcsub('0', $delta, 10));
             }
         }
     }
@@ -429,7 +453,7 @@ class InventoryService implements InventoryInterface
             $baseUnit = $this->unitCache->getByCode($item->base_unit_code);
             $providedUnit = $this->unitCache->getByCode($movement->unit_code);
 
-            if ($baseUnit->ratio !== 1) {
+            if (bccomp((string) $baseUnit->ratio, '1', 10) !== 0) {
                 throw new \RuntimeException("Item {$item->id} base_unit_code does not have ratio 1.");
             }
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -19,6 +20,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $itemable_id
  * @property string|null $sku
  * @property string|null $base_unit_code
+ * @property DeductionStrategy $deduction_strategy
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -59,19 +61,21 @@ class InventoryItem extends Model
         'itemable_id',
         'sku',
         'base_unit_code',
+        'deduction_strategy',
         'is_active',
     ];
 
     protected $casts = [
-        'id'             => 'string',
-        'itemable_type'  => 'string',
-        'itemable_id'    => 'string',
-        'sku'            => 'string',
-        'base_unit_code' => 'string',
-        'is_active'      => 'boolean',
-        'created_at'     => 'immutable_datetime',
-        'updated_at'     => 'immutable_datetime',
-        'deleted_at'     => 'immutable_datetime',
+        'id'                 => 'string',
+        'itemable_type'      => 'string',
+        'itemable_id'        => 'string',
+        'sku'                => 'string',
+        'base_unit_code'     => 'string',
+        'deduction_strategy' => DeductionStrategy::class,
+        'is_active'          => 'boolean',
+        'created_at'         => 'immutable_datetime',
+        'updated_at'         => 'immutable_datetime',
+        'deleted_at'         => 'immutable_datetime',
     ];
 
     public function itemable(): MorphTo

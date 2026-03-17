@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\DTO;
 
 use Carbon\CarbonImmutable;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 
 readonly class MovementDataDTO
@@ -18,6 +19,9 @@ readonly class MovementDataDTO
         public ?int $unit_cost,
         public ?string $currency_code,
         public ?CarbonImmutable $peremption_date = null,
+        public ?DeductionStrategy $strategy = null,
+        public ?array $stock_ids = null,
+        public ?array $metadata = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -33,6 +37,11 @@ readonly class MovementDataDTO
             unit_cost: $data['unit_cost'] ?? null,
             currency_code: $data['currency_code'],
             peremption_date: isset($data['peremption_date']) ? CarbonImmutable::parse($data['peremption_date']) : null,
+            strategy: isset($data['strategy'])
+                ? (is_string($data['strategy']) ? DeductionStrategy::from($data['strategy']) : $data['strategy'])
+                : null,
+            stock_ids: $data['stock_ids'] ?? null,
+            metadata: $data['metadata'] ?? null,
         );
     }
 }
