@@ -95,9 +95,12 @@ it('uses the dedicated limiter cache store', function (): void {
         $connectionProperty = $reflectionStore->getProperty('connection');
         $connection = $connectionProperty->getValue($cache);
 
+        expect(config('cache.limiter'))->toBe('redis-limiter');
         expect($connection)->toBe('limiter');
     } else {
         // Fallback or skip if not using Redis in this environment
-        expect(config('cache.limiter'))->toBe('limiter');
+        expect(config('cache.limiter'))->toBeIn(['array', 'database']);
     }
+
+    // TODO: enforce project to work under redis ? and for testing too ?
 });

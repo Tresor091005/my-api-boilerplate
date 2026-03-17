@@ -24,17 +24,17 @@ beforeEach(function (): void {
     $this->service = app(InventoryService::class);
 
     // Setup Master Data
-    $this->currency = Currency::create(['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€', 'precision' => 2]);
-    $group = UnitGroup::create(['name' => 'Weight', 'is_builtin' => false]);
-    $this->baseUnit = Unit::create(['code' => 'g', 'name' => 'Gram', 'ratio' => 1, 'group_id' => $group->id]);
-    $this->kgUnit = Unit::create(['code' => 'kg', 'name' => 'Kilogram', 'ratio' => 1000, 'group_id' => $group->id]);
+    $this->currency = Currency::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'symbol' => '€', 'precision' => 2]);
+    $group = UnitGroup::firstOrCreate(['name' => 'Weight'], ['is_builtin' => false]);
+    $this->baseUnit = Unit::firstOrCreate(['code' => 'test-g'], ['name' => 'Test Gram', 'ratio' => 1, 'group_id' => $group->id]);
+    $this->kgUnit = Unit::firstOrCreate(['code' => 'test-kg'], ['name' => 'Test Kilogram', 'ratio' => 1000, 'group_id' => $group->id]);
 
     // Setup Inventory Data
     $this->item = InventoryItem::create([
         'itemable_type'  => 'product',
         'itemable_id'    => Str::uuid7()->toString(),
         'sku'            => 'TEST-SKU',
-        'base_unit_code' => 'g',
+        'base_unit_code' => 'test-g',
         'is_active'      => true,
     ]);
 
@@ -45,28 +45,28 @@ beforeEach(function (): void {
 it('processes a complex transfer with FIFO split and unit conversion', function (): void {
     // 1. Initial State: Create two lots at Location A
     // Lot 1: 500g created at T-2
-    InventoryStock::create([
+    $lot1 = new InventoryStock([
         'item_id'       => $this->item->id,
         'location_id'   => $this->locA->id,
         'unit_cost'     => 1000, // 10.00
         'currency_code' => 'EUR',
         'quantity'      => 500,
         'remaining'     => 500,
-        'unit_code'     => 'g',
-        'created_at'    => now()->subMinutes(10),
+        'unit_code'     => 'test-g',
     ]);
+    $lot1->forceFill(['created_at' => now()->subMinutes(10)])->save();
 
     // Lot 2: 500g created at T-1
-    InventoryStock::create([
+    $lot2 = new InventoryStock([
         'item_id'       => $this->item->id,
         'location_id'   => $this->locA->id,
         'unit_cost'     => 1200, // 12.00
         'currency_code' => 'EUR',
         'quantity'      => 500,
         'remaining'     => 500,
-        'unit_code'     => 'g',
-        'created_at'    => now()->subMinutes(5),
+        'unit_code'     => 'test-g',
     ]);
+    $lot2->forceFill(['created_at' => now()->subMinutes(5)])->save();
 
     // Total stock at A = 1000g.
     // We want to transfer 0.75 kg (750g) from A to B.
@@ -82,7 +82,7 @@ it('processes a complex transfer with FIFO split and unit conversion', function 
                 'location_id'   => $this->locA->id,
                 'type'          => 'out',
                 'quantity'      => 0.75, // in KG
-                'unit_code'     => 'kg',
+                'unit_code'     => 'test-kg',
                 'unit_cost'     => 0, // Out cost is determined by FIFO
                 'currency_code' => 'EUR',
             ],
@@ -91,7 +91,7 @@ it('processes a complex transfer with FIFO split and unit conversion', function 
                 'location_id'   => $this->locB->id,
                 'type'          => 'in',
                 'quantity'      => 750, // in Grams
-                'unit_code'     => 'g',
+                'unit_code'     => 'test-g',
                 'unit_cost'     => 1100, // Weighted average or new cost
                 'currency_code' => 'EUR',
             ],
@@ -138,8 +138,8 @@ it('fails if transfer is not balanced', function (): void {
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer,
         'movements'        => [
-            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 10, 'unit_code' => 'g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
-            ['item_id' => $this->item->id, 'location_id' => $this->locB->id, 'type' => 'in', 'quantity' => 5, 'unit_code' => 'g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
+            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 10, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
+            ['item_id' => $this->item->id, 'location_id' => $this->locB->id, 'type' => 'in', 'quantity' => 5, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
         ],
     ];
 
@@ -152,7 +152,7 @@ it('fails if stock is insufficient', function (): void {
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out,
         'movements'        => [
-            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 100, 'unit_code' => 'g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
+            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 100, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
         ],
     ];
 

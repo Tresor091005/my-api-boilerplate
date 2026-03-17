@@ -19,7 +19,7 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
-    'limiter' => 'limiter',
+    'limiter' => env('CACHE_LIMITER_STORE', 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ return [
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
-        'limiter' => [
+        'redis-limiter' => [
             'driver'     => 'redis',
             'connection' => 'limiter',
         ],
