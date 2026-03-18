@@ -18,9 +18,9 @@ interface HasInventoryItem
      */
     public function inventoryItem(): MorphOne;
 
-    public function getMorphClass(): string;
+    public function getMorphClass();
 
-    public function getKey(): string|int;
+    public function getKey();
 
     public function getUnitGroupId(): string;
 }

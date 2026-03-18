@@ -80,13 +80,12 @@ it('uses FEFO strategy correctly', function () {
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->location->id,
-                'type'          => MovementType::Out->value,
-                'quantity'      => 50,
-                'unit_code'     => $this->unitCode,
-                'currency_code' => 'EUR',
-                'strategy'      => DeductionStrategy::Fefo->value,
+                'item_id'     => $this->item->id,
+                'location_id' => $this->location->id,
+                'type'        => MovementType::Out->value,
+                'quantity'    => 50,
+                'unit_code'   => $this->unitCode,
+                'strategy'    => DeductionStrategy::Fefo->value,
             ],
         ],
     ];
@@ -126,14 +125,13 @@ it('uses Manual strategy correctly', function () {
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->location->id,
-                'type'          => MovementType::Out->value,
-                'quantity'      => 50,
-                'unit_code'     => $this->unitCode,
-                'currency_code' => 'EUR',
-                'strategy'      => DeductionStrategy::Manual->value,
-                'stock_ids'     => [$lot2->id], // Manually pick lot 2
+                'item_id'     => $this->item->id,
+                'location_id' => $this->location->id,
+                'type'        => MovementType::Out->value,
+                'quantity'    => 50,
+                'unit_code'   => $this->unitCode,
+                'strategy'    => DeductionStrategy::Manual->value,
+                'stock_ids'   => [$lot2->id], // Manually pick lot 2
             ],
         ],
     ];

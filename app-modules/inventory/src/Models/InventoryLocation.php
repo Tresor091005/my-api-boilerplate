@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -63,6 +64,11 @@ class InventoryLocation extends Model
         'updated_at'    => 'immutable_datetime',
         'deleted_at'    => 'immutable_datetime',
     ];
+
+    public function external(): MorphTo
+    {
+        return $this->morphTo('external', 'external_type', 'external_id');
+    }
 
     public function stocks(): HasMany
     {

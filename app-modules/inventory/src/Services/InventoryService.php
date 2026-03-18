@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Services;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
@@ -16,8 +15,6 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
-use Lahatre\Inventory\Exceptions\TransferBalanceException;
-use Lahatre\Inventory\Exceptions\UnitGroupMismatchException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
@@ -29,7 +26,8 @@ use Lahatre\Master\Support\UnitCache;
 class InventoryService implements InventoryInterface
 {
     public function __construct(
-        protected UnitCache $unitCache
+        protected UnitCache $unitCache,
+        protected TransactionValidator $transactionValidator
     ) {}
 
     public function createLocation(HasInventoryLocation $model): InventoryLocation
@@ -128,13 +126,14 @@ class InventoryService implements InventoryInterface
 
             $data = $models->map(function (HasInventoryItem $model) use ($now, $firstType, &$externalIds): array {
                 $externalIds[] = $model->getKey();
+                $baseUnitCode = $this->unitCache->getBaseUnit($model->getUnitGroupId())->code;
 
                 return [
                     'id'             => (string) Str::uuid7(),
                     'itemable_type'  => $firstType,
                     'itemable_id'    => $model->getKey(),
                     'is_active'      => true,
-                    'base_unit_code' => $this->unitCache->getBaseUnit($model->getUnitGroupId())->code,
+                    'base_unit_code' => $baseUnitCode,
                     'created_at'     => $now,
                     'updated_at'     => $now,
                 ];
@@ -194,19 +193,12 @@ class InventoryService implements InventoryInterface
 
     public function recordTransaction(array $data): InventoryTransaction
     {
-        $validatedData = Validator::make($data, TransactionValidator::rules())->validate();
+        [$validatedData, $lookups] = $this->transactionValidator->validate($data);
 
         $transaction = TransactionDataDTO::fromArray($validatedData);
 
-        return ensure_transaction(function () use ($transaction) {
-            $items = InventoryItem::whereIn('id', $transaction->movements->pluck('item_id'))->get();
-
-            $this->validateMovementDirections($transaction);
-            $this->validateUnitGroups($transaction, $items);
-
-            if ($transaction->transaction_type === TransactionType::Transfer) {
-                $this->validateTransferBalance($transaction, $items);
-            }
+        return ensure_transaction(function () use ($transaction, $lookups) {
+            $items = $lookups['items'];
 
             $tx = InventoryTransaction::create([
                 'reference_type'   => $transaction->reference_type,
@@ -229,7 +221,7 @@ class InventoryService implements InventoryInterface
     protected function processInMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
     {
         foreach ($dto->movements as $m) {
-            $item = $items->firstWhere('id', $m->item_id);
+            $item = $items->get($m->item_id);
             $qtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             $stock = InventoryStock::create([
@@ -263,21 +255,40 @@ class InventoryService implements InventoryInterface
     protected function processOutMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
     {
         foreach ($dto->movements as $m) {
-            $item = $items->firstWhere('id', $m->item_id);
+            $item = $items->get($m->item_id);
             $qtyToDeduct = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             $this->applyDeduction($tx, $m, $item, $qtyToDeduct);
         }
     }
 
-    protected function applyDeduction(InventoryTransaction $tx, MovementDataDTO $m, InventoryItem $item, string $qtyToDeduct): void
-    {
-        $strategy = $m->strategy
-            ?? $item->deduction_strategy
-            ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-            ?? DeductionStrategy::Fifo;
+    protected function applyDeduction(
+        InventoryTransaction $tx,
+        MovementDataDTO $m,
+        InventoryItem $item,
+        string $qtyToDeduct,
+        ?Collection $stocks = null
+    ): Collection {
+        if ($stocks === null) {
+            $strategy = $m->strategy
+                ?? $item->deduction_strategy
+                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+                ?? DeductionStrategy::Fifo;
 
-        $stocks = $this->getStocksForDeduction($m, $strategy);
+            $query = InventoryStock::where('item_id', $m->item_id)
+                ->where('location_id', $m->location_id)
+                ->where('remaining', '>', 0)
+                ->lockForUpdate();
+
+            /** @var Collection<int, InventoryStock> $stocks */
+            $stocks = match ($strategy) {
+                DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
+                DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
+                    ->orderBy('created_at', 'asc')->get(),
+                DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
+                    ->orderBy('created_at', 'asc')->get(),
+            };
+        }
 
         $totalAvailable = (string) $stocks->sum('remaining');
 
@@ -292,6 +303,8 @@ class InventoryService implements InventoryInterface
         }
 
         $remainingToDeduct = $qtyToDeduct;
+        /** @var Collection<int, InventoryMovement> $movements */
+        $movements = collect();
 
         foreach ($stocks as $stock) {
             if (bccomp($remainingToDeduct, '0', 10) <= 0) {
@@ -306,55 +319,150 @@ class InventoryService implements InventoryInterface
             $stock->remaining = (int) bcsub($stockRemaining, $deduction, 0);
             $stock->save();
 
-            InventoryMovement::create([
-                'movement_type'  => MovementType::Out,
-                'transaction_id' => $tx->id,
-                'item_id'        => $m->item_id,
-                'location_id'    => $m->location_id,
-                'stock_id'       => $stock->id,
-                'quantity'       => (int) $deduction,
-                'unit_code'      => $item->base_unit_code,
-                'unit_cost'      => $stock->unit_cost,
-                'currency_code'  => $stock->currency_code,
-            ]);
+            $movements->push(InventoryMovement::create([
+                'movement_type'   => MovementType::Out,
+                'transaction_id'  => $tx->id,
+                'item_id'         => $m->item_id,
+                'location_id'     => $m->location_id,
+                'stock_id'        => $stock->id,
+                'quantity'        => (int) $deduction,
+                'unit_code'       => $item->base_unit_code,
+                'unit_cost'       => $stock->unit_cost,
+                'currency_code'   => $stock->currency_code,
+                'peremption_date' => $stock->peremption_date,
+            ]));
 
             $remainingToDeduct = bcsub($remainingToDeduct, $deduction, 10);
         }
-    }
 
-    protected function getStocksForDeduction(
-        MovementDataDTO $m,
-        DeductionStrategy $strategy
-    ): Collection {
-        $query = InventoryStock::where('item_id', $m->item_id)
-            ->where('location_id', $m->location_id)
-            ->where('remaining', '>', 0)
-            ->lockForUpdate();
-
-        return match ($strategy) {
-            DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
-            DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
-                ->orderBy('created_at', 'asc')->get(),
-            DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)->get(),
-        };
+        return $movements;
     }
 
     protected function processTransferMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
     {
-        foreach ($dto->movements as $m) {
-            $item = $items->firstWhere('id', $m->item_id);
-            $qtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
+        /** @var Collection<string, Collection<int, MovementDataDTO>> $groupedByItem */
+        $groupedByItem = $dto->movements->groupBy('item_id');
 
-            if ($m->type === MovementType::Out) {
-                $this->applyDeduction($tx, $m, $item, $qtyInBase);
-            } else {
+        foreach ($groupedByItem as $itemId => $movements) {
+            $item = $items->get($itemId);
+            /** @var Collection<int, MovementDataDTO> $outMovements */
+            $outMovements = $movements->filter(fn (MovementDataDTO $m) => $m->type === MovementType::Out);
+            /** @var Collection<int, MovementDataDTO> $inMovements */
+            $inMovements = $movements->filter(fn (MovementDataDTO $m) => $m->type === MovementType::In);
+
+            // 1. Collect all deducted batches from all source locations (the "pool")
+            /** @var Collection<int, InventoryMovement> $poolOfDeductedBatches */
+            $poolOfDeductedBatches = collect();
+            foreach ($outMovements as $outM) {
+                $qtyInBase = convertUnit($outM->quantity, $outM->unit_code, $item->base_unit_code);
+                /** @var Collection<int, InventoryMovement> $deductedMovements */
+                $deductedMovements = $this->applyDeduction($tx, $outM, $item, $qtyInBase);
+                $poolOfDeductedBatches = $poolOfDeductedBatches->concat($deductedMovements);
+            }
+
+            // 2. Distribute these batches to the destination locations
+            foreach ($inMovements as $inM) {
+                $remainingToFill = convertUnit($inM->quantity, $inM->unit_code, $item->base_unit_code);
+
+                while (bccomp($remainingToFill, '0', 10) > 0 && $poolOfDeductedBatches->isNotEmpty()) {
+                    /** @var InventoryMovement $currentBatch */
+                    $currentBatch = $poolOfDeductedBatches->first();
+                    $batchAvailable = (string) $currentBatch->quantity;
+
+                    $take = bccomp($remainingToFill, $batchAvailable, 10) >= 0
+                        ? $batchAvailable
+                        : $remainingToFill;
+
+                    $stock = InventoryStock::create([
+                        'item_id'         => $item->id,
+                        'location_id'     => $inM->location_id,
+                        'unit_cost'       => $currentBatch->unit_cost,
+                        'currency_code'   => $currentBatch->currency_code,
+                        'quantity'        => (int) $take,
+                        'remaining'       => (int) $take,
+                        'unit_code'       => $item->base_unit_code,
+                        'peremption_date' => $currentBatch->peremption_date,
+                        'metadata'        => $inM->metadata,
+                    ]);
+
+                    InventoryMovement::create([
+                        'movement_type'   => MovementType::In,
+                        'transaction_id'  => $tx->id,
+                        'item_id'         => $item->id,
+                        'location_id'     => $inM->location_id,
+                        'stock_id'        => $stock->id,
+                        'quantity'        => (int) $take,
+                        'unit_code'       => $item->base_unit_code,
+                        'unit_cost'       => $currentBatch->unit_cost,
+                        'currency_code'   => $currentBatch->currency_code,
+                        'peremption_date' => $currentBatch->peremption_date,
+                        'metadata'        => $inM->metadata,
+                    ]);
+
+                    $remainingToFill = bcsub($remainingToFill, $take, 10);
+
+                    if (bccomp($take, $batchAvailable, 10) === 0) {
+                        $poolOfDeductedBatches->shift();
+                    } else {
+                        // Partially used batch: update quantity in the pool for the next 'IN' movement
+                        $currentBatch->quantity = (int) bcsub($batchAvailable, $take, 0);
+                    }
+                }
+
+                if (bccomp($remainingToFill, '0', 10) > 0) {
+                    throw new \RuntimeException("Transfer imbalance detected for item {$itemId}: Destination location {$inM->location_id} could not be fully filled from source stocks.");
+                }
+            }
+
+            if ($poolOfDeductedBatches->isNotEmpty()) {
+                throw new \RuntimeException("Transfer imbalance detected for item {$itemId}: Source stocks were not fully distributed to destinations.");
+            }
+        }
+    }
+
+    protected function processAdjustmentMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
+    {
+        foreach ($dto->movements as $m) {
+            $item = $items->get($m->item_id);
+            $targetQtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
+
+            // 1. Lock all relevant stocks for this item/location to avoid race conditions
+            $strategy = $m->strategy
+                ?? $item->deduction_strategy
+                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+                ?? DeductionStrategy::Fifo;
+
+            $query = InventoryStock::where('item_id', $m->item_id)
+                ->where('location_id', $m->location_id)
+                ->where('remaining', '>', 0)
+                ->lockForUpdate();
+
+            $stocks = match ($strategy) {
+                DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
+                DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
+                    ->orderBy('created_at', 'asc')->get(),
+                DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
+                    ->orderBy('created_at', 'asc')->get(),
+            };
+
+            $currentQtyInBase = (string) $stocks->sum('remaining');
+            $delta = bcsub($targetQtyInBase, $currentQtyInBase, 10);
+            $cmp = bccomp($delta, '0', 10);
+
+            if ($cmp > 0) {
+                // Adjustment UP: create a new stock record with provided cost or default value
+                $qtyToAdd = $delta;
+
+                $unitCost = $m->unit_cost ?? 0;
+                $currencyCode = $m->currency_code ?? null;
+
                 $stock = InventoryStock::create([
                     'item_id'         => $m->item_id,
                     'location_id'     => $m->location_id,
-                    'unit_cost'       => $m->unit_cost,
-                    'currency_code'   => $m->currency_code,
-                    'quantity'        => (int) $qtyInBase,
-                    'remaining'       => (int) $qtyInBase,
+                    'unit_cost'       => $unitCost,
+                    'currency_code'   => $currencyCode,
+                    'quantity'        => (int) $qtyToAdd,
+                    'remaining'       => (int) $qtyToAdd,
                     'unit_code'       => $item->base_unit_code,
                     'peremption_date' => $m->peremption_date,
                     'metadata'        => $m->metadata,
@@ -366,135 +474,16 @@ class InventoryService implements InventoryInterface
                     'item_id'         => $m->item_id,
                     'location_id'     => $m->location_id,
                     'stock_id'        => $stock->id,
-                    'quantity'        => (int) $qtyInBase,
+                    'quantity'        => (int) $qtyToAdd,
                     'unit_code'       => $item->base_unit_code,
-                    'unit_cost'       => $m->unit_cost,
-                    'currency_code'   => $m->currency_code,
+                    'unit_cost'       => $unitCost,
+                    'currency_code'   => $currencyCode,
                     'peremption_date' => $m->peremption_date,
                     'metadata'        => $m->metadata,
                 ]);
-            }
-        }
-    }
-
-    protected function processAdjustmentMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
-    {
-        foreach ($dto->movements as $m) {
-            $item = $items->firstWhere('id', $m->item_id);
-            $targetQtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
-
-            $currentQtyInBase = (string) InventoryStock::where('item_id', $m->item_id)
-                ->where('location_id', $m->location_id)
-                ->sum('remaining');
-
-            $delta = bcsub($targetQtyInBase, $currentQtyInBase, 10);
-            $cmp = bccomp($delta, '0', 10);
-
-            if ($cmp > 0) {
-                $stock = InventoryStock::create([
-                    'item_id'       => $m->item_id,
-                    'location_id'   => $m->location_id,
-                    'unit_cost'     => 0, // no monatary value - no expense
-                    'currency_code' => $m->currency_code,
-                    'quantity'      => (int) $delta,
-                    'remaining'     => (int) $delta,
-                    'unit_code'     => $item->base_unit_code,
-                    'metadata'      => $m->metadata,
-                ]);
-
-                InventoryMovement::create([
-                    'movement_type'  => MovementType::In,
-                    'transaction_id' => $tx->id,
-                    'item_id'        => $m->item_id,
-                    'location_id'    => $m->location_id,
-                    'stock_id'       => $stock->id,
-                    'quantity'       => (int) $delta,
-                    'unit_code'      => $item->base_unit_code,
-                    'unit_cost'      => 0,
-                    'currency_code'  => $m->currency_code,
-                    'metadata'       => $m->metadata,
-                ]);
             } elseif ($cmp < 0) {
-                $this->applyDeduction($tx, $m, $item, bcsub('0', $delta, 10));
-            }
-        }
-    }
-
-    protected function validateMovementDirections(TransactionDataDTO $transaction): void
-    {
-        match ($transaction->transaction_type) {
-            TransactionType::In => $transaction->movements->each(function ($m): void {
-                if ($m->type !== MovementType::In) {
-                    throw new \InvalidArgumentException("All movements for an 'IN' transaction must be of type 'in'.");
-                }
-            }),
-            TransactionType::Out => $transaction->movements->each(function ($m): void {
-                if ($m->type !== MovementType::Out) {
-                    throw new \InvalidArgumentException("All movements for an 'OUT' transaction must be of type 'out'.");
-                }
-            }),
-            default => null,
-        };
-    }
-
-    /**
-     * Ensure that each movement unit_code belongs to the same group with $item->base_unit_code
-     */
-    protected function validateUnitGroups(TransactionDataDTO $transaction, Collection $items): void
-    {
-        foreach ($transaction->movements as $movement) {
-            /** @var InventoryItem $item */
-            $item = $items->firstWhere('id', $movement->item_id);
-
-            if (!$item->base_unit_code) {
-                throw new \RuntimeException("Item {$item->id} has no base_unit_code defined.");
-            }
-
-            $baseUnit = $this->unitCache->getByCode($item->base_unit_code);
-            $providedUnit = $this->unitCache->getByCode($movement->unit_code);
-
-            if (bccomp((string) $baseUnit->ratio, '1', 10) !== 0) {
-                throw new \RuntimeException("Item {$item->id} base_unit_code does not have ratio 1.");
-            }
-
-            if ($baseUnit->group_id !== $providedUnit->group_id) {
-                throw new UnitGroupMismatchException(
-                    $item->id,
-                    $movement->unit_code,
-                    $item->base_unit_code
-                );
-            }
-        }
-    }
-
-    protected function validateTransferBalance(TransactionDataDTO $transaction, Collection $items): void
-    {
-        // For TRANSFER, for each item: SUM(IN) == SUM(OUT) in base units
-        $itemMovements = $transaction->movements->groupBy('item_id');
-
-        foreach ($itemMovements as $itemId => $movements) {
-            $item = $items->firstWhere('id', $itemId);
-
-            $totalIn = '0';
-            $totalOut = '0';
-
-            foreach ($movements as $movement) {
-                $amountInBase = convertUnit($movement->quantity, $movement->unit_code, $item->base_unit_code);
-
-                if ($movement->type === MovementType::In) {
-                    $totalIn = bcadd($totalIn, $amountInBase, 10);
-                } else {
-                    $totalOut = bcadd($totalOut, $amountInBase, 10);
-                }
-            }
-
-            if (bccomp($totalIn, $totalOut, 10) !== 0) {
-                throw new TransferBalanceException(
-                    $itemId,
-                    $totalIn,
-                    $totalOut,
-                    $item->base_unit_code
-                );
+                // Adjustment DOWN: use existing locked stocks for deduction
+                $this->applyDeduction($tx, $m, $item, bcsub('0', $delta, 10), $stocks);
             }
         }
     }
