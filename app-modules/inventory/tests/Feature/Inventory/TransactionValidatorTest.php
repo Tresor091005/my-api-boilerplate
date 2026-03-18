@@ -167,20 +167,19 @@ it('validates rule 8: stock IDs belong to correct item and location', function (
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $otherLocation->id, // Incorrect location for this stock
-                'type'          => MovementType::Out->value,
-                'quantity'      => 10,
-                'unit_code'     => $this->unitCode,
-                'currency_code' => 'EUR',
-                'strategy'      => DeductionStrategy::Manual->value,
-                'stock_ids'     => [$stock->id],
+                'item_id'     => $this->item->id,
+                'location_id' => $otherLocation->id, // Incorrect location for this stock
+                'type'        => MovementType::Out->value,
+                'quantity'    => 10,
+                'unit_code'   => $this->unitCode,
+                'strategy'    => DeductionStrategy::Manual->value,
+                'stock_ids'   => [$stock->id],
             ],
         ],
     ];
 
     expect(fn () => $this->service->recordTransaction($payload))
-        ->toThrow(ValidationException::class, "Stock ID {$stock->id} does not belong to the correct item and location for movement at index 0.");
+        ->toThrow(ValidationException::class, "Stock ID {$stock->id} does not belong to the correct item and location.");
 });
 
 it('validates rule 9: stock_ids required when strategy is manual', function () {
@@ -190,20 +189,19 @@ it('validates rule 9: stock_ids required when strategy is manual', function () {
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->location->id,
-                'type'          => MovementType::Out->value,
-                'quantity'      => 10,
-                'unit_code'     => $this->unitCode,
-                'currency_code' => 'EUR',
-                'strategy'      => DeductionStrategy::Manual->value,
+                'item_id'     => $this->item->id,
+                'location_id' => $this->location->id,
+                'type'        => MovementType::Out->value,
+                'quantity'    => 10,
+                'unit_code'   => $this->unitCode,
+                'strategy'    => DeductionStrategy::Manual->value,
                 // stock_ids missing
             ],
         ],
     ];
 
     expect(fn () => $this->service->recordTransaction($payload))
-        ->toThrow(ValidationException::class, 'movements.0.stock_ids is required when strategy is manual.');
+        ->toThrow(ValidationException::class, 'Stock IDs are required when strategy is manual.');
 });
 
 it('allows metadata in movements and saves it', function () {

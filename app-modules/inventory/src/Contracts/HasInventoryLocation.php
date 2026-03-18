@@ -18,7 +18,7 @@ interface HasInventoryLocation
      */
     public function inventoryLocation(): MorphOne;
 
-    public function getMorphClass(): string;
+    public function getMorphClass();
 
     /**
      * @return string|int

@@ -7,4 +7,14 @@ TODO :
 
 - auto-creation of items and locations
 
-- stock_ids (for a movement) managment in case of adjust or transfer. Need to work on validations to know which fields for each type of transaction&movement type
+- laisser la distribution des stocks dans le transfert a l'utilisateur via un link_id par exemple
+
+- vendor_id missing
+
+- peremption date and unit_cost are really important for IN movement intervenant surtout dans le debat de la validation de Pair unique
+
+- when peremption is used, can i ajust the stock like i want ? risk of fake peremption alert
+
+- adopt a convention for methods signature
+
+- verify all columns are correctly save (especially metadata ; peremption_date)

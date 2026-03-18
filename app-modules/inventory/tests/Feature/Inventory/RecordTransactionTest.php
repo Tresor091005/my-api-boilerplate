@@ -3,11 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
-use Lahatre\Inventory\Exceptions\InsufficientStockException;
-use Lahatre\Inventory\Exceptions\TransferBalanceException;
-use Lahatre\Inventory\Exceptions\UnitGroupMismatchException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
@@ -78,13 +76,11 @@ it('processes a complex transfer with FIFO split and unit conversion', function 
         'transaction_type' => TransactionType::Transfer,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->locA->id,
-                'type'          => 'out',
-                'quantity'      => 0.75, // in KG
-                'unit_code'     => 'test-kg',
-                'unit_cost'     => 0, // Out cost is determined by FIFO
-                'currency_code' => 'EUR',
+                'item_id'     => $this->item->id,
+                'location_id' => $this->locA->id,
+                'type'        => 'out',
+                'quantity'    => 0.75, // in KG
+                'unit_code'   => 'test-kg',
             ],
             [
                 'item_id'       => $this->item->id,
@@ -138,13 +134,13 @@ it('fails if transfer is not balanced', function (): void {
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer,
         'movements'        => [
-            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 10, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
+            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 10, 'unit_code' => 'test-g'],
             ['item_id' => $this->item->id, 'location_id' => $this->locB->id, 'type' => 'in', 'quantity' => 5, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
         ],
     ];
 
     $this->service->recordTransaction($payload);
-})->throws(TransferBalanceException::class);
+})->throws(ValidationException::class);
 
 it('fails if stock is insufficient', function (): void {
     $payload = [
@@ -152,12 +148,12 @@ it('fails if stock is insufficient', function (): void {
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out,
         'movements'        => [
-            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 100, 'unit_code' => 'test-g', 'unit_cost' => 0, 'currency_code' => 'EUR'],
+            ['item_id' => $this->item->id, 'location_id' => $this->locA->id, 'type' => 'out', 'quantity' => 100, 'unit_code' => 'test-g'],
         ],
     ];
 
     $this->service->recordTransaction($payload);
-})->throws(InsufficientStockException::class);
+})->throws(ValidationException::class);
 
 it('fails if unit group does not match', function (): void {
     $groupVolume = UnitGroup::create(['name' => 'Volume', 'is_builtin' => false]);
@@ -173,4 +169,4 @@ it('fails if unit group does not match', function (): void {
     ];
 
     $this->service->recordTransaction($payload);
-})->throws(UnitGroupMismatchException::class);
+})->throws(ValidationException::class);
