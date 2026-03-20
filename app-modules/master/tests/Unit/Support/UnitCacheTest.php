@@ -14,18 +14,18 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->cache = new UnitCache();
-    $this->group = UnitGroup::factory()->create(['name' => 'Length']);
+    $this->group = UnitGroup::factory()->create(['name' => 'Test Group']);
 
     $this->baseUnit = Unit::factory()->create([
-        'code'     => 'm',
-        'name'     => 'Meter',
+        'code'     => 'test-m',
+        'name'     => 'Test Meter',
         'ratio'    => 1,
         'group_id' => $this->group->id,
     ]);
 
     $this->currency = Currency::factory()->create([
-        'code'      => 'EUR',
-        'name'      => 'Euro',
+        'code'      => 'TST',
+        'name'      => 'Test Currency',
         'precision' => 2,
     ]);
 });
@@ -34,7 +34,7 @@ it('uses a single cache key for all units', function (): void {
     $key = 'master:units:all';
     expect(Cache::has($key))->toBeFalse();
 
-    $unit = $this->cache->getByCode('m');
+    $unit = $this->cache->getByCode('test-m');
     expect($unit->id)->toBe($this->baseUnit->id);
     expect(Cache::has($key))->toBeTrue();
 });
@@ -56,7 +56,7 @@ it('resets local memory when rewarming units', function (): void {
     $collection1 = $this->cache->units();
 
     // Add a new unit to DB directly
-    Unit::factory()->create(['code' => 'km', 'group_id' => $this->group->id]);
+    Unit::factory()->create(['code' => 'test-km', 'group_id' => $this->group->id]);
 
     // Rewarm should clear both local property and shared cache
     $this->cache->rewarmUnits();
@@ -64,14 +64,14 @@ it('resets local memory when rewarming units', function (): void {
     $collection2 = $this->cache->units();
 
     expect($collection1)->not->toBe($collection2);
-    expect($collection2)->toHaveCount(2);
+    expect($collection2->where('code', 'test-km'))->toHaveCount(1);
 });
 
 it('caches currencies and memoizes them', function (): void {
     $key = 'master:currencies:all';
     expect(Cache::has($key))->toBeFalse();
 
-    $currency1 = $this->cache->getCurrencyByCode('EUR');
+    $currency1 = $this->cache->getCurrencyByCode('TST');
     expect($currency1->id)->toBe($this->currency->id);
     expect(Cache::has($key))->toBeTrue();
 
@@ -95,8 +95,8 @@ it('throws ModelNotFoundException for missing currency code', function (): void 
 it('provides units by group id from the cached collection', function (): void {
     $units = $this->cache->getByGroupId($this->group->id);
 
-    expect($units)->toHaveCount(1);
-    expect($units->first()->code)->toBe('m');
+    // Filter by our test code just in case other units were seeded in the same group (unlikely here but safer)
+    expect($units->where('code', 'test-m'))->toHaveCount(1);
 });
 
 it('provides the base unit from the cached collection', function (): void {

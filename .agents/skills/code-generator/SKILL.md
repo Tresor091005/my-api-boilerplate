@@ -92,7 +92,6 @@ Ce skill définit la structure et la responsabilité de chaque fichier généré
     - **Fillable** : Strictement limité aux champs modifiables par l'utilisateur/système.
     - **Relations** : Toujours typées et explicites (clés étrangères/locales spécifiées).
     - **Attributes** : Utiliser exclusivement `Illuminate\Database\Eloquent\Casts\Attribute` (syntaxe PHP 8). L'ancienne syntaxe `getXAttribute` est proscrite.
-    - **Factories** : Si la factory est hors namespace standard, définir `protected static function newFactory()`.
     - **Scopes** : Utiliser des `Builder` personnalisés ou des méthodes `scopeName(Builder $query)`.
     - **Ordre de Déclaration (Strict)** :
         1. Traits (`use ...`)

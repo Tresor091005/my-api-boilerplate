@@ -108,9 +108,4 @@ class Category extends Model
         return $this->belongsToMany(Product::class, 'catalog_product_categories', 'category_id', 'product_id')
             ->using(ProductCategory::class);
     }
-
-    protected static function newFactory(): CategoryFactory
-    {
-        return CategoryFactory::new();
-    }
 }

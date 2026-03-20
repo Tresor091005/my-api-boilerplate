@@ -82,37 +82,39 @@ class TransactionValidator
             $txType = TransactionType::tryFrom($txType);
         }
 
-        // 1. Unique Pairs (Item + Location)
-        $this->validateUniquePairs($validator, $movements);
-
-        // 2. Transaction Type vs Movement Types
-        $this->validateTransactionTypeConsistency($validator, $txType, $movements);
-
-        // 3. Bulk Lookups (Cache)
+        // 1. Bulk Lookups (Hydrate context)
         $this->lookups = $this->performBulkLookups($movements);
 
-        // 4. Validate existence of entities with precise index errors
-        $this->validateExistence($validator, $movements, $this->lookups, $txType);
+        // 2. Existence & Entity Integrity (Are entities valid and requirements met?)
+        $this->validateExistence($validator, $txType, $movements, $this->lookups);
 
-        // 5. Business Logic (only if structural lookups pass)
+        // 3. Structural Consistency (Duplicates, Type mismatches)
+        $this->validateUniquePairs($validator, $txType, $movements);
+        $this->validateTransactionTypeConsistency($validator, $txType, $movements);
+
+        // 4. Business Logic (Only if basic integrity and structure are valid)
         if (!$validator->errors()->any()) {
             $this->validateBusinessLogic($validator, $txType, $movements, $this->lookups);
         }
     }
 
-    protected function validateUniquePairs(Validator $validator, Collection $movements): void
+    protected function validateUniquePairs(Validator $validator, ?TransactionType $txType, Collection $movements): void
     {
+        if ($txType !== TransactionType::Adjustment) {
+            return;
+        }
+
         $seen = [];
         foreach ($movements as $index => $m) {
             $key = ($m['item_id'] ?? '').':'.($m['location_id'] ?? '');
             if (isset($seen[$key])) {
                 $validator->errors()->add(
                     "movements.{$index}",
-                    'The same item cannot appear multiple times for the same location in a single transaction.'
+                    'For Adjustment transactions, the same item cannot appear multiple times for the same location.'
                 );
                 $validator->errors()->add(
                     "movements.{$seen[$key]}",
-                    'The same item cannot appear multiple times for the same location in a single transaction.'
+                    'For Adjustment transactions, the same item cannot appear multiple times for the same location.'
                 );
             }
             $seen[$key] = $index;
@@ -141,8 +143,7 @@ class TransactionValidator
         $itemIds = $movements->pluck('item_id')->filter()->unique();
         $locationIds = $movements->pluck('location_id')->filter()->unique();
         $unitCodes = $movements->pluck('unit_code')->filter()->unique();
-        $currencyCodes = $movements->filter(fn ($m) => ($m['type'] ?? null) === MovementType::In->value)
-            ->pluck('currency_code')->filter()->unique();
+        $currencyCodes = $movements->pluck('currency_code')->filter()->unique();
         $stockIds = $movements->pluck('stock_ids')->flatten()->filter()->unique();
 
         return [
@@ -154,7 +155,7 @@ class TransactionValidator
         ];
     }
 
-    protected function validateExistence(Validator $validator, Collection $movements, array $lookups, ?TransactionType $txType): void
+    protected function validateExistence(Validator $validator, ?TransactionType $txType, Collection $movements, array $lookups): void
     {
         foreach ($movements as $index => $m) {
             $type = $m['type'] ?? null;
@@ -294,12 +295,16 @@ class TransactionValidator
             $baseUnit = $this->unitCache->getByCode($item->base_unit_code);
             $providedUnit = $this->unitCache->getByCode($m['unit_code']);
 
-            if (!$baseUnit || !$providedUnit) {
-                continue;
+            if (!$baseUnit) {
+                throw new \Exception("System Integrity Error: Base unit '{$item->base_unit_code}' for item '{$item->id}' not found.");
             }
 
             if ($baseUnit->ratio !== 1) {
-                $validator->errors()->add("movements.{$index}.item_id", "The item base unit {$item->base_unit_code} is invalid.");
+                throw new \Exception("System Integrity Error: Base unit '{$item->base_unit_code}' for item '{$item->id}' must have a ratio of 1.");
+            }
+
+            if (!$providedUnit) {
+                continue; // Handled by validateExistence
             }
 
             if ($baseUnit->group_id !== $providedUnit->group_id) {

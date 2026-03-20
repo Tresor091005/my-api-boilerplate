@@ -74,9 +74,4 @@ class UnitGroup extends Model
         return $this->hasOne(Unit::class, 'group_id')
             ->where('ratio', 1);
     }
-
-    protected static function newFactory(): UnitGroupFactory
-    {
-        return UnitGroupFactory::new();
-    }
 }
