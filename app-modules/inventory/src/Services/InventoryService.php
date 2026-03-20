@@ -218,8 +218,11 @@ class InventoryService implements InventoryInterface
         });
     }
 
-    protected function processInMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
-    {
+    protected function processInMovements(
+        InventoryTransaction $tx,
+        TransactionDataDTO $dto,
+        Collection $items
+    ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
             $qtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
@@ -252,8 +255,11 @@ class InventoryService implements InventoryInterface
         }
     }
 
-    protected function processOutMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
-    {
+    protected function processOutMovements(
+        InventoryTransaction $tx,
+        TransactionDataDTO $dto,
+        Collection $items
+    ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
             $qtyToDeduct = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
@@ -269,26 +275,7 @@ class InventoryService implements InventoryInterface
         string $qtyToDeduct,
         ?Collection $stocks = null
     ): Collection {
-        if ($stocks === null) {
-            $strategy = $m->strategy
-                ?? $item->deduction_strategy
-                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-                ?? DeductionStrategy::Fifo;
-
-            $query = InventoryStock::where('item_id', $m->item_id)
-                ->where('location_id', $m->location_id)
-                ->where('remaining', '>', 0)
-                ->lockForUpdate();
-
-            /** @var Collection<int, InventoryStock> $stocks */
-            $stocks = match ($strategy) {
-                DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
-                DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
-                    ->orderBy('created_at', 'asc')->get(),
-                DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
-                    ->orderBy('created_at', 'asc')->get(),
-            };
-        }
+        $stocks ??= $this->resolveStocksForDeduction($m, $item);
 
         $totalAvailable = (string) $stocks->sum('remaining');
 
@@ -330,6 +317,7 @@ class InventoryService implements InventoryInterface
                 'unit_cost'       => $stock->unit_cost,
                 'currency_code'   => $stock->currency_code,
                 'peremption_date' => $stock->peremption_date,
+                'metadata'        => $m->metadata,
             ]));
 
             $remainingToDeduct = bcsub($remainingToDeduct, $deduction, 10);
@@ -338,8 +326,11 @@ class InventoryService implements InventoryInterface
         return $movements;
     }
 
-    protected function processTransferMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
-    {
+    protected function processTransferMovements(
+        InventoryTransaction $tx,
+        TransactionDataDTO $dto,
+        Collection $items
+    ): void {
         /** @var Collection<string, Collection<int, MovementDataDTO>> $groupedByItem */
         $groupedByItem = $dto->movements->groupBy('item_id');
 
@@ -404,7 +395,7 @@ class InventoryService implements InventoryInterface
                     if (bccomp($take, $batchAvailable, 10) === 0) {
                         $poolOfDeductedBatches->shift();
                     } else {
-                        // Partially used batch: update quantity in the pool for the next 'IN' movement
+                        // Partially used batch: update quantity in the pool for the next 'IN' movement (no persistence in DB)
                         $currentBatch->quantity = (int) bcsub($batchAvailable, $take, 0);
                     }
                 }
@@ -420,30 +411,17 @@ class InventoryService implements InventoryInterface
         }
     }
 
-    protected function processAdjustmentMovements(InventoryTransaction $tx, TransactionDataDTO $dto, Collection $items): void
-    {
+    protected function processAdjustmentMovements(
+        InventoryTransaction $tx,
+        TransactionDataDTO $dto,
+        Collection $items
+    ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
             $targetQtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             // 1. Lock all relevant stocks for this item/location to avoid race conditions
-            $strategy = $m->strategy
-                ?? $item->deduction_strategy
-                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-                ?? DeductionStrategy::Fifo;
-
-            $query = InventoryStock::where('item_id', $m->item_id)
-                ->where('location_id', $m->location_id)
-                ->where('remaining', '>', 0)
-                ->lockForUpdate();
-
-            $stocks = match ($strategy) {
-                DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
-                DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
-                    ->orderBy('created_at', 'asc')->get(),
-                DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
-                    ->orderBy('created_at', 'asc')->get(),
-            };
+            $stocks = $this->resolveStocksForDeduction($m, $item);
 
             $currentQtyInBase = (string) $stocks->sum('remaining');
             $delta = bcsub($targetQtyInBase, $currentQtyInBase, 10);
@@ -484,7 +462,30 @@ class InventoryService implements InventoryInterface
             } elseif ($cmp < 0) {
                 // Adjustment DOWN: use existing locked stocks for deduction
                 $this->applyDeduction($tx, $m, $item, bcsub('0', $delta, 10), $stocks);
+            } else {
+                throw new \Exception('The target quantity is already the current stock.');
             }
         }
+    }
+
+    protected function resolveStocksForDeduction(MovementDataDTO $m, InventoryItem $item): Collection
+    {
+        $strategy = $m->strategy
+            ?? $item->deduction_strategy
+            ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+            ?? DeductionStrategy::Fifo;
+
+        $query = InventoryStock::where('item_id', $m->item_id)
+            ->where('location_id', $m->location_id)
+            ->where('remaining', '>', 0)
+            ->lockForUpdate();
+
+        return match ($strategy) {
+            DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
+            DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
+                ->orderBy('created_at', 'asc')->get(),
+            DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
+                ->orderBy('created_at', 'asc')->get(),
+        };
     }
 }

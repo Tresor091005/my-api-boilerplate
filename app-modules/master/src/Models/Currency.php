@@ -7,6 +7,7 @@ namespace Lahatre\Master\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\Master\Database\Factories\CurrencyFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -28,6 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Currency wherePrecision($value)
  * @method static Builder<static>|Currency whereSymbol($value)
  * @method static Builder<static>|Currency whereUpdatedAt($value)
+ * @method static CurrencyFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

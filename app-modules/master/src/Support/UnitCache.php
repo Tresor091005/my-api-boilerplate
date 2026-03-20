@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Support;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
@@ -14,16 +14,22 @@ class UnitCache
 {
     private const TTL = 86400; // 24 hours
 
-    /** @var Collection<int, Unit>|null Local request cache */
+    /** @var Collection<string, Unit>|null Local request cache keyed by code */
     private ?Collection $units = null;
 
-    /** @var Collection<int, Currency>|null Local request cache */
+    /** @var Collection<string, Collection<string, Unit>>|null Local request cache grouped by group_id */
+    private ?Collection $unitsByGroup = null;
+
+    /** @var Collection<string, Unit>|null Local request cache of base units keyed by group_id */
+    private ?Collection $baseUnits = null;
+
+    /** @var Collection<string, Currency>|null Local request cache keyed by code */
     private ?Collection $currencies = null;
 
     /**
-     * Get all units from cache.
+     * Get all units from cache, keyed by code.
      *
-     * @return Collection<int, Unit>
+     * @return Collection<string, Unit>
      */
     public function units(): Collection
     {
@@ -31,13 +37,33 @@ class UnitCache
             return $this->units;
         }
 
-        return $this->units = Cache::remember('master:units:all', self::TTL, fn () => Unit::all());
+        return $this->units = Cache::remember('master:units:all', self::TTL, fn () => Unit::all()->keyBy('code'));
     }
 
     /**
-     * Get all currencies from cache.
+     * Get units grouped by group_id.
      *
-     * @return Collection<int, Currency>
+     * @return Collection<string, Collection<string, Unit>>
+     */
+    private function unitsByGroup(): Collection
+    {
+        return $this->unitsByGroup ??= $this->units()->groupBy('group_id');
+    }
+
+    /**
+     * Get base units keyed by group_id.
+     *
+     * @return Collection<string, Unit>
+     */
+    private function baseUnits(): Collection
+    {
+        return $this->baseUnits ??= $this->units()->where('ratio', 1)->keyBy('group_id');
+    }
+
+    /**
+     * Get all currencies from cache, keyed by code.
+     *
+     * @return Collection<string, Currency>
      */
     public function currencies(): Collection
     {
@@ -45,7 +71,7 @@ class UnitCache
             return $this->currencies;
         }
 
-        return $this->currencies = Cache::remember('master:currencies:all', self::TTL, fn () => Currency::all());
+        return $this->currencies = Cache::remember('master:currencies:all', self::TTL, fn () => Currency::all()->keyBy('code'));
     }
 
     /**
@@ -53,7 +79,7 @@ class UnitCache
      */
     public function getByCode(string $code): Unit
     {
-        $unit = $this->units()->firstWhere('code', $code);
+        $unit = $this->units()->get($code);
 
         if (!$unit) {
             throw (new ModelNotFoundException())->setModel(Unit::class, [$code]);
@@ -67,7 +93,7 @@ class UnitCache
      */
     public function getCurrencyByCode(string $code): Currency
     {
-        $currency = $this->currencies()->firstWhere('code', $code);
+        $currency = $this->currencies()->get($code);
 
         if (!$currency) {
             throw (new ModelNotFoundException())->setModel(Currency::class, [$code]);
@@ -79,11 +105,11 @@ class UnitCache
     /**
      * Get all units of a group.
      *
-     * @return Collection<int, Unit>
+     * @return Collection<string, Unit>
      */
     public function getByGroupId(string $groupId): Collection
     {
-        return $this->units()->where('group_id', $groupId);
+        return $this->unitsByGroup()->get($groupId, collect());
     }
 
     /**
@@ -91,7 +117,7 @@ class UnitCache
      */
     public function getBaseUnit(string $groupId): Unit
     {
-        $unit = $this->getByGroupId($groupId)->firstWhere('ratio', 1);
+        $unit = $this->baseUnits()->get($groupId);
 
         if (!$unit) {
             throw (new ModelNotFoundException())->setModel(Unit::class, ["base for group {$groupId}"]);
@@ -106,6 +132,8 @@ class UnitCache
     public function rewarmUnits(): void
     {
         $this->units = null;
+        $this->unitsByGroup = null;
+        $this->baseUnits = null;
         Cache::forget('master:units:all');
         $this->units();
     }

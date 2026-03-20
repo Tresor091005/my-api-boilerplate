@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Date;
@@ -35,18 +36,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(MorphMapRegistry $registry): void
     {
-        Date::use(CarbonImmutable::class);
-        Model::shouldBeStrict(!app()->isProduction());
-        Relation::requireMorphMap(true);
+        $this->configureEloquent();
+        $this->configureFactories();
+        $this->configureScramble();
 
         $this->registerStrMacros();
-
-        Scramble::configure()
-            ->withDocumentTransformers(function (OpenApi $openApi): void {
-                $openApi->secure(
-                    SecurityScheme::http('bearer', 'Sanctum')
-                );
-            });
 
         $registry->register([
             'user'           => User::class,
@@ -56,6 +50,52 @@ class AppServiceProvider extends ServiceProvider
         ]);
     }
 
+    /**
+     * Configure Eloquent global settings.
+     */
+    private function configureEloquent(): void
+    {
+        Date::use(CarbonImmutable::class);
+        Model::shouldBeStrict(!app()->isProduction());
+        Relation::requireMorphMap(true);
+    }
+
+    /**
+     * Configure automatic factory and model discovery.
+     */
+    private function configureFactories(): void
+    {
+        Factory::guessFactoryNamesUsing(function (string $modelName) {
+            return str($modelName)
+                ->replace('Models\\', 'Database\\Factories\\')
+                ->append('Factory')
+                ->toString();
+        });
+
+        Factory::guessModelNamesUsing(function (string $factoryName) {
+            return str($factoryName)
+                ->replace('Database\\Factories\\', 'Models\\')
+                ->beforeLast('Factory')
+                ->toString();
+        });
+    }
+
+    /**
+     * Configure Scramble API documentation.
+     */
+    private function configureScramble(): void
+    {
+        Scramble::configure()
+            ->withDocumentTransformers(function (OpenApi $openApi): void {
+                $openApi->secure(
+                    SecurityScheme::http('bearer', 'Sanctum')
+                );
+            });
+    }
+
+    /**
+     * Register custom string macros.
+     */
     private function registerStrMacros(): void
     {
         Str::macro('sanitize', fn (string $value): string => (string) str($value)->trim()->squish());

@@ -74,9 +74,4 @@ class Unit extends Model
     {
         return $this->belongsTo(UnitGroup::class, 'group_id');
     }
-
-    protected static function newFactory(): UnitFactory
-    {
-        return UnitFactory::new();
-    }
 }
