@@ -14,13 +14,6 @@ use Lahatre\Master\Models\UnitGroup;
  */
 class UnitFactory extends Factory
 {
-    protected $model = Unit::class;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         $name = $this->faker->unique()->word();

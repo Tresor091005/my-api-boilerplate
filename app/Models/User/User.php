@@ -64,6 +64,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  */
 class User extends Authenticatable
 {
+    protected $table = 'users';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -94,8 +96,15 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'id'                => 'string',
+            'first_name'        => 'string',
+            'last_name'         => 'string',
+            'email'             => 'string',
+            'email_verified_at' => 'immutable_datetime',
             'password'          => 'hashed',
+            'remember_token'    => 'string',
+            'created_at'        => 'immutable_datetime',
+            'updated_at'        => 'immutable_datetime',
         ];
     }
 

@@ -13,7 +13,7 @@ return new class() extends Migration
      */
     public function up(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
+        Schema::table('inventory_movements', function (Blueprint $table): void {
             $table->jsonb('metadata')->nullable()->after('peremption_date');
 
             // Drop existing foreign key and constraint
@@ -32,7 +32,7 @@ return new class() extends Migration
      */
     public function down(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
+        Schema::table('inventory_movements', function (Blueprint $table): void {
             $table->dropForeign(['stock_id']);
 
             $table->foreign('stock_id')

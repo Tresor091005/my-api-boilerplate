@@ -49,7 +49,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('uses FEFO strategy correctly', function () {
+it('uses FEFO strategy correctly', function (): void {
     // Lot 1: Expire later
     $lot1 = InventoryStock::create([
         'item_id'         => $this->item->id,
@@ -98,7 +98,7 @@ it('uses FEFO strategy correctly', function () {
     expect($lot2->refresh()->remaining)->toBe(50);
 });
 
-it('uses Manual strategy correctly', function () {
+it('uses Manual strategy correctly', function (): void {
     $lot1 = InventoryStock::create([
         'item_id'       => $this->item->id,
         'location_id'   => $this->location->id,

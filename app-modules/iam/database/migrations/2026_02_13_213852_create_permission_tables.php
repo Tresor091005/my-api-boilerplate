@@ -33,14 +33,14 @@ return new class() extends Migration
             $table->string('guard_name');
             $table->timestamps();
 
-            $table->unique(['name', 'guard_name']);
+            $table->unique(['guard_name', 'name'], 'iam_permissions_guard_name_name_unique');
         });
 
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames): void {
             $table->uuid('id')->primary();
             if ($teams) {
                 $table->uuid($columnNames['team_foreign_key'])->nullable();
-                $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
+                $table->index($columnNames['team_foreign_key'], 'iam_roles_team_id_index');
             }
             $table->string('name');
             $table->string('guard_name');
@@ -49,18 +49,18 @@ return new class() extends Migration
             $table->timestamps();
 
             if ($teams) {
-                $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
+                $table->unique(['guard_name', 'name', $columnNames['team_foreign_key']], 'iam_roles_guard_name_name_team_id_unique');
             } else {
-                $table->unique(['name', 'guard_name']);
+                $table->unique(['guard_name', 'name'], 'iam_roles_guard_name_name_unique');
             }
         });
 
         Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams): void {
-            $table->uuid($pivotPermission);
+            $table->uuid($pivotPermission)->index();
 
             $table->string('model_type');
             $table->uuid($columnNames['model_morph_key']);
-            $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
+            $table->index([$columnNames['model_morph_key'], 'model_type'], 'iam_model_has_permissions_model_id_model_type_index');
 
             $table->foreign($pivotPermission)
                 ->references('id')
@@ -68,7 +68,7 @@ return new class() extends Migration
                 ->cascadeOnDelete();
             if ($teams) {
                 $table->uuid($columnNames['team_foreign_key']);
-                $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
+                $table->index($columnNames['team_foreign_key'], 'iam_model_has_permissions_team_id_index');
 
                 $table->primary([$columnNames['team_foreign_key'], $pivotPermission, $columnNames['model_morph_key'], 'model_type'],
                     'model_has_permissions_permission_model_type_primary');
@@ -79,11 +79,11 @@ return new class() extends Migration
         });
 
         Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams): void {
-            $table->uuid($pivotRole);
+            $table->uuid($pivotRole)->index();
 
             $table->string('model_type');
             $table->uuid($columnNames['model_morph_key']);
-            $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
+            $table->index([$columnNames['model_morph_key'], 'model_type'], 'iam_model_has_roles_model_id_model_type_index');
 
             $table->foreign($pivotRole)
                 ->references('id')
@@ -91,7 +91,7 @@ return new class() extends Migration
                 ->cascadeOnDelete();
             if ($teams) {
                 $table->uuid($columnNames['team_foreign_key']);
-                $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
+                $table->index($columnNames['team_foreign_key'], 'iam_model_has_roles_team_id_index');
 
                 $table->primary([$columnNames['team_foreign_key'], $pivotRole, $columnNames['model_morph_key'], 'model_type'],
                     'model_has_roles_role_model_type_primary');
@@ -103,7 +103,7 @@ return new class() extends Migration
 
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission): void {
             $table->uuid($pivotPermission);
-            $table->uuid($pivotRole);
+            $table->uuid($pivotRole)->index();
 
             $table->foreign($pivotPermission)
                 ->references('id')

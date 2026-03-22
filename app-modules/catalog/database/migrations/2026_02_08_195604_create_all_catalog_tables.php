@@ -59,7 +59,7 @@ return new class() extends Migration
 
         Schema::create('catalog_prices', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->uuidMorphs('priceable');
+            $table->uuidMorphs('priceable', 'catalog_prices_priceable_id_priceable_type_index');
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
                 ->references('code')
@@ -74,7 +74,10 @@ return new class() extends Migration
             $table->timestamp('active_to')->nullable()->index();
             $table->timestamps();
 
-            $table->unique(['priceable_type', 'priceable_id', 'currency_code', 'min_quantity', 'step'], 'catalog_prices_unique_idx');
+            $table->unique(
+                ['currency_code', 'min_quantity', 'priceable_id', 'priceable_type', 'step'],
+                'catalog_prices_unique_idx'
+            );
         });
 
         Schema::create('catalog_bundles', function (Blueprint $table): void {
@@ -95,7 +98,7 @@ return new class() extends Migration
 
         Schema::create('catalog_bundle_items', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->uuidMorphs('item');
+            $table->uuidMorphs('item', 'catalog_bundle_items_item_id_item_type_index');
             $table->foreignUuid('bundle_id')
                 ->index()
                 ->constrained('catalog_bundles')
@@ -114,7 +117,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_categories')
                 ->onDelete('cascade');
-            $table->unique(['product_id', 'category_id']);
+            $table->unique(['category_id', 'product_id']);
         });
 
         Schema::create('catalog_product_variants', function (Blueprint $table): void {
@@ -158,7 +161,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_options')
                 ->onDelete('cascade');
-            $table->unique(['variant_id', 'option_id']);
+            $table->unique(['option_id', 'variant_id']);
         });
 
         // TODO universal tags system

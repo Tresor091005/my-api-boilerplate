@@ -12,13 +12,6 @@ use Lahatre\Master\Models\UnitGroup;
  */
 class UnitGroupFactory extends Factory
 {
-    protected $model = UnitGroup::class;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [

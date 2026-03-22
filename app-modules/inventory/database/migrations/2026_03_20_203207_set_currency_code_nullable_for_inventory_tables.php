@@ -13,11 +13,11 @@ return new class() extends Migration
      */
     public function up(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
+        Schema::table('inventory_movements', function (Blueprint $table): void {
             $table->string('currency_code', 3)->nullable()->change();
         });
 
-        Schema::table('inventory_stocks', function (Blueprint $table) {
+        Schema::table('inventory_stocks', function (Blueprint $table): void {
             $table->string('currency_code', 3)->nullable()->change();
         });
     }
@@ -27,11 +27,11 @@ return new class() extends Migration
      */
     public function down(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
+        Schema::table('inventory_movements', function (Blueprint $table): void {
             $table->string('currency_code', 3)->nullable(false)->change();
         });
 
-        Schema::table('inventory_stocks', function (Blueprint $table) {
+        Schema::table('inventory_stocks', function (Blueprint $table): void {
             $table->string('currency_code', 3)->nullable(false)->change();
         });
     }

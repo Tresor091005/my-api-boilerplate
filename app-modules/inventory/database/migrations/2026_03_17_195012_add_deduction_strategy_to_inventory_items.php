@@ -13,7 +13,7 @@ return new class() extends Migration
      */
     public function up(): void
     {
-        Schema::table('inventory_items', function (Blueprint $table) {
+        Schema::table('inventory_items', function (Blueprint $table): void {
             $table->string('deduction_strategy')->nullable()->after('base_unit_code');
         });
     }
@@ -23,7 +23,7 @@ return new class() extends Migration
      */
     public function down(): void
     {
-        Schema::table('inventory_items', function (Blueprint $table) {
+        Schema::table('inventory_items', function (Blueprint $table): void {
             $table->dropColumn('deduction_strategy');
         });
     }

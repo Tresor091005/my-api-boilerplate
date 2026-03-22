@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Lahatre\Catalog\Database\Factories\BundleFactory;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -40,6 +41,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Bundle whereStep($value)
  * @method static Builder<static>|Bundle whereUnitCode($value)
  * @method static Builder<static>|Bundle whereUpdatedAt($value)
+ * @method static BundleFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

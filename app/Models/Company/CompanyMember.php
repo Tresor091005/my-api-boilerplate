@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Company;
 
 use App\Models\Career\Job;
+use Database\Factories\Company\CompanyMemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,11 +61,14 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|CompanyMember role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|CompanyMember withoutPermission($permissions)
  * @method static Builder<static>|CompanyMember withoutRole($roles, ?string $guard = null)
+ * @method static CompanyMemberFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
 class CompanyMember extends Authenticatable
 {
+    protected $table = 'company_members';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -95,7 +99,14 @@ class CompanyMember extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'id'         => 'string',
+            'company_id' => 'string',
+            'first_name' => 'string',
+            'last_name'  => 'string',
+            'email'      => 'string',
+            'password'   => 'hashed',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'immutable_datetime',
         ];
     }
 

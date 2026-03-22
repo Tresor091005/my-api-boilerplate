@@ -77,7 +77,7 @@ return new class() extends Migration
         Schema::create('taggables', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('tag_id')->constrained('tags')->onDelete('cascade');
-            $table->uuidMorphs('taggable');
+            $table->uuidMorphs('taggable', 'taggables_taggable_id_taggable_type_index');
             $table->unique(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

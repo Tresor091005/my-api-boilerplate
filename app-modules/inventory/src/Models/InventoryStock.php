@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Inventory\Database\Factories\InventoryStockFactory;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -59,6 +60,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $unit_id
  *
  * @method static Builder<static>|InventoryStock whereUnitId($value)
+ * @method static InventoryStockFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

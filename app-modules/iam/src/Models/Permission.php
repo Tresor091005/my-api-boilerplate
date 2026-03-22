@@ -7,6 +7,7 @@ namespace Lahatre\Iam\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Lahatre\Iam\Database\Factories\PermissionFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
@@ -37,6 +38,7 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  * @method static Builder<static>|Permission whereUpdatedAt($value)
  * @method static Builder<static>|Permission withoutPermission($permissions)
  * @method static Builder<static>|Permission withoutRole($roles, ?string $guard = null)
+ * @method static PermissionFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

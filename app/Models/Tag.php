@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Career\Job;
 use Carbon\CarbonImmutable;
+use Database\Factories\TagFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -31,12 +32,15 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Tag whereType($value)
  * @method static Builder<static>|Tag whereUpdatedAt($value)
  * @method static Builder<static>|Tag whereValue($value)
+ * @method static TagFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
 class Tag extends Model
 {
     use SharedTraits;
+
+    protected $table = 'tags';
 
     /**
      * The attributes that are mass assignable.
@@ -48,6 +52,23 @@ class Tag extends Model
         'value',
         'type',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'id'         => 'string',
+            'type'       => 'string',
+            'value'      => 'string',
+            'slug'       => 'string',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'immutable_datetime',
+        ];
+    }
 
     public function jobs(): MorphToMany
     {

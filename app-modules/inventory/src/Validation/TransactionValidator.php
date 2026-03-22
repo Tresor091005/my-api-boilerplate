@@ -28,7 +28,7 @@ class TransactionValidator
     {
         $validator = validator($data, $this->rules());
 
-        $validator->after(function (Validator $validator) use ($data) {
+        $validator->after(function (Validator $validator) use ($data): void {
             // Stop if there are structural errors (movements required, items missing fields, etc.)
             if ($validator->errors()->any()) {
                 return;
@@ -127,8 +127,8 @@ class TransactionValidator
             return;
         }
 
-        $hasIn = $movements->contains(fn ($m) => ($m['type'] ?? null) === MovementType::In->value);
-        $hasOut = $movements->contains(fn ($m) => ($m['type'] ?? null) === MovementType::Out->value);
+        $hasIn = $movements->contains(fn ($m): bool => ($m['type'] ?? null) === MovementType::In->value);
+        $hasOut = $movements->contains(fn ($m): bool => ($m['type'] ?? null) === MovementType::Out->value);
 
         match ($txType) {
             TransactionType::In       => $hasOut && $validator->errors()->add('transaction_type', "An 'IN' transaction can only contain 'in' movements."),

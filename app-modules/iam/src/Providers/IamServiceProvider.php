@@ -7,6 +7,9 @@ namespace Lahatre\Iam\Providers;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
+use Lahatre\Shared\Registries\MorphMapRegistry;
 use Laravel\Sanctum\Sanctum;
 
 class IamServiceProvider extends ServiceProvider
@@ -18,9 +21,14 @@ class IamServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
     }
 
-    public function boot(): void
+    public function boot(MorphMapRegistry $registry): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        $registry->register([
+            'permissions' => Permission::class,
+            'roles'       => Role::class,
+        ]);
 
         /*
         TODO use Illuminate\Auth\Access\Response::allow, deny and denyAsNotFound

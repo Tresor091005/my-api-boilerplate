@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -45,6 +46,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant whereSku($value)
  * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
  * @method static Builder<static>|ProductVariant whereUpdatedAt($value)
+ * @method static ProductVariantFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

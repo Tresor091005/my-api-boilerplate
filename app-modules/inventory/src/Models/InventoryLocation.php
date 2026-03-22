@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Inventory\Database\Factories\InventoryLocationFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -39,6 +40,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryLocation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryLocation withoutTrashed()
  * @method static Builder<static>|InventoryLocation whereIsActive($value)
+ *
+ * @property-read Model|\Eloquent $external
+ *
+ * @method static InventoryLocationFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

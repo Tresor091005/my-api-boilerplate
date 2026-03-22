@@ -6,6 +6,7 @@ namespace App\Models\Company;
 
 use App\Models\Career\Job;
 use Carbon\CarbonImmutable;
+use Database\Factories\Company\CompanyFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -38,12 +39,15 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Company whereWebsite($value)
  * @method static Builder<static>|Company withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Company withoutTrashed()
+ * @method static CompanyFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
 class Company extends Model
 {
     use SharedTraits;
+
+    protected $table = 'companies';
 
     /**
      * The attributes that are mass assignable.
@@ -56,6 +60,24 @@ class Company extends Model
         'website',
         'logo_path',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'id'          => 'string',
+            'name'        => 'string',
+            'description' => 'string',
+            'website'     => 'string',
+            'logo_path'   => 'string',
+            'created_at'  => 'immutable_datetime',
+            'updated_at'  => 'immutable_datetime',
+        ];
+    }
 
     public function members(): HasMany
     {

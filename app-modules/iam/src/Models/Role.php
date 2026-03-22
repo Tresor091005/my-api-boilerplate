@@ -7,6 +7,7 @@ namespace Lahatre\Iam\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Lahatre\Iam\Database\Factories\RoleFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Models\Role as SpatieRole;
 
@@ -35,6 +36,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
  * @method static Builder<static>|Role whereTeamId($value)
  * @method static Builder<static>|Role whereUpdatedAt($value)
  * @method static Builder<static>|Role withoutPermission($permissions)
+ * @method static RoleFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -53,6 +55,7 @@ class Role extends SpatieRole
 
     protected $casts = [
         'id'          => 'string',
+        'team_id'     => 'string',
         'name'        => 'string',
         'is_builtin'  => 'boolean',
         'description' => 'string',

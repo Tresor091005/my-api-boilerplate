@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Inventory\Database\Factories\InventoryItemFactory;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -46,6 +47,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem whereBaseUnitCode($value)
  * @method static Builder<static>|InventoryItem whereIsActive($value)
  * @method static Builder<static>|InventoryItem whereSku($value)
+ * @method static InventoryItemFactory factory($count = null, $state = [])
+ * @method static Builder<static>|InventoryItem whereDeductionStrategy($value)
  *
  * @mixin \Eloquent
  */

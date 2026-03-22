@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Lahatre\Catalog\Database\Factories\ProductFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -38,6 +39,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Product whereIsActive($value)
  * @method static Builder<static>|Product whereName($value)
  * @method static Builder<static>|Product whereUpdatedAt($value)
+ * @method static ProductFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

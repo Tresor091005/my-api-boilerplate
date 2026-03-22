@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Lahatre\Catalog\Database\Factories\BundleItemFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -32,6 +33,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|BundleItem whereItemType($value)
  * @method static Builder<static>|BundleItem whereQuantity($value)
  * @method static Builder<static>|BundleItem whereUpdatedAt($value)
+ * @method static BundleItemFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

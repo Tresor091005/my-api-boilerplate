@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\User;
 
 use Carbon\CarbonImmutable;
+use Database\Factories\User\UserProfileFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|UserProfile whereLinkedinUrl($value)
  * @method static Builder<static>|UserProfile whereUpdatedAt($value)
  * @method static Builder<static>|UserProfile whereUserId($value)
+ * @method static UserProfileFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -63,7 +65,15 @@ class UserProfile extends Model
      */
     protected function casts(): array
     {
-        return [];
+        return [
+            'id'           => 'string',
+            'user_id'      => 'string',
+            'bio'          => 'string',
+            'cv_path'      => 'string',
+            'linkedin_url' => 'string',
+            'created_at'   => 'immutable_datetime',
+            'updated_at'   => 'immutable_datetime',
+        ];
     }
 
     public function user(): BelongsTo

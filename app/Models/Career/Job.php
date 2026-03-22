@@ -8,6 +8,7 @@ use App\Models\Company\Company;
 use App\Models\Company\CompanyMember;
 use App\Models\Tag;
 use Carbon\CarbonImmutable;
+use Database\Factories\Career\JobFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -54,6 +55,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Job whereUpdatedAt($value)
  * @method static Builder<static>|Job withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Job withoutTrashed()
+ * @method static JobFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -86,15 +88,27 @@ class Job extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'is_remote'    => 'boolean',
-        'published_at' => 'datetime',
-        'salary'       => 'decimal',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'id'           => 'string',
+            'company_id'   => 'string',
+            'posted_by'    => 'string',
+            'title'        => 'string',
+            'description'  => 'string',
+            'location'     => 'string',
+            'is_remote'    => 'boolean',
+            'salary'       => 'decimal:2',
+            'status'       => 'string',
+            'published_at' => 'immutable_datetime',
+            'created_at'   => 'immutable_datetime',
+            'updated_at'   => 'immutable_datetime',
+        ];
+    }
 
     public function company(): BelongsTo
     {

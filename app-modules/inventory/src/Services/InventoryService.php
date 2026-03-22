@@ -337,9 +337,9 @@ class InventoryService implements InventoryInterface
         foreach ($groupedByItem as $itemId => $movements) {
             $item = $items->get($itemId);
             /** @var Collection<int, MovementDataDTO> $outMovements */
-            $outMovements = $movements->filter(fn (MovementDataDTO $m) => $m->type === MovementType::Out);
+            $outMovements = $movements->filter(fn (MovementDataDTO $m): bool => $m->type === MovementType::Out);
             /** @var Collection<int, MovementDataDTO> $inMovements */
-            $inMovements = $movements->filter(fn (MovementDataDTO $m) => $m->type === MovementType::In);
+            $inMovements = $movements->filter(fn (MovementDataDTO $m): bool => $m->type === MovementType::In);
 
             // 1. Collect all deducted batches from all source locations (the "pool")
             /** @var Collection<int, InventoryMovement> $poolOfDeductedBatches */

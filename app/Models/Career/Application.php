@@ -6,6 +6,7 @@ namespace App\Models\Career;
 
 use App\Models\User\User;
 use Carbon\CarbonImmutable;
+use Database\Factories\Career\ApplicationFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Application whereStatus($value)
  * @method static Builder<static>|Application whereUpdatedAt($value)
  * @method static Builder<static>|Application whereUserId($value)
+ * @method static ApplicationFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -59,13 +61,22 @@ class Application extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        //
-    ];
+    protected function casts(): array
+    {
+        return [
+            'id'            => 'string',
+            'career_job_id' => 'string',
+            'user_id'       => 'string',
+            'cover_letter'  => 'string',
+            'status'        => 'string',
+            'created_at'    => 'immutable_datetime',
+            'updated_at'    => 'immutable_datetime',
+        ];
+    }
 
     public function job(): BelongsTo
     {

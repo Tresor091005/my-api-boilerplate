@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Lahatre\Catalog\Database\Factories\PriceFactory;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -45,6 +46,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Price wherePriceableType($value)
  * @method static Builder<static>|Price whereStep($value)
  * @method static Builder<static>|Price whereUpdatedAt($value)
+ * @method static PriceFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

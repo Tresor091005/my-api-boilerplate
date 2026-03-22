@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Lahatre\Inventory\Database\Factories\InventoryTransactionFactory;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -35,6 +36,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryTransaction whereReferenceId($value)
  * @method static Builder<static>|InventoryTransaction whereReferenceType($value)
  * @method static Builder<static>|InventoryTransaction whereUpdatedAt($value)
+ * @method static InventoryTransactionFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

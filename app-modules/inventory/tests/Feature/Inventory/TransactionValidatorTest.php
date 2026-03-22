@@ -50,7 +50,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('validates rule 1: unique item_id + location_id in movements', function () {
+it('validates rule 1: unique item_id + location_id in movements', function (): void {
     $payload = [
         'reference_type'   => 'order',
         'reference_id'     => Str::uuid7()->toString(),
@@ -81,7 +81,7 @@ it('validates rule 1: unique item_id + location_id in movements', function () {
         ->toThrow(ValidationException::class, 'The same item cannot appear multiple times for the same location in a single transaction.');
 });
 
-it('validates rule 2: single currency across all in movements', function () {
+it('validates rule 2: single currency across all in movements', function (): void {
     Currency::firstOrCreate(['code' => 'USD'], ['name' => 'Dollar', 'symbol' => '$', 'precision' => 2]);
     $this->unitCache->rewarmCurrencies();
 
@@ -123,7 +123,7 @@ it('validates rule 2: single currency across all in movements', function () {
         ->toThrow(ValidationException::class, 'All "in" movements in a transaction must use the same currency code.');
 });
 
-it('validates rule 7: unit_cost and currency_code required for in movements', function () {
+it('validates rule 7: unit_cost and currency_code required for in movements', function (): void {
     $payload = [
         'reference_type'   => 'order',
         'reference_id'     => Str::uuid7()->toString(),
@@ -144,7 +144,7 @@ it('validates rule 7: unit_cost and currency_code required for in movements', fu
         ->toThrow(ValidationException::class);
 });
 
-it('validates rule 8: stock IDs belong to correct item and location', function () {
+it('validates rule 8: stock IDs belong to correct item and location', function (): void {
     $stock = InventoryStock::create([
         'item_id'       => $this->item->id,
         'location_id'   => $this->location->id,
@@ -182,7 +182,7 @@ it('validates rule 8: stock IDs belong to correct item and location', function (
         ->toThrow(ValidationException::class, "Stock ID {$stock->id} does not belong to the correct item and location.");
 });
 
-it('validates rule 9: stock_ids required when strategy is manual', function () {
+it('validates rule 9: stock_ids required when strategy is manual', function (): void {
     $payload = [
         'reference_type'   => 'order',
         'reference_id'     => Str::uuid7()->toString(),
@@ -204,7 +204,7 @@ it('validates rule 9: stock_ids required when strategy is manual', function () {
         ->toThrow(ValidationException::class, 'Stock IDs are required when strategy is manual.');
 });
 
-it('allows metadata in movements and saves it', function () {
+it('allows metadata in movements and saves it', function (): void {
     $metadata = ['batch_no' => 'B123', 'color' => 'blue'];
 
     $payload = [

@@ -2,6 +2,12 @@ FROM serversideup/php:8.4-frankenphp
 
 USER root
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libicu-dev \
+    && docker-php-ext-install intl bcmath \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /data/caddy /config/caddy && \
     chown -R 1000:1000 /data/caddy /config/caddy && \
     chmod -R 775 /data/caddy /config/caddy

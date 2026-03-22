@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Lahatre\Catalog\Database\Factories\VariantOptionValueFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -28,6 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|VariantOptionValue whereOptionValueId($value)
  * @method static Builder<static>|VariantOptionValue whereProductId($value)
  * @method static Builder<static>|VariantOptionValue whereVariantId($value)
+ * @method static VariantOptionValueFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -37,12 +39,19 @@ class VariantOptionValue extends Pivot
 
     protected $table = 'catalog_variant_option_value';
 
+    protected $fillable = [
+        'product_id',
+        'variant_id',
+        'option_value_id',
+        'option_id',
+    ];
+
     protected $casts = [
         'id'              => 'string',
+        'product_id'      => 'string',
         'variant_id'      => 'string',
+        'option_id'       => 'string',
         'option_value_id' => 'string',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
     ];
 
     public function product(): BelongsTo

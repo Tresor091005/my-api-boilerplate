@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Lahatre\Catalog\Database\Factories\OptionValueFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -31,6 +32,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OptionValue whereOptionId($value)
  * @method static Builder<static>|OptionValue whereUpdatedAt($value)
  * @method static Builder<static>|OptionValue whereValue($value)
+ * @method static OptionValueFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

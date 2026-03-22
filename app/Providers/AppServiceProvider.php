@@ -65,16 +65,24 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureFactories(): void
     {
-        Factory::guessFactoryNamesUsing(function (string $modelName) {
-            return str($modelName)
-                ->replace('Models\\', 'Database\\Factories\\')
-                ->append('Factory')
-                ->toString();
-        });
+        Factory::guessFactoryNamesUsing(fn (string $modelName) => str($modelName)
+            ->when(
+                str($modelName)->startsWith('App\\Models\\'),
+                fn ($str) => $str->replace('App\\Models\\', 'Database\\Factories\\'),
+                fn ($str) => $str->replace('Models\\', 'Database\\Factories\\')
+            )
+            ->append('Factory')
+            ->toString());
 
-        Factory::guessModelNamesUsing(function (string $factoryName) {
-            return str($factoryName)
-                ->replace('Database\\Factories\\', 'Models\\')
+        Factory::guessModelNamesUsing(function (Factory $factory) {
+            $factoryClass = $factory::class;
+
+            return str($factoryClass)
+                ->when(
+                    str($factoryClass)->startsWith('Database\\Factories\\'),
+                    fn ($str) => $str->replace('Database\\Factories\\', 'App\\Models\\'),
+                    fn ($str) => $str->replace('Database\\Factories\\', 'Models\\')
+                )
                 ->beforeLast('Factory')
                 ->toString();
         });

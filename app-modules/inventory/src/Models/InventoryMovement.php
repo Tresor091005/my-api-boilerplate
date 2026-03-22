@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Lahatre\Inventory\Database\Factories\InventoryMovementFactory;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
@@ -55,6 +56,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $unit_id
  *
  * @method static Builder<static>|InventoryMovement whereUnitId($value)
+ * @method static InventoryMovementFactory factory($count = null, $state = [])
+ * @method static Builder<static>|InventoryMovement whereMetadata($value)
  *
  * @mixin \Eloquent
  */

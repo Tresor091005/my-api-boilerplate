@@ -21,7 +21,7 @@ return new class() extends Migration
             $table->softDeletes();
         });
 
-        DB::statement('CREATE UNIQUE INDEX inventory_locations_external_unique ON inventory_locations (external_type, external_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE UNIQUE INDEX inventory_locations_external_id_external_type_unique ON inventory_locations (external_id, external_type) WHERE deleted_at IS NULL');
 
         Schema::create('inventory_items', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -31,7 +31,7 @@ return new class() extends Migration
             $table->softDeletes();
         });
 
-        DB::statement('CREATE UNIQUE INDEX inventory_items_itemable_unique ON inventory_items (itemable_type, itemable_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE UNIQUE INDEX inventory_items_itemable_id_itemable_type_unique ON inventory_items (itemable_id, itemable_type) WHERE deleted_at IS NULL');
 
         Schema::create('inventory_stocks', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -71,7 +71,7 @@ return new class() extends Migration
 
         Schema::create('inventory_transactions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->uuidMorphs('reference');
+            $table->uuidMorphs('reference', 'inventory_transactions_reference_id_reference_type_index');
             $table->enum('transaction_type', ['in', 'out', 'adjustment', 'transfer']);
             $table->jsonb('metadata')->nullable();
             $table->timestamps();

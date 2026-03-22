@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Lahatre\Catalog\Database\Factories\ProductCategoryFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -22,6 +23,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductCategory whereCategoryId($value)
  * @method static Builder<static>|ProductCategory whereId($value)
  * @method static Builder<static>|ProductCategory whereProductId($value)
+ * @method static ProductCategoryFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */
@@ -30,6 +32,11 @@ class ProductCategory extends Pivot
     use SharedTraits;
 
     protected $table = 'catalog_product_categories';
+
+    protected $fillable = [
+        'product_id',
+        'category_id',
+    ];
 
     public $incrementing = false;
 
