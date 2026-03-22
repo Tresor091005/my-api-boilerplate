@@ -59,7 +59,10 @@ class PreciseConversion
     {
         if ($from->group_id !== $to->group_id) {
             throw new InvalidArgumentException(
-                "Cannot convert {$from->code} to {$to->code}: different unit groups"
+                trans('master::exceptions.conversion_unit_group_mismatch', [
+                    'from' => $from->code,
+                    'to'   => $to->code,
+                ])
             );
         }
 

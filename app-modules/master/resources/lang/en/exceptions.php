@@ -13,4 +13,5 @@ return [
     'unit_ratio_immutable'       => 'The ratio of an existing unit cannot be modified.',
     'unit_ratio_exists_in_group' => 'The ratio :ratio already exists in the group :group.',
     'unit_active_limit'          => 'A unit group cannot have more than :limit active units at the same time.',
+    'conversion_unit_group_mismatch' => 'Cannot convert :from to :to: different unit groups',
 ];
