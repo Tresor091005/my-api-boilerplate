@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use App\Http\Resources\BaseCollection;
+use Lahatre\Shared\Http\Resources\BaseCollection;
 
 class ProductVariantCollection extends BaseCollection
 {

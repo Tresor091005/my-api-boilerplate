@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Shared\Console\Commands\Make;
 
-use App\Http\Resources\BaseCollection;
+use Lahatre\Shared\Http\Resources\BaseCollection;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
