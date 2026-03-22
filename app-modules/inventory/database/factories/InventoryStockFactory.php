@@ -24,10 +24,10 @@ class InventoryStockFactory extends Factory
             'item_id'         => InventoryItem::factory(),
             'location_id'     => InventoryLocation::factory(),
             'unit_cost'       => fake()->numberBetween(100, 5000),
-            'currency_code'   => Currency::factory(),
+            'currency_code'   => Currency::factory()->create()->code,
             'quantity'        => $quantity,
             'remaining'       => $quantity,
-            'unit_code'       => Unit::factory(),
+            'unit_code'       => Unit::factory()->create()->code,
             'peremption_date' => null,
             'metadata'        => null,
         ];

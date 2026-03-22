@@ -19,11 +19,11 @@ class UnitFactory extends Factory
         $name = $this->faker->unique()->word();
 
         return [
-            'code'     => Str::slug($name),
+            'code'     => $this->faker->unique()->lexify('???'),
             'name'     => $name,
             'symbol'   => Str::upper(Str::limit($name, 2, '')),
             'ratio'    => $this->faker->numberBetween(1, 1000),
-            'group_id' => UnitGroup::factory(),
+            'group_id' => UnitGroup::factory()->create()->id,
         ];
     }
 }

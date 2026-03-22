@@ -164,6 +164,10 @@ class InventoryService implements InventoryInterface
 
     public function updateItem(string $id, array $data): InventoryItem
     {
+        validator($data, [
+            'deduction_strategy' => 'in:fifo,fefo'
+        ])->validate();
+
         return ensure_transaction(function () use ($id, $data) {
             $item = InventoryItem::findOrFail($id);
             $item->fill([
