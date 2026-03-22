@@ -18,12 +18,5 @@ class MasterServiceProvider extends ServiceProvider
         $this->app->scoped(UnitCache::class);
     }
 
-    public function boot(MorphMapRegistry $registry): void
-    {
-        $registry->register([
-            'currency'   => Currency::class,
-            'unit'       => Unit::class,
-            'unit_group' => UnitGroup::class,
-        ]);
-    }
+    public function boot(): void {}
 }

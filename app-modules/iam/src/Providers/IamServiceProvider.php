@@ -21,14 +21,9 @@ class IamServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
     }
 
-    public function boot(MorphMapRegistry $registry): void
+    public function boot(): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
-
-        $registry->register([
-            'permissions' => Permission::class,
-            'roles'       => Role::class,
-        ]);
 
         /*
         TODO use Illuminate\Auth\Access\Response::allow, deny and denyAsNotFound

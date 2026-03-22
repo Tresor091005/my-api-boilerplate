@@ -20,11 +20,5 @@ class InventoryServiceProvider extends ServiceProvider
         $this->app->scoped(InventoryInterface::class, InventoryService::class);
     }
 
-    public function boot(MorphMapRegistry $registry): void
-    {
-        $registry->register([
-            'inventory_item'     => InventoryItem::class,
-            'inventory_location' => InventoryLocation::class,
-        ]);
-    }
+    public function boot(): void {}
 }

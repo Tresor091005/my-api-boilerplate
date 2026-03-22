@@ -34,20 +34,13 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(MorphMapRegistry $registry): void
+    public function boot(): void
     {
         $this->configureEloquent();
         $this->configureFactories();
         $this->configureScramble();
 
         $this->registerStrMacros();
-
-        $registry->register([
-            'user'           => User::class,
-            'company_member' => CompanyMember::class,
-            'job'            => Job::class,
-            'tag'            => Tag::class,
-        ]);
     }
 
     /**

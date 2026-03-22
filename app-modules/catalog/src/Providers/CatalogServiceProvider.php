@@ -13,11 +13,5 @@ class CatalogServiceProvider extends ServiceProvider
 {
     public function register(): void {}
 
-    public function boot(MorphMapRegistry $registry): void
-    {
-        $registry->register([
-            'product_variant' => ProductVariant::class,
-            'bundle'          => Bundle::class,
-        ]);
-    }
+    public function boot(): void {}
 }

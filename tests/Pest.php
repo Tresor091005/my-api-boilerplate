@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Lahatre\Shared\Support\ModelFinder;
 use Tests\TestCase;
 
 /*
@@ -43,7 +44,12 @@ pest()->extend(TestCase::class)
 |
 */
 
-function something(): void
+/**
+ * Get all application and module models.
+ *
+ * @return array<int, string>
+ */
+function getAllModels(): array
 {
-    // ..
+    return ModelFinder::getAllModels();
 }
