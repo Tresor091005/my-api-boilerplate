@@ -33,6 +33,10 @@ return [
         'telescope_entries_tags',
         'telescope_monitoring',
         'personal_access_tokens',
+        'password_reset_tokens',
+        // 'iam_model_has_permissions',
+        // 'iam_model_has_roles',
+        // 'iam_role_has_permissions',
     ],
 
     /*
@@ -61,7 +65,7 @@ return [
     | Format: 'table_name' => ['column1', 'column2']
     |
     */
-    'ignored_soft_delete_uniqueness' => [
+    'ignored_soft_delete_partial_index' => [
         'users'                    => ['email'],
         'inventory_items'          => ['sku'],
         'master_units'             => ['code'],

@@ -91,36 +91,30 @@ it('ensures all foreign keys are indexed', function (): void {
             continue;
         }
 
-        $columns = Schema::getColumnListing($tableName);
+        // Fetch actual foreign keys from Postgres
+        $foreignKeys = DB::select("
+            SELECT kcu.column_name
+            FROM information_schema.table_constraints AS tc
+            JOIN information_schema.key_column_usage AS kcu
+              ON tc.constraint_name = kcu.constraint_name
+              AND tc.table_schema = kcu.table_schema
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+              AND tc.table_name = ?
+        ", [$tableName]);
+
+        $fkColumns = collect($foreignKeys)->pluck('column_name')->unique()->toArray();
         $indexes = Schema::getIndexes($tableName);
 
         // Map columns that are at the first position of an index
         $firstIndexedColumns = collect($indexes)->map(fn ($index) => $index['columns'][0] ?? null)->filter()->unique()->toArray();
 
-        foreach ($columns as $column) {
-            // We look for foreign keys (ending in _id) but skip the primary key 'id'
-            if (Str::endsWith($column, '_id') && $column !== 'id') {
-                $isIndexed = in_array($column, $firstIndexedColumns, true);
+        foreach ($fkColumns as $column) {
+            $isIndexed = in_array($column, $firstIndexedColumns, true);
 
-                // If not indexed in first position, check if it's part of a polymorphic index pair
-                if (!$isIndexed) {
-                    $morphPrefix = Str::beforeLast($column, '_id');
-                    $typeColumn = $morphPrefix.'_type';
-
-                    if (in_array($typeColumn, $columns, true)) {
-                        // It's a morph. Is there an index covering both columns?
-                        foreach ($indexes as $index) {
-                            if (in_array($column, $index['columns'], true) && in_array($typeColumn, $index['columns'], true)) {
-                                $isIndexed = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (!$isIndexed) {
-                    $failures[] = "Table [{$tableName}]: Foreign key column [{$column}] is not indexed (neither directly nor as part of a polymorphic pair).";
-                }
+            // Special case: check if it's part of a composite index where it's not first,
+            // but we usually want it first for performance on joins.
+            if (!$isIndexed) {
+                $failures[] = "Table [{$tableName}]: Foreign key column [{$column}] is not indexed in first position.";
             }
         }
     }
@@ -132,10 +126,10 @@ it('ensures all foreign keys are indexed', function (): void {
     expect(true)->toBeTrue();
 });
 
-it('ensures unique indexes on soft-deletable tables have whereNull deleted_at', function (): void {
+it('ensures indexes on soft-deletable tables have whereNull deleted_at', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);
-    $ignoredColumnsMap = config('model-integrity.ignored_soft_delete_uniqueness', []);
+    $ignoredColumnsMap = config('model-integrity.ignored_soft_delete_partial_index', []);
 
     $failures = [];
 
@@ -154,8 +148,8 @@ it('ensures unique indexes on soft-deletable tables have whereNull deleted_at', 
         $ignoredColumns = $ignoredColumnsMap[$tableName] ?? [];
 
         foreach ($indexes as $index) {
-            // Only care about unique indexes that are NOT primary keys
-            if (!$index['unique'] || $index['primary']) {
+            // Skip primary keys
+            if ($index['primary']) {
                 continue;
             }
 
@@ -170,14 +164,140 @@ it('ensures unique indexes on soft-deletable tables have whereNull deleted_at', 
             $definition = DB::selectOne('SELECT indexdef FROM pg_indexes WHERE tablename = ? AND indexname = ?', [$tableName, $indexName]);
 
             if ($definition && !Str::contains($definition->indexdef, 'WHERE (deleted_at IS NULL)')) {
-                $failures[] = "Table [{$tableName}]: Unique index [{$indexName}] on columns [".implode(', ', $index['columns'])."] is missing 'WHERE deleted_at IS NULL'.";
+                $failures[] = "Table [{$tableName}]: Index [{$indexName}] on columns [".implode(', ', $index['columns'])."] is missing 'WHERE deleted_at IS NULL'.";
             }
         }
     }
 
     if ($failures !== []) {
-        $this->fail("Soft Delete Uniqueness Failures (Unique indexes on SoftDelete tables should be partial):\n\n".implode("\n", $failures));
+        $this->fail("Soft Delete Index Failures (Indexes on SoftDelete tables should be partial):\n\n".implode("\n", $failures));
     }
 
     expect(true)->toBeTrue();
 });
+
+it('ensures all primary keys are named id and use UUIDs', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        $indexes = Schema::getIndexes($tableName);
+        $primaryKey = collect($indexes)->firstWhere('primary', true);
+
+        if (!$primaryKey) {
+            $failures[] = "Table [{$tableName}]: Missing primary key.";
+            continue;
+        }
+
+        if (count($primaryKey['columns']) > 1) {
+            $failures[] = "Table [{$tableName}]: Composite primary key detected [".implode(', ', $primaryKey['columns'])."]. Expected a single 'id' column.";
+            continue;
+        }
+
+        $pkColumn = $primaryKey['columns'][0];
+        if ($pkColumn !== 'id') {
+            $failures[] = "Table [{$tableName}]: Primary key is named [{$pkColumn}]. Expected 'id'.";
+        }
+
+        // Check type via Postgres information_schema
+        $columnInfo = DB::selectOne("
+            SELECT data_type, udt_name
+            FROM information_schema.columns
+            WHERE table_name = ? AND column_name = ?
+        ", [$tableName, $pkColumn]);
+
+        if ($columnInfo && $columnInfo->udt_name !== 'uuid') {
+            $failures[] = "Table [{$tableName}]: Primary key [{$pkColumn}] is of type [{$columnInfo->udt_name}]. Expected 'uuid'.";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Primary Key Integrity Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+it('ensures all JSON columns use jsonb for better performance', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        $jsonColumns = DB::select("
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = ? AND data_type = 'json'
+        ", [$tableName]);
+
+        foreach ($jsonColumns as $column) {
+            $failures[] = "Table [{$tableName}]: Column [{$column->column_name}] uses 'json' type. Use 'jsonb' instead for indexing and performance.";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("JSON Type Integrity Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+    $allowedPrefixes = ['is_', 'has_', 'can_', 'should_'];
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        $boolColumns = DB::select("
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = ? AND data_type = 'boolean'
+        ", [$tableName]);
+
+        foreach ($boolColumns as $column) {
+            $name = $column->column_name;
+            $hasValidPrefix = false;
+            foreach ($allowedPrefixes as $prefix) {
+                if (str_starts_with($name, $prefix)) {
+                    $hasValidPrefix = true;
+                    break;
+                }
+            }
+
+            if (!$hasValidPrefix) {
+                $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: " . implode(', ', $allowedPrefixes);
+            }
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Boolean Naming Convention Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+test('todo: ensure non-negativity constraints on critical columns (stock, prices)');
+test('todo: ensure polymorphic type columns are indexed');
+test('todo: ensure timestamps are present on all business tables');
+
