@@ -14,7 +14,7 @@ return new class() extends Migration
     public function up(): void
     {
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->jsonb('metadata')->nullable()->after('peremption_date');
+            $table->jsonb('metadata')->nullable()->after('expiration_date');
 
             // Drop existing foreign key and constraint
             $table->dropForeign(['stock_id']);

@@ -25,7 +25,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $unit_code
  * @property int $unit_cost
  * @property string $currency_code
- * @property CarbonImmutable|null $peremption_date
+ * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -77,7 +77,7 @@ class InventoryMovement extends Model
         'unit_code',
         'unit_cost',
         'currency_code',
-        'peremption_date',
+        'expiration_date',
         'metadata',
     ];
 
@@ -92,7 +92,7 @@ class InventoryMovement extends Model
         'unit_code'       => 'string',
         'unit_cost'       => 'integer',
         'currency_code'   => 'string',
-        'peremption_date' => 'immutable_datetime',
+        'expiration_date' => 'immutable_datetime',
         'metadata'        => 'array',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',

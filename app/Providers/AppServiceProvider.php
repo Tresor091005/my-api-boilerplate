@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\Career\Job;
-use App\Models\Company\CompanyMember;
-use App\Models\Tag;
-use App\Models\User\User;
 use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -19,7 +15,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
-use Lahatre\Shared\Registries\MorphMapRegistry;
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -38,7 +38,7 @@ class MorphMapRegistry
         foreach ($morphs as $alias => $class) {
             if (isset($this->map[$alias]) && $this->map[$alias] !== $class) {
                 throw new InvalidArgumentException(
-                    "Morph alias collision: '{$alias}' is already registered for '{$this->map[$alias]}'. " .
+                    "Morph alias collision: '{$alias}' is already registered for '{$this->map[$alias]}'. ".
                     "Cannot reassign it to '{$class}'. Please provide a unique alias."
                 );
             }
@@ -66,7 +66,7 @@ class MorphMapRegistry
         $this->discoverAndRegister();
 
         $cachePath = App::bootstrapPath('cache/morph-map.php');
-        $content = '<?php return ' . var_export($this->map, true) . ';' . PHP_EOL;
+        $content = '<?php return '.var_export($this->map, true).';'.PHP_EOL;
 
         File::put($cachePath, $content);
     }
@@ -100,8 +100,8 @@ class MorphMapRegistry
 
             if (isset($newMap[$alias]) && $newMap[$alias] !== $class) {
                 throw new InvalidArgumentException(
-                    "Automatic morph alias collision detected: '{$alias}' is used by both '{$newMap[$alias]}' and '{$class}'. " .
-                    "Please manually register one of them in a ServiceProvider with a custom alias."
+                    "Automatic morph alias collision detected: '{$alias}' is used by both '{$newMap[$alias]}' and '{$class}'. ".
+                    'Please manually register one of them in a ServiceProvider with a custom alias.'
                 );
             }
 

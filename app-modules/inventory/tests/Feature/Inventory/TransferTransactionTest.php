@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -16,7 +17,6 @@ use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Inventory\Enums\DeductionStrategy;
 
 uses(RefreshDatabase::class);
 
@@ -112,5 +112,5 @@ it('fails a transfer if cost or currency is provided for an IN movement', functi
     $this->service->recordTransaction($payload);
 })->with([
     'unit_cost' => ['unit_cost', 100],
-    'currency' => ['currency_code', 'EUR'],
+    'currency'  => ['currency_code', 'EUR'],
 ])->throws(ValidationException::class);

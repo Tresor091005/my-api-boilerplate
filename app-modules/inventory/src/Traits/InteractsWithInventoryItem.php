@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
 use Staudenmeir\EloquentHasManyDeep\HasManyDeep;
 use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
-trait InteractsWithInventory
+/**
+ * @phpstan-require-extends Model
+ *
+ * @phpstan-require-implements HasInventoryItem
+ *
+ * @mixin Model
+ */
+trait InteractsWithInventoryItem
 {
     use HasRelationships;
 

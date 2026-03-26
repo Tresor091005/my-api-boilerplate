@@ -70,8 +70,8 @@ it('successfully processes an OUT transaction using FIFO strategy', function ():
 
 it('successfully processes an OUT transaction using FEFO strategy', function (): void {
     // GIVEN two stock lots, lot2 expires sooner
-    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'peremption_date' => now()->addDays(10)]);
-    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'peremption_date' => now()->addDays(5)]);
+    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(10)]);
+    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(5)]);
 
     // WHEN we deduct 70 units
     $payload = [

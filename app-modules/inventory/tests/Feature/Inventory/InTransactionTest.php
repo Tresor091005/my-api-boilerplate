@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -120,7 +121,7 @@ it('fails an IN transaction if it contains an OUT movement', function (): void {
     ];
 
     $this->service->recordTransaction($payload);
-})->throws(\Illuminate\Validation\ValidationException::class, "An 'IN' transaction can only contain 'in' movements.");
+})->throws(ValidationException::class, "An 'IN' transaction can only contain 'in' movements.");
 
 it('fails an IN transaction if unit_cost or currency_code is missing', function ($fieldToRemove): void {
     $movement = [
@@ -142,4 +143,4 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
     ];
 
     $this->service->recordTransaction($payload);
-})->with(['unit_cost', 'currency_code'])->throws(\Illuminate\Validation\ValidationException::class);
+})->with(['unit_cost', 'currency_code'])->throws(ValidationException::class);

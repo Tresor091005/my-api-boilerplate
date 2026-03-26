@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
@@ -32,7 +31,7 @@ function getModuleNames(): array
  */
 function checkModuleDependencies(string $module, array $allModules, array $allowedDependencies): array
 {
-    $moduleNamespace = 'Lahatre\\' . Str::studly($module);
+    $moduleNamespace = 'Lahatre\\'.Str::studly($module);
     $modulePath = base_path("app-modules/{$module}/src");
 
     if (!is_dir($modulePath)) {
@@ -40,7 +39,7 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
     }
 
     $prohibitedModules = array_diff($allModules, [$module], $allowedDependencies);
-    $prohibitedNamespaces = array_map(fn($m) => 'Lahatre\\' . Str::studly($m), $prohibitedModules);
+    $prohibitedNamespaces = array_map(fn ($m) => 'Lahatre\\'.Str::studly($m), $prohibitedModules);
 
     $finder = new Finder();
     $finder->files()->in($modulePath)->name('*.php');
@@ -102,7 +101,7 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
     }
 
     if (!empty($failures)) {
-        $this->fail("Modular Dependency Failures (Cross-module imports detected):\n\n" . implode("\n", array_unique($failures)));
+        $this->fail("Modular Dependency Failures (Cross-module imports detected):\n\n".implode("\n", array_unique($failures)));
     }
 
     expect(true)->toBeTrue();
@@ -141,7 +140,7 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
     }
 
     if (!empty($failures)) {
-        $this->fail("Core Dependency Failures (Modules should not depend on main App logic):\n\n" . implode("\n", array_unique($failures)));
+        $this->fail("Core Dependency Failures (Modules should not depend on main App logic):\n\n".implode("\n", array_unique($failures)));
     }
 
     expect(true)->toBeTrue();

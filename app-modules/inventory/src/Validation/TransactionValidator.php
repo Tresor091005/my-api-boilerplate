@@ -52,21 +52,20 @@ class TransactionValidator
 
             'movements' => ['required', 'array', 'min:1'],
 
-            'movements.*.item_id'     => ['required', 'string', 'bail'],
-            'movements.*.location_id' => ['required', 'string', 'bail'],
+            'movements.*.item_id'     => ['required', 'string'],
+            'movements.*.location_id' => ['required', 'string'],
             'movements.*.type'        => [
-                'required_unless:transaction_type,adjustment',
-                'nullable',
+                'required_unless:transaction_type,'.TransactionType::Adjustment->value,
+                'prohibited_if:transaction_type,'.TransactionType::Adjustment->value,
                 Rule::enum(MovementType::class),
-                'bail',
             ],
-            'movements.*.quantity'  => ['required', 'numeric', 'gt:0', 'bail'],
-            'movements.*.unit_code' => ['required', 'string', 'bail'],
+            'movements.*.quantity'  => ['required', 'numeric', 'gt:0'],
+            'movements.*.unit_code' => ['required', 'string'],
 
             // Basic format/type checks
             'movements.*.unit_cost'       => ['nullable', 'numeric', 'min:0'],
             'movements.*.currency_code'   => ['nullable', 'string', 'size:3'],
-            'movements.*.peremption_date' => ['nullable', 'date'],
+            'movements.*.expiration_date' => ['nullable', 'date'],
             'movements.*.metadata'        => ['nullable', 'array'],
             'movements.*.strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
             'movements.*.stock_ids'       => ['nullable', 'array'],
@@ -196,73 +195,69 @@ class TransactionValidator
                         $validator->errors()->add("movements.{$index}.currency_code", "The currency code is prohibited for 'in' movements in a 'TRANSFER' transaction.");
                     }
 
-                    if (isset($m['peremption_date'])) {
-                        $validator->errors()->add("movements.{$index}.peremption_date", "The peremption date is prohibited for 'in' movements in a 'TRANSFER' transaction.");
+                    if (isset($m['expiration_date'])) {
+                        $validator->errors()->add("movements.{$index}.expiration_date", "The peremption date is prohibited for 'in' movements in a 'TRANSFER' transaction.");
                     }
                 }
 
-                if (
-                    ($txType === TransactionType::In || $txType === TransactionType::Adjustment)
-                    && isset($m['unit_cost'], $m['currency_code'])
-                    && $lookups['currencies']->has($m['currency_code'])
-                ) {
-                    $currency = $lookups['currencies']->get($m['currency_code']);
-                    $precision = $currency->precision;
-
-                    $v = validator(
-                        ['unit_cost' => $m['unit_cost']],
-                        ['unit_cost' => "decimal:0,{$precision}"]
-                    );
-
-                    if ($v->fails()) {
-                        $validator->errors()->add(
-                            "movements.{$index}.unit_cost",
-                            "The unit cost for currency {$m['currency_code']} must have at most {$precision} decimal places."
-                        );
-                    }
-                }
-
-                if ($txType !== TransactionType::Adjustment && isset($m['strategy'])) {
+                if (isset($m['strategy'])) {
                     $validator->errors()->add("movements.{$index}.strategy", "Stock deduction strategy is prohibited for 'in' movements.");
                 }
 
-                if ($txType !== TransactionType::Adjustment && isset($m['stock_ids'])) {
+                if (isset($m['stock_ids'])) {
                     $validator->errors()->add("movements.{$index}.stock_ids", "Stock IDs are prohibited for 'in' movements.");
                 }
             }
 
             if ($type === MovementType::Out) {
-                if ($txType !== TransactionType::Adjustment && isset($m['unit_cost'])) {
+                if (isset($m['unit_cost'])) {
                     $validator->errors()->add("movements.{$index}.unit_cost", "The unit cost is prohibited for 'out' movements.");
                 }
 
-                if ($txType !== TransactionType::Adjustment && isset($m['currency_code'])) {
+                if (isset($m['currency_code'])) {
                     $validator->errors()->add("movements.{$index}.currency_code", "The currency code is prohibited for 'out' movements.");
                 }
 
-                if ($txType !== TransactionType::Adjustment && isset($m['peremption_date'])) {
-                    $validator->errors()->add("movements.{$index}.peremption_date", "The peremption date is prohibited for 'out' movements.");
+                if (isset($m['expiration_date'])) {
+                    $validator->errors()->add("movements.{$index}.expiration_date", "The peremption date is prohibited for 'out' movements.");
                 }
             }
+        }
 
-            // Stock IDs validation
-            $strategy = $m['strategy'] ?? null;
-            if (is_string($strategy)) {
-                $strategy = DeductionStrategy::tryFrom($strategy);
+        if (isset($m['unit_cost'], $m['currency_code']) && $lookups['currencies']->has($m['currency_code'])) {
+            $currency = $lookups['currencies']->get($m['currency_code']);
+            $precision = $currency->precision;
+
+            $v = validator(
+                ['unit_cost' => $m['unit_cost']],
+                ['unit_cost' => "decimal:0,{$precision}"]
+            );
+
+            if ($v->fails()) {
+                $validator->errors()->add(
+                    "movements.{$index}.unit_cost",
+                    "The unit cost for currency {$m['currency_code']} must have at most {$precision} decimal places."
+                );
             }
+        }
 
-            if ($strategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
-                $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
-            }
+        // Stock IDs validation
+        $strategy = $m['strategy'] ?? null;
+        if (is_string($strategy)) {
+            $strategy = DeductionStrategy::tryFrom($strategy);
+        }
 
-            if (!empty($m['stock_ids']) && $type === MovementType::Out) {
-                foreach ($m['stock_ids'] as $sid) {
-                    $stock = $lookups['stocks']->get($sid);
-                    if (!$stock) {
-                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} is invalid.");
-                    } elseif ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
-                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} does not belong to the correct item and location.");
-                    }
+        if ($strategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
+            $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
+        }
+
+        if (!empty($m['stock_ids']) && $type === MovementType::Out) {
+            foreach ($m['stock_ids'] as $sid) {
+                $stock = $lookups['stocks']->get($sid);
+                if (!$stock) {
+                    $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} is invalid.");
+                } elseif ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
+                    $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} does not belong to the correct item and location.");
                 }
             }
         }

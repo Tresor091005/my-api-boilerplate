@@ -18,7 +18,7 @@ readonly class MovementDataDTO
         public string $unit_code,
         public ?int $unit_cost = null,
         public ?string $currency_code = null,
-        public ?CarbonImmutable $peremption_date = null,
+        public ?CarbonImmutable $expiration_date = null,
         public ?DeductionStrategy $strategy = null,
         public ?array $stock_ids = null,
         public ?array $metadata = null,
@@ -38,7 +38,7 @@ readonly class MovementDataDTO
                 ? (int) toMinor((string) $data['unit_cost'], $data['currency_code'])
                 : ($data['unit_cost'] ?? null),
             currency_code: $data['currency_code'] ?? null,
-            peremption_date: isset($data['peremption_date']) ? CarbonImmutable::parse($data['peremption_date']) : null,
+            expiration_date: isset($data['expiration_date']) ? CarbonImmutable::parse($data['expiration_date']) : null,
             strategy: isset($data['strategy'])
                 ? (is_string($data['strategy']) ? DeductionStrategy::from($data['strategy']) : $data['strategy'])
                 : null,

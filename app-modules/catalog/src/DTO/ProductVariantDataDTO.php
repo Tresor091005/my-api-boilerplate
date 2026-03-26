@@ -14,7 +14,7 @@ class ProductVariantDataDTO extends LahatreDTO
 
     public ?string $unit_group_id = null;
 
-    public bool $manage_stock;
+    public bool $should_manage_stock;
 
     public bool $is_active;
 
@@ -24,16 +24,16 @@ class ProductVariantDataDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'manage_stock' => 'boolean',
-            'is_active'    => 'boolean',
+            'should_manage_stock' => 'boolean',
+            'is_active'           => 'boolean',
         ];
     }
 
     protected function defaults(): array
     {
         return [
-            'manage_stock' => false,
-            'is_active'    => false,
+            'should_manage_stock' => false,
+            'is_active'           => false,
         ];
     }
 
@@ -56,13 +56,13 @@ class ProductVariantDataDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'sku'             => ['nullable', 'string', 'max:255'],
-            'unit_group_id'   => ['nullable', 'uuid'],
-            'manage_stock'    => ['boolean'],
-            'is_active'       => ['boolean'],
-            'options'         => ['nullable', 'array'],
-            'options.*.name'  => ['required_with:options', 'string', 'max:255'],
-            'options.*.value' => ['required_with:options', 'string', 'max:255'],
+            'sku'                 => ['nullable', 'string', 'max:255'],
+            'unit_group_id'       => ['nullable', 'uuid'],
+            'should_manage_stock' => ['boolean'],
+            'is_active'           => ['boolean'],
+            'options'             => ['nullable', 'array'],
+            'options.*.name'      => ['required_with:options', 'string', 'max:255'],
+            'options.*.value'     => ['required_with:options', 'string', 'max:255'],
         ];
     }
 

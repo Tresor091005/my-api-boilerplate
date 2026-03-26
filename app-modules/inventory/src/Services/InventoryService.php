@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
@@ -32,15 +33,21 @@ class InventoryService implements InventoryInterface
 
     public function createLocation(HasInventoryLocation $model): InventoryLocation
     {
-        return ensure_transaction(fn () => InventoryLocation::firstOrCreate(
-            [
+        return ensure_transaction(function () use ($model) {
+            $existing = InventoryLocation::where('external_type', $model->getMorphClass())
+                ->where('external_id', $model->getKey())
+                ->first();
+
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            return InventoryLocation::create([
                 'external_type' => $model->getMorphClass(),
                 'external_id'   => $model->getKey(),
-            ],
-            [
-                'is_active' => true,
-            ]
-        ));
+                'is_active'     => true,
+            ]);
+        });
     }
 
     /**
@@ -62,24 +69,29 @@ class InventoryService implements InventoryInterface
             }
 
             $now = now();
-            $externalIds = [];
+            $externalIds = $models->map(fn ($m) => $m->getKey())->toArray();
 
-            $data = $models->map(function (HasInventoryLocation $model) use ($now, $firstType, &$externalIds): array {
-                $externalIds[] = $model->getKey();
+            $existingIds = InventoryLocation::where('external_type', $firstType)
+                ->whereIn('external_id', $externalIds)
+                ->pluck('external_id')
+                ->toArray();
 
-                return [
+            $toInsert = $models
+                ->reject(fn ($m) => in_array($m->getKey(), $existingIds))
+                ->map(fn (HasInventoryLocation $m) => [
                     'id'            => (string) Str::uuid7(),
                     'external_type' => $firstType,
-                    'external_id'   => $model->getKey(),
+                    'external_id'   => $m->getKey(),
                     'is_active'     => true,
                     'created_at'    => $now,
                     'updated_at'    => $now,
-                ];
-            })->toArray();
+                ])
+                ->values()
+                ->toArray();
 
-            // Note: Batch operations bypass Model events.
-            // TODO: investigate softDelete is working
-            InventoryLocation::upsert($data, ['external_type', 'external_id'], ['updated_at']);
+            if (!empty($toInsert)) {
+                InventoryLocation::insert($toInsert);
+            }
 
             return InventoryLocation::where('external_type', $firstType)
                 ->whereIn('external_id', $externalIds)
@@ -89,18 +101,22 @@ class InventoryService implements InventoryInterface
 
     public function createItem(HasInventoryItem $model): InventoryItem
     {
-        $baseUnitCode = $this->unitCache->getBaseUnit($model->getUnitGroupId())->code;
+        return ensure_transaction(function () use ($model) {
+            $existing = InventoryItem::where('itemable_type', $model->getMorphClass())
+                ->where('itemable_id', $model->getKey())
+                ->first();
 
-        return ensure_transaction(fn () => InventoryItem::firstOrCreate(
-            [
-                'itemable_type' => $model->getMorphClass(),
-                'itemable_id'   => $model->getKey(),
-            ],
-            [
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            return InventoryItem::create([
+                'itemable_type'  => $model->getMorphClass(),
+                'itemable_id'    => $model->getKey(),
                 'is_active'      => true,
-                'base_unit_code' => $baseUnitCode,
-            ]
-        ));
+                'base_unit_code' => $this->unitCache->getBaseUnit($model->getUnitGroupId())->code,
+            ]);
+        });
     }
 
     /**
@@ -122,26 +138,30 @@ class InventoryService implements InventoryInterface
             }
 
             $now = now();
-            $externalIds = [];
+            $externalIds = $models->map(fn ($m) => $m->getKey())->toArray();
 
-            $data = $models->map(function (HasInventoryItem $model) use ($now, $firstType, &$externalIds): array {
-                $externalIds[] = $model->getKey();
-                $baseUnitCode = $this->unitCache->getBaseUnit($model->getUnitGroupId())->code;
+            $existingIds = InventoryItem::where('itemable_type', $firstType)
+                ->whereIn('itemable_id', $externalIds)
+                ->pluck('itemable_id')
+                ->toArray();
 
-                return [
+            $toInsert = $models
+                ->reject(fn ($m) => in_array($m->getKey(), $existingIds))
+                ->map(fn (HasInventoryItem $m) => [
                     'id'             => (string) Str::uuid7(),
                     'itemable_type'  => $firstType,
-                    'itemable_id'    => $model->getKey(),
+                    'itemable_id'    => $m->getKey(),
                     'is_active'      => true,
-                    'base_unit_code' => $baseUnitCode,
+                    'base_unit_code' => $this->unitCache->getBaseUnit($m->getUnitGroupId())->code,
                     'created_at'     => $now,
                     'updated_at'     => $now,
-                ];
-            })->toArray();
+                ])
+                ->values()
+                ->toArray();
 
-            // Note: Batch operations bypass Model events.
-            // We only update 'updated_at' to avoid overriding 'base_unit_code' if record exists.
-            InventoryItem::upsert($data, ['itemable_type', 'itemable_id'], ['updated_at']);
+            if (!empty($toInsert)) {
+                InventoryItem::insert($toInsert);
+            }
 
             return InventoryItem::where('itemable_type', $firstType)
                 ->whereIn('itemable_id', $externalIds)
@@ -164,9 +184,7 @@ class InventoryService implements InventoryInterface
 
     public function updateItem(string $id, array $data): InventoryItem
     {
-        validator($data, [
-            'deduction_strategy' => 'in:fifo,fefo'
-        ])->validate();
+        validator($data, ['deduction_strategy' => Rule::enum(DeductionStrategy::class)])->validate();
 
         return ensure_transaction(function () use ($id, $data) {
             $item = InventoryItem::findOrFail($id);
@@ -239,7 +257,7 @@ class InventoryService implements InventoryInterface
                 'quantity'        => (int) $qtyInBase,
                 'remaining'       => (int) $qtyInBase,
                 'unit_code'       => $item->base_unit_code,
-                'peremption_date' => $m->peremption_date,
+                'expiration_date' => $m->expiration_date,
                 'metadata'        => $m->metadata,
             ]);
 
@@ -253,7 +271,7 @@ class InventoryService implements InventoryInterface
                 'unit_code'       => $item->base_unit_code,
                 'unit_cost'       => $m->unit_cost,
                 'currency_code'   => $m->currency_code,
-                'peremption_date' => $m->peremption_date,
+                'expiration_date' => $m->expiration_date,
                 'metadata'        => $m->metadata,
             ]);
         }
@@ -320,7 +338,7 @@ class InventoryService implements InventoryInterface
                 'unit_code'       => $item->base_unit_code,
                 'unit_cost'       => $stock->unit_cost,
                 'currency_code'   => $stock->currency_code,
-                'peremption_date' => $stock->peremption_date,
+                'expiration_date' => $stock->expiration_date,
                 'metadata'        => $m->metadata,
             ]));
 
@@ -376,7 +394,7 @@ class InventoryService implements InventoryInterface
                         'quantity'        => (int) $take,
                         'remaining'       => (int) $take,
                         'unit_code'       => $item->base_unit_code,
-                        'peremption_date' => $currentBatch->peremption_date,
+                        'expiration_date' => $currentBatch->expiration_date,
                         'metadata'        => $inM->metadata,
                     ]);
 
@@ -390,7 +408,7 @@ class InventoryService implements InventoryInterface
                         'unit_code'       => $item->base_unit_code,
                         'unit_cost'       => $currentBatch->unit_cost,
                         'currency_code'   => $currentBatch->currency_code,
-                        'peremption_date' => $currentBatch->peremption_date,
+                        'expiration_date' => $currentBatch->expiration_date,
                         'metadata'        => $inM->metadata,
                     ]);
 
@@ -446,7 +464,7 @@ class InventoryService implements InventoryInterface
                     'quantity'        => (int) $qtyToAdd,
                     'remaining'       => (int) $qtyToAdd,
                     'unit_code'       => $item->base_unit_code,
-                    'peremption_date' => $m->peremption_date,
+                    'expiration_date' => $m->expiration_date,
                     'metadata'        => $m->metadata,
                 ]);
 
@@ -460,7 +478,7 @@ class InventoryService implements InventoryInterface
                     'unit_code'       => $item->base_unit_code,
                     'unit_cost'       => $unitCost,
                     'currency_code'   => $currencyCode,
-                    'peremption_date' => $m->peremption_date,
+                    'expiration_date' => $m->expiration_date,
                     'metadata'        => $m->metadata,
                 ]);
             } elseif ($cmp < 0) {
@@ -486,7 +504,7 @@ class InventoryService implements InventoryInterface
 
         return match ($strategy) {
             DeductionStrategy::Fifo => $query->orderBy('created_at', 'asc')->get(),
-            DeductionStrategy::Fefo => $query->orderByRaw('peremption_date ASC NULLS LAST')
+            DeductionStrategy::Fefo => $query->orderByRaw('expiration_date ASC NULLS LAST')
                 ->orderBy('created_at', 'asc')->get(),
             DeductionStrategy::Manual => $query->whereIn('id', $m->stock_ids)
                 ->orderBy('created_at', 'asc')->get(),

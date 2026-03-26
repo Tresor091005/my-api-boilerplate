@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -82,24 +81,24 @@ it('does not contain hardcoded user-facing strings', function (): void {
         base_path('app-modules'),
         resource_path('views'),
     ])
-    ->exclude([
-        'database',
-        'config',
-        'routes',
-        'storage',
-        'bootstrap/cache',
-        'tests',
-        'stubs',
-        'lang',
-        'Providers', // Service providers often contain non-translatable strings
-        'Console',   // Console command descriptions/signatures are often not translated
-        'Exceptions',
-        'Validation',
-        'Registries',
-    ])
-    ->notName('welcome.blade.php')
-    ->name('*.php')
-    ->files();
+        ->exclude([
+            'database',
+            'config',
+            'routes',
+            'storage',
+            'bootstrap/cache',
+            'tests',
+            'stubs',
+            'lang',
+            'Providers', // Service providers often contain non-translatable strings
+            'Console',   // Console command descriptions/signatures are often not translated
+            'Exceptions',
+            'Validation',
+            'Registries',
+        ])
+        ->notName('welcome.blade.php')
+        ->name('*.php')
+        ->files();
 
     $failures = [];
     $pattern = "/'([^']{4,})'|\"([^\"]{4,})\"/"; // Find strings with 4+ chars
@@ -120,8 +119,8 @@ it('does not contain hardcoded user-facing strings', function (): void {
 
             $string = $match[0];
             $offset = $match[1];
-            $lineNumber = substr_count(mb_substr($content, 0, $offset), "
-") + 1;
+            $lineNumber = substr_count(mb_substr($content, 0, $offset), '
+') + 1;
 
             // Rule 1: Must contain a space, indicating a phrase.
             if (!str_contains($string, ' ')) {
@@ -155,11 +154,11 @@ it('does not contain hardcoded user-facing strings', function (): void {
     }
 
     if (!empty($failures)) {
-        $this->fail("Found hardcoded strings that may need translation:
+        $this->fail('Found hardcoded strings that may need translation:
 
-" . implode("
+'.implode('
 
-", array_unique($failures)));
+', array_unique($failures)));
     }
 
     expect(true)->toBeTrue();

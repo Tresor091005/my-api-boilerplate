@@ -6,10 +6,7 @@ namespace Lahatre\Inventory\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Services\InventoryService;
-use Lahatre\Shared\Registries\MorphMapRegistry;
 
 class InventoryServiceProvider extends ServiceProvider
 {

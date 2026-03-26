@@ -28,7 +28,7 @@ class InventoryStockFactory extends Factory
             'quantity'        => $quantity,
             'remaining'       => $quantity,
             'unit_code'       => Unit::factory()->create()->code,
-            'peremption_date' => null,
+            'expiration_date' => null,
             'metadata'        => null,
         ];
     }

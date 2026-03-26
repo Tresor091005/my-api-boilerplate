@@ -207,11 +207,11 @@ it('ensures all primary keys are named id and use UUIDs', function (): void {
         }
 
         // Check type via Postgres information_schema
-        $columnInfo = DB::selectOne("
+        $columnInfo = DB::selectOne('
             SELECT data_type, udt_name
             FROM information_schema.columns
             WHERE table_name = ? AND column_name = ?
-        ", [$tableName, $pkColumn]);
+        ', [$tableName, $pkColumn]);
 
         if ($columnInfo && $columnInfo->udt_name !== 'uuid') {
             $failures[] = "Table [{$tableName}]: Primary key [{$pkColumn}] is of type [{$columnInfo->udt_name}]. Expected 'uuid'.";
@@ -285,7 +285,7 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
             }
 
             if (!$hasValidPrefix) {
-                $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: " . implode(', ', $allowedPrefixes);
+                $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: ".implode(', ', $allowedPrefixes);
             }
         }
     }
@@ -300,4 +300,3 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
 test('todo: ensure non-negativity constraints on critical columns (stock, prices)');
 test('todo: ensure polymorphic type columns are indexed');
 test('todo: ensure timestamps are present on all business tables');
-

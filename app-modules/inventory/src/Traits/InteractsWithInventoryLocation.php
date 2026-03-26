@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Staudenmeir\EloquentHasManyDeep\HasManyDeep;
 use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
+/**
+ * @phpstan-require-extends Model
+ *
+ * @phpstan-require-implements HasInventoryLocation
+ *
+ * @mixin Model
+ */
 trait InteractsWithInventoryLocation
 {
     use HasRelationships;

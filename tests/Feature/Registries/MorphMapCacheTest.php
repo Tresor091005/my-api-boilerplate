@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
@@ -37,14 +38,14 @@ it('registers models via auto-discovery when cache is missing', function (): voi
 
     expect($map)->not->toBeEmpty()
         ->and($map)->toHaveKey('user')
-        ->and($map['user'])->toBe(\App\Models\User\User::class);
+        ->and($map['user'])->toBe(User::class);
 });
 
 it('loads from cache file when available and skips discovery', function (): void {
     $cachePath = App::bootstrapPath('cache/morph-map.php');
     $customMap = ['custom_user' => 'App\\Models\\User\\User'];
 
-    File::put($cachePath, '<?php return ' . var_export($customMap, true) . ';');
+    File::put($cachePath, '<?php return '.var_export($customMap, true).';');
 
     // Clear relation map
     Relation::morphMap([], false);

@@ -17,11 +17,11 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id'    => Product::factory(),
-            'sku'           => fake()->unique()->bothify('SKU-####-????'),
-            'unit_group_id' => UnitGroup::factory(),
-            'manage_stock'  => true,
-            'is_active'     => true,
+            'product_id'          => Product::factory(),
+            'sku'                 => fake()->unique()->bothify('SKU-####-????'),
+            'unit_group_id'       => UnitGroup::factory(),
+            'should_manage_stock' => true,
+            'is_active'           => true,
         ];
     }
 }

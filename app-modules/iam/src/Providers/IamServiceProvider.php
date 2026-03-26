@@ -7,9 +7,6 @@ namespace Lahatre\Iam\Providers;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
-use Lahatre\Iam\Models\Permission;
-use Lahatre\Iam\Models\Role;
-use Lahatre\Shared\Registries\MorphMapRegistry;
 use Laravel\Sanctum\Sanctum;
 
 class IamServiceProvider extends ServiceProvider

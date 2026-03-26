@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\DeductionStrategy;
-use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;

@@ -21,7 +21,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $product_id
  * @property string $sku
  * @property string|null $unit_group_id
- * @property bool $manage_stock
+ * @property bool $should_manage_stock
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -41,7 +41,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant whereCreatedAt($value)
  * @method static Builder<static>|ProductVariant whereId($value)
  * @method static Builder<static>|ProductVariant whereIsActive($value)
- * @method static Builder<static>|ProductVariant whereManageStock($value)
+ * @method static Builder<static>|ProductVariant whereShouldManageStock($value)
  * @method static Builder<static>|ProductVariant whereProductId($value)
  * @method static Builder<static>|ProductVariant whereSku($value)
  * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
@@ -60,19 +60,19 @@ class ProductVariant extends Model
         'product_id',
         'sku',
         'unit_group_id',
-        'manage_stock',
+        'should_manage_stock',
         'is_active',
     ];
 
     protected $casts = [
-        'id'            => 'string',
-        'product_id'    => 'string',
-        'sku'           => 'string',
-        'unit_group_id' => 'string',
-        'manage_stock'  => 'boolean',
-        'is_active'     => 'boolean',
-        'created_at'    => 'immutable_datetime',
-        'updated_at'    => 'immutable_datetime',
+        'id'                  => 'string',
+        'product_id'          => 'string',
+        'sku'                 => 'string',
+        'unit_group_id'       => 'string',
+        'should_manage_stock' => 'boolean',
+        'is_active'           => 'boolean',
+        'created_at'          => 'immutable_datetime',
+        'updated_at'          => 'immutable_datetime',
     ];
 
     protected function optionsLabel(): Attribute

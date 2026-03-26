@@ -62,7 +62,7 @@ return new class() extends Migration
                 ->on('master_units')
                 ->onDelete('restrict');
 
-            $table->timestamp('peremption_date')->nullable();
+            $table->timestamp('expiration_date')->nullable();
             $table->jsonb('metadata')->nullable();
 
             $table->timestamps();
@@ -115,7 +115,7 @@ return new class() extends Migration
                 ->on('master_currencies')
                 ->onDelete('restrict');
 
-            $table->timestamp('peremption_date')->nullable();
+            $table->timestamp('expiration_date')->nullable();
 
             $table->timestamps();
         });

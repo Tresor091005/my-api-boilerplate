@@ -55,7 +55,7 @@ interface InventoryInterface
      *         unit_code: string,
      *         unit_cost: int,
      *         currency_code: string,
-     *         peremption_date?: string|\DateTimeInterface
+     *         expiration_date?: string|\DateTimeInterface
      *     }>
      * } $data
      */

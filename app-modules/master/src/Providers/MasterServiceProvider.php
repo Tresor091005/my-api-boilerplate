@@ -5,11 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Master\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Lahatre\Master\Models\Currency;
-use Lahatre\Master\Models\Unit;
-use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
-use Lahatre\Shared\Registries\MorphMapRegistry;
 
 class MasterServiceProvider extends ServiceProvider
 {

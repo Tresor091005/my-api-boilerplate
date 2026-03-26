@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -15,7 +16,6 @@ use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Inventory\Enums\DeductionStrategy;
 
 uses(RefreshDatabase::class);
 

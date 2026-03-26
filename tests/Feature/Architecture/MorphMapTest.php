@@ -17,13 +17,13 @@ it('verifies that all Eloquent models are registered in the morph map', function
 
         // We check if the class exists in the values of the morph map
         if (!in_array($modelClass, $morphMap, true)) {
-            $failures[] = "[{$modelClass}] is not registered in the Eloquent morph map. " .
+            $failures[] = "[{$modelClass}] is not registered in the Eloquent morph map. ".
                 "Please run 'php artisan morph-map:cache' or register it manually in a ServiceProvider.";
         }
     }
 
     if ($failures !== []) {
-        $this->fail("Morph Map Registration Failures:\n\n" . implode("\n", $failures));
+        $this->fail("Morph Map Registration Failures:\n\n".implode("\n", $failures));
     }
 
     expect(true)->toBeTrue();

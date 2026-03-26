@@ -27,19 +27,19 @@ class ModelFinder
             $finder = new Finder();
             $finder->directories()->in($modulesDir)->depth(0);
             foreach ($finder as $dir) {
-                $scanList[] = $modulesNamespace . '\\' . Str::studly($dir->getBasename()) . '\\Models';
+                $scanList[] = $modulesNamespace.'\\'.Str::studly($dir->getBasename()).'\\Models';
             }
         }
 
         foreach ($scanList as $namespace) {
             $path = match (true) {
                 Str::startsWith($namespace, 'App\\')                => base_path(str_replace(['App\\', '\\'], ['app/', '/'], $namespace)),
-                Str::startsWith($namespace, $modulesNamespace . '\\') => (function () use ($namespace): string {
+                Str::startsWith($namespace, $modulesNamespace.'\\') => (function () use ($namespace): string {
                     $parts = explode('\\', $namespace);
                     $module = strtolower($parts[1]);
                     $subPath = implode('/', array_slice($parts, 2));
 
-                    return base_path(config('app-modules.modules_directory', 'app-modules') . "/{$module}/src/{$subPath}");
+                    return base_path(config('app-modules.modules_directory', 'app-modules')."/{$module}/src/{$subPath}");
                 })(),
                 default => null,
             };
@@ -52,7 +52,7 @@ class ModelFinder
             $finder->files()->in($path)->name('*.php');
             foreach ($finder as $file) {
                 $relativePath = $file->getRelativePathname();
-                $class = $namespace . '\\' . str_replace(['/', '.php'], ['\\', ''], $relativePath);
+                $class = $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], $relativePath);
 
                 if (!class_exists($class)) {
                     continue;

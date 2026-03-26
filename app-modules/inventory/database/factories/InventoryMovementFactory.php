@@ -31,7 +31,7 @@ class InventoryMovementFactory extends Factory
             'unit_code'       => Unit::factory(),
             'unit_cost'       => fake()->numberBetween(100, 5000),
             'currency_code'   => Currency::factory(),
-            'peremption_date' => null,
+            'expiration_date' => null,
             'metadata'        => null,
         ];
     }

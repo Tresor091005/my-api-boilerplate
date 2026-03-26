@@ -20,19 +20,19 @@ class ProductVariantResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'            => $this->id,
-            'name'          => $this->name,
-            'options_label' => $this->options_label,
-            'product_id'    => $this->product_id,
-            'sku'           => $this->sku,
-            'unit_group_id' => $this->unit_group_id,
-            'manage_stock'  => $this->manage_stock,
-            'is_active'     => $this->is_active,
-            'created_at'    => $this->created_at,
-            'updated_at'    => $this->updated_at,
-            'options'       => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
-            'unit_group'    => UnitGroupResource::make($this->whenLoaded('unitGroup')),
-            'prices'        => PriceResource::collection($this->whenLoaded('prices')),
+            'id'                  => $this->id,
+            'name'                => $this->name,
+            'options_label'       => $this->options_label,
+            'product_id'          => $this->product_id,
+            'sku'                 => $this->sku,
+            'unit_group_id'       => $this->unit_group_id,
+            'should_manage_stock' => $this->should_manage_stock,
+            'is_active'           => $this->is_active,
+            'created_at'          => $this->created_at,
+            'updated_at'          => $this->updated_at,
+            'options'             => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
+            'unit_group'          => UnitGroupResource::make($this->whenLoaded('unitGroup')),
+            'prices'              => PriceResource::collection($this->whenLoaded('prices')),
         ];
     }
 }

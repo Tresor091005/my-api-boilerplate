@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Lahatre\Shared\Console\Commands\Make;
 
-use Lahatre\Shared\Http\Resources\BaseCollection;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
 use InterNACHI\Modular\Console\Commands\Make\Modularize;
+use Lahatre\Shared\Http\Resources\BaseCollection;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Console\Input\InputOption;
