@@ -22,12 +22,14 @@ use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Validation\TransactionValidator;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Support\UnitCache;
 
 class InventoryService implements InventoryInterface
 {
     public function __construct(
         protected UnitCache $unitCache,
+        protected MasterInterface $masterInterface,
         protected TransactionValidator $transactionValidator
     ) {}
 
@@ -217,7 +219,7 @@ class InventoryService implements InventoryInterface
     {
         [$validatedData, $lookups] = $this->transactionValidator->validate($data);
 
-        $transaction = TransactionDataDTO::fromArray($validatedData);
+        $transaction = TransactionDataDTO::fromArray($validatedData, $this->masterInterface);
 
         return ensure_transaction(function () use ($transaction, $lookups) {
             $items = $lookups['items'];
@@ -247,7 +249,7 @@ class InventoryService implements InventoryInterface
     ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
-            $qtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
+            $qtyInBase = $this->masterInterface->convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             $stock = InventoryStock::create([
                 'item_id'         => $m->item_id,
@@ -284,7 +286,7 @@ class InventoryService implements InventoryInterface
     ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
-            $qtyToDeduct = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
+            $qtyToDeduct = $this->masterInterface->convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             $this->applyDeduction($tx, $m, $item, $qtyToDeduct);
         }
@@ -306,7 +308,7 @@ class InventoryService implements InventoryInterface
                 $m->item_id,
                 $m->location_id,
                 $m->quantity,
-                convertUnit($totalAvailable, $item->base_unit_code, $m->unit_code),
+                $this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $m->unit_code),
                 $m->unit_code
             );
         }
@@ -367,7 +369,7 @@ class InventoryService implements InventoryInterface
             /** @var Collection<int, InventoryMovement> $poolOfDeductedBatches */
             $poolOfDeductedBatches = collect();
             foreach ($outMovements as $outM) {
-                $qtyInBase = convertUnit($outM->quantity, $outM->unit_code, $item->base_unit_code);
+                $qtyInBase = $this->masterInterface->convertUnit($outM->quantity, $outM->unit_code, $item->base_unit_code);
                 /** @var Collection<int, InventoryMovement> $deductedMovements */
                 $deductedMovements = $this->applyDeduction($tx, $outM, $item, $qtyInBase);
                 $poolOfDeductedBatches = $poolOfDeductedBatches->concat($deductedMovements);
@@ -375,7 +377,7 @@ class InventoryService implements InventoryInterface
 
             // 2. Distribute these batches to the destination locations
             foreach ($inMovements as $inM) {
-                $remainingToFill = convertUnit($inM->quantity, $inM->unit_code, $item->base_unit_code);
+                $remainingToFill = $this->masterInterface->convertUnit($inM->quantity, $inM->unit_code, $item->base_unit_code);
 
                 while (bccomp($remainingToFill, '0', 10) > 0 && $poolOfDeductedBatches->isNotEmpty()) {
                     /** @var InventoryMovement $currentBatch */
@@ -440,7 +442,7 @@ class InventoryService implements InventoryInterface
     ): void {
         foreach ($dto->movements as $m) {
             $item = $items->get($m->item_id);
-            $targetQtyInBase = convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
+            $targetQtyInBase = $this->masterInterface->convertUnit($m->quantity, $m->unit_code, $item->base_unit_code);
 
             // 1. Lock all relevant stocks for this item/location to avoid race conditions
             $stocks = $this->resolveStocksForDeduction($m, $item);

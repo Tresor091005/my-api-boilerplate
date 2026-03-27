@@ -21,7 +21,7 @@ class SharedServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function boot(): void
+    public function boot(MorphMapRegistry $morphMapRegistry): void
     {
         $this->optimizes(
             optimize: 'morph-map:cache',

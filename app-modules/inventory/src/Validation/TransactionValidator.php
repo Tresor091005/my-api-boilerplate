@@ -14,6 +14,7 @@ use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Support\UnitCache;
 
 class TransactionValidator
@@ -21,7 +22,8 @@ class TransactionValidator
     protected array $lookups = [];
 
     public function __construct(
-        protected UnitCache $unitCache
+        protected UnitCache $unitCache,
+        protected MasterInterface $masterInterface,
     ) {}
 
     public function validate(array $data): array
@@ -322,7 +324,7 @@ class TransactionValidator
             $totalOut = '0';
 
             foreach ($itemMovements as $m) {
-                $qtyInBase = convertUnit((string) $m['quantity'], $m['unit_code'], $item->base_unit_code);
+                $qtyInBase = $this->masterInterface->convertUnit((string) $m['quantity'], $m['unit_code'], $item->base_unit_code);
                 if ($m['type'] === MovementType::In->value) {
                     $totalIn = bcadd($totalIn, $qtyInBase, 10);
                 } else {

@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\DTO;
 
 use Illuminate\Support\Collection;
 use Lahatre\Inventory\Enums\TransactionType;
+use Lahatre\Master\Contracts\MasterInterface;
 
 readonly class TransactionDataDTO
 {
@@ -20,7 +21,7 @@ readonly class TransactionDataDTO
         public ?array $metadata = null,
     ) {}
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, MasterInterface $masterInterface): self
     {
         return new self(
             reference_type: $data['reference_type'],
@@ -28,7 +29,7 @@ readonly class TransactionDataDTO
             transaction_type: is_string($data['transaction_type'])
                 ? TransactionType::from($data['transaction_type'])
                 : $data['transaction_type'],
-            movements: collect($data['movements'])->map(fn (array $m): MovementDataDTO => MovementDataDTO::fromArray($m)),
+            movements: collect($data['movements'])->map(fn (array $m): MovementDataDTO => MovementDataDTO::fromArray($m, $masterInterface)),
             metadata: $data['metadata'] ?? null,
         );
     }

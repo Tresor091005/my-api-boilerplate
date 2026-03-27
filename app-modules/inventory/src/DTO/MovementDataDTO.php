@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\DTO;
 use Carbon\CarbonImmutable;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
+use Lahatre\Master\Contracts\MasterInterface;
 
 readonly class MovementDataDTO
 {
@@ -24,7 +25,7 @@ readonly class MovementDataDTO
         public ?array $metadata = null,
     ) {}
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, MasterInterface $masterInterface): self
     {
         return new self(
             item_id: $data['item_id'],
@@ -35,7 +36,7 @@ readonly class MovementDataDTO
             quantity: (string) $data['quantity'],
             unit_code: $data['unit_code'],
             unit_cost: isset($data['unit_cost'], $data['currency_code'])
-                ? (int) toMinor((string) $data['unit_cost'], $data['currency_code'])
+                ? (int) $masterInterface->toMinor((string) $data['unit_cost'], $data['currency_code'])
                 : ($data['unit_cost'] ?? null),
             currency_code: $data['currency_code'] ?? null,
             expiration_date: isset($data['expiration_date']) ? CarbonImmutable::parse($data['expiration_date']) : null,

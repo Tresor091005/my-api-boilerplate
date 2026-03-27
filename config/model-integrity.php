@@ -34,9 +34,12 @@ return [
         'telescope_monitoring',
         'personal_access_tokens',
         'password_reset_tokens',
-        // 'iam_model_has_permissions',
-        // 'iam_model_has_roles',
-        // 'iam_role_has_permissions',
+    ],
+
+    'composite_pkey' => [
+        'iam_model_has_permissions',
+        'iam_model_has_roles',
+        'iam_role_has_permissions',
     ],
 
     /*

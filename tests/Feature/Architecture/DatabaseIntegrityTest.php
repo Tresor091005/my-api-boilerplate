@@ -178,7 +178,10 @@ it('ensures indexes on soft-deletable tables have whereNull deleted_at', functio
 
 it('ensures all primary keys are named id and use UUIDs', function (): void {
     $tables = Schema::getTables();
-    $ignoredTables = config('model-integrity.ignored_tables', []);
+    $ignoredTables = array_merge(
+        config('model-integrity.ignored_tables', []),
+        config('model-integrity.composite_pkey', []),
+    );
 
     $failures = [];
 
