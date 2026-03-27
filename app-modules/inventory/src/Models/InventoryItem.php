@@ -20,8 +20,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $itemable_type
  * @property string $itemable_id
  * @property string|null $sku
- * @property string|null $base_unit_code
- * @property DeductionStrategy $deduction_strategy
+ * @property string $base_unit_code
+ * @property DeductionStrategy|null $deduction_strategy
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at

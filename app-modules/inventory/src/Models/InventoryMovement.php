@@ -24,7 +24,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property int $quantity
  * @property string $unit_code
  * @property int $unit_cost
- * @property string $currency_code
+ * @property string|null $currency_code
  * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
  * @property CarbonImmutable|null $created_at

@@ -21,7 +21,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $item_id
  * @property string $location_id
  * @property int $unit_cost
- * @property string $currency_code
+ * @property string|null $currency_code
  * @property int $quantity
  * @property int $remaining
  * @property string $unit_code
