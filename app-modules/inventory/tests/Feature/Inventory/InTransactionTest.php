@@ -144,3 +144,5 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
 
     $this->service->recordTransaction($payload);
 })->with(['unit_cost', 'currency_code'])->throws(ValidationException::class);
+
+todo('correctly saves different metadata on Movement and Stock during an IN transaction');

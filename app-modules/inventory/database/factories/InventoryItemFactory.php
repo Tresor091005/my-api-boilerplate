@@ -21,7 +21,7 @@ class InventoryItemFactory extends Factory
             'itemable_id'        => ProductVariant::factory(),
             'sku'                => fake()->unique()->bothify('SKU-####-????'),
             'base_unit_code'     => 'unit',
-            'deduction_strategy' => fake()->randomElement(DeductionStrategy::cases()),
+            'deduction_strategy' => null,
             'is_active'          => true,
         ];
     }

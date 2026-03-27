@@ -114,3 +114,12 @@ it('fails a transfer if cost or currency is provided for an IN movement', functi
     'unit_cost' => ['unit_cost', 100],
     'currency'  => ['currency_code', 'EUR'],
 ])->throws(ValidationException::class);
+
+/*
+|--------------------------------------------------------------------------
+| Advanced Transfer Logic
+|--------------------------------------------------------------------------
+*/
+
+todo('merges source stock metadata and movement metadata into destination stock during transfer');
+todo('handles rounding differences in transfers between units of different precisions');

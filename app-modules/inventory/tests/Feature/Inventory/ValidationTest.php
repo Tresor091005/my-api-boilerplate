@@ -111,3 +111,24 @@ it('fails if a provided stock_id does not belong to the correct item and locatio
     expect(fn () => $this->service->recordTransaction($payload))
         ->toThrow(ValidationException::class, "Stock ID {$stockForOtherItem->id} does not belong to the correct item and location.");
 });
+
+/*
+|--------------------------------------------------------------------------
+| Strategy Resolution & Rules
+|--------------------------------------------------------------------------
+*/
+
+todo('fails validation if Manual strategy is resolved via Item settings but stock_ids are missing');
+todo('fails validation if Manual strategy is resolved via Global config but stock_ids are missing');
+todo('fails transaction if the selected item is inactive');
+todo('fails transaction if the selected location is inactive');
+todo('fails if the item base unit has a ratio different than 1');
+
+/*
+|--------------------------------------------------------------------------
+| Financial Integrity & Precision
+|--------------------------------------------------------------------------
+*/
+
+todo('fails if unit_cost has more decimal places than allowed by the currency');
+todo('fails if unit_cost is negative');

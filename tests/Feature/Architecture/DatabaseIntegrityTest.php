@@ -300,6 +300,6 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
     expect(true)->toBeTrue();
 });
 
-test('todo: ensure non-negativity constraints on critical columns (stock, prices)');
-test('todo: ensure polymorphic type columns are indexed');
-test('todo: ensure timestamps are present on all business tables');
+todo('ensure non-negativity constraints on critical columns (stock, prices)');
+todo('ensure polymorphic type columns are indexed');
+todo('ensure timestamps are present on all business tables');

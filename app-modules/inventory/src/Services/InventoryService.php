@@ -330,7 +330,7 @@ class InventoryService implements InventoryInterface
             $stock->remaining = (int) bcsub($stockRemaining, $deduction, 0);
             $stock->save();
 
-            $movements->push(InventoryMovement::create([
+            $movement = InventoryMovement::create([
                 'movement_type'   => MovementType::Out,
                 'transaction_id'  => $tx->id,
                 'item_id'         => $m->item_id,
@@ -342,7 +342,11 @@ class InventoryService implements InventoryInterface
                 'currency_code'   => $stock->currency_code,
                 'expiration_date' => $stock->expiration_date,
                 'metadata'        => $m->metadata,
-            ]));
+            ]);
+
+            // Manually set the relation to avoid N+1 and extra queries
+            $movement->setRelation('stock', $stock);
+            $movements->push($movement);
 
             $remainingToDeduct = bcsub($remainingToDeduct, $deduction, 10);
         }
@@ -397,7 +401,7 @@ class InventoryService implements InventoryInterface
                         'remaining'       => (int) $take,
                         'unit_code'       => $item->base_unit_code,
                         'expiration_date' => $currentBatch->expiration_date,
-                        'metadata'        => $inM->metadata,
+                        'metadata'        => array_merge($currentBatch->stock->metadata ?? [], $inM->metadata ?? []),
                     ]);
 
                     InventoryMovement::create([

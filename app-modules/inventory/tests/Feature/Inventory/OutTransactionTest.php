@@ -150,3 +150,15 @@ it('throws an exception for an OUT transaction if stock is insufficient', functi
 
     $this->service->recordTransaction($payload);
 })->throws(InsufficientStockException::class);
+
+/*
+|--------------------------------------------------------------------------
+| Lot Management & Depletion Logic
+|--------------------------------------------------------------------------
+*/
+
+todo('successfully resolves FIFO when no strategy is defined anywhere');
+todo('processes FEFO correctly with a mix of stocks having and not having expiration dates');
+todo('processes Manual strategy by depleting multiple specific stock IDs in the order provided');
+todo('preserves original source stock metadata when performing an OUT movement');
+todo('throws InsufficientStockException with accurate "available" quantity in the exception object');

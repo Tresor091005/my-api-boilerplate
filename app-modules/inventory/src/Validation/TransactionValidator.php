@@ -243,12 +243,17 @@ class TransactionValidator
             }
 
             // Stock IDs validation
-            $strategy = $m['strategy'] ?? null;
-            if (is_string($strategy)) {
-                $strategy = DeductionStrategy::tryFrom($strategy);
+            $item = $lookups['items']->get($m['item_id'] ?? null);
+            $resolvedStrategy = $m['strategy'] ?? null;
+            if (is_string($resolvedStrategy)) {
+                $resolvedStrategy = DeductionStrategy::tryFrom($resolvedStrategy);
             }
 
-            if ($strategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
+            $resolvedStrategy ??= $item?->deduction_strategy
+                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+                ?? DeductionStrategy::Fifo;
+
+            if ($resolvedStrategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
                 $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
             }
 
