@@ -9,7 +9,7 @@ it('ensures all application routes have a name', function (): void {
     $routes = Route::getRoutes();
     $failures = [];
 
-    foreach ($routes as $route) {
+    foreach ($routes->getRoutes() as $route) {
         $uri = $route->uri();
 
         // Skip internal/vendor routes
@@ -33,7 +33,7 @@ it('ensures all application route names follow the dot or dash format and never 
     $routes = Route::getRoutes();
     $failures = [];
 
-    foreach ($routes as $route) {
+    foreach ($routes->getRoutes() as $route) {
         $name = $route->getName();
 
         // Skip internal/vendor routes or routes already caught by the "missing name" test
@@ -47,7 +47,7 @@ it('ensures all application route names follow the dot or dash format and never 
         }
 
         // Check for allowed characters (alphanumeric, dots, dashes)
-        if (!preg_match('/^[a-z0-0.-]+$/', $name)) {
+        if (!preg_match('/^[a-z0-0.-]+$/', (string) $name)) {
             $failures[] = "Route name [{$name}] contains invalid characters. Only lowercase alphanumeric, dots (.) and dashes (-) are allowed.";
         }
     }

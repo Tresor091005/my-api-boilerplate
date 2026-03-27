@@ -153,7 +153,7 @@ it('does not contain hardcoded user-facing strings', function (): void {
         }
     }
 
-    if (!empty($failures)) {
+    if ($failures !== []) {
         $this->fail('Found hardcoded strings that may need translation:
 
 '.implode('

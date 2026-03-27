@@ -18,7 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $reference_type
  * @property string $reference_id
- * @property string $transaction_type
+ * @property TransactionType $transaction_type
  * @property array|null $metadata
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at

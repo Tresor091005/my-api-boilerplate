@@ -281,7 +281,7 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
             $name = $column->column_name;
             $hasValidPrefix = false;
             foreach ($allowedPrefixes as $prefix) {
-                if (str_starts_with($name, $prefix)) {
+                if (str_starts_with((string) $name, $prefix)) {
                     $hasValidPrefix = true;
                     break;
                 }

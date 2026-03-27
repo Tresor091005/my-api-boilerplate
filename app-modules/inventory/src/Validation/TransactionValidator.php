@@ -224,42 +224,42 @@ class TransactionValidator
                     $validator->errors()->add("movements.{$index}.expiration_date", "The peremption date is prohibited for 'out' movements.");
                 }
             }
-        }
 
-        if (isset($m['unit_cost'], $m['currency_code']) && $lookups['currencies']->has($m['currency_code'])) {
-            $currency = $lookups['currencies']->get($m['currency_code']);
-            $precision = $currency->precision;
+            if (isset($m['unit_cost'], $m['currency_code']) && $lookups['currencies']->has($m['currency_code'])) {
+                $currency = $lookups['currencies']->get($m['currency_code']);
+                $precision = $currency->precision;
 
-            $v = validator(
-                ['unit_cost' => $m['unit_cost']],
-                ['unit_cost' => "decimal:0,{$precision}"]
-            );
-
-            if ($v->fails()) {
-                $validator->errors()->add(
-                    "movements.{$index}.unit_cost",
-                    "The unit cost for currency {$m['currency_code']} must have at most {$precision} decimal places."
+                $v = validator(
+                    ['unit_cost' => $m['unit_cost']],
+                    ['unit_cost' => "decimal:0,{$precision}"]
                 );
+
+                if ($v->fails()) {
+                    $validator->errors()->add(
+                        "movements.{$index}.unit_cost",
+                        "The unit cost for currency {$m['currency_code']} must have at most {$precision} decimal places."
+                    );
+                }
             }
-        }
 
-        // Stock IDs validation
-        $strategy = $m['strategy'] ?? null;
-        if (is_string($strategy)) {
-            $strategy = DeductionStrategy::tryFrom($strategy);
-        }
+            // Stock IDs validation
+            $strategy = $m['strategy'] ?? null;
+            if (is_string($strategy)) {
+                $strategy = DeductionStrategy::tryFrom($strategy);
+            }
 
-        if ($strategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
-            $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
-        }
+            if ($strategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
+                $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
+            }
 
-        if (!empty($m['stock_ids']) && $type === MovementType::Out) {
-            foreach ($m['stock_ids'] as $sid) {
-                $stock = $lookups['stocks']->get($sid);
-                if (!$stock) {
-                    $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} is invalid.");
-                } elseif ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
-                    $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} does not belong to the correct item and location.");
+            if (!empty($m['stock_ids']) && $type === MovementType::Out) {
+                foreach ($m['stock_ids'] as $sid) {
+                    $stock = $lookups['stocks']->get($sid);
+                    if (!$stock) {
+                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} is invalid.");
+                    } elseif ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
+                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} does not belong to the correct item and location.");
+                    }
                 }
             }
         }
@@ -292,16 +292,8 @@ class TransactionValidator
             $baseUnit = $this->unitCache->getByCode($item->base_unit_code);
             $providedUnit = $this->unitCache->getByCode($m['unit_code']);
 
-            if (!$baseUnit) {
-                throw new \Exception("System Integrity Error: Base unit '{$item->base_unit_code}' for item '{$item->id}' not found.");
-            }
-
             if ($baseUnit->ratio !== 1) {
                 throw new \Exception("System Integrity Error: Base unit '{$item->base_unit_code}' for item '{$item->id}' must have a ratio of 1.");
-            }
-
-            if (!$providedUnit) {
-                continue; // Handled by validateExistence
             }
 
             if ($baseUnit->group_id !== $providedUnit->group_id) {

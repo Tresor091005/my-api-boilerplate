@@ -20,5 +20,16 @@ parameters:
 
     inferPrivatePropertyTypeFromConstructor: true
 
+    ignoreErrors:
+        -
+            message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z0-9_]+#'
+            path: 'app-modules/*/tests/*'
+        -
+            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::assertDatabaseCount\(\)#'
+            path: 'app-modules/*/tests/*'
+        -
+            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::assertDatabaseHas\(\)#'
+            path: 'app-modules/*/tests/*'
+
     scanFiles:
         - bootstrap/app.php

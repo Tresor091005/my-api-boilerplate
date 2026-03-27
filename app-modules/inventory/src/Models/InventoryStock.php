@@ -49,17 +49,13 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock whereCurrencyCode($value)
  * @method static Builder<static>|InventoryStock whereDeletedAt($value)
  * @method static Builder<static>|InventoryStock whereMetadata($value)
- * @method static Builder<static>|InventoryStock wherePeremptionDate($value)
+ * @method static Builder<static>|InventoryStock whereExpirationDate($value)
  * @method static Builder<static>|InventoryStock whereQuantity($value)
  * @method static Builder<static>|InventoryStock whereUnitCost($value)
  * @method static Builder<static>|InventoryStock whereUnitCode($value)
  * @method static Builder<static>|InventoryStock whereUpdatedAt($value)
  * @method static Builder<static>|InventoryStock withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryStock withoutTrashed()
- *
- * @property string $unit_id
- *
- * @method static Builder<static>|InventoryStock whereUnitId($value)
  * @method static InventoryStockFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent

@@ -43,7 +43,7 @@ it('registers models via auto-discovery when cache is missing', function (): voi
 
 it('loads from cache file when available and skips discovery', function (): void {
     $cachePath = App::bootstrapPath('cache/morph-map.php');
-    $customMap = ['custom_user' => 'App\\Models\\User\\User'];
+    $customMap = ['custom_user' => User::class];
 
     File::put($cachePath, '<?php return '.var_export($customMap, true).';');
 

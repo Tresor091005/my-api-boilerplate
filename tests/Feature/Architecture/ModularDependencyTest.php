@@ -39,7 +39,7 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
     }
 
     $prohibitedModules = array_diff($allModules, [$module], $allowedDependencies);
-    $prohibitedNamespaces = array_map(fn ($m) => 'Lahatre\\'.Str::studly($m), $prohibitedModules);
+    $prohibitedNamespaces = array_map(fn ($m): string => 'Lahatre\\'.Str::studly($m), $prohibitedModules);
 
     $finder = new Finder();
     $finder->files()->in($modulePath)->name('*.php');
@@ -100,7 +100,7 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         $failures = array_merge($failures, $moduleFailures);
     }
 
-    if (!empty($failures)) {
+    if ($failures !== []) {
         $this->fail("Modular Dependency Failures (Cross-module imports detected):\n\n".implode("\n", array_unique($failures)));
     }
 
@@ -139,7 +139,7 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
         }
     }
 
-    if (!empty($failures)) {
+    if ($failures !== []) {
         $this->fail("Core Dependency Failures (Modules should not depend on main App logic):\n\n".implode("\n", array_unique($failures)));
     }
 

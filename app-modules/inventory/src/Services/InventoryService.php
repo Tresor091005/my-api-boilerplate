@@ -79,8 +79,8 @@ class InventoryService implements InventoryInterface
                 ->toArray();
 
             $toInsert = $models
-                ->reject(fn ($m) => in_array($m->getKey(), $existingIds))
-                ->map(fn (HasInventoryLocation $m) => [
+                ->reject(fn ($m): bool => in_array($m->getKey(), $existingIds))
+                ->map(fn (HasInventoryLocation $m): array => [
                     'id'            => (string) Str::uuid7(),
                     'external_type' => $firstType,
                     'external_id'   => $m->getKey(),
@@ -148,8 +148,8 @@ class InventoryService implements InventoryInterface
                 ->toArray();
 
             $toInsert = $models
-                ->reject(fn ($m) => in_array($m->getKey(), $existingIds))
-                ->map(fn (HasInventoryItem $m) => [
+                ->reject(fn ($m): bool => in_array($m->getKey(), $existingIds))
+                ->map(fn (HasInventoryItem $m): array => [
                     'id'             => (string) Str::uuid7(),
                     'itemable_type'  => $firstType,
                     'itemable_id'    => $m->getKey(),

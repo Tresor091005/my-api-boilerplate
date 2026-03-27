@@ -16,7 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
- * @property string $movement_type
+ * @property MovementType $movement_type
  * @property string $transaction_id
  * @property string $item_id
  * @property string $stock_id
@@ -47,17 +47,14 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement whereCurrencyCode($value)
  * @method static Builder<static>|InventoryMovement whereItemId($value)
  * @method static Builder<static>|InventoryMovement whereLocationId($value)
- * @method static Builder<static>|InventoryMovement wherePeremptionDate($value)
+ * @method static Builder<static>|InventoryMovement whereExpirationDate($value)
  * @method static Builder<static>|InventoryMovement whereQuantity($value)
  * @method static Builder<static>|InventoryMovement whereUnitCost($value)
  * @method static Builder<static>|InventoryMovement whereUnitCode($value)
  * @method static Builder<static>|InventoryMovement whereUpdatedAt($value)
- *
- * @property string $unit_id
- *
- * @method static Builder<static>|InventoryMovement whereUnitId($value)
  * @method static InventoryMovementFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryMovement whereMetadata($value)
+ * @method static Builder<static>|InventoryMovement whereExpirationDate($value)
  *
  * @mixin \Eloquent
  */
