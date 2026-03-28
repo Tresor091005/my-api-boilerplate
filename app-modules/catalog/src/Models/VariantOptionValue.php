@@ -37,6 +37,8 @@ class VariantOptionValue extends Pivot
 {
     use SharedTraits;
 
+    public $timestamps = false;
+
     protected $table = 'catalog_variant_option_value';
 
     protected $fillable = [

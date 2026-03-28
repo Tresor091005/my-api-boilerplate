@@ -1,0 +1,27 @@
+info:
+  name: delete
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/v1/catalog/options/019d3645-aaaa-7000-8000-000000000001/values/019d3645-aaaa-7000-8000-000000000011"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/options/019d3645-aaaa-7000-8000-000000000001/values/019d3645-aaaa-7000-8000-000000000011"
+      method: DELETE
+    response:
+      status: 204
+      statusText: No Content
+      body:
+        type: text
+        data: ""

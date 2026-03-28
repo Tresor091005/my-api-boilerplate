@@ -31,6 +31,8 @@ class ProductCategory extends Pivot
 {
     use SharedTraits;
 
+    public $timestamps = false;
+
     protected $table = 'catalog_product_categories';
 
     protected $fillable = [

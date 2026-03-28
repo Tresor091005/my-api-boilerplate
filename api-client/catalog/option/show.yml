@@ -1,0 +1,91 @@
+info:
+  name: show
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/catalog/options/019d3658-3336-703d-abb0-e41184df91b8"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/options/019d3658-3336-703d-abb0-e41184df91b8"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 21:29:17 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "230"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d3658-3336-703d-abb0-e41184df91b8",
+            "name": "storage",
+            "created_at": "2026-03-28T21:27:23.000000Z",
+            "updated_at": "2026-03-28T21:27:23.000000Z",
+            "values": [
+              {
+                "id": "019d3658-335f-7308-8a2c-53946d406c78",
+                "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
+                "value": "64gb",
+                "created_at": "2026-03-28T21:27:23.000000Z",
+                "updated_at": "2026-03-28T21:27:23.000000Z"
+              },
+              {
+                "id": "019d3658-338b-7028-8869-21f186a0cf2a",
+                "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
+                "value": "128gb",
+                "created_at": "2026-03-28T21:27:23.000000Z",
+                "updated_at": "2026-03-28T21:27:23.000000Z"
+              },
+              {
+                "id": "019d3658-33c3-71bb-abfb-3df01b92bf14",
+                "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
+                "value": "256gb",
+                "created_at": "2026-03-28T21:27:23.000000Z",
+                "updated_at": "2026-03-28T21:27:23.000000Z"
+              },
+              {
+                "id": "019d3658-33f0-7279-a727-35083b918b43",
+                "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
+                "value": "512gb",
+                "created_at": "2026-03-28T21:27:23.000000Z",
+                "updated_at": "2026-03-28T21:27:23.000000Z"
+              },
+              {
+                "id": "019d3658-341c-7189-a4d0-a9be1bfed060",
+                "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
+                "value": "1tb",
+                "created_at": "2026-03-28T21:27:23.000000Z",
+                "updated_at": "2026-03-28T21:27:23.000000Z"
+              }
+            ]
+          }

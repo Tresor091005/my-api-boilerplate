@@ -21,8 +21,14 @@ class OptionValueResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'    => $this->id,
-            'value' => $this->value,
+            'id'         => $this->id,
+            'option_id'  => $this->option_id,
+            'value'      => $this->value,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'option'     => OptionResource::make($this->whenLoaded('option')),
         ];
     }
+
+    // TODO lite version is needed for this and option too
 }

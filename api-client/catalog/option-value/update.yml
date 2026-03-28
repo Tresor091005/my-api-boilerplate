@@ -1,0 +1,65 @@
+info:
+  name: update
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/v1/catalog/options/019d365c-7a91-7315-8c4d-1e7d153bef48/values/019d365c-7a97-73f6-864c-e18696aa77fd"
+  body:
+    type: json
+    data: |-
+      {
+        "value": "yellow-4"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/options/019d365c-7a91-7315-8c4d-1e7d153bef48/values/019d365c-7a97-73f6-864c-e18696aa77fd"
+      method: PUT
+      body:
+        type: json
+        data: |-
+          {
+            "value": "yellow-4"
+          }
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 22:02:12 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "201"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d365c-7a97-73f6-864c-e18696aa77fd",
+            "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+            "value": "yellow-4",
+            "created_at": "2026-03-28T21:32:03.000000Z",
+            "updated_at": "2026-03-28T22:02:12.000000Z"
+          }

@@ -6,7 +6,6 @@ namespace Lahatre\Inventory\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Models\InventoryItem;
 
 /**
