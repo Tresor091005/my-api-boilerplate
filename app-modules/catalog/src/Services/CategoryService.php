@@ -27,10 +27,10 @@ class CategoryService implements StandaloneService
         $query = Category::query();
 
         if ($filters->handle) {
-            $query->where('handle', 'like', "$filters->handle}%");
+            $query->where('handle', 'like', "$filters->handle%");
         }
         if ($filters->name) {
-            $query->where('name', 'like', "$filters->name}%");
+            $query->where('name', 'like', "$filters->name%");
         }
         if ($filters->is_active !== null) {
             $query->where('is_active', $filters->is_active);

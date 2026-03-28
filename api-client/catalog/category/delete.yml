@@ -1,0 +1,42 @@
+info:
+  name: delete
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/v1/catalog/categories/019d3382-39d0-7286-88ff-538e166dd84c"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/categories/019d3382-39d0-7286-88ff-538e166dd84c"
+      method: DELETE
+    response:
+      status: 204
+      statusText: No Content
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: date
+          value: Sat, 28 Mar 2026 18:28:38 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "88"
+      body:
+        type: text
+        data: ""

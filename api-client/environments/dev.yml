@@ -1,0 +1,6 @@
+name: dev
+variables:
+  - name: baseUrl
+    value: http://127.0.0.1:8000
+  - name: authToken
+    value: ""

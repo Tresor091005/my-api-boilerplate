@@ -1,0 +1,165 @@
+info:
+  name: list
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/catalog/categories"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/categories"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:24:14 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "548"
+      body:
+        type: json
+        data: |-
+          {
+            "data": [
+              {
+                "id": "019d3382-39d0-7286-88ff-538e166dd84c",
+                "handle": "accessories",
+                "name": "Accessories",
+                "is_active": true,
+                "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39c4-73cc-8272-d3d56ffb3dbb",
+                "handle": "business-laptops",
+                "name": "Business Laptops",
+                "is_active": true,
+                "parent_id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39da-73e6-9d18-044e179bc555",
+                "handle": "clothing",
+                "name": "Clothing",
+                "is_active": true,
+                "parent_id": null,
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-3a3e-73d4-a51e-634e151f9334",
+                "handle": "decor",
+                "name": "Decor",
+                "is_active": true,
+                "parent_id": "019d3382-39fc-7084-bb80-0efc0582edf5",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "handle": "electronics",
+                "name": "Electronics",
+                "is_active": true,
+                "parent_id": null,
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-3a07-73ec-805b-6eec70480e20",
+                "handle": "furniture",
+                "name": "Furniture",
+                "is_active": true,
+                "parent_id": "019d3382-39fc-7084-bb80-0efc0582edf5",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39b9-72f7-b38e-2e2676650708",
+                "handle": "gaming-laptops",
+                "name": "Gaming Laptops",
+                "is_active": true,
+                "parent_id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39fc-7084-bb80-0efc0582edf5",
+                "handle": "home-garden",
+                "name": "Home & Garden",
+                "is_active": true,
+                "parent_id": null,
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                "handle": "laptops",
+                "name": "Laptops",
+                "is_active": true,
+                "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39e6-7129-828a-046c1ce03362",
+                "handle": "mens",
+                "name": "Men's Clothing",
+                "is_active": true,
+                "parent_id": "019d3382-39da-73e6-9d18-044e179bc555",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-399c-7209-9aaa-232f2d4b79ec",
+                "handle": "smartphones",
+                "name": "Smartphones",
+                "is_active": true,
+                "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39f0-7271-8942-b87910496224",
+                "handle": "womens",
+                "name": "Women's Clothing",
+                "is_active": true,
+                "parent_id": "019d3382-39da-73e6-9d18-044e179bc555",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              }
+            ],
+            "meta": {
+              "per_page": 15,
+              "next_cursor": null,
+              "prev_cursor": null
+            }
+          }

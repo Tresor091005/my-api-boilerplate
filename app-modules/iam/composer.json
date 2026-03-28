@@ -6,9 +6,6 @@
 	"license": "proprietary",
 	"require": {},
 	"autoload": {
-		"files": [
-			"src/helpers.php"
-		],
 		"psr-4": {
 			"Lahatre\\Iam\\": "src/",
 			"Lahatre\\Iam\\Tests\\": "tests/",

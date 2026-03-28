@@ -1,0 +1,185 @@
+info:
+  name: show
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/catalog/products/019d3382-3d26-73ea-9c6c-671461a88c9e"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/products/019d3382-3d26-73ea-9c6c-671461a88c9e"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:33:30 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "745"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d3382-3d26-73ea-9c6c-671461a88c9e",
+            "handle": "macbook-pro-16-inch",
+            "name": "MacBook Pro 16-inch",
+            "description": "Powerful laptop for professionals.",
+            "is_active": true,
+            "created_at": "2026-03-28T08:14:26.000000Z",
+            "updated_at": "2026-03-28T08:14:26.000000Z",
+            "options": [
+              {
+                "name": "color",
+                "values": [
+                  "space-gray"
+                ]
+              },
+              {
+                "name": "storage",
+                "values": [
+                  "512gb",
+                  "1tb"
+                ]
+              },
+              {
+                "name": "ram",
+                "values": [
+                  "16gb",
+                  "32gb"
+                ]
+              }
+            ],
+            "variants": [
+              {
+                "id": "019d3382-3d48-73b1-9d3e-9b31315638fc",
+                "name": "MacBook Pro 16-inch [color: space-gray] [storage: 512gb] [ram: 16gb]",
+                "options_label": "[color: space-gray] [storage: 512gb] [ram: 16gb]",
+                "product_id": "019d3382-3d26-73ea-9c6c-671461a88c9e",
+                "sku": "MBP16-SG-16-512",
+                "unit_group_id": "019d3382-358a-73ad-8fac-c7f7b96052a8",
+                "should_manage_stock": true,
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": {
+                  "color": "space-gray",
+                  "storage": "512gb",
+                  "ram": "16gb"
+                },
+                "unit_group": {
+                  "id": "019d3382-358a-73ad-8fac-c7f7b96052a8",
+                  "name": "mass",
+                  "is_builtin": true
+                },
+                "prices": [
+                  {
+                    "id": "019d3382-3d53-71c5-949e-641fcfe6a068",
+                    "currency_code": "XOF",
+                    "min_quantity": 1,
+                    "max_quantity": null,
+                    "step": 1,
+                    "amount": "1500000",
+                    "is_active": true,
+                    "active_from": null,
+                    "active_to": null,
+                    "currency": {
+                      "id": "019d3382-3557-7229-82e5-02624c47d279",
+                      "code": "XOF",
+                      "name": "West African CFA Franc",
+                      "symbol": "FCFA",
+                      "precision": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "019d3382-3d7f-718c-9c03-496925bd4acf",
+                "name": "MacBook Pro 16-inch [color: space-gray] [storage: 1tb] [ram: 32gb]",
+                "options_label": "[color: space-gray] [storage: 1tb] [ram: 32gb]",
+                "product_id": "019d3382-3d26-73ea-9c6c-671461a88c9e",
+                "sku": "MBP16-SG-32-1TB",
+                "unit_group_id": "019d3382-358a-73ad-8fac-c7f7b96052a8",
+                "should_manage_stock": true,
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": {
+                  "color": "space-gray",
+                  "storage": "1tb",
+                  "ram": "32gb"
+                },
+                "unit_group": {
+                  "id": "019d3382-358a-73ad-8fac-c7f7b96052a8",
+                  "name": "mass",
+                  "is_builtin": true
+                },
+                "prices": [
+                  {
+                    "id": "019d3382-3d8b-70e5-b052-196ba3106450",
+                    "currency_code": "XOF",
+                    "min_quantity": 1,
+                    "max_quantity": null,
+                    "step": 1,
+                    "amount": "2100000",
+                    "is_active": true,
+                    "active_from": null,
+                    "active_to": null,
+                    "currency": {
+                      "id": "019d3382-3557-7229-82e5-02624c47d279",
+                      "code": "XOF",
+                      "name": "West African CFA Franc",
+                      "symbol": "FCFA",
+                      "precision": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "categories": [
+              {
+                "id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                "handle": "laptops",
+                "name": "Laptops",
+                "is_active": true,
+                "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              },
+              {
+                "id": "019d3382-39c4-73cc-8272-d3d56ffb3dbb",
+                "handle": "business-laptops",
+                "name": "Business Laptops",
+                "is_active": true,
+                "parent_id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                "created_at": "2026-03-28T08:14:25.000000Z",
+                "updated_at": "2026-03-28T08:14:25.000000Z"
+              }
+            ]
+          }

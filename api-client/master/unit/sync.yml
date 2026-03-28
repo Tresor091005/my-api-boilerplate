@@ -1,0 +1,88 @@
+info:
+  name: sync
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/master/units/sync"
+  body:
+    type: json
+    data: |-
+      {
+          // "group_id": "019ccd83-8a51-7079-b715-f04f74636fcb",
+          "group_name": "Poids de Cuisine",
+          "units": [
+              {
+                  "name": "Gramme2",
+                  "symbol": null,
+                  "ratio": 1
+              }
+          ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/master/units/sync"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+              // "group_id": "019ccd83-8a51-7079-b715-f04f74636fcb",
+              "group_name": "Poids de Cuisine",
+              "units": [
+                  {
+                      "name": "Gramme2",
+                      "symbol": null,
+                      "ratio": 1
+                  }
+              ]
+          }
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:14:47 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "204"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d35a7-e006-730b-8498-4a7eb499ff83",
+            "name": "poids de cuisine",
+            "is_builtin": false,
+            "units": [
+              {
+                "id": "019d35a7-e01a-70b1-a12a-f277936b0dd0",
+                "code": "gramme2",
+                "name": "Gramme2",
+                "ratio": 1,
+                "symbol": null
+              }
+            ]
+          }

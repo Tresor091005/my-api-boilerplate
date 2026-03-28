@@ -29,13 +29,13 @@ class ProductService implements StandaloneService
         ]);
 
         if ($filters->handle) {
-            $query->where('handle', 'like', "$filters->handle}%");
+            $query->where('handle', 'like', "$filters->handle%");
         }
         if ($filters->name) {
-            $query->where('name', 'like', "$filters->name}%");
+            $query->where('name', 'like', "$filters->name%");
         }
         if ($filters->description) {
-            $query->where('description', 'like', "$filters->description}%");
+            $query->where('description', 'like', "$filters->description%");
         }
         if ($filters->is_active !== null) {
             $query->where('is_active', $filters->is_active);
