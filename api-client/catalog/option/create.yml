@@ -1,0 +1,105 @@
+info:
+  name: create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/catalog/options"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "cinderella",
+        "values": ["disney", "marvel", "hbo", "sony", "paramount"]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/options"
+      method: POST
+      body:
+        type: json
+        data: |-
+          {
+            "name": "cinderella",
+            "values": ["disney", "marvel", "hbo", "sony", "paramount"]
+          }
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 21:32:03 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "204"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+            "name": "cinderella",
+            "created_at": "2026-03-28T21:32:03.000000Z",
+            "updated_at": "2026-03-28T21:32:03.000000Z",
+            "values": [
+              {
+                "id": "019d365c-7a97-73f6-864c-e18696aa77fd",
+                "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "value": "disney",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:32:03.000000Z"
+              },
+              {
+                "id": "019d365c-7a97-73f6-864c-e18697a938d5",
+                "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "value": "marvel",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:32:03.000000Z"
+              },
+              {
+                "id": "019d365c-7a97-73f6-864c-e186982b1b27",
+                "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "value": "hbo",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:32:03.000000Z"
+              },
+              {
+                "id": "019d365c-7a97-73f6-864c-e18698afb22e",
+                "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "value": "sony",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:32:03.000000Z"
+              },
+              {
+                "id": "019d365c-7a97-73f6-864c-e186990bb3b2",
+                "option_id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "value": "paramount",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:32:03.000000Z"
+              }
+            ]
+          }
