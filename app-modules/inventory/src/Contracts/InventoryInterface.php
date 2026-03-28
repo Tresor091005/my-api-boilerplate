@@ -46,16 +46,19 @@ interface InventoryInterface
      * @param array{
      *     reference_type: string,
      *     reference_id: string,
-     *     transaction_type: TransactionType,
+     *     transaction_type: TransactionType|string,
      *     metadata?: array,
      *     movements: array<int, array{
-     *         item_id: string,
-     *         location_id: string,
-     *         quantity: int,
+     *         item?: HasInventoryItem,
+     *         item_id?: string,
+     *         location?: HasInventoryLocation,
+     *         location_id?: string,
+     *         quantity: int|float|string,
      *         unit_code: string,
-     *         unit_cost: int,
-     *         currency_code: string,
-     *         expiration_date?: string|\DateTimeInterface
+     *         unit_cost?: int,
+     *         currency_code?: string,
+     *         expiration_date?: string|\DateTimeInterface,
+     *         metadata?: array
      *     }>
      * } $data
      */
