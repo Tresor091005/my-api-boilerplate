@@ -1,0 +1,129 @@
+info:
+  name: list
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/master/units?group=bottle"
+  params:
+    - name: group
+      value: bottle
+      type: query
+    - name: name
+      value: "6"
+      type: query
+      disabled: true
+    - name: sort_by
+      value: group
+      type: query
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/master/units?group=bottle"
+      method: GET
+      params:
+        - name: group
+          value: bottle
+          type: query
+        - name: name
+          value: "6"
+          type: query
+          disabled: true
+        - name: sort_by
+          value: group
+          type: query
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:15:36 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "88"
+        - name: content-length
+          value: "270"
+      body:
+        type: json
+        data: |-
+          {
+            "data": [
+              {
+                "id": "019d3382-35e6-7112-bf19-45e0c9835bc4",
+                "code": "b",
+                "name": "Bottle",
+                "ratio": 1,
+                "symbol": "b",
+                "group": {
+                  "id": "019d3382-35e4-71af-a204-ee9281cecce3",
+                  "name": "bottle",
+                  "is_builtin": true
+                }
+              },
+              {
+                "id": "019d3382-35ef-7095-a299-bc838e32eac8",
+                "code": "b-12",
+                "name": "Bottle (12 pack)",
+                "ratio": 12,
+                "symbol": "b12",
+                "group": {
+                  "id": "019d3382-35e4-71af-a204-ee9281cecce3",
+                  "name": "bottle",
+                  "is_builtin": true
+                }
+              },
+              {
+                "id": "019d3382-35f4-7194-8bd3-2d5d18c0b241",
+                "code": "b-24",
+                "name": "Bottle (24 pack)",
+                "ratio": 24,
+                "symbol": "b24",
+                "group": {
+                  "id": "019d3382-35e4-71af-a204-ee9281cecce3",
+                  "name": "bottle",
+                  "is_builtin": true
+                }
+              },
+              {
+                "id": "019d3382-35eb-7201-813e-995b94a8b5f4",
+                "code": "b-6",
+                "name": "Bottle (6 pack)",
+                "ratio": 6,
+                "symbol": "b6",
+                "group": {
+                  "id": "019d3382-35e4-71af-a204-ee9281cecce3",
+                  "name": "bottle",
+                  "is_builtin": true
+                }
+              }
+            ],
+            "meta": {
+              "per_page": 15,
+              "next_cursor": null,
+              "prev_cursor": null
+            }
+          }

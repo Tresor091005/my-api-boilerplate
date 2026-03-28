@@ -16,10 +16,10 @@ class CurrencyService implements StandaloneService
         $query = Currency::query();
 
         if ($filters->code) {
-            $query->where('code', 'like', "$filters->code}%");
+            $query->where('code', 'like', "$filters->code%");
         }
         if ($filters->name) {
-            $query->where('name', 'like', "$filters->name}%");
+            $query->where('name', 'like', "$filters->name%");
         }
 
         $query->orderBy($filters->sort_by, $filters->sort_order);

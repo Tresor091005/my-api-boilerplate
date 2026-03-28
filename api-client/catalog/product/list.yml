@@ -1,0 +1,284 @@
+info:
+  name: list
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/catalog/products"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/products"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:32:11 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "89"
+        - name: content-length
+          value: "897"
+      body:
+        type: json
+        data: |-
+          {
+            "data": [
+              {
+                "id": "019d3382-3db6-73b5-88b9-57f5bfdde260",
+                "handle": "dell-alienware-m18",
+                "name": "Dell Alienware m18",
+                "description": "High-performance gaming laptop.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [
+                  {
+                    "name": "color",
+                    "values": [
+                      "black"
+                    ]
+                  },
+                  {
+                    "name": "storage",
+                    "values": [
+                      "1tb"
+                    ]
+                  },
+                  {
+                    "name": "ram",
+                    "values": [
+                      "32gb"
+                    ]
+                  }
+                ],
+                "categories": [
+                  {
+                    "id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                    "handle": "laptops",
+                    "name": "Laptops",
+                    "is_active": true,
+                    "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  },
+                  {
+                    "id": "019d3382-39b9-72f7-b38e-2e2676650708",
+                    "handle": "gaming-laptops",
+                    "name": "Gaming Laptops",
+                    "is_active": true,
+                    "parent_id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  }
+                ]
+              },
+              {
+                "id": "019d3382-3bb7-7008-89ae-117db417c536",
+                "handle": "iphone-15-pro",
+                "name": "iPhone 15 Pro",
+                "description": "The latest iPhone model with advanced features.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [
+                  {
+                    "name": "color",
+                    "values": [
+                      "black",
+                      "silver"
+                    ]
+                  },
+                  {
+                    "name": "storage",
+                    "values": [
+                      "128gb",
+                      "256gb"
+                    ]
+                  },
+                  {
+                    "name": "ram",
+                    "values": [
+                      "8gb",
+                      "16gb"
+                    ]
+                  }
+                ],
+                "categories": [
+                  {
+                    "id": "019d3382-399c-7209-9aaa-232f2d4b79ec",
+                    "handle": "smartphones",
+                    "name": "Smartphones",
+                    "is_active": true,
+                    "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  }
+                ]
+              },
+              {
+                "id": "019d3382-3d26-73ea-9c6c-671461a88c9e",
+                "handle": "macbook-pro-16-inch",
+                "name": "MacBook Pro 16-inch",
+                "description": "Powerful laptop for professionals.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [
+                  {
+                    "name": "color",
+                    "values": [
+                      "space-gray"
+                    ]
+                  },
+                  {
+                    "name": "storage",
+                    "values": [
+                      "512gb",
+                      "1tb"
+                    ]
+                  },
+                  {
+                    "name": "ram",
+                    "values": [
+                      "16gb",
+                      "32gb"
+                    ]
+                  }
+                ],
+                "categories": [
+                  {
+                    "id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                    "handle": "laptops",
+                    "name": "Laptops",
+                    "is_active": true,
+                    "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  },
+                  {
+                    "id": "019d3382-39c4-73cc-8272-d3d56ffb3dbb",
+                    "handle": "business-laptops",
+                    "name": "Business Laptops",
+                    "is_active": true,
+                    "parent_id": "019d3382-39ae-72a5-9ec2-7f1a8069777f",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  }
+                ]
+              },
+              {
+                "id": "019d3382-3cb8-7037-875a-c9c049db0804",
+                "handle": "samsung-galaxy-s24",
+                "name": "Samsung Galaxy S24",
+                "description": "Flagship Android smartphone from Samsung.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [
+                  {
+                    "name": "color",
+                    "values": [
+                      "white",
+                      "blue"
+                    ]
+                  },
+                  {
+                    "name": "storage",
+                    "values": [
+                      "256gb",
+                      "512gb"
+                    ]
+                  }
+                ],
+                "categories": [
+                  {
+                    "id": "019d3382-399c-7209-9aaa-232f2d4b79ec",
+                    "handle": "smartphones",
+                    "name": "Smartphones",
+                    "is_active": true,
+                    "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  }
+                ]
+              },
+              {
+                "id": "019d3382-3e69-70c1-ae0e-d621b193bd28",
+                "handle": "usb-c-hub",
+                "name": "USB-C Hub",
+                "description": "Multi-port adapter for USB-C devices.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [
+                  {
+                    "name": "color",
+                    "values": [
+                      "silver"
+                    ]
+                  }
+                ],
+                "categories": []
+              },
+              {
+                "id": "019d3382-3ea0-718e-a47e-65a40162422f",
+                "handle": "wooden-dining-table",
+                "name": "Wooden Dining Table",
+                "description": "Elegant solid wood dining table.",
+                "is_active": true,
+                "created_at": "2026-03-28T08:14:26.000000Z",
+                "updated_at": "2026-03-28T08:14:26.000000Z",
+                "options": [],
+                "categories": [
+                  {
+                    "id": "019d3382-39fc-7084-bb80-0efc0582edf5",
+                    "handle": "home-garden",
+                    "name": "Home & Garden",
+                    "is_active": true,
+                    "parent_id": null,
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  },
+                  {
+                    "id": "019d3382-3a07-73ec-805b-6eec70480e20",
+                    "handle": "furniture",
+                    "name": "Furniture",
+                    "is_active": true,
+                    "parent_id": "019d3382-39fc-7084-bb80-0efc0582edf5",
+                    "created_at": "2026-03-28T08:14:25.000000Z",
+                    "updated_at": "2026-03-28T08:14:25.000000Z"
+                  }
+                ]
+              }
+            ],
+            "meta": {
+              "per_page": 15,
+              "next_cursor": null,
+              "prev_cursor": null
+            }
+          }

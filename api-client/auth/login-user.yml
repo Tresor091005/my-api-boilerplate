@@ -1,0 +1,26 @@
+info:
+  name: login-user
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/user/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "admin@lahatre.com",
+        "password": "password"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setEnvVar('authToken', res.body.data.access_token)
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

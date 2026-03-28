@@ -1,0 +1,76 @@
+info:
+  name: show
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/catalog/categories/019d3382-39d0-7286-88ff-538e166dd84c"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    request:
+      url: "{{baseUrl}}/v1/catalog/categories/019d3382-39d0-7286-88ff-538e166dd84c"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: cache-control
+          value: no-cache, private
+        - name: content-type
+          value: application/json
+        - name: date
+          value: Sat, 28 Mar 2026 18:26:36 GMT
+        - name: referrer-policy
+          value: strict-origin-when-cross-origin
+        - name: vary
+          value: Accept-Encoding
+        - name: x-content-type-options
+          value: nosniff
+        - name: x-frame-options
+          value: SAMEORIGIN
+        - name: x-ratelimit-limit
+          value: "90"
+        - name: x-ratelimit-remaining
+          value: "88"
+        - name: content-length
+          value: "202"
+      body:
+        type: json
+        data: |-
+          {
+            "id": "019d3382-39d0-7286-88ff-538e166dd84c",
+            "handle": "accessories",
+            "name": "Accessories",
+            "is_active": true,
+            "parent_id": "019d3382-3965-739f-bf9f-4288472684bf",
+            "created_at": "2026-03-28T08:14:25.000000Z",
+            "updated_at": "2026-03-28T08:14:25.000000Z",
+            "bloodline": [
+              {
+                "id": "019d3382-3965-739f-bf9f-4288472684bf",
+                "handle": "electronics",
+                "name": "Electronics",
+                "depth": -1,
+                "is_active": true,
+                "children": [
+                  {
+                    "id": "019d3382-39d0-7286-88ff-538e166dd84c",
+                    "handle": "accessories",
+                    "name": "Accessories",
+                    "depth": 0,
+                    "is_active": true,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
