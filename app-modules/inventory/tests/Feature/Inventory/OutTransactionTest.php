@@ -151,14 +151,196 @@ it('throws an exception for an OUT transaction if stock is insufficient', functi
     $this->service->recordTransaction($payload);
 })->throws(InsufficientStockException::class);
 
-/*
-|--------------------------------------------------------------------------
-| Lot Management & Depletion Logic
-|--------------------------------------------------------------------------
-*/
+it('reuses the locked stock selection across multiple out movements for the same item and location', function (): void {
+    $lot1 = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create(['quantity' => 50, 'remaining' => 50, 'created_at' => now()->subDay()]);
+    $lot2 = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create(['quantity' => 50, 'remaining' => 50, 'created_at' => now()]);
 
-todo('successfully resolves FIFO when no strategy is defined anywhere');
-todo('processes FEFO correctly with a mix of stocks having and not having expiration dates');
-todo('processes Manual strategy by depleting multiple specific stock IDs in the order provided');
-todo('preserves original source stock metadata when performing an OUT movement');
-todo('throws InsufficientStockException with accurate "available" quantity in the exception object');
+    $payload = [
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [
+            [
+                'item_id'     => $this->item->id,
+                'location_id' => $this->location->id,
+                'type'        => MovementType::Out->value,
+                'quantity'    => 30,
+                'unit_code'   => $this->unit->code,
+                'strategy'    => DeductionStrategy::Fifo->value,
+            ],
+            [
+                'item_id'     => $this->item->id,
+                'location_id' => $this->location->id,
+                'type'        => MovementType::Out->value,
+                'quantity'    => 40,
+                'unit_code'   => $this->unit->code,
+                'strategy'    => DeductionStrategy::Fifo->value,
+            ],
+        ],
+    ];
+
+    $this->service->recordTransaction($payload);
+
+    expect($lot1->refresh()->remaining)->toBe(0)
+        ->and($lot2->refresh()->remaining)->toBe(30);
+
+    $movementsByStock = InventoryMovement::query()
+        ->orderBy('created_at')
+        ->get()
+        ->groupBy('stock_id');
+
+    expect($movementsByStock->get($lot1->id))->toHaveCount(2)
+        ->and($movementsByStock->get($lot1->id)->sum('quantity'))->toBe(50)
+        ->and($movementsByStock->get($lot2->id))->toHaveCount(1)
+        ->and($movementsByStock->get($lot2->id)->sum('quantity'))->toBe(20);
+});
+
+it('successfully resolves FIFO when no strategy is defined anywhere', function (): void {
+    config()->set('inventory.default_strategy', null);
+
+    $item = InventoryItem::factory()->create([
+        'base_unit_code'     => $this->unit->code,
+        'deduction_strategy' => null,
+    ]);
+
+    $lot1 = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create(['quantity' => 40, 'remaining' => 40, 'created_at' => now()->subDay()]);
+    $lot2 = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create(['quantity' => 40, 'remaining' => 40, 'created_at' => now()]);
+
+    $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => 50,
+            'unit_code'   => $this->unit->code,
+        ]],
+    ]);
+
+    expect($lot1->refresh()->remaining)->toBe(0)
+        ->and($lot2->refresh()->remaining)->toBe(30);
+});
+
+it('processes FEFO correctly with a mix of stocks having and not having expiration dates', function (): void {
+    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'        => 20,
+        'remaining'       => 20,
+        'expiration_date' => now()->addDays(10),
+    ]);
+    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'        => 20,
+        'remaining'       => 20,
+        'expiration_date' => null,
+    ]);
+    $lot3 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'        => 20,
+        'remaining'       => 20,
+        'expiration_date' => now()->addDays(5),
+    ]);
+
+    $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => 30,
+            'unit_code'   => $this->unit->code,
+            'strategy'    => DeductionStrategy::Fefo->value,
+        ]],
+    ]);
+
+    expect($lot3->refresh()->remaining)->toBe(0)
+        ->and($lot1->refresh()->remaining)->toBe(10)
+        ->and($lot2->refresh()->remaining)->toBe(20);
+});
+
+it('processes Manual strategy by depleting multiple specific stock IDs in the order provided', function (): void {
+    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'   => 30,
+        'remaining'  => 30,
+        'created_at' => now()->subDay(),
+    ]);
+    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'   => 30,
+        'remaining'  => 30,
+        'created_at' => now(),
+    ]);
+
+    $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => 40,
+            'unit_code'   => $this->unit->code,
+            'strategy'    => DeductionStrategy::Manual->value,
+            'stock_ids'   => [$lot2->id, $lot1->id],
+        ]],
+    ]);
+
+    $movements = InventoryMovement::query()->orderBy('created_at')->get();
+
+    expect($movements->pluck('stock_id')->all())->toBe([$lot2->id, $lot1->id])
+        ->and($lot2->refresh()->remaining)->toBe(0)
+        ->and($lot1->refresh()->remaining)->toBe(20);
+});
+
+it('preserves original source stock metadata when performing an OUT movement', function (): void {
+    $lot = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'  => 30,
+        'remaining' => 30,
+        'metadata'  => ['batch' => 'LOT-001'],
+    ]);
+
+    $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => 10,
+            'unit_code'   => $this->unit->code,
+        ]],
+    ]);
+
+    $movement = InventoryMovement::firstOrFail();
+
+    expect($movement->stock->metadata)->toBe(['batch' => 'LOT-001'])
+        ->and($lot->refresh()->metadata)->toBe(['batch' => 'LOT-001']);
+});
+
+it('throws InsufficientStockException with accurate available quantity in the exception message', function (): void {
+    InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'  => 15,
+        'remaining' => 15,
+    ]);
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => 20,
+            'unit_code'   => $this->unit->code,
+        ]],
+    ]))->toThrow(InsufficientStockException::class, 'Available: 15');
+});

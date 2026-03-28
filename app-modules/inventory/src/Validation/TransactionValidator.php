@@ -28,6 +28,8 @@ class TransactionValidator
 
     public function validate(array $data): array
     {
+        $this->lookups = [];
+
         $validator = validator($data, $this->rules());
 
         $validator->after(function (Validator $validator) use ($data): void {

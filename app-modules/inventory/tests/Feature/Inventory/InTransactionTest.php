@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Catalog\Models\Product; // TODO: violation
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -14,6 +15,8 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Services\InventoryService;
+use Lahatre\Inventory\Tests\Fixtures\TestInventoryCompany;
+use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -109,6 +112,63 @@ it('processes an IN transaction with unit conversion', function (): void {
     expect($movement->quantity)->toBe(2500);
 });
 
+it('resolves inventory contracts passed in item_id and location_id before recording the transaction', function (): void {
+    config()->set('inventory.enable_model_reference_preprocessing', true);
+
+    $variant = TestInventoryVariant::query()->create([
+        'product_id'          => Product::factory()->create()->id,
+        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
+        'unit_group_id'       => $this->group->id,
+        'should_manage_stock' => true,
+        'is_active'           => true,
+    ]);
+
+    $company = TestInventoryCompany::query()->create([
+        'name' => fake()->company(),
+    ]);
+
+    $payload = [
+        'reference_type'   => 'purchase_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [
+            [
+                'item'          => $variant,
+                'location'      => $company,
+                'type'          => MovementType::In->value,
+                'quantity'      => 100,
+                'unit_code'     => $this->unit->code,
+                'unit_cost'     => 1500,
+                'currency_code' => $this->currency->code,
+            ],
+        ],
+    ];
+
+    $tx = $this->service->recordTransaction($payload);
+
+    $item = InventoryItem::query()
+        ->where('itemable_type', $variant->getMorphClass())
+        ->where('itemable_id', $variant->getKey())
+        ->firstOrFail();
+
+    $location = InventoryLocation::query()
+        ->where('external_type', $company->getMorphClass())
+        ->where('external_id', $company->getKey())
+        ->firstOrFail();
+
+    expect($tx->movements)->toHaveCount(1)
+        ->and($tx->movements->first()->item_id)->toBe($item->id)
+        ->and($tx->movements->first()->location_id)->toBe($location->id);
+
+    $this->assertDatabaseHas('inventory_stocks', [
+        'item_id'       => $item->id,
+        'location_id'   => $location->id,
+        'quantity'      => 100,
+        'remaining'     => 100,
+        'currency_code' => $this->currency->code,
+    ]);
+});
+
 it('fails an IN transaction if it contains an OUT movement', function (): void {
     $payload = [
         'reference_type'   => 'test',
@@ -145,4 +205,30 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
     $this->service->recordTransaction($payload);
 })->with(['unit_cost', 'currency_code'])->throws(ValidationException::class);
 
-todo('correctly saves different metadata on Movement and Stock during an IN transaction');
+it('uses the same metadata for Movement and Stock during an IN transaction', function (): void {
+    $payload = [
+        'reference_type'   => 'purchase_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [
+            [
+                'item_id'       => $this->item->id,
+                'location_id'   => $this->location->id,
+                'type'          => MovementType::In->value,
+                'quantity'      => 100,
+                'unit_code'     => $this->unit->code,
+                'unit_cost'     => 1500,
+                'currency_code' => $this->currency->code,
+                'metadata'      => ['batch' => 'LOT-001', 'movement_note' => 'received'],
+            ],
+        ],
+    ];
+
+    $this->service->recordTransaction($payload);
+
+    $stock = InventoryStock::firstOrFail();
+    $movement = InventoryMovement::firstOrFail();
+
+    expect($stock->metadata)->toBe(['batch' => 'LOT-001', 'movement_note' => 'received'])
+        ->and($movement->metadata)->toBe(['batch' => 'LOT-001', 'movement_note' => 'received']);
+});
