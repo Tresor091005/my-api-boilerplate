@@ -13,7 +13,7 @@ class UnitPolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $user->can('units.list');
+        return authContext()->memberRole()->hasPermissionTo('units.list');
     }
 
     /**
@@ -21,7 +21,7 @@ class UnitPolicy
      */
     public function sync(Authorizable $user): bool
     {
-        return $user->can('units.create') ||
-            $user->can('units.update');
+        return authContext()->memberRole()->hasPermissionTo('units.create') ||
+            authContext()->memberRole()->hasPermissionTo('units.update');
     }
 }

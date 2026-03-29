@@ -52,4 +52,4 @@ Pour que les permissions soient vérifiées dans le bon contexte d'équipe, le m
 
 -   Il est appliqué à chaque requête authentifiée via le groupe de middleware `auth.api` dans `bootstrap/app.php`.
 -   **Rôle :** Il récupère l'équipe associée à l'utilisateur authentifié (via le `AuthContext`) et utilise la fonction `setPermissionsTeamId()` de Spatie.
--   Cela garantit que toute vérification de rôle ou de permission effectuée plus loin dans le cycle de vie de la requête (`$user->can('...')`) se fera uniquement dans le périmètre de l'équipe de l'utilisateur.
+-   Cela garantit que toute vérification de rôle ou de permission effectuée plus loin dans le cycle de vie de la requête (`authContext()->memberRole()->hasPermissionTo('...')`) se fera uniquement dans le périmètre de l'équipe de l'utilisateur.

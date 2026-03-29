@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 use Lahatre\Iam\DTO\ForgotPasswordDTO;
 use Lahatre\Iam\DTO\LoginDTO;
 use Lahatre\Iam\DTO\ResetPasswordDTO;
+use Lahatre\Iam\DTO\SwitchMemberRoleDTO;
 use Lahatre\Iam\Http\Resources\AuthResource;
+use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Services\AuthService;
 
 class AuthController
@@ -31,10 +33,10 @@ class AuthController
     /**
      * Get the authenticated user.
      */
-    public function me(): AuthResource
+    public function me(): UserResource
     {
         return $this->authService->me(
-            user: authContext()->user(), 
+            user: authContext()->user(),
             currentMemberRoleId: authContext()->memberRole()?->id
         );
     }
@@ -54,14 +56,23 @@ class AuthController
     /**
      * Switch the current user role.
      */
-    public function switchMemberRole(Request $request): JsonResponse
+    public function switchMemberRole(Request $request): UserResource
     {
-        // TODO validation missing
-        $this->authService->switchMemberRole(authContext()->user(), $request->input('member_role_id'));
+        return $this->authService->switchMemberRole(
+            authContext()->user(),
+            SwitchMemberRoleDTO::fromRequest($request)->member_role_id
+        );
+    }
 
-        return response()->json([
-            'message' => __('iam::messages.auth.role_switched'),
-        ]);
+    public function currentPermissions(Request $request)
+    {
+        if (!authContext()->memberRole()) {
+            return response()->json([], 200);
+        }
+
+        return $this->authService->currentPermissions(
+            authContext()->memberRole()
+        );
     }
 
     public function forgotPassword(Request $request): JsonResponse
@@ -75,7 +86,6 @@ class AuthController
 
     public function resetPassword(Request $request): JsonResponse
     {
-        // TODO validation missing
         $dto = ResetPasswordDTO::fromRequest($request);
 
         $this->authService->resetPassword($dto);

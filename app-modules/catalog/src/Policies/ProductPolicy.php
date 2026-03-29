@@ -14,7 +14,7 @@ class ProductPolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $user->can('products.list');
+        return authContext()->memberRole()->hasPermissionTo('products.list');
     }
 
     /**
@@ -22,7 +22,7 @@ class ProductPolicy
      */
     public function retrieve(Authorizable $user, Product $model): bool
     {
-        return $user->can('products.retrieve');
+        return authContext()->memberRole()->hasPermissionTo('products.retrieve');
     }
 
     /**
@@ -30,7 +30,7 @@ class ProductPolicy
      */
     public function create(Authorizable $user): bool
     {
-        return $user->can('products.create');
+        return authContext()->memberRole()->hasPermissionTo('products.create');
     }
 
     /**
@@ -38,7 +38,7 @@ class ProductPolicy
      */
     public function update(Authorizable $user, Product $model): bool
     {
-        return $user->can('products.update');
+        return authContext()->memberRole()->hasPermissionTo('products.update');
     }
 
     /**
@@ -46,7 +46,7 @@ class ProductPolicy
      */
     public function delete(Authorizable $user, Product $model): bool
     {
-        return $user->can('products.delete');
+        return authContext()->memberRole()->hasPermissionTo('products.delete');
     }
 
     /**

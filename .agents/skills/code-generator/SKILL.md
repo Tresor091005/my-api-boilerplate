@@ -151,7 +151,7 @@ Ce skill définit la structure et la responsabilité de chaque fichier généré
     - **Arguments** : Le premier argument est toujours `Illuminate\Contracts\Auth\Access\Authorizable $user`.
     - **Méthodes Standards** : `list`, `retrieve`, `create`, `update`, `delete`. 
     - **Soft Deletes** : Les méthodes `restore` et `forceDelete` doivent retourner `false` par défaut (considéré comme DX/Interdit sauf exception rare).
-    - **Usage** : Utiliser `$user->can('permission.name')` pour mapper sur le système de permissions.
+    - **Usage** : Utiliser `authContext()->memberRole()->hasPermissionTo('permission.name')` pour mapper sur le système de permissions.
 - [x] **Providers** : Enregistrement des services et configurations du module.
     - **Note** : Le chargement des routes, migrations, traductions et l'auto-discovery des policies est géré par `internachi/modular`.
     - **Responsabilités** :

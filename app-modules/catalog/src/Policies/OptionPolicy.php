@@ -11,27 +11,27 @@ class OptionPolicy
 {
     public function list(Authorizable $user): bool
     {
-        return $user->can('options.list');
+        return authContext()->memberRole()->hasPermissionTo('options.list');
     }
 
     public function retrieve(Authorizable $user, Option $model): bool
     {
-        return $user->can('options.retrieve');
+        return authContext()->memberRole()->hasPermissionTo('options.retrieve');
     }
 
     public function create(Authorizable $user): bool
     {
-        return $user->can('options.create');
+        return authContext()->memberRole()->hasPermissionTo('options.create');
     }
 
     public function update(Authorizable $user, Option $model): bool
     {
-        return $user->can('options.update');
+        return authContext()->memberRole()->hasPermissionTo('options.update');
     }
 
     public function delete(Authorizable $user, Option $model): bool
     {
-        return $user->can('options.delete');
+        return authContext()->memberRole()->hasPermissionTo('options.delete');
     }
 
     public function restore(Authorizable $user, Option $model): bool

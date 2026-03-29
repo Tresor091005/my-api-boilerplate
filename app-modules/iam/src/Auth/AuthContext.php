@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Auth;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
@@ -41,13 +42,13 @@ class AuthContext
             ->whereHas('organizationMember', fn ($q) => $q->where('user_id', $user->getAuthIdentifier()))
             ->first();
 
-        if (! $memberRole) {
+        if (!$memberRole) {
             logger()->warning('Incoherent AuthContext metadata for user {user_id}', [
-                'user_id' => $user->getAuthIdentifier(),
+                'user_id'  => $user->getAuthIdentifier(),
                 'metadata' => $metadata,
             ]);
 
-            throw new \Illuminate\Auth\AuthenticationException('Invalid session context.');
+            throw new AuthenticationException('Invalid session context.');
         }
 
         $this->organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);

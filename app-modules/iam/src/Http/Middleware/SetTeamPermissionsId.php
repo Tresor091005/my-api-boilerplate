@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Http\Middleware;
 
 use Closure;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,7 +19,7 @@ class SetTeamPermissionsId
     public function handle(Request $request, Closure $next): Response
     {
         if (!authContext()->organization() || !authContext()->memberRole()) {
-            throw new \Illuminate\Auth\AuthenticationException('Invalid session context.');
+            throw new AuthenticationException('Invalid session context.');
         }
 
         setPermissionsTeamId(authContext()->organization()->getKey());

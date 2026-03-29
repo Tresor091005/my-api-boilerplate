@@ -56,7 +56,9 @@ class DatabaseSeeder extends Seeder
 
         setPermissionsTeamId($organization->id);
 
-        $this->assignRole($member, Role::whereName(SysRole::Administrator->value)->first());
+        foreach (SysRole::cases() as $sysRole) {
+            $this->assignRole($member, Role::whereName($sysRole->value)->first());
+        }
     }
 
     public function assignRole(OrganizationMember $member, Role $role)

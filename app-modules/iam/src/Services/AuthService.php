@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Services;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -14,6 +15,8 @@ use Lahatre\Iam\DTO\ResetPasswordDTO;
 use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
 use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
 use Lahatre\Iam\Http\Resources\AuthResource;
+use Lahatre\Iam\Http\Resources\PermissionResource;
+use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
@@ -50,13 +53,14 @@ class AuthService implements StandaloneService
         return AuthResource::make($authenticatable)->withToken($token->plainTextToken);
     }
 
-
     /**
-     * Return an AuthResource.
+     * Return a UserResource.
      */
-    public function me(Authenticatable $user, string|null $currentMemberRoleId)
+    public function me(Authenticatable $user, ?string $currentMemberRoleId): UserResource
     {
-        return AuthResource::make($user)->withCurrentMemberRoleId($currentMemberRoleId);
+        $user->load(['organizationMemberships.memberRoles.role']);
+
+        return UserResource::make($user)->withCurrentMemberRoleId($currentMemberRoleId);
     }
 
     /**
@@ -71,9 +75,9 @@ class AuthService implements StandaloneService
     }
 
     /**
-     * Switch the current user role.
+     * Switch the current user role and return the updated UserResource.
      */
-    public function switchMemberRole(Authenticatable $user, string $memberRoleId): void
+    public function switchMemberRole(Authenticatable $user, string $memberRoleId): UserResource
     {
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
@@ -81,7 +85,7 @@ class AuthService implements StandaloneService
             ->whereKey($memberRoleId)
             ->whereHas(
                 'organizationMember',
-                fn ($query) => $query->where('user_id', $user->id)
+                fn ($query) => $query->where('user_id', $user->getAuthIdentifier())
             )
             ->first();
 
@@ -100,6 +104,15 @@ class AuthService implements StandaloneService
                 'role_id'         => $memberRole->role_id,
             ],
         ]);
+
+        $user->load(['organizationMemberships.memberRoles.role']);
+
+        return UserResource::make($user)->withCurrentMemberRoleId($memberRole->id);
+    }
+
+    public function currentPermissions(MemberRole $memberRole): AnonymousResourceCollection
+    {
+        return PermissionResource::collection($memberRole->getPermissionsViaRoles());
     }
 
     /**

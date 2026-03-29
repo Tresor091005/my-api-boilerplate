@@ -14,7 +14,7 @@ class CurrencyPolicy
      */
     public function list(Authorizable $user)
     {
-        return $user->can('currencies.list');
+        return authContext()->memberRole()->hasPermissionTo('currencies.list');
     }
 
     /**
