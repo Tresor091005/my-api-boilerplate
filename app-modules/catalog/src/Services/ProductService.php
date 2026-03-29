@@ -28,6 +28,8 @@ class ProductService implements StandaloneService
             'categories', 'optionValues.option',
         ]);
 
+        // TODO category filter
+
         if ($filters->handle) {
             $query->where('handle', 'like', "$filters->handle%");
         }

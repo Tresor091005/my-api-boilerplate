@@ -49,11 +49,6 @@ class CategoryPolicy
         return $user->can('categories.delete');
     }
 
-    public function viewProducts(Authorizable $user, Category $category): bool
-    {
-        return $user->can('product_categories.list');
-    }
-
     /**
      * Determine whether the user can restore the model.
      */

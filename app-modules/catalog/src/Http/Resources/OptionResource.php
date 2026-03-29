@@ -25,7 +25,7 @@ class OptionResource extends JsonResource
             'name'       => $this->name,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'values'     => OptionValueResource::collection($this->values),
+            'values'     => OptionValueResource::collection($this->whenLoaded('values')),
         ];
     }
 }
