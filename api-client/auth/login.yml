@@ -1,16 +1,16 @@
 info:
-  name: login-company
+  name: login
   type: http
   seq: 2
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/auth/company-member/login"
+  url: "{{baseUrl}}/v1/auth/login"
   body:
     type: json
     data: |-
       {
-        "email": "admin2@lahatre.com",
+        "email": "admin@lahatre.com",
         "password": "password"
       }
 

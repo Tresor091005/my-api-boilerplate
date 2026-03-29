@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -13,8 +14,9 @@ use Lahatre\Iam\DTO\ResetPasswordDTO;
 use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
 use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
 use Lahatre\Iam\Http\Resources\AuthResource;
+use Lahatre\Iam\Models\MemberRole;
+use Lahatre\Iam\Models\User;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
-use Lahatre\Shared\Enums\AuthAccountType;
 use Lahatre\Shared\Models\Authenticatable;
 
 class AuthService implements StandaloneService
@@ -24,24 +26,37 @@ class AuthService implements StandaloneService
      *
      * @throws InvalidLoginException
      */
-    public function login(AuthAccountType $type, LoginDTO $dto): AuthResource
+    public function login(LoginDTO $dto): AuthResource
     {
-        /** @var Authenticatable|null $authenticatable */
-        $authenticatable = $type->model()::where('email', $dto->email)->first();
+        $authenticatable = User::query()
+            ->with(['organizationMemberships.memberRoles.role'])
+            ->where('email', $dto->email)
+            ->first();
 
         if (!$authenticatable || !Hash::check($dto->password, $authenticatable->password)) {
             throw new InvalidLoginException();
         }
 
-        $metadata = match ($type->value) {
-            'user'           => ['type' => 'user', 'company_id' => null],
-            'company-member' => ['type' => 'agent', 'company_id' => data_get($authenticatable, 'company_id')],
-        };
-
         $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
-        $token->accessToken->update(['metadata' => $metadata]);
+        $token->accessToken->update([
+            'metadata' => [
+                'organization_id' => null,
+                'member_id'       => null,
+                'member_role_id'  => null,
+                'role_id'         => null,
+            ],
+        ]);
 
         return AuthResource::make($authenticatable)->withToken($token->plainTextToken);
+    }
+
+
+    /**
+     * Return an AuthResource.
+     */
+    public function me(Authenticatable $user, string|null $currentMemberRoleId)
+    {
+        return AuthResource::make($user)->withCurrentMemberRoleId($currentMemberRoleId);
     }
 
     /**
@@ -58,30 +73,47 @@ class AuthService implements StandaloneService
     /**
      * Switch the current user role.
      */
-    public function switchUserRole(Authenticatable $user, string $roleId): void
+    public function switchMemberRole(Authenticatable $user, string $memberRoleId): void
     {
+        /** @var MemberRole|null $memberRole */
+        $memberRole = MemberRole::query()
+            ->with(['organizationMember', 'role'])
+            ->whereKey($memberRoleId)
+            ->whereHas(
+                'organizationMember',
+                fn ($query) => $query->where('user_id', $user->id)
+            )
+            ->first();
+
+        if (!$memberRole) {
+            throw new ModelNotFoundException();
+        }
+
         /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();
 
-        $metadata = $token->metadata ?? [];
-        $metadata['role_id'] = $roleId;
-
-        $token->update(['metadata' => $metadata]);
+        $token->update([
+            'metadata' => [
+                'organization_id' => $memberRole->organization_id,
+                'member_id'       => $memberRole->member_id,
+                'member_role_id'  => $memberRole->id,
+                'role_id'         => $memberRole->role_id,
+            ],
+        ]);
     }
 
     /**
      * Forgot password
      */
-    public function forgotPassword(AuthAccountType $type, string $email): string
+    public function forgotPassword(string $email): string
     {
-        $class = $type->model();
-        $user = $class::where('email', $email)->first();
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
             return '';
         }
 
-        $token = Password::broker($type->authProvider())->createToken($user);
+        $token = Password::broker('users')->createToken($user);
 
         $link = 'http://localhost:8000/auth/reset-password?'.http_build_query([
             'token' => $token,
@@ -94,9 +126,9 @@ class AuthService implements StandaloneService
     /**
      * Reset password
      */
-    public function resetPassword(AuthAccountType $type, ResetPasswordDTO $dto): void
+    public function resetPassword(ResetPasswordDTO $dto): void
     {
-        $status = DB::transaction(fn () => Password::broker($type->authProvider())->reset(
+        $status = DB::transaction(fn () => Password::broker('users')->reset(
             [
                 'email'    => $dto->email,
                 'password' => $dto->password,

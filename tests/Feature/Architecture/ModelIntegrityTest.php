@@ -317,7 +317,7 @@ it('verifies that each model has an existing factory class', function (): void {
         $factoryClass = null;
 
         if (Str::startsWith($modelClass, 'App\\Models\\')) {
-            // Core models: App\Models\User\User -> Database\Factories\User\UserFactory
+            // Core models: App\Models\User -> Database\Factories\UserFactory
             $relativeName = Str::after($modelClass, 'App\\Models\\');
             $factoryClass = 'Database\\Factories\\'.$relativeName.'Factory';
         } elseif (Str::startsWith($modelClass, $modulesNamespace.'\\')) {

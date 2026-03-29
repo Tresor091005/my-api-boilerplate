@@ -2,21 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Models\User;
+namespace Lahatre\Iam\Models;
 
-use App\Models\Career\Application;
 use Carbon\CarbonImmutable;
-use Database\Factories\User\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
-use Lahatre\Iam\Models\Permission;
-use Lahatre\Iam\Models\Role;
+use Lahatre\Iam\Auth\PersonalAccessToken;
+use Lahatre\Iam\Database\Factories\UserFactory;
 use Lahatre\Shared\Models\Authenticatable;
-use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * @property string $id
@@ -28,17 +25,20 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property-read Collection<int, Application> $applications
- * @property-read int|null $applications_count
- * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
- * @property-read UserProfile|null $profile
- * @property-read Collection<int, PersonalAccessToken> $tokens
- * @property-read int|null $tokens_count
+ * @property-read Collection<int, MemberRole> $memberRoles
+ * @property-read int|null $member_roles_count
+ * @property-read Collection<int, OrganizationMember> $organizationMemberships
+ * @property-read int|null $organization_memberships_count
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
  *
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
+ * @method static Builder<static>|User permission($permissions, bool $without = false)
  * @method static Builder<static>|User query()
+ * @method static Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|User whereCreatedAt($value)
  * @method static Builder<static>|User whereEmail($value)
  * @method static Builder<static>|User whereEmailVerifiedAt($value)
@@ -48,29 +48,29 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder<static>|User wherePassword($value)
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
- * @method static UserFactory factory($count = null, $state = [])
- *
- * @property-read Collection<int, Permission> $permissions
- * @property-read int|null $permissions_count
- * @property-read Collection<int, Role> $roles
- * @property-read int|null $roles_count
- *
- * @method static Builder<static>|User permission($permissions, bool $without = false)
- * @method static Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|User withoutPermission($permissions)
  * @method static Builder<static>|User withoutRole($roles, ?string $guard = null)
+ *
+ * @property CarbonImmutable|null $deleted_at
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read Collection<int, PersonalAccessToken> $tokens
+ * @property-read int|null $tokens_count
+ *
+ * @method static UserFactory factory($count = null, $state = [])
+ * @method static Builder<static>|User onlyTrashed()
+ * @method static Builder<static>|User whereDeletedAt($value)
+ * @method static Builder<static>|User withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|User withoutTrashed()
  *
  * @mixin \Eloquent
  */
 class User extends Authenticatable
 {
-    protected $table = 'users';
+    use SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table = 'iam_users';
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -78,21 +78,11 @@ class User extends Authenticatable
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -105,22 +95,12 @@ class User extends Authenticatable
             'remember_token'    => 'string',
             'created_at'        => 'immutable_datetime',
             'updated_at'        => 'immutable_datetime',
+            'deleted_at'        => 'immutable_datetime',
         ];
     }
 
-    public function profile(): HasOne
+    public function organizationMemberships(): HasMany
     {
-        return $this->hasOne(
-            related: UserProfile::class,
-            foreignKey: 'user_id',
-        );
-    }
-
-    public function applications(): HasMany
-    {
-        return $this->hasMany(
-            related: Application::class,
-            foreignKey: 'user_id',
-        );
+        return $this->hasMany(OrganizationMember::class, 'user_id');
     }
 }

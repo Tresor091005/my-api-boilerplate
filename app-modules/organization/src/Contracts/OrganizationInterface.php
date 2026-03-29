@@ -9,4 +9,6 @@ use Lahatre\Organization\Models\Organization;
 interface OrganizationInterface
 {
     public function initializeOrganization(array $data): Organization;
+
+    public function findOrganizationById(string $organizationId): ?Organization;
 }

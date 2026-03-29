@@ -1,0 +1,21 @@
+info:
+  name: switch-member-role
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/switch-member-role"
+  body:
+    type: json
+    data: |-
+      {
+        "member_role_id": "019d391e-927c-7372-98d4-02312777f3f3"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

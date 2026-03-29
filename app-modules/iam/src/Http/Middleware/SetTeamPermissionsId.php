@@ -17,12 +17,15 @@ class SetTeamPermissionsId
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $context = authContext();
+        if (!authContext()->organization() || !authContext()->memberRole()) {
+            throw new \Illuminate\Auth\AuthenticationException('Invalid session context.');
+        }
 
-        // TODO: correct this using authContext()
-        setPermissionsTeamId(getDefaultTeamId());
+        setPermissionsTeamId(authContext()->organization()->getKey());
 
-        auth()->user()->unsetRelation('roles')->unsetRelation('permissions');
+        authContext()->user()->unsetRelation('roles')->unsetRelation('permissions');
+
+        authContext()->memberRole()->unsetRelation('roles')->unsetRelation('permissions');
 
         return $next($request);
     }

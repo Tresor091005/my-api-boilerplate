@@ -1,9 +1,7 @@
 <?php
 
 declare(strict_types=1);
-
-use App\Models\Company\CompanyMember;
-use App\Models\User\User;
+use Lahatre\Iam\Models\User;
 
 return [
 
@@ -73,10 +71,6 @@ return [
             'driver' => 'eloquent',
             'model'  => User::class,
         ],
-        'company-members' => [
-            'driver' => 'eloquent',
-            'model'  => CompanyMember::class,
-        ],
     ],
 
     /*
@@ -101,12 +95,6 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table'    => 'password_reset_tokens',
-            'expire'   => 60,
-            'throttle' => 60,
-        ],
-        'company-members' => [
-            'provider' => 'company-members',
             'table'    => 'password_reset_tokens',
             'expire'   => 60,
             'throttle' => 60,

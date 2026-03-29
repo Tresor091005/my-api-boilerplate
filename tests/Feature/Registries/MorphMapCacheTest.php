@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Models\User\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Lahatre\Iam\Models\User;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 
 /**
@@ -37,8 +37,8 @@ it('registers models via auto-discovery when cache is missing', function (): voi
     $map = Relation::morphMap();
 
     expect($map)->not->toBeEmpty()
-        ->and($map)->toHaveKey('user')
-        ->and($map['user'])->toBe(User::class);
+        ->and($map)->toHaveKey('iam_user')
+        ->and($map['iam_user'])->toBe(User::class);
 });
 
 it('loads from cache file when available and skips discovery', function (): void {
@@ -57,7 +57,7 @@ it('loads from cache file when available and skips discovery', function (): void
 
     expect($map)->toBe($customMap)
         ->and($map)->toHaveKey('custom_user')
-        ->and($map)->not->toHaveKey('user'); // Auto-discovery should have been skipped
+        ->and($map)->not->toHaveKey('iam_user'); // Auto-discovery should have been skipped
 });
 
 it('can clear the cache file', function (): void {
@@ -78,5 +78,5 @@ it('can create the cache file via the cache method', function (): void {
 
     expect(File::exists($cachePath))->toBeTrue();
     $cachedMap = require $cachePath;
-    expect($cachedMap)->toHaveKey('user');
+    expect($cachedMap)->toHaveKey('iam_user');
 });

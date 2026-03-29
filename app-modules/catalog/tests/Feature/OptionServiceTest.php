@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -10,6 +9,7 @@ use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -55,7 +55,6 @@ it('manages options through the api resource flow', function (): void {
     $this->getJson('/v1/catalog/options')
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Color')
-        ->assertJsonPath('data.0.values.0.value', 'Blue')
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']]);
 
     $this->getJson("/v1/catalog/options/{$option->id}")

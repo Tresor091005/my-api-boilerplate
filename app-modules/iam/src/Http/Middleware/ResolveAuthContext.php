@@ -20,17 +20,16 @@ class ResolveAuthContext
     {
         $context = authContext();
 
+        $context->clear();
+
         $user = auth()->user();
 
         if ($user) {
-            $context->setUser($user);
-
             $token = $user->currentAccessToken();
 
-            if ($token instanceof PersonalAccessToken) {
-                // TODO setting anything that can need to be set using personal_access_tokens_metadata
-                // $context->setToken($token);
-            }
+            $metadata = ($token instanceof PersonalAccessToken) ? $token->metadata : null;
+
+            $context->setContext($user, $metadata);
         }
 
         return $next($request);
