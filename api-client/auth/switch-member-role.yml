@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "member_role_id": "019d391e-927c-7372-98d4-02312777f3f3"
+        "member_role_id": "019d3997-0a1a-72ae-a252-ff5bfcee64a7"
       }
   auth: inherit
 

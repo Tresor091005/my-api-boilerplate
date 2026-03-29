@@ -14,7 +14,7 @@ class {{ class }}
      */
     public function list(Authorizable $user): bool
     {
-        return $user->can('{{ modelPluralSnake }}.list');
+        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.list');
     }
 
     /**
@@ -22,7 +22,7 @@ class {{ class }}
      */
     public function retrieve(Authorizable $user, {{ model }} $model): bool
     {
-        return $user->can('{{ modelPluralSnake }}.retrieve');
+        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.retrieve');
     }
 
     /**
@@ -30,7 +30,7 @@ class {{ class }}
      */
     public function create(Authorizable $user): bool
     {
-        return $user->can('{{ modelPluralSnake }}.create');
+        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.create');
     }
 
     /**
@@ -38,7 +38,7 @@ class {{ class }}
      */
     public function update(Authorizable $user, {{ model }} $model): bool
     {
-        return $user->can('{{ modelPluralSnake }}.update');
+        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.update');
     }
 
     /**
@@ -46,7 +46,7 @@ class {{ class }}
      */
     public function delete(Authorizable $user, {{ model }} $model): bool
     {
-        return $user->can('{{ modelPluralSnake }}.delete');
+        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.delete');
     }
 
     /**

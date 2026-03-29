@@ -33,5 +33,11 @@ Route::group([
             // TODO: verified middleware here
             Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
         });
+
+        Route::group([
+            'middleware' => ['auth.api'],
+        ], function (): void {
+            Route::get('/current-permissions', [AuthController::class, 'currentPermissions'])->name('current-permissions');
+        });
     });
 });

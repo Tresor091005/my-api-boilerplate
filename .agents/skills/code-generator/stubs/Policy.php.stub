@@ -11,27 +11,27 @@ class {{ClassName}}
 {
     public function list(Authorizable $user): bool
     {
-        return $user->can('{{PermissionPrefix}}.list');
+        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.list');
     }
 
     public function retrieve(Authorizable $user, {{Entity}} $model): bool
     {
-        return $user->can('{{PermissionPrefix}}.retrieve');
+        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.retrieve');
     }
 
     public function create(Authorizable $user): bool
     {
-        return $user->can('{{PermissionPrefix}}.create');
+        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.create');
     }
 
     public function update(Authorizable $user, {{Entity}} $model): bool
     {
-        return $user->can('{{PermissionPrefix}}.update');
+        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.update');
     }
 
     public function delete(Authorizable $user, {{Entity}} $model): bool
     {
-        return $user->can('{{PermissionPrefix}}.delete');
+        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.delete');
     }
 
     public function restore(Authorizable $user, {{Entity}} $model): bool
