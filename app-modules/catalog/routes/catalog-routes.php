@@ -27,7 +27,5 @@ Route::group([
         ]);
         Route::apiResource('options.values', OptionValueController::class)
             ->parameters(['values' => 'optionValue']);
-
-        Route::get('categories/{category}/products', [CategoryController::class, 'products'])->name('categories.products');
     });
 });

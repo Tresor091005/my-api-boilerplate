@@ -23,7 +23,6 @@ CATEGORY
 [x] GET    /categories/{id}             → show > category + parent + children
 [x] PATCH  /categories/{id}             → update > category
 [x] DELETE /categories/{id}             → delete
-[x] GET    /categories/{id}/products    → les products de cette categorie
 
 PRODUCTS
 [x] GET    /products                    → list (categories + optionValues, sans variants)
@@ -48,11 +47,11 @@ UNITS (pas de delete)
 [ ] DELETE /units                      → delete
 
 OPTIONS
-[ ] GET    /options                     → list (sans values)
-[ ] POST   /options                     → create (avec values) > option + values
-[ ] GET    /options/{id}                → show > option + values
-[ ] PATCH  /options/{id}                → update (infos + sync values, supprime liaisons orphelines) > option + values
-[ ] DELETE /options/{id}                → delete options and values
+[x] GET    /options                     → list (sans values)
+[x] POST   /options                     → create (avec values) > option + values
+[x] GET    /options/{id}                → show > option + values
+[x] PATCH  /options/{id}                → update (infos + sync values, supprime liaisons orphelines) > option + values
+[x] DELETE /options/{id}                → delete options and values
 
 PRICES
 [ ] PATCH  /variants/{id}/prices        → addMany+updateMany+deleteMany > toutes les prices du variant

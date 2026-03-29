@@ -28,7 +28,7 @@ examples:
         - name: content-type
           value: application/json
         - name: date
-          value: Sat, 28 Mar 2026 21:27:43 GMT
+          value: Sun, 29 Mar 2026 07:23:08 GMT
         - name: referrer-policy
           value: strict-origin-when-cross-origin
         - name: vary
@@ -42,176 +42,41 @@ examples:
         - name: x-ratelimit-remaining
           value: "89"
         - name: content-length
-          value: "662"
+          value: "263"
       body:
         type: json
         data: |-
           {
             "data": [
               {
+                "id": "019d365c-7a91-7315-8c4d-1e7d153bef48",
+                "name": "c-up",
+                "created_at": "2026-03-28T21:32:03.000000Z",
+                "updated_at": "2026-03-28T21:53:13.000000Z"
+              },
+              {
                 "id": "019d3658-3100-703e-87cb-3287c257e5e1",
                 "name": "color",
                 "created_at": "2026-03-28T21:27:22.000000Z",
-                "updated_at": "2026-03-28T21:27:22.000000Z",
-                "values": [
-                  {
-                    "id": "019d3658-3120-7030-a907-978e2201d403",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "black",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-3149-7003-8bb3-0a0b511b1392",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "white",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-3176-7215-adca-b3dcb16aa860",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "silver",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-31a2-737a-83a1-ad23a62986ae",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "space-gray",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-31cf-72ba-a402-f232a7c0cb6e",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "blue",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-31fb-7382-b5ab-3bfd6bbf700f",
-                    "option_id": "019d3658-3100-703e-87cb-3287c257e5e1",
-                    "value": "red",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  }
-                ]
+                "updated_at": "2026-03-28T21:27:22.000000Z"
               },
               {
                 "id": "019d3658-3448-72c6-95f1-4ca72b21296b",
                 "name": "ram",
                 "created_at": "2026-03-28T21:27:23.000000Z",
-                "updated_at": "2026-03-28T21:27:23.000000Z",
-                "values": [
-                  {
-                    "id": "019d3658-3475-72a3-9c5a-ee4df9f138b7",
-                    "option_id": "019d3658-3448-72c6-95f1-4ca72b21296b",
-                    "value": "8gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-34a1-7190-9c05-cf413737fdf2",
-                    "option_id": "019d3658-3448-72c6-95f1-4ca72b21296b",
-                    "value": "16gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-34c3-72e3-9f7e-1c2feccaea50",
-                    "option_id": "019d3658-3448-72c6-95f1-4ca72b21296b",
-                    "value": "32gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-34ef-735f-bcc6-88cb3dee580d",
-                    "option_id": "019d3658-3448-72c6-95f1-4ca72b21296b",
-                    "value": "64gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  }
-                ]
+                "updated_at": "2026-03-28T21:27:23.000000Z"
               },
               {
                 "id": "019d3658-3228-72e6-a830-260b6f95afcb",
                 "name": "size",
                 "created_at": "2026-03-28T21:27:22.000000Z",
-                "updated_at": "2026-03-28T21:27:22.000000Z",
-                "values": [
-                  {
-                    "id": "019d3658-3254-7004-acf6-4d6f66935b3c",
-                    "option_id": "019d3658-3228-72e6-a830-260b6f95afcb",
-                    "value": "s",
-                    "created_at": "2026-03-28T21:27:22.000000Z",
-                    "updated_at": "2026-03-28T21:27:22.000000Z"
-                  },
-                  {
-                    "id": "019d3658-3281-7154-9a86-3b89e32e5b5f",
-                    "option_id": "019d3658-3228-72e6-a830-260b6f95afcb",
-                    "value": "m",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-32a2-73f4-9058-2c6ae03a7543",
-                    "option_id": "019d3658-3228-72e6-a830-260b6f95afcb",
-                    "value": "l",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-32ce-7329-bb8e-2d0faaf5a431",
-                    "option_id": "019d3658-3228-72e6-a830-260b6f95afcb",
-                    "value": "xl",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  }
-                ]
+                "updated_at": "2026-03-28T21:27:22.000000Z"
               },
               {
                 "id": "019d3658-3336-703d-abb0-e41184df91b8",
                 "name": "storage",
                 "created_at": "2026-03-28T21:27:23.000000Z",
-                "updated_at": "2026-03-28T21:27:23.000000Z",
-                "values": [
-                  {
-                    "id": "019d3658-335f-7308-8a2c-53946d406c78",
-                    "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
-                    "value": "64gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-338b-7028-8869-21f186a0cf2a",
-                    "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
-                    "value": "128gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-33c3-71bb-abfb-3df01b92bf14",
-                    "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
-                    "value": "256gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-33f0-7279-a727-35083b918b43",
-                    "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
-                    "value": "512gb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  },
-                  {
-                    "id": "019d3658-341c-7189-a4d0-a9be1bfed060",
-                    "option_id": "019d3658-3336-703d-abb0-e41184df91b8",
-                    "value": "1tb",
-                    "created_at": "2026-03-28T21:27:23.000000Z",
-                    "updated_at": "2026-03-28T21:27:23.000000Z"
-                  }
-                ]
+                "updated_at": "2026-03-28T21:27:23.000000Z"
               }
             ],
             "meta": {

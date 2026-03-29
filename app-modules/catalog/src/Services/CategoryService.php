@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\CategoryAssertion;
 use Lahatre\Catalog\DTO\CategoryDTO;
 use Lahatre\Catalog\DTO\CategoryFilterDTO;
 use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Http\Resources\CategoryResource;
-use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
@@ -98,14 +96,5 @@ class CategoryService implements StandaloneService
             $category->products()->sync([]);
             $category->delete();
         });
-    }
-
-    public function products(Category $category): ResourceCollection
-    {
-        return ProductResource::collection(
-            $category->products()->with([
-                'optionValues.option',
-            ])->get()
-        );
     }
 }

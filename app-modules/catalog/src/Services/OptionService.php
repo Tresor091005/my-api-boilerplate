@@ -23,7 +23,7 @@ class OptionService implements StandaloneService
 
     public function list(OptionFilterDTO $filters): OptionCollection
     {
-        $query = Option::query()->with(['values']);
+        $query = Option::query();
 
         if ($filters->name) {
             $query->where('name', 'like', "$filters->name%");

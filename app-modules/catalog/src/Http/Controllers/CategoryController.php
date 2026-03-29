@@ -67,13 +67,4 @@ class CategoryController
 
         return response()->json(null, 204);
     }
-
-    public function products(Category $category): JsonResponse
-    {
-        Gate::authorize('viewProducts', $category);
-
-        $response = $this->categoryService->products($category);
-
-        return response()->json($response);
-    }
 }
