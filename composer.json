@@ -17,6 +17,7 @@
         "lahatre/iam": "*",
         "lahatre/inventory": "*",
         "lahatre/master": "*",
+        "lahatre/organization": "*",
         "lahatre/shared": "*",
         "laravel/framework": "^12.0",
         "laravel/horizon": "*",

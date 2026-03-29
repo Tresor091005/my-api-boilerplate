@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/organization",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Organization\\": "src/",
+			"Lahatre\\Organization\\Tests\\": "tests/",
+			"Lahatre\\Organization\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Organization\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Organization\\Providers\\OrganizationServiceProvider"
+			]
+		}
+	}
+}
