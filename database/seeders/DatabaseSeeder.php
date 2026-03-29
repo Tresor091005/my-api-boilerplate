@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Company\Company;
-use App\Models\User\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
@@ -14,7 +12,11 @@ use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\OptionSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
 use Lahatre\Iam\Enums\SysRole;
+use Lahatre\Iam\Models\MemberRole;
+use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
+use Lahatre\Iam\Models\User;
+use Lahatre\Organization\Models\Organization;
 
 class DatabaseSeeder extends Seeder
 {
@@ -41,23 +43,30 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $company = Company::firstOrCreate(
+        $organization = Organization::firstOrCreate(
             ['name' => 'kouri']
         );
 
-        $company->members()->firstOrCreate(
-            ['email' => 'admin2@lahatre.com'],
-            [
-                'first_name' => 'Xane',
-                'last_name'  => 'Mikane',
-                'password'   => 'password',
-            ]
-        );
+        $member = OrganizationMember::firstOrCreate([
+            'user_id'         => $user->id,
+            'organization_id' => $organization->id,
+        ]);
 
         Artisan::call('permissions:discover');
 
-        setPermissionsTeamId(getDefaultTeamId());
+        setPermissionsTeamId($organization->id);
 
-        $user->assignRole(Role::whereName(SysRole::Administrator->value)->first());
+        $this->assignRole($member, Role::whereName(SysRole::Administrator->value)->first());
+    }
+
+    public function assignRole(OrganizationMember $member, Role $role)
+    {
+        $memberRole = MemberRole::firstOrCreate([
+            'organization_id' => $member->organization_id,
+            'member_id'       => $member->id,
+            'role_id'         => $role->id,
+        ]);
+
+        $memberRole->assignRole($role);
     }
 }

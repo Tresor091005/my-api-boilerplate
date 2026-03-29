@@ -7,5 +7,5 @@ namespace Lahatre\Iam\Enums;
 enum SysRole: string
 {
     case Administrator = 'administrator';
-    case Default = 'default';
+    case Readonly = 'read-only';
 }

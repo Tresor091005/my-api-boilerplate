@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -10,6 +9,7 @@ use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\PermissionRegistrar;
 

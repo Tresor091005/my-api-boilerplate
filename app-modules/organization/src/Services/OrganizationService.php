@@ -13,4 +13,9 @@ class OrganizationService implements OrganizationInterface
     {
         return new Organization();
     }
+
+    public function findOrganizationById(string $organizationId): Organization
+    {
+        return Organization::query()->findOrFail($organizationId);
+    }
 }

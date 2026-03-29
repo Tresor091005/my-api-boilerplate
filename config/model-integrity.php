@@ -70,6 +70,7 @@ return [
     */
     'ignored_soft_delete_partial_index' => [
         'users'                    => ['email'],
+        'iam_users'                => ['email'],
         'inventory_items'          => ['sku'],
         'master_units'             => ['code'],
         'catalog_product_variants' => ['sku'],

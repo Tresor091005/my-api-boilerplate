@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
+use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 
 Route::group([
     'as'         => 'lahatre.iam.',
@@ -20,16 +21,17 @@ Route::group([
     ], function (): void {
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth')->name('register');
 
-        Route::post('/{type}/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
-        Route::post('/{type}/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth')->name('forgot-password');
-        Route::post('/{type}/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth')->name('reset-password');
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth')->name('forgot-password');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth')->name('reset-password');
 
         Route::group([
-            'middleware' => ['auth.api'],
+            'middleware' => ['auth:sanctum', ResolveAuthContext::class],
         ], function (): void {
             Route::get('/me', [AuthController::class, 'me'])->name('me');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-            Route::post('/switch-user-role', [AuthController::class, 'switchUserRole'])->name('switch-user-role');
+            // TODO: verified middleware here
+            Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
         });
     });
 });

@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Organization\Database\Factories\OrganizationFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -28,6 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Organization whereUpdatedAt($value)
  * @method static Builder<static>|Organization withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Organization withoutTrashed()
+ * @method static OrganizationFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

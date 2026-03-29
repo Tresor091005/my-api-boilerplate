@@ -78,15 +78,15 @@ class DiscoverSysPermissions extends Command
         $adminRole->syncPermissions($allPermissions);
         $this->line(__('iam::console.discovery.synced_administrator'));
 
-        // Create a Default role with basic read-only permissions
-        $defaultRole = Role::updateOrCreate(
+        // Create a Readonly role with basic list+retrieve permissions
+        $readOnlyRole = Role::updateOrCreate(
             [
-                'name'       => SysRole::Default->value,
+                'name'       => SysRole::Readonly->value,
                 'guard_name' => $guardName,
             ],
             [
                 'is_builtin'  => true,
-                'description' => __('iam::console.roles.default.description'),
+                'description' => __('iam::console.roles.read_only.description'),
             ]
         );
         $readPermissions = Permission::where('guard_name', $guardName)
@@ -94,8 +94,8 @@ class DiscoverSysPermissions extends Command
                 $query->where('name', 'like', '%.list')
                     ->orWhere('name', 'like', '%.retrieve');
             })->get();
-        $defaultRole->syncPermissions($readPermissions);
-        $this->line(__('iam::console.discovery.synced_default'));
+        $readOnlyRole->syncPermissions($readPermissions);
+        $this->line(__('iam::console.discovery.synced_read_only'));
 
         // Reset the permission cache again
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

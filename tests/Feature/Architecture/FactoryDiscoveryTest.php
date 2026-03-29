@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\Career\Job;
-use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\Iam\Models\User;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -26,7 +25,6 @@ it('resolves models automatically from factories', function (string $modelClass)
 
 dataset('models', [
     'User'      => User::class,
-    'Job'       => Job::class,
     'Currency'  => Currency::class,
     'Unit'      => Unit::class,
     'UnitGroup' => UnitGroup::class,
