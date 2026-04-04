@@ -26,7 +26,7 @@ CATEGORY
 
 PRODUCTS
 [x] GET    /products                    → list (categories + optionValues, sans variants)
-[ ] POST   /products                    → create > product complet (tout)
+[ ] POST   /products                    → create > product complet (actu manque price et create inventory-item)
 [x] GET    /products/{id}               → show > product + categories + optionValues + variants
 [x] PATCH  /products/{id}               → update (infos + sync categories) > product + categories
 [ ] DELETE /products/{id}               → delete
@@ -41,7 +41,7 @@ VARIANTS
 CURRENCIES (only list)
 [x] GET    /currencies                  → list
 
-UNITS (pas de delete)
+UNITS
 [x] GET    /units                      → list
 [x] POST   /units/sync                 → create & update
 [ ] DELETE /units                      → delete
