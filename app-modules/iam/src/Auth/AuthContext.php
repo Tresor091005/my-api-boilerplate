@@ -28,7 +28,7 @@ class AuthContext
     {
         $this->user = $user;
 
-        if (empty($metadata) || empty($metadata['organization_id'])) {
+        if ($metadata === null || $metadata === [] || empty($metadata['organization_id'])) {
             return;
         }
 
@@ -39,10 +39,11 @@ class AuthContext
             ->where('member_id', $metadata['member_id'] ?? null)
             ->where('organization_id', $metadata['organization_id'] ?? null)
             ->where('role_id', $metadata['role_id'] ?? null)
-            ->whereHas('organizationMember', fn ($q) => $q->where('user_id', $user->getAuthIdentifier()))
             ->first();
 
-        if (!$memberRole) {
+        $member = $memberRole?->organizationMember;
+
+        if (!$memberRole || !$member || $member->user_id !== $user->id) {
             logger()->warning('Incoherent AuthContext metadata for user {user_id}', [
                 'user_id'  => $user->getAuthIdentifier(),
                 'metadata' => $metadata,
@@ -52,7 +53,7 @@ class AuthContext
         }
 
         $this->organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);
-        $this->member = $memberRole->organizationMember;
+        $this->member = $member;
         $this->memberRole = $memberRole;
         $this->role = $memberRole->role;
     }
