@@ -31,16 +31,16 @@ class AuthService implements StandaloneService
      */
     public function login(LoginDTO $dto): AuthResource
     {
-        $authenticatable = User::query()
+        $user = User::query()
             ->with(['organizationMemberships.memberRoles.role'])
             ->where('email', $dto->email)
             ->first();
 
-        if (!$authenticatable || !Hash::check($dto->password, $authenticatable->password)) {
+        if (!$user || !Hash::check($dto->password, $user->password)) {
             throw new InvalidLoginException();
         }
 
-        $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
+        $token = $user->createToken('auth_token', ['*'], now()->addDay());
         $token->accessToken->update([
             'metadata' => [
                 'organization_id' => null,
@@ -50,13 +50,13 @@ class AuthService implements StandaloneService
             ],
         ]);
 
-        return AuthResource::make($authenticatable)->withToken($token->plainTextToken);
+        return AuthResource::make($user)->withToken($token->plainTextToken);
     }
 
     /**
      * Return a UserResource.
      */
-    public function me(Authenticatable $user, ?string $currentMemberRoleId): UserResource
+    public function me(User $user, ?string $currentMemberRoleId): UserResource
     {
         $user->load(['organizationMemberships.memberRoles.role']);
 
@@ -77,19 +77,17 @@ class AuthService implements StandaloneService
     /**
      * Switch the current user role and return the updated UserResource.
      */
-    public function switchMemberRole(Authenticatable $user, string $memberRoleId): UserResource
+    public function switchMemberRole(User $user, string $memberRoleId): UserResource
     {
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
-            ->with(['organizationMember', 'role'])
-            ->whereKey($memberRoleId)
-            ->whereHas(
-                'organizationMember',
-                fn ($query) => $query->where('user_id', $user->getAuthIdentifier())
-            )
+            ->with(['organizationMember'])
+            ->where('id', $memberRoleId)
             ->first();
 
-        if (!$memberRole) {
+        $member = $memberRole?->organizationMember;
+
+        if (!$memberRole || !$member || $member->user_id !== $user->id) {
             throw new ModelNotFoundException();
         }
 
@@ -147,7 +145,7 @@ class AuthService implements StandaloneService
                 'password' => $dto->password,
                 'token'    => $dto->token,
             ],
-            function (Authenticatable $user, string $password): void {
+            function (User $user, string $password): void {
                 $user->fill(['password' => $password]);
                 $user->save();
             }

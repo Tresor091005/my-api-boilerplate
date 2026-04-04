@@ -69,6 +69,6 @@ class DatabaseSeeder extends Seeder
             'role_id'         => $role->id,
         ]);
 
-        $memberRole->assignRole($role);
+        $memberRole->syncRoles($role);
     }
 }
