@@ -26,6 +26,12 @@ class ProductService implements StandaloneService
     {
         $query = Product::query()->with([
             'categories', 'optionValues.option',
+            'variants' => [
+                'product',
+                'optionValues.option',
+                'unitGroup',
+                'prices.currency',
+            ],
         ]);
 
         // TODO category filter

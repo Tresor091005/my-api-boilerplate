@@ -88,7 +88,7 @@ class AuthService implements StandaloneService
         $member = $memberRole?->organizationMember;
 
         if (!$memberRole || !$member || $member->user_id !== $user->id) {
-            throw new ModelNotFoundException();
+            throw (new ModelNotFoundException())->setModel(MemberRole::class, [$memberRoleId]);
         }
 
         /** @var PersonalAccessToken $token */

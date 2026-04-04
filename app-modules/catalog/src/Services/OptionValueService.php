@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionValueAssertion;
 use Lahatre\Catalog\DTO\OptionValueDTO;
 use Lahatre\Catalog\DTO\OptionValueFilterDTO;
-use Lahatre\Catalog\Http\Resources\OptionValueCollection;
 use Lahatre\Catalog\Http\Resources\OptionValueResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -25,7 +24,7 @@ class OptionValueService implements StandaloneService
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
-    public function list(Option $option, OptionValueFilterDTO $filters): OptionValueCollection
+    public function list(Option $option, OptionValueFilterDTO $filters): AnonymousResourceCollection
     {
         $query = $option->values();
 
@@ -35,11 +34,7 @@ class OptionValueService implements StandaloneService
 
         $query->orderBy($filters->sort_by, $filters->sort_order);
 
-        $optionValues = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
-
-        return OptionValueCollection::make($optionValues);
+        return OptionValueResource::collection($query->get());
     }
 
     public function retrieve(Option $option, OptionValue $optionValue): OptionValueResource

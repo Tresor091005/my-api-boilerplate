@@ -57,7 +57,7 @@ class OptionValueDTO extends LahatreDTO
             return [
                 'option_id' => ['required', 'string'],
                 'value'     => ['prohibited'],
-                'values'    => ['required', 'array'],
+                'values'    => ['required', 'array', 'min:1'],
                 'values.*'  => ['string', 'max:255'],
             ];
         }

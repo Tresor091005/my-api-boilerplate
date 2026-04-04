@@ -6,10 +6,10 @@ namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\DTO\OptionValueDTO;
 use Lahatre\Catalog\DTO\OptionValueFilterDTO;
-use Lahatre\Catalog\Http\Resources\OptionValueCollection;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\OptionValueService;
@@ -20,7 +20,7 @@ class OptionValueController
         protected OptionValueService $optionValueService
     ) {}
 
-    public function index(Request $request, Option $option): OptionValueCollection
+    public function index(Request $request, Option $option): AnonymousResourceCollection
     {
         Gate::authorize('list', OptionValue::class);
 
