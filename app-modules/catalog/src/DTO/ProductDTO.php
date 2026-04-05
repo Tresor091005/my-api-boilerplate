@@ -50,16 +50,23 @@ class ProductDTO extends LahatreDTO
 
     protected function rules(): array
     {
-        return [
+        $rules = [];
+
+        if ($this->modelId) {
+            $rules['variants'] = ['prohibited'];
+        } else {
+            $rules['variants'] = ['required', 'min:1'];
+        }
+
+        return array_merge_recursive($rules, [
             'name'        => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active'   => ['boolean'],
             'categories'  => ['nullable', 'array', new BulkExists('catalog_categories')],
             'variants'    => [
-                $this->modelId ? 'prohibited' : 'nullable',
                 'array',
                 new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true),
             ],
-        ];
+        ]);
     }
 }

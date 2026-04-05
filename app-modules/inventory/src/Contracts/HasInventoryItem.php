@@ -23,4 +23,6 @@ interface HasInventoryItem
     public function getKey();
 
     public function getUnitGroupId(): string;
+
+    public function getSku(): string;
 }

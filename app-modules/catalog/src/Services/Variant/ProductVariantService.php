@@ -11,23 +11,25 @@ use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\Option\OptionService;
+use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Shared\Contracts\Services\TransactionalService;
 use Lahatre\Shared\Support\SkuGenerator;
 
 class ProductVariantService implements TransactionalService
 {
     public function __construct(
+        protected InventoryInterface $inventoryService,
         protected OptionService $optionService
     ) {}
 
     /**
      * @param  Collection<int, ProductVariantDataDTO>  $variantsData
-     * @return array<int, string>
+     * @return Collection<int, ProductVariant>
      */
-    public function add(Product $product, Collection $variantsData): array
+    public function add(Product $product, Collection $variantsData): Collection
     {
         if ($variantsData->isEmpty()) {
-            return [];
+            return collect();
         }
 
         $now = now();
@@ -44,6 +46,9 @@ class ProductVariantService implements TransactionalService
         ]);
 
         ProductVariant::insert($variantRows->all());
+
+        $variants = ProductVariant::whereIn('id', $variantRows->pluck('id')->all())->get();
+        $this->inventoryService->createManyItems($variants);
 
         $allOptionsFromVariants = $variantsData->flatMap(fn (ProductVariantDataDTO $v): array => $v->options ?? []);
         $optionValuesMap = $this->optionService->getOrCreate($allOptionsFromVariants);
@@ -77,6 +82,6 @@ class ProductVariantService implements TransactionalService
             VariantOptionValue::insert($pivotRows);
         }
 
-        return $variantRows->pluck('id')->all();
+        return $variants;
     }
 }

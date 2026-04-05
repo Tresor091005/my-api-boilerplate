@@ -58,6 +58,7 @@ class InventoryReferenceResolver
                             'id'             => (string) Str::uuid7(),
                             'itemable_type'  => $model->getMorphClass(),
                             'itemable_id'    => (string) $model->getKey(),
+                            'sku'            => $model->getSku(),
                             'is_active'      => true,
                             'base_unit_code' => $this->unitCache->getBaseUnit($model->getUnitGroupId())->code,
                             'created_at'     => $now,
