@@ -19,7 +19,6 @@ return new class() extends Migration
             $table->dropColumn('unit_code');
 
             $table->foreignUuid('unit_group_id')
-                ->nullable()
                 ->after('sku')
                 ->index()
                 ->constrained('master_unit_groups')

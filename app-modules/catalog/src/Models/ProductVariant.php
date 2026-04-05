@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
+use Lahatre\Inventory\Contracts\HasInventoryItem;
+use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -20,7 +22,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $product_id
  * @property string $sku
- * @property string|null $unit_group_id
+ * @property string $unit_group_id
  * @property bool $should_manage_stock
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
@@ -50,9 +52,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model
+class ProductVariant extends Model implements HasInventoryItem
 {
     use SharedTraits;
+    use InteractsWithInventoryItem;
 
     protected $table = 'catalog_product_variants';
 
@@ -74,6 +77,16 @@ class ProductVariant extends Model
         'created_at'          => 'immutable_datetime',
         'updated_at'          => 'immutable_datetime',
     ];
+
+    public function getUnitGroupId(): string
+    {
+        return $this->unit_group_id;
+    }
+
+    public function getSku(): string
+    {
+        return $this->sku;
+    }
 
     protected function optionsLabel(): Attribute
     {

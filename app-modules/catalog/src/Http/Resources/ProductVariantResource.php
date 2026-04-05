@@ -22,7 +22,6 @@ class ProductVariantResource extends JsonResource
         return [
             'id'                  => $this->id,
             'name'                => $this->name,
-            'options_label'       => $this->options_label,
             'product_id'          => $this->product_id,
             'sku'                 => $this->sku,
             'unit_group_id'       => $this->unit_group_id,

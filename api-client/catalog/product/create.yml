@@ -1,0 +1,54 @@
+info:
+  name: create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/catalog/products"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "MINA",
+        "is_active": true,
+        "variants": [
+          {
+            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "is_active": true,
+            "should_manage_stock": true,
+            "options": [
+              {
+                "name": "Kali",
+                "value": "proper"
+              }
+            ]
+          },
+          {
+            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "is_active": false,
+            "should_manage_stock": true,
+            "options": [
+              {
+                "name": "ee",
+                "value": "proper4"
+              },
+              {
+                "name": "sezaz",
+                "value": "cggf"
+              },
+              {
+                "name": "a",
+                "value": "bbb"
+              }
+            ]
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

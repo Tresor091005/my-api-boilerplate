@@ -12,14 +12,14 @@ class ProductVariantDataDTO extends LahatreDTO
 {
     public ?string $sku = null;
 
-    public ?string $unit_group_id = null;
+    public string $unit_group_id;
 
     public bool $should_manage_stock;
 
     public bool $is_active;
 
-    /** @var array<int, array{name: string, value: string}>|null */
-    public ?array $options = null;
+    /** @var array<int, array{name: string, value: string}> */
+    public array $options;
 
     protected function casts(): array
     {
@@ -57,12 +57,12 @@ class ProductVariantDataDTO extends LahatreDTO
     {
         return [
             'sku'                 => ['nullable', 'string', 'max:255'],
-            'unit_group_id'       => ['nullable', 'uuid'],
+            'unit_group_id'       => ['required', 'uuid'],
             'should_manage_stock' => ['boolean'],
             'is_active'           => ['boolean'],
-            'options'             => ['nullable', 'array'],
-            'options.*.name'      => ['required_with:options', 'string', 'max:255'],
-            'options.*.value'     => ['required_with:options', 'string', 'max:255'],
+            'options'             => ['required', 'array', 'min:1'],
+            'options.*.name'      => ['required', 'string', 'max:255'],
+            'options.*.value'     => ['required', 'string', 'max:255'],
         ];
     }
 
