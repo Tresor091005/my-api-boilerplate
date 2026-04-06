@@ -25,6 +25,7 @@ class ProductService implements StandaloneService
             'optionValues.option',
             'unitGroup',
             'prices.currency', // TODO add prices
+            'inventoryItem',
         ],
     ];
 

@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Inventory\Http\Resources\InventoryItemResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 
 /**
@@ -32,6 +33,7 @@ class ProductVariantResource extends JsonResource
             'options'             => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
             'unit_group'          => UnitGroupResource::make($this->whenLoaded('unitGroup')),
             'prices'              => PriceResource::collection($this->whenLoaded('prices')),
+            'inventory_item'      => InventoryItemResource::make($this->whenLoaded('inventoryItem')),
         ];
     }
 }
