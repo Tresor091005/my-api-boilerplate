@@ -25,10 +25,8 @@ Route::group([
             'categories' => CategoryController::class,
             'options'    => OptionController::class,
             'products'   => ProductController::class,
+            'products.variants' => ProductVariantController::class
         ]);
-
-        Route::apiResource('products.variants', ProductVariantController::class)
-            ->except(['destroy']);
 
         Route::apiResource('options.values', OptionValueController::class)
             ->parameters(['values' => 'optionValue']);

@@ -60,4 +60,13 @@ class ProductVariantController
 
         return response()->json($response);
     }
+
+    public function destroy(Product $product, ProductVariant $variant): JsonResponse
+    {
+        Gate::authorize('delete', $variant);
+
+        $this->productVariantService->delete($product, $variant);
+
+        return response()->json(null, 204);
+    }
 }

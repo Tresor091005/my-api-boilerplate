@@ -75,6 +75,18 @@ class ProductVariantService implements TransactionalService
         ]));
     }
 
+    public function delete(ProductVariant $variant): void
+    {
+        VariantOptionValue::query()
+            ->where('product_id', $variant->product_id)
+            ->where('variant_id', $variant->id)
+            ->delete();
+
+        $this->inventoryService->deleteItem($variant);
+
+        $variant->delete();
+    }
+
     /**
      * @param  Collection<string, array<int, array{name: string, value: string}>>  $variantOptions
      */

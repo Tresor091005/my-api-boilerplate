@@ -11,6 +11,7 @@ use Lahatre\Catalog\DTO\ProductFilterDTO;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\ProductVariantService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
@@ -115,6 +116,16 @@ class ProductService implements StandaloneService
 
     public function delete(Product $product): void
     {
-        // TODO: Implementation with assertions and cleanup
+        DB::transaction(function () use ($product): void {
+            $product->categories()->sync([]);
+
+            $product->optionValues()->delete();
+
+            $product->variants()
+                ->get()
+                ->each(fn (ProductVariant $variant): void => $this->productVariantService->delete($variant));
+
+            $product->delete();
+        });
     }
 }

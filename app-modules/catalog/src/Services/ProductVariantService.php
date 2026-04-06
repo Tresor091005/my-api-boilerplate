@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\DTO\ProductVariantDTO;
 use Lahatre\Catalog\DTO\ProductVariantFilterDTO;
 use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
@@ -29,6 +30,7 @@ class ProductVariantService implements StandaloneService
     ];
 
     public function __construct(
+        protected ProductVariantAssertion $productVariantAssertion,
         protected InventoryInterface $inventoryService,
         protected TransactionalProductVariantService $transactionalProductVariantService,
     ) {}
@@ -93,9 +95,7 @@ class ProductVariantService implements StandaloneService
                 $this->transactionalProductVariantService->replaceOptions($product, $variant, $dto->options);
             }
 
-            $inventoryItem = $variant->inventoryItem()->first();
-
-            $this->inventoryService->updateItem($inventoryItem->id, [
+            $this->inventoryService->updateItem($variant, [
                 'sku'       => $variant->sku,
                 'is_active' => $variant->should_manage_stock,
                 // TODO deduction strategy
@@ -103,5 +103,18 @@ class ProductVariantService implements StandaloneService
         });
 
         return ProductVariantResource::make($variant->load($this->relations));
+    }
+
+    public function delete(Product $product, ProductVariant $variant): void
+    {
+        if ($variant->product_id !== $product->id) {
+            throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variant->id]);
+        }
+
+        $this->productVariantAssertion->assertCanDelete($variant);
+
+        DB::transaction(function () use ($variant): void {
+            $this->transactionalProductVariantService->delete($variant);
+        });
     }
 }
