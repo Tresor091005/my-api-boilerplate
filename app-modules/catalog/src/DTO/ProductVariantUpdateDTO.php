@@ -5,35 +5,39 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
-class ProductVariantDataDTO extends LahatreDTO
+class ProductVariantUpdateDTO extends LahatreDTO
 {
     public ?string $sku = null;
 
-    public string $unit_group_id;
+    public ?string $unit_group_id = null;
 
-    public bool $should_manage_stock;
+    public ?bool $should_manage_stock = null;
 
-    public bool $is_active;
+    public ?bool $is_active = null;
 
-    /** @var array<int, array{name: string, value: string}> */
-    public array $options;
+    /** @var array<int, array{name: string, value: string}>|null */
+    public ?array $options = null;
 
     protected function casts(): array
     {
         return [
-            'should_manage_stock' => 'boolean',
-            'is_active'           => 'boolean',
+            'should_manage_stock' => 'bool',
+            'is_active'           => 'bool',
         ];
     }
 
     protected function defaults(): array
     {
         return [
-            'should_manage_stock' => false,
-            'is_active'           => false,
+            'sku'                 => null,
+            'unit_group_id'       => null,
+            'should_manage_stock' => null,
+            'is_active'           => null,
+            'options'             => null,
         ];
     }
 
@@ -57,19 +61,19 @@ class ProductVariantDataDTO extends LahatreDTO
     {
         return [
             'sku'                 => ['nullable', 'string', 'max:255'],
-            'unit_group_id'       => ['required', 'uuid'],
-            'should_manage_stock' => ['boolean'],
-            'is_active'           => ['boolean'],
-            'options'             => ['required', 'array', 'min:1'],
-            'options.*.name'      => ['required', 'string', 'max:255'],
-            'options.*.value'     => ['required', 'string', 'max:255'],
+            'unit_group_id'       => ['nullable', 'uuid', Rule::exists('master_unit_groups', 'id')],
+            'should_manage_stock' => ['nullable', 'boolean'],
+            'is_active'           => ['nullable', 'boolean'],
+            'options'             => ['nullable', 'array'],
+            'options.*.name'      => ['required_with:options', 'string', 'max:255'],
+            'options.*.value'     => ['required_with:options', 'string', 'max:255'],
         ];
     }
 
     protected function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if (empty($this->dtoData['options'])) {
+            if (!is_array($this->dtoData['options'] ?? null)) {
                 return;
             }
 

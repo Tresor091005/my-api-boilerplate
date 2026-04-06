@@ -54,8 +54,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  */
 class ProductVariant extends Model implements HasInventoryItem
 {
-    use SharedTraits;
     use InteractsWithInventoryItem;
+    use SharedTraits;
 
     protected $table = 'catalog_product_variants';
 

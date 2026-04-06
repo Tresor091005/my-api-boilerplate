@@ -50,38 +50,66 @@ class ProductVariantService implements TransactionalService
         $variants = ProductVariant::whereIn('id', $variantRows->pluck('id')->all())->get();
         $this->inventoryService->createManyItems($variants);
 
-        $allOptionsFromVariants = $variantsData->flatMap(fn (ProductVariantDataDTO $v): array => $v->options ?? []);
-        $optionValuesMap = $this->optionService->getOrCreate($allOptionsFromVariants);
+        $this->attachOptions(
+            $product,
+            $variantsData->mapWithKeys(
+                fn (ProductVariantDataDTO $variantDto, int $index): array => [$variantRows[$index]['id'] => $variantDto->options]
+            )
+        );
+
+        return $variants;
+    }
+
+    /**
+     * @param  array<int, array{name: string, value: string}>  $optionsData
+     */
+    public function replaceOptions(Product $product, ProductVariant $variant, array $optionsData): void
+    {
+        VariantOptionValue::query()
+            ->where('product_id', $product->id)
+            ->where('variant_id', $variant->id)
+            ->delete();
+
+        $this->attachOptions($product, collect([
+            $variant->id => $optionsData,
+        ]));
+    }
+
+    /**
+     * @param  Collection<string, array<int, array{name: string, value: string}>>  $variantOptions
+     */
+    protected function attachOptions(Product $product, Collection $variantOptions): void
+    {
+        $allOptions = $variantOptions->flatMap(fn (array $options): array => $options);
+
+        if ($allOptions->isEmpty()) {
+            return;
+        }
+
+        $optionValuesMap = $this->optionService->getOrCreate($allOptions);
 
         $pivotRows = [];
-        foreach ($variantsData as $index => $variantDto) {
-            if (empty($variantDto->options)) {
-                continue;
-            }
-
-            $variantId = $variantRows[$index]['id'];
-
-            foreach ($variantDto->options as $optionData) {
+        foreach ($variantOptions as $variantId => $optionsData) {
+            foreach ($optionsData as $optionData) {
                 $mapKey = $optionData['name'].'-'.$optionData['value'];
-
                 $optionValue = $optionValuesMap->get($mapKey);
 
-                if ($optionValue) {
-                    $pivotRows[] = [
-                        'id'              => (string) Str::uuid7(),
-                        'product_id'      => $product->id,
-                        'variant_id'      => $variantId,
-                        'option_id'       => $optionValue->option_id,
-                        'option_value_id' => $optionValue->id,
-                    ];
+                if (!$optionValue) {
+                    continue;
                 }
+
+                $pivotRows[] = [
+                    'id'              => (string) Str::uuid7(),
+                    'product_id'      => $product->id,
+                    'variant_id'      => $variantId,
+                    'option_id'       => $optionValue->option_id,
+                    'option_value_id' => $optionValue->id,
+                ];
             }
         }
 
         if ($pivotRows !== []) {
             VariantOptionValue::insert($pivotRows);
         }
-
-        return $variants;
     }
 }

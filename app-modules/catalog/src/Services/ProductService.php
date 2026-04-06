@@ -17,6 +17,17 @@ use Lahatre\Shared\Support\HandleGenerator;
 
 class ProductService implements StandaloneService
 {
+    protected array $relations = [
+        'categories',
+        'optionValues.option',
+        'variants' => [
+            'product',
+            'optionValues.option',
+            'unitGroup',
+            'prices.currency', // TODO add prices
+        ],
+    ];
+
     public function __construct(
         protected ProductAssertion $productAssertion,
         protected ProductVariantService $productVariantService
@@ -24,15 +35,7 @@ class ProductService implements StandaloneService
 
     public function list(ProductFilterDTO $filters): ProductCollection
     {
-        $query = Product::query()->with([
-            'categories', 'optionValues.option',
-            'variants' => [
-                'product',
-                'optionValues.option',
-                'unitGroup',
-                'prices.currency',
-            ],
-        ]);
+        $query = Product::query()->with($this->relations);
 
         // TODO category filter
 
@@ -60,16 +63,7 @@ class ProductService implements StandaloneService
 
     public function retrieve(Product $product): ProductResource
     {
-        $product->load([
-            'categories',
-            'optionValues.option',
-            'variants' => [
-                'product',
-                'optionValues.option',
-                'unitGroup',
-                'prices.currency',
-            ],
-        ]);
+        $product->load($this->relations);
 
         return ProductResource::make($product);
     }
@@ -97,12 +91,7 @@ class ProductService implements StandaloneService
             $this->productVariantService->add($product, $dto->variants ?? collect());
         });
 
-        return ProductResource::make($product->load([
-            'categories', 'optionValues.option',
-            'variants' => [
-                'product', 'optionValues.option', 'unitGroup', 'prices.currency', // TODO prices+currency
-            ],
-        ]));
+        return ProductResource::make($product->load($this->relations));
     }
 
     public function update(Product $product, ProductDTO $dto): ProductResource

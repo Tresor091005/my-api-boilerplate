@@ -1,0 +1,37 @@
+info:
+  name: create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/catalog/products/019d63b5-6f9b-710e-8767-5d813e277f62/variants"
+  body:
+    type: json
+    data: |-
+      {
+        "variants": [
+          {
+            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "is_active": true,
+            "should_manage_stock": true,
+            "options": [
+              {
+                "name": "color",
+                "value": "black"
+              },
+              {
+                "name": "storage",
+                "value": "256gb"
+              }
+            ]
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
