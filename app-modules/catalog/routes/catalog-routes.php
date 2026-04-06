@@ -7,6 +7,7 @@ use Lahatre\Catalog\Http\Controllers\CategoryController;
 use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
+use Lahatre\Catalog\Http\Controllers\ProductVariantController;
 
 /* -----------------------------------------------------------------
  | Catalog endpoints
@@ -25,6 +26,10 @@ Route::group([
             'options'    => OptionController::class,
             'products'   => ProductController::class,
         ]);
+
+        Route::apiResource('products.variants', ProductVariantController::class)
+            ->except(['destroy']);
+
         Route::apiResource('options.values', OptionValueController::class)
             ->parameters(['values' => 'optionValue']);
     });

@@ -32,10 +32,10 @@ PRODUCTS
 [ ] DELETE /products/{id}               → delete
 
 VARIANTS
-[ ] GET    /products/{id}/variants      → list (sans product)
-[ ] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
-[ ] GET    /variants/{id}               → show > variant complet + product light
-[ ] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
+[x] GET    /products/{id}/variants      → list (sans product)
+[x] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
+[x] GET    /variants/{id}               → show > variant complet + product light
+[x] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
 [ ] DELETE /variants/{id}               → delete
 
 CURRENCIES (only list)
