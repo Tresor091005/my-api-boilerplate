@@ -17,14 +17,14 @@ PRODUCTS
 [x] POST   /products                    → create > product complet
 [x] GET    /products/{id}               → show > product + categories + optionValues + variants
 [x] PATCH  /products/{id}               → update (infos + sync categories) > product + categories
-[ ] DELETE /products/{id}               → delete
+[x] DELETE /products/{id}               → delete
 
 VARIANTS
 [x] GET    /products/{id}/variants      → list (sans product)
 [x] POST   /products/{id}/variants      → bulk create > liste des variants du produit (sans product)
 [x] GET    /variants/{id}               → show > variant complet + product light
 [x] PATCH  /variants/{id}               → update > variant + unit (sans product, sans prices)
-[ ] DELETE /variants/{id}               → delete
+[x] DELETE /variants/{id}               → delete
 
 CURRENCIES (only list)
 [x] GET    /currencies                  → list

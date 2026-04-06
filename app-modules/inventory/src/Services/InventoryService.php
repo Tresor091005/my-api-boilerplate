@@ -76,10 +76,10 @@ class InventoryService implements InventoryInterface
         );
     }
 
-    public function updateLocation(string $id, array $data): InventoryLocation
+    public function updateLocation(HasInventoryLocation $model, array $data): InventoryLocation
     {
-        return DB::transaction(function () use ($id, $data) {
-            $location = InventoryLocation::findOrFail($id);
+        return DB::transaction(function () use ($model, $data) {
+            $location = $this->resolveLocation($model);
             $location->fill([
                 'is_active' => $data['is_active'] ?? $location->is_active,
             ]);
@@ -89,12 +89,12 @@ class InventoryService implements InventoryInterface
         });
     }
 
-    public function updateItem(string $id, array $data): InventoryItem
+    public function updateItem(HasInventoryItem $model, array $data): InventoryItem
     {
         validator($data, ['deduction_strategy' => Rule::enum(DeductionStrategy::class)])->validate();
 
-        return DB::transaction(function () use ($id, $data) {
-            $item = InventoryItem::findOrFail($id);
+        return DB::transaction(function () use ($model, $data) {
+            $item = $this->resolveItem($model);
             $item->fill([
                 'sku'                => $data['sku'] ?? $item->sku,
                 'is_active'          => $data['is_active'] ?? $item->is_active,
@@ -106,17 +106,17 @@ class InventoryService implements InventoryInterface
         });
     }
 
-    public function deleteLocation(string $id): void
+    public function deleteLocation(HasInventoryLocation $model): void
     {
-        DB::transaction(function () use ($id): void {
-            InventoryLocation::findOrFail($id)->delete();
+        DB::transaction(function () use ($model): void {
+            $this->resolveLocation($model)->delete();
         });
     }
 
-    public function deleteItem(string $id): void
+    public function deleteItem(HasInventoryItem $model): void
     {
-        DB::transaction(function () use ($id): void {
-            InventoryItem::findOrFail($id)->delete();
+        DB::transaction(function () use ($model): void {
+            $this->resolveItem($model)->delete();
         });
     }
 
@@ -157,6 +157,22 @@ class InventoryService implements InventoryInterface
         }
 
         return $this->inventoryReferenceResolver->preprocessTransactionData($data);
+    }
+
+    protected function resolveItem(HasInventoryItem $model): InventoryItem
+    {
+        return InventoryItem::query()
+            ->where('itemable_type', $model->getMorphClass())
+            ->where('itemable_id', (string) $model->getKey())
+            ->firstOrFail();
+    }
+
+    protected function resolveLocation(HasInventoryLocation $model): InventoryLocation
+    {
+        return InventoryLocation::query()
+            ->where('external_type', $model->getMorphClass())
+            ->where('external_id', (string) $model->getKey())
+            ->firstOrFail();
     }
 
     /**

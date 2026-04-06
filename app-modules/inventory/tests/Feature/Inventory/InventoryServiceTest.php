@@ -79,19 +79,36 @@ it('createManyLocations skips already existing external_id/type pairs without fa
 });
 
 it('updateItem validates the deduction_strategy enum', function (): void {
-    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
+    $variant = TestInventoryVariant::query()->create([
+        'product_id'          => Product::factory()->create()->id,
+        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
+        'unit_group_id'       => $this->group->id,
+        'should_manage_stock' => true,
+        'is_active'           => true,
+    ]);
 
-    expect(fn () => $this->service->updateItem($item->id, ['deduction_strategy' => 'invalid']))
+    $this->service->createItem($variant);
+
+    expect(fn () => $this->service->updateItem($variant, ['deduction_strategy' => 'invalid']))
         ->toThrow(ValidationException::class);
 });
 
 it('deleteItem and deleteLocation perform a soft delete and preserve stock history', function (): void {
-    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
-    $location = InventoryLocation::factory()->create();
+    $variant = TestInventoryVariant::query()->create([
+        'product_id'          => Product::factory()->create()->id,
+        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
+        'unit_group_id'       => $this->group->id,
+        'should_manage_stock' => true,
+        'is_active'           => true,
+    ]);
+    $locationModel = TestInventoryCompany::query()->create(['name' => fake()->company()]);
+
+    $item = $this->service->createItem($variant);
+    $location = $this->service->createLocation($locationModel);
     $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create();
 
-    $this->service->deleteItem($item->id);
-    $this->service->deleteLocation($location->id);
+    $this->service->deleteItem($variant);
+    $this->service->deleteLocation($locationModel);
 
     expect(InventoryItem::withTrashed()->find($item->id)?->trashed())->toBeTrue()
         ->and(InventoryLocation::withTrashed()->find($location->id)?->trashed())->toBeTrue()

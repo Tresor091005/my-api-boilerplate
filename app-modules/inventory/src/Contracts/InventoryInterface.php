@@ -31,16 +31,16 @@ interface InventoryInterface
     /**
      * @param  array{is_active?: bool}  $data
      */
-    public function updateLocation(string $id, array $data): InventoryLocation;
+    public function updateLocation(HasInventoryLocation $model, array $data): InventoryLocation;
 
     /**
      * @param  array{sku?: string, is_active?: bool, deduction_strategy?: string}  $data
      */
-    public function updateItem(string $id, array $data): InventoryItem;
+    public function updateItem(HasInventoryItem $model, array $data): InventoryItem;
 
-    public function deleteLocation(string $id): void;
+    public function deleteLocation(HasInventoryLocation $model): void;
 
-    public function deleteItem(string $id): void;
+    public function deleteItem(HasInventoryItem $model): void;
 
     /**
      * @param array{
