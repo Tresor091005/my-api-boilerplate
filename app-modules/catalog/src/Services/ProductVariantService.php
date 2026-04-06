@@ -25,6 +25,7 @@ class ProductVariantService implements StandaloneService
         'optionValues.option',
         'unitGroup',
         'prices.currency',
+        'inventoryItem',
     ];
 
     public function __construct(
