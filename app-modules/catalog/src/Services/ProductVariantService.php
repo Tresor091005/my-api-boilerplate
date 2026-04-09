@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Services;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
@@ -21,14 +22,6 @@ use Lahatre\Shared\Contracts\Services\StandaloneService;
 
 class ProductVariantService implements StandaloneService
 {
-    protected array $relations = [
-        'product',
-        'optionValues.option',
-        'unitGroup',
-        'prices.currency',
-        'inventoryItem',
-    ];
-
     public function __construct(
         protected ProductVariantAssertion $productVariantAssertion,
         protected InventoryInterface $inventoryService,
@@ -37,7 +30,7 @@ class ProductVariantService implements StandaloneService
 
     public function list(Product $product, ProductVariantFilterDTO $filters): ProductVariantCollection
     {
-        $query = $product->variants()->with($this->relations);
+        $query = $product->variants()->with($this->relations());
 
         if ($filters->should_manage_stock !== null) {
             $query->where('should_manage_stock', $filters->should_manage_stock);
@@ -62,7 +55,7 @@ class ProductVariantService implements StandaloneService
             throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variant->id]);
         }
 
-        return ProductVariantResource::make($variant->load($this->relations));
+        return ProductVariantResource::make($variant->load($this->relations()));
     }
 
     public function create(Product $product, ProductVariantDTO $dto): AnonymousResourceCollection
@@ -71,7 +64,7 @@ class ProductVariantService implements StandaloneService
             fn () => $this->transactionalProductVariantService->add($product, $dto->variants)
         );
 
-        $variants->load($this->relations);
+        $variants->load($this->relations());
 
         return ProductVariantResource::collection($variants);
     }
@@ -102,7 +95,7 @@ class ProductVariantService implements StandaloneService
             ]);
         });
 
-        return ProductVariantResource::make($variant->load($this->relations));
+        return ProductVariantResource::make($variant->load($this->relations()));
     }
 
     public function delete(Product $product, ProductVariant $variant): void
@@ -116,5 +109,22 @@ class ProductVariantService implements StandaloneService
         DB::transaction(function () use ($variant): void {
             $this->transactionalProductVariantService->delete($variant);
         });
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    protected function relations(): array
+    {
+        return [
+            'product',
+            'optionValues.option',
+            'unitGroup',
+            'prices.currency',
+            'inventoryItem' => function (MorphOne $query): void {
+                $query->withSum('activeStocks as total_remaining', 'remaining')
+                    ->withCount('activeStocks as active_lots_count');
+            },
+        ];
     }
 }

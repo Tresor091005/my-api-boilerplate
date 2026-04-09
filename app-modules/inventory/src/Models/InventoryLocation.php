@@ -80,6 +80,11 @@ class InventoryLocation extends Model
         return $this->hasMany(InventoryStock::class, 'location_id', 'id');
     }
 
+    public function activeStocks(): HasMany
+    {
+        return $this->stocks()->where('remaining', '>', 0);
+    }
+
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class, 'location_id', 'id');

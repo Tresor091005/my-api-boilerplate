@@ -39,6 +39,14 @@ trait InteractsWithInventoryLocation
     }
 
     /**
+     * Get all active inventory stocks through its inventory location.
+     */
+    public function activeLocationStocks(): HasManyDeep
+    {
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->activeStocks());
+    }
+
+    /**
      * Get all the model's inventory movements through its inventory location.
      */
     public function locationMovements(): HasManyDeep

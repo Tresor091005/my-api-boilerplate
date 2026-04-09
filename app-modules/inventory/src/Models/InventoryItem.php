@@ -91,6 +91,11 @@ class InventoryItem extends Model
         return $this->hasMany(InventoryStock::class, 'item_id', 'id');
     }
 
+    public function activeStocks(): HasMany
+    {
+        return $this->stocks()->where('remaining', '>', 0);
+    }
+
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class, 'item_id', 'id');
