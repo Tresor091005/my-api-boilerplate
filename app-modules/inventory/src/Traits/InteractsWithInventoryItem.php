@@ -39,6 +39,14 @@ trait InteractsWithInventoryItem
     }
 
     /**
+     * Get all active inventory stocks through the model's inventory item.
+     */
+    public function activeStocks(): HasManyDeep
+    {
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->activeStocks());
+    }
+
+    /**
      * Get all the model's inventory movements through its inventory item.
      */
     public function movements(): HasManyDeep

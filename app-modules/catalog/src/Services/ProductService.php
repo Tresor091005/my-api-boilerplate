@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\DTO\ProductDTO;
@@ -18,18 +20,6 @@ use Lahatre\Shared\Support\HandleGenerator;
 
 class ProductService implements StandaloneService
 {
-    protected array $relations = [
-        'categories',
-        'optionValues.option',
-        'variants' => [
-            'product',
-            'optionValues.option',
-            'unitGroup',
-            'prices.currency', // TODO add prices
-            'inventoryItem',
-        ],
-    ];
-
     public function __construct(
         protected ProductAssertion $productAssertion,
         protected ProductVariantService $productVariantService
@@ -37,7 +27,7 @@ class ProductService implements StandaloneService
 
     public function list(ProductFilterDTO $filters): ProductCollection
     {
-        $query = Product::query()->with($this->relations);
+        $query = Product::query()->with($this->relations());
 
         // TODO category filter
 
@@ -65,7 +55,7 @@ class ProductService implements StandaloneService
 
     public function retrieve(Product $product): ProductResource
     {
-        $product->load($this->relations);
+        $product->load($this->relations());
 
         return ProductResource::make($product);
     }
@@ -93,7 +83,7 @@ class ProductService implements StandaloneService
             $this->productVariantService->add($product, $dto->variants ?? collect());
         });
 
-        return ProductResource::make($product->load($this->relations));
+        return ProductResource::make($product->load($this->relations()));
     }
 
     public function update(Product $product, ProductDTO $dto): ProductResource
@@ -127,5 +117,28 @@ class ProductService implements StandaloneService
 
             $product->delete();
         });
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    protected function relations(): array
+    {
+        return [
+            'categories',
+            'optionValues.option',
+            'variants' => function (HasMany $query): void {
+                $query->with([
+                    'product',
+                    'optionValues.option',
+                    'unitGroup',
+                    'prices.currency',
+                    'inventoryItem' => function (MorphOne $inventoryItemQuery): void {
+                        $inventoryItemQuery->withSum('activeStocks as total_remaining', 'remaining')
+                            ->withCount('activeStocks as active_lots_count');
+                    },
+                ]);
+            },
+        ];
     }
 }
