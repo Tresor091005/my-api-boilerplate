@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Http\Resources\CurrencyResource;
 use Lahatre\Master\Http\Resources\UnitResource;
 
@@ -24,7 +25,7 @@ class InventoryStockResource extends JsonResource
             'id'              => $this->id,
             'item_id'         => $this->item_id,
             'location_id'     => $this->location_id,
-            'unit_cost'       => $this->unit_cost,
+            'unit_cost'       => $this->resolveUnitCost(),
             'currency_code'   => $this->currency_code,
             'quantity'        => $this->quantity,
             'remaining'       => $this->remaining,
@@ -38,5 +39,14 @@ class InventoryStockResource extends JsonResource
             'currency'        => CurrencyResource::make($this->whenLoaded('currency')),
             'movements'       => InventoryMovementResource::collection($this->whenLoaded('movements')),
         ];
+    }
+
+    private function resolveUnitCost(): string|int
+    {
+        if (! $this->currency_code) {
+            return $this->unit_cost;
+        }
+
+        return app(MasterInterface::class)->fromMinor((string) $this->unit_cost, $this->currency_code);
     }
 }
