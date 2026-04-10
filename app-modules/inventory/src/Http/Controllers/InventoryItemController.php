@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Lahatre\Inventory\DTO\InventoryItemFilterDTO;
+use Lahatre\Inventory\DTO\InventoryItemValueFilterDTO;
 use Lahatre\Inventory\DTO\InventoryLotFilterDTO;
 use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
@@ -48,6 +49,13 @@ class InventoryItemController
     public function showStock(InventoryItem $item): JsonResponse
     {
         return response()->json($this->inventoryQueryService->getItemStock($item));
+    }
+
+    public function showValue(Request $request, InventoryItem $item): JsonResponse
+    {
+        $filters = InventoryItemValueFilterDTO::fromRequest($request);
+
+        return response()->json($this->inventoryQueryService->getItemValue($item, $filters));
     }
 
     public function indexMovements(Request $request, InventoryItem $item): InventoryMovementCollection

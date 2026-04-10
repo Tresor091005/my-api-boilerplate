@@ -16,12 +16,14 @@ Route::group([
     Route::get('items', [InventoryItemController::class, 'index'])->name('items.index');
     Route::get('items/{item}', [InventoryItemController::class, 'show'])->name('items.show');
     Route::get('items/{item}/stock', [InventoryItemController::class, 'showStock'])->name('items.stock.show');
+    Route::get('items/{item}/value', [InventoryItemController::class, 'showValue'])->name('items.value.show');
     Route::get('items/{item}/locations/{location}/lots', [InventoryItemController::class, 'indexLocationLots'])->name('items.locations.lots.index');
     Route::get('items/{item}/movements', [InventoryItemController::class, 'indexMovements'])->name('items.movements.index');
 
     Route::get('locations', [InventoryLocationController::class, 'index'])->name('locations.index');
     Route::get('locations/{location}', [InventoryLocationController::class, 'show'])->name('locations.show');
     Route::get('locations/{location}/stock', [InventoryLocationController::class, 'showStock'])->name('locations.stock.show');
+    Route::get('locations/{location}/value', [InventoryLocationController::class, 'showValue'])->name('locations.value.show');
     Route::get('locations/{location}/movements', [InventoryLocationController::class, 'indexMovements'])->name('locations.movements.index');
 
     Route::get('stock/summary', [InventoryReadController::class, 'indexSummary'])->name('stock.summary.index');

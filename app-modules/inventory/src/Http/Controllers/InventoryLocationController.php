@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Lahatre\Inventory\DTO\InventoryLocationFilterDTO;
+use Lahatre\Inventory\DTO\InventoryLocationValueFilterDTO;
 use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
 use Lahatre\Inventory\Http\Resources\InventoryLocationCollection;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
@@ -46,6 +47,13 @@ class InventoryLocationController
     public function showStock(InventoryLocation $location): JsonResponse
     {
         return response()->json($this->inventoryQueryService->getLocationStock($location));
+    }
+
+    public function showValue(Request $request, InventoryLocation $location): JsonResponse
+    {
+        $filters = InventoryLocationValueFilterDTO::fromRequest($request);
+
+        return response()->json($this->inventoryQueryService->getLocationValue($location, $filters));
     }
 
     public function indexMovements(Request $request, InventoryLocation $location): InventoryMovementCollection
