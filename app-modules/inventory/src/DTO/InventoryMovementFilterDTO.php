@@ -11,9 +11,9 @@ use Lahatre\Shared\DTO\LahatreDTO;
 
 class InventoryMovementFilterDTO extends LahatreDTO
 {
-    public int $page;
-
     public int $per_page;
+
+    public ?string $cursor = null;
 
     public ?CarbonImmutable $from = null;
 
@@ -28,8 +28,8 @@ class InventoryMovementFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'page'          => 'int',
             'per_page'      => 'int',
+            'cursor'        => 'string',
             'from'          => 'immutable_datetime',
             'to'            => 'immutable_datetime',
             'movement_type' => MovementType::class,
@@ -39,7 +39,6 @@ class InventoryMovementFilterDTO extends LahatreDTO
     protected function defaults(): array
     {
         return [
-            'page'     => 1,
             'per_page' => 50,
         ];
     }
@@ -47,8 +46,8 @@ class InventoryMovementFilterDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'page'           => ['integer', 'min:1'],
             'per_page'       => ['integer', 'min:1', 'max:100'],
+            'cursor'         => ['nullable', 'string'],
             'from'           => ['nullable', 'date'],
             'to'             => ['nullable', 'date', 'after_or_equal:from'],
             'movement_type'  => ['nullable', Rule::enum(MovementType::class)],

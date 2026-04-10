@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Services;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\DTO\ProductDTO;
@@ -133,10 +132,7 @@ class ProductService implements StandaloneService
                     'optionValues.option',
                     'unitGroup',
                     'prices.currency',
-                    'inventoryItem' => function (MorphOne $inventoryItemQuery): void {
-                        $inventoryItemQuery->withSum('activeStocks as total_remaining', 'remaining')
-                            ->withCount('activeStocks as active_lots_count');
-                    },
+                    'inventoryItem.activeStockLocationSummaries',
                 ]);
             },
         ];

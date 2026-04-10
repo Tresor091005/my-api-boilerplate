@@ -22,10 +22,10 @@ Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
         Route::apiResources([
-            'categories' => CategoryController::class,
-            'options'    => OptionController::class,
-            'products'   => ProductController::class,
-            'products.variants' => ProductVariantController::class
+            'categories'        => CategoryController::class,
+            'options'           => OptionController::class,
+            'products'          => ProductController::class,
+            'products.variants' => ProductVariantController::class,
         ]);
 
         Route::apiResource('options.values', OptionValueController::class)

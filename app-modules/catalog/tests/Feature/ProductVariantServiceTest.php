@@ -157,16 +157,38 @@ it('embeds aggregated inventory summary for a variant when active stocks exist',
         'is_active'          => true,
     ]);
 
-    $location = InventoryLocation::factory()->create();
+    $locationA = InventoryLocation::factory()->create();
+    $locationB = InventoryLocation::factory()->create();
 
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($location, 'location')->create([
+    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
         'unit_code'     => 'PCS',
         'currency_code' => $this->currency->code,
         'quantity'      => 50,
         'remaining'     => 50,
     ]);
 
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($location, 'location')->create([
+    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
+        'unit_code'     => 'PCS',
+        'currency_code' => $this->currency->code,
+        'quantity'      => 20,
+        'remaining'     => 20,
+    ]);
+
+    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationB, 'location')->create([
+        'unit_code'     => 'PCS',
+        'currency_code' => $this->currency->code,
+        'quantity'      => 30,
+        'remaining'     => 30,
+    ]);
+
+    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationB, 'location')->create([
+        'unit_code'     => 'PCS',
+        'currency_code' => $this->currency->code,
+        'quantity'      => 20,
+        'remaining'     => 20,
+    ]);
+
+    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
         'unit_code'     => 'PCS',
         'currency_code' => $this->currency->code,
         'quantity'      => 20,
@@ -180,8 +202,15 @@ it('embeds aggregated inventory summary for a variant when active stocks exist',
     expect($payload['inventory']['id'])->toBe($inventoryItem->id)
         ->and($payload['inventory']['sku'])->toBe('FAR-001')
         ->and($payload['inventory']['base_unit_code'])->toBe('PCS')
-        ->and($payload['inventory']['total_remaining'])->toBe(50)
-        ->and($payload['inventory']['active_lots_count'])->toBe(1);
+        ->and($payload['inventory']['total_remaining'])->toBe(120)
+        ->and($payload['inventory']['active_lots_count'])->toBe(4)
+        ->and($payload['inventory']['locations'])->toHaveCount(2)
+        ->and($payload['inventory']['locations'][0]['location_id'])->toBe($locationA->id)
+        ->and($payload['inventory']['locations'][0]['total_remaining'])->toBe(70)
+        ->and($payload['inventory']['locations'][0]['active_lots_count'])->toBe(2)
+        ->and($payload['inventory']['locations'][1]['location_id'])->toBe($locationB->id)
+        ->and($payload['inventory']['locations'][1]['total_remaining'])->toBe(50)
+        ->and($payload['inventory']['locations'][1]['active_lots_count'])->toBe(2);
 });
 
 it('returns not found when a variant does not belong to the given product', function (): void {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Services;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
@@ -121,10 +120,7 @@ class ProductVariantService implements StandaloneService
             'optionValues.option',
             'unitGroup',
             'prices.currency',
-            'inventoryItem' => function (MorphOne $query): void {
-                $query->withSum('activeStocks as total_remaining', 'remaining')
-                    ->withCount('activeStocks as active_lots_count');
-            },
+            'inventoryItem.activeStockLocationSummaries',
         ];
     }
 }

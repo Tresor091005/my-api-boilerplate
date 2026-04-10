@@ -8,9 +8,9 @@ use Lahatre\Shared\DTO\LahatreDTO;
 
 class InventoryStockSummaryFilterDTO extends LahatreDTO
 {
-    public int $page;
-
     public int $per_page;
+
+    public ?string $cursor = null;
 
     /**
      * @var array<int, string>|null
@@ -25,8 +25,8 @@ class InventoryStockSummaryFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'page'        => 'int',
             'per_page'    => 'int',
+            'cursor'      => 'string',
             'item_id'     => ['string'],
             'location_id' => ['string'],
         ];
@@ -35,7 +35,6 @@ class InventoryStockSummaryFilterDTO extends LahatreDTO
     protected function defaults(): array
     {
         return [
-            'page'     => 1,
             'per_page' => 50,
         ];
     }
@@ -56,8 +55,8 @@ class InventoryStockSummaryFilterDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'page'          => ['integer', 'min:1'],
             'per_page'      => ['integer', 'min:1', 'max:100'],
+            'cursor'        => ['nullable', 'string'],
             'item_id'       => ['nullable', 'array'],
             'item_id.*'     => ['string'],
             'location_id'   => ['nullable', 'array'],

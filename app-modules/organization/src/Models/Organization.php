@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Inventory\Contracts\ProvidesInventoryLocationExternalSummary;
 use Lahatre\Organization\Database\Factories\OrganizationFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -33,7 +34,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class Organization extends Model
+class Organization extends Model implements ProvidesInventoryLocationExternalSummary
 {
     use SharedTraits;
     use SoftDeletes;
@@ -51,4 +52,12 @@ class Organization extends Model
         'updated_at' => 'immutable_datetime',
         'deleted_at' => 'immutable_datetime',
     ];
+
+    public function toInventoryLocationExternalSummary(): array
+    {
+        return [
+            'id'   => $this->id,
+            'name' => $this->name,
+        ];
+    }
 }

@@ -8,9 +8,9 @@ use Lahatre\Shared\DTO\LahatreDTO;
 
 class InventoryStockExpiringFilterDTO extends LahatreDTO
 {
-    public int $page;
-
     public int $per_page;
+
+    public ?string $cursor = null;
 
     public int $days;
 
@@ -19,8 +19,8 @@ class InventoryStockExpiringFilterDTO extends LahatreDTO
     protected function casts(): array
     {
         return [
-            'page'     => 'int',
             'per_page' => 'int',
+            'cursor'   => 'string',
             'days'     => 'int',
         ];
     }
@@ -28,7 +28,6 @@ class InventoryStockExpiringFilterDTO extends LahatreDTO
     protected function defaults(): array
     {
         return [
-            'page'     => 1,
             'per_page' => 50,
             'days'     => 7,
         ];
@@ -37,8 +36,8 @@ class InventoryStockExpiringFilterDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'page'        => ['integer', 'min:1'],
             'per_page'    => ['integer', 'min:1', 'max:100'],
+            'cursor'      => ['nullable', 'string'],
             'days'        => ['integer', 'min:1', 'max:365'],
             'location_id' => ['nullable', 'string'],
         ];
