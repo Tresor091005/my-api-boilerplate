@@ -47,6 +47,14 @@ trait InteractsWithInventoryItem
     }
 
     /**
+     * Aggregated active stocks grouped by location (lightweight summary).
+     */
+    public function activeStockLocationSummaries(): HasManyDeep
+    {
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->activeStockLocationSummaries());
+    }
+
+    /**
      * Get all the model's inventory movements through its inventory item.
      */
     public function movements(): HasManyDeep

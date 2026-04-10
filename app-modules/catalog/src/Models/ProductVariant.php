@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
+use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -52,7 +53,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem
+class ProductVariant extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary
 {
     use InteractsWithInventoryItem;
     use SharedTraits;
@@ -133,5 +134,13 @@ class ProductVariant extends Model implements HasInventoryItem
     public function prices(): MorphMany
     {
         return $this->morphMany(Price::class, 'priceable');
+    }
+
+    public function toInventoryItemableSummary(): array
+    {
+        return [
+            'id'  => $this->id,
+            'sku' => $this->sku,
+        ];
     }
 }

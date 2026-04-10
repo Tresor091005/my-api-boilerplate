@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Database\Factories\InventoryItemFactory;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -29,6 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Model|\Eloquent $itemable
  * @property-read Collection<int, InventoryStock> $stocks
  * @property-read int|null $stocks_count
+ * @property-read Collection<int, InventoryStock> $activeStockLocationSummaries
  * @property-read Collection<int, InventoryMovement> $movements
  * @property-read int|null $movements_count
  *
@@ -94,6 +96,24 @@ class InventoryItem extends Model
     public function activeStocks(): HasMany
     {
         return $this->stocks()->where('remaining', '>', 0);
+    }
+
+    /**
+     * Aggregated active stocks grouped by location for lightweight "summary" reads.
+     *
+     * Note: This returns InventoryStock models with only the aggregated attributes selected.
+     */
+    public function activeStockLocationSummaries(): HasMany
+    {
+        return $this->activeStocks()
+            ->select([
+                'item_id',
+                'location_id',
+                DB::raw('SUM(remaining) as total_remaining'),
+                DB::raw('COUNT(*) as active_lots_count'),
+            ])
+            ->groupBy('item_id', 'location_id')
+            ->orderBy('location_id');
     }
 
     public function movements(): HasMany

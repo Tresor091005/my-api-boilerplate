@@ -35,7 +35,7 @@ class ProductVariantResource extends JsonResource
             'prices'              => PriceResource::collection($this->whenLoaded('prices')),
             'inventory'           => $this->whenLoaded(
                 'inventoryItem',
-                fn (): array => InventoryItemSummaryResource::make($this->inventoryItem)->toArray($request)
+                fn (): array => InventoryItemSummaryResource::make($this->inventoryItem)->resolve($request)
             ),
         ];
     }
