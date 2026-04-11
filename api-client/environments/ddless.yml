@@ -1,0 +1,6 @@
+name: ddless
+variables:
+  - name: baseUrl
+    value: http://127.0.0.1:8001
+  - name: authToken
+    value: ""

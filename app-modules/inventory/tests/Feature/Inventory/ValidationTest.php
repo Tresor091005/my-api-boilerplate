@@ -43,8 +43,8 @@ it('fails if multiple currencies are used in one transaction', function (): void
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
-            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'unit_cost' => 10, 'currency_code' => $this->currency->code],
-            ['type' => 'in', 'item_id' => $item2->id, 'location_id' => $this->location->id, 'quantity' => 5, 'unit_code' => $this->unit->code, 'unit_cost' => 10, 'currency_code' => $currency2->code],
+            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'unit_cost' => 10.00, 'currency_code' => $this->currency->code],
+            ['type' => 'in', 'item_id' => $item2->id, 'location_id' => $this->location->id, 'quantity' => 5, 'unit_code' => $this->unit->code, 'unit_cost' => 10.00, 'currency_code' => $currency2->code],
         ],
     ];
 
@@ -60,7 +60,7 @@ it('fails if unit does not belong to the same group as item base unit', function
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
-            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $otherUnit->code, 'unit_cost' => 10, 'currency_code' => $this->currency->code],
+            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $otherUnit->code, 'unit_cost' => 10.00, 'currency_code' => $this->currency->code],
         ],
     ];
 
@@ -148,7 +148,7 @@ it('fails when a resolved inventory item is inactive', function (): void {
                 'location'      => $company,
                 'quantity'      => 10,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 10,
+                'unit_cost'     => 10.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -190,7 +190,7 @@ it('fails when a resolved inventory location is inactive', function (): void {
                 'location'      => $company,
                 'quantity'      => 10,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 10,
+                'unit_cost'     => 10.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -226,7 +226,7 @@ it('does not persist resolved references when preprocessing is enabled but valid
                 'location'  => $company,
                 'quantity'  => 10,
                 'unit_code' => $this->unit->code,
-                'unit_cost' => 10,
+                'unit_cost' => 10.00,
                 // currency_code intentionally missing
             ],
         ],
@@ -290,7 +290,7 @@ it('fails transaction if the selected item is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 10,
+            'unit_cost'     => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
@@ -309,7 +309,7 @@ it('fails transaction if the selected location is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 10,
+            'unit_cost'     => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected location is invalid or inactive.');
@@ -329,7 +329,7 @@ it('fails if the item base unit has a ratio different than 1', function (): void
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $invalidBaseUnit->code,
-            'unit_cost'     => 10,
+            'unit_cost'     => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(\Exception::class, 'must have a ratio of 1');

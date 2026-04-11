@@ -1,0 +1,145 @@
+# Inventory Module
+
+The Inventory Module is a robust, location-aware stock management system designed to handle the complexities of tracking items across multiple warehouses or storage areas. It abstracts away the low-level logic of transactions, stock levels, lot tracking (FIFO/FEFO), and multi-unit conversions.
+
+## Core Philosophy
+
+- **Everything is an Item/Location**: Any model can become an "Inventory Item" (e.g., a Product, a Spare Part) or an "Inventory Location" (e.g., a Warehouse, a Shelf, a Service Van) by implementing the appropriate interface.
+- **Transactional Integrity (Ledger Principle)**: All stock changes are recorded as part of an immutable `Transaction`. Stock is managed like a financial ledger, allowing you to reconstitute the exact stock state at any given date by replaying movements.
+- **Data Persistence**: Both `InventoryItem` and `InventoryLocation` use Soft Deletes. This ensures that historical data, movements, and transactions are never lost even if the domain model is removed.
+- **Separation of Concerns**: Writing (mutations) is handled by the `InventoryInterface`, while Reading (queries) is optimized through the `InventoryQueryService`.
+
+## Key Concepts
+
+- **InventoryItem**: The bridge between your domain model (e.g., Product) and the inventory system.
+- **InventoryLocation**: Where items are stored. Can be nested or tied to external entities.
+- **InventoryStock (Lots)**: A specific quantity of an item in a location, potentially with an expiration date and specific cost.
+- **InventoryTransaction**: A high-level record of a stock operation (e.g., "Purchase Order #123").
+- **InventoryMovement**: The granular changes to stock within a transaction (e.g., "Adding 50 units of SKU-A to Warehouse 1").
+
+## Unit Management
+
+The module handles multi-unit inventory seamlessly through integration with the `Master` module:
+- **Base Units**: Every `InventoryItem` has a "Base Unit" (defined by its Unit Group). All internal stock levels (`remaining`) are stored in this base unit to ensure precision and consistency.
+- **Automatic Conversion**: You can record transactions in any unit belonging to the item's unit group (e.g., receiving in "Boxes" while the base unit is "Pieces"). The system automatically calculates the base quantity using conversion ratios.
+- **Precision**: Calculations use BCMath to prevent rounding errors during complex unit conversions.
+
+## Metadata Support
+
+You can attach custom JSON metadata to various levels of the inventory ledger to store domain-specific information (e.g., batch numbers, external IDs, notes):
+- **Transaction Metadata**: High-level info about the overall operation.
+- **Movement Metadata**: Specific info about a single line item in a transaction.
+- **Stock (Lot) Metadata**: Persistent info that stays with the physical lot (only applicable during `In` or `Adjustment` creations).
+
+**Note on Transfers**: During a `Transfer`, the system automatically merges the source lot's metadata with the movement's metadata into the new destination stock. This ensures batch traceability is preserved as items move between locations.
+
+## Deduction Strategies
+
+When recording `Out` or `Transfer` movements, the system must decide which physical lots to deplete. Three strategies are supported:
+
+- **FIFO (First-In, First-Out)**: Depletes the oldest lots first (based on creation date). This is the default strategy.
+- **FEFO (First-Expired, First-Out)**: Depletes lots with the earliest expiration dates first.
+- **Manual**: Allows you to specify exactly which lots to deplete by providing a list of `stock_ids`. This is useful for high-value items or specific warehouse picking requirements.
+
+### Transfer & Distribution Logic
+
+When recording a `Transfer`, the system follows a specific two-step process:
+1. **Global Deduction**: It first executes all `Out` movements, depleting the necessary lots from the source locations according to the item's deduction strategy (FIFO/FEFO).
+2. **Sequential Distribution**: It then takes the "pool" of deducted stock and fills the `In` movements in the exact order they appear in your request.
+
+If your logistics require specific "Source A to Destination B" routing that differs from this automatic pooling, simply split the operation into **multiple transactions**. This keeps the system logic simple and predictable without the need for complex internal link IDs.
+
+## Keeping Digital & Physical in Sync
+
+While this module provides a mathematically perfect ledger, **physical logistics are messy**. Real-world discrepancies (damage, miscounts, theft) are inevitable.
+
+- **Manual Corrections**: Use `Out` transactions for waste/shrinkage and `Adjustment` transactions for periodic stock-takes.
+- **Human Oversight**: The digital system should be treated as a reflection of physical reality, not a replacement for it. Regular physical audits are essential to ensure the ledger remains accurate.
+
+## Getting Started
+
+### 1. Preparing your Models
+
+To make a model "Inventoryable", implement the `HasInventoryItem` or `HasInventoryLocation` interface and use the corresponding trait.
+
+**Advanced Integration**: By using the traits, your domain models gain direct access to deep relationships (via `staudenmeir/eloquent-has-many-deep`):
+- `$product->stocks()`: All lots for this product across all locations.
+- `$product->activeStocks()`: Only lots with remaining quantity > 0.
+- `$warehouse->locationMovements()`: All movements that occurred in this location.
+
+```php
+use Lahatre\Inventory\Contracts\HasInventoryItem;
+use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
+use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
+
+class Product extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary
+{
+    use InteractsWithInventoryItem;
+
+    public function getSku(): string { return $this->sku; }
+    public function getUnitGroupId(): string { return $this->unit_group_id; }
+
+    /**
+     * Define which fields are shared with the Inventory API Resources.
+     */
+    public function toInventoryItemableSummary(): array {
+        return ['name' => $this->name, 'category' => $this->category->name];
+    }
+}
+```
+
+### 2. Writing Operations (InventoryInterface)
+
+#### Recording an Incoming Shipment with Metadata
+```php
+$inventory->recordTransaction([
+    'reference_type' => 'purchase_order',
+    'reference_id' => $po->id,
+    'transaction_type' => TransactionType::In,
+    'metadata' => ['supplier_invoice' => 'INV-2024-001'],
+    'movements' => [
+        [
+            'item_id' => $inventoryItemId,
+            'location_id' => $inventoryLocationId,
+            'quantity' => 10,
+            'unit_code' => 'BOX', // System converts this to base unit automatically
+            'unit_cost' => 150.00,
+            'currency_code' => 'USD',
+            'metadata' => ['batch_number' => 'B-12345'], // Attached to movement and new stock
+        ]
+    ]
+]);
+```
+
+### 3. Reading Operations (InventoryQueryService)
+
+Optimized for retrieval and API consumption. It automatically converts internal minor units back to decimal strings.
+
+#### Get Stock for an Item
+```php
+// Returns ItemStockViewData with total remaining and per-location breakdown
+$stock = $queryService->getItemStock($product);
+echo $stock->totalRemaining; // 150
+```
+
+## API Reference
+
+The module provides several "Read-Only" endpoints for easy integration:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/inventory/items` | List all inventory items |
+| GET | `/v1/inventory/items/{item}/stock` | Simple aggregated stock for an item |
+| GET | `/v1/inventory/items/{item}/value` | Financial value of an item's stock |
+| GET | `/v1/inventory/items/{item}/movements` | Transaction history for an item |
+| GET | `/v1/inventory/locations/{location}/stock` | List all items and quantities in a location |
+| GET | `/v1/inventory/stock/summary` | Global summary of stock across all items/locations |
+| GET | `/v1/inventory/transactions` | List all historical ledger transactions |
+
+## Testing
+
+The module is heavily tested to ensure reliability in critical stock operations.
+
+```bash
+php artisan test --compact app-modules/inventory
+```

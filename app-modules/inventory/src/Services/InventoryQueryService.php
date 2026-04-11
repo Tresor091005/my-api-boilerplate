@@ -9,14 +9,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\DTO\InventoryItemFilterDTO;
+use Lahatre\Inventory\DTO\InventoryItemValueFilterDTO;
 use Lahatre\Inventory\DTO\InventoryLocationFilterDTO;
+use Lahatre\Inventory\DTO\InventoryLocationValueFilterDTO;
 use Lahatre\Inventory\DTO\InventoryLotFilterDTO;
 use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
 use Lahatre\Inventory\DTO\InventoryStockExpiringFilterDTO;
 use Lahatre\Inventory\DTO\InventoryStockSummaryFilterDTO;
 use Lahatre\Inventory\DTO\InventoryTransactionFilterDTO;
-use Lahatre\Inventory\DTO\InventoryItemValueFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLocationValueFilterDTO;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Http\Resources\InventoryExpiringLotCollection;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
@@ -39,10 +39,10 @@ use Lahatre\Inventory\ViewData\ItemStockLocationViewData;
 use Lahatre\Inventory\ViewData\ItemStockViewData;
 use Lahatre\Inventory\ViewData\ItemValueLocationViewData;
 use Lahatre\Inventory\ViewData\ItemValueViewData;
-use Lahatre\Inventory\ViewData\LocationValueItemViewData;
-use Lahatre\Inventory\ViewData\LocationValueViewData;
 use Lahatre\Inventory\ViewData\LocationStockItemViewData;
 use Lahatre\Inventory\ViewData\LocationStockViewData;
+use Lahatre\Inventory\ViewData\LocationValueItemViewData;
+use Lahatre\Inventory\ViewData\LocationValueViewData;
 use Lahatre\Master\Contracts\MasterInterface;
 
 class InventoryQueryService
@@ -451,6 +451,10 @@ class InventoryQueryService
 
         if ($filters->location_id) {
             $query->where('inventory_stocks.location_id', $filters->location_id);
+        }
+
+        if ($filters->item_id) {
+            $query->where('inventory_stocks.location_id', $filters->item_id);
         }
 
         $paginator = $filters->cursor

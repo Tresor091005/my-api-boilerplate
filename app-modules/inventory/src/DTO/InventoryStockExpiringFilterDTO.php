@@ -16,6 +16,8 @@ class InventoryStockExpiringFilterDTO extends LahatreDTO
 
     public ?string $location_id = null;
 
+    public ?string $item_id = null;
+
     protected function casts(): array
     {
         return [
@@ -40,6 +42,7 @@ class InventoryStockExpiringFilterDTO extends LahatreDTO
             'cursor'      => ['nullable', 'string'],
             'days'        => ['integer', 'min:1', 'max:365'],
             'location_id' => ['nullable', 'string'],
+            'item_id'     => ['nullable', 'string'],
         ];
     }
 }

@@ -39,4 +39,3 @@ readonly class LocationValueItemViewData implements Arrayable, JsonSerializable
         return $this->toArray();
     }
 }
-

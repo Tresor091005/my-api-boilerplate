@@ -48,7 +48,7 @@ it('successfully processes a simple IN transaction', function (): void {
                 'type'          => MovementType::In->value,
                 'quantity'      => 100,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 1500, // 15.00
+                'unit_cost'     => 15.50, // 15.50 USD
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -65,7 +65,7 @@ it('successfully processes a simple IN transaction', function (): void {
         'location_id'   => $this->location->id,
         'quantity'      => 100,
         'remaining'     => 100,
-        'unit_cost'     => 150000,
+        'unit_cost'     => 1550,
         'currency_code' => $this->currency->code,
     ]);
 
@@ -76,7 +76,7 @@ it('successfully processes a simple IN transaction', function (): void {
         'item_id'        => $this->item->id,
         'location_id'    => $this->location->id,
         'quantity'       => 100,
-        'unit_cost'      => 150000,
+        'unit_cost'      => 1550,
     ]);
 });
 
@@ -94,7 +94,7 @@ it('processes an IN transaction with unit conversion', function (): void {
                 'type'          => MovementType::In->value,
                 'quantity'      => 2.5, // 2.5 kg
                 'unit_code'     => $kgUnit->code,
-                'unit_cost'     => 1500,
+                'unit_cost'     => 15.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -105,7 +105,8 @@ it('processes an IN transaction with unit conversion', function (): void {
     // Assert stock is created with base unit quantity (2.5 kg = 2500 base units)
     $stock = InventoryStock::first();
     expect($stock->quantity)->toBe(2500)
-        ->and($stock->unit_code)->toBe($this->item->base_unit_code);
+        ->and($stock->unit_code)->toBe($this->item->base_unit_code)
+        ->and($stock->unit_cost)->toBe(1500);
 
     // Assert movement is recorded with base unit quantity
     $movement = InventoryMovement::first();
@@ -138,7 +139,7 @@ it('resolves inventory contracts passed in item_id and location_id before record
                 'type'          => MovementType::In->value,
                 'quantity'      => 100,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 1500,
+                'unit_cost'     => 15.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -217,7 +218,7 @@ it('uses the same metadata for Movement and Stock during an IN transaction', fun
                 'type'          => MovementType::In->value,
                 'quantity'      => 100,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 1500,
+                'unit_cost'     => 15.00,
                 'currency_code' => $this->currency->code,
                 'metadata'      => ['batch' => 'LOT-001', 'movement_note' => 'received'],
             ],

@@ -34,4 +34,3 @@ class InventoryLocationValueFilterDTO extends LahatreDTO
         ];
     }
 }
-

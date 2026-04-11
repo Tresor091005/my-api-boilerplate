@@ -78,10 +78,14 @@ class InventoryService implements InventoryInterface
 
     public function updateLocation(HasInventoryLocation $model, array $data): InventoryLocation
     {
-        return DB::transaction(function () use ($model, $data) {
+        $validated = validator($data, [
+            'is_active' => ['boolean'],
+        ])->validate();
+
+        return DB::transaction(function () use ($model, $validated) {
             $location = $this->resolveLocation($model);
             $location->fill([
-                'is_active' => $data['is_active'] ?? $location->is_active,
+                'is_active' => $validated['is_active'] ?? $location->is_active,
             ]);
             $location->save();
 
@@ -91,14 +95,18 @@ class InventoryService implements InventoryInterface
 
     public function updateItem(HasInventoryItem $model, array $data): InventoryItem
     {
-        validator($data, ['deduction_strategy' => Rule::enum(DeductionStrategy::class)])->validate();
+        $validated = validator($data, [
+            'sku'                => ['string', 'max:255'],
+            'is_active'          => ['boolean'],
+            'deduction_strategy' => ['nullable', Rule::enum(DeductionStrategy::class)],
+        ])->validate();
 
-        return DB::transaction(function () use ($model, $data) {
+        return DB::transaction(function () use ($model, $validated) {
             $item = $this->resolveItem($model);
             $item->fill([
-                'sku'                => $data['sku'] ?? $item->sku,
-                'is_active'          => $data['is_active'] ?? $item->is_active,
-                'deduction_strategy' => $data['deduction_strategy'] ?? $item->deduction_strategy,
+                'sku'                => $validated['sku'] ?? $item->sku,
+                'is_active'          => $validated['is_active'] ?? $item->is_active,
+                'deduction_strategy' => array_key_exists('deduction_strategy', $validated) ? $validated['deduction_strategy'] : $item->deduction_strategy,
             ]);
             $item->save();
 

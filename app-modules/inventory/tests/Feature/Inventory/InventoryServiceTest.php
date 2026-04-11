@@ -91,6 +91,12 @@ it('updateItem validates the deduction_strategy enum', function (): void {
 
     expect(fn () => $this->service->updateItem($variant, ['deduction_strategy' => 'invalid']))
         ->toThrow(ValidationException::class);
+
+    $this->service->updateItem($variant, ['deduction_strategy' => DeductionStrategy::Fefo->value]);
+    expect($variant->inventoryItem->refresh()->deduction_strategy)->toBe(DeductionStrategy::Fefo);
+
+    $this->service->updateItem($variant, ['deduction_strategy' => null]);
+    expect($variant->inventoryItem->refresh()->deduction_strategy)->toBeNull();
 });
 
 it('deleteItem and deleteLocation perform a soft delete and preserve stock history', function (): void {
