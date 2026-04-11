@@ -52,7 +52,7 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
 
     private function resolveUnitCost(): string|int
     {
-        if (! $this->currencyCode) {
+        if (!$this->currencyCode) {
             return $this->unitCost;
         }
 

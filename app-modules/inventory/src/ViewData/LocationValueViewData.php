@@ -34,7 +34,7 @@ readonly class LocationValueViewData implements Arrayable, JsonSerializable
             'totals'      => $this->totals
                 ->map(fn (CurrencyValueViewData $value): array => $value->toArray())
                 ->all(),
-            'items'       => $this->items
+            'items' => $this->items
                 ->map(fn (LocationValueItemViewData $item): array => $item->toArray())
                 ->all(),
         ];
@@ -52,4 +52,3 @@ readonly class LocationValueViewData implements Arrayable, JsonSerializable
         return $this->toArray();
     }
 }
-

@@ -43,7 +43,7 @@ class InventoryStockResource extends JsonResource
 
     private function resolveUnitCost(): string|int
     {
-        if (! $this->currency_code) {
+        if (!$this->currency_code) {
             return $this->unit_cost;
         }
 

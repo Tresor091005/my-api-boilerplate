@@ -47,7 +47,7 @@ it('successfully processes an adjustment UP transaction', function (): void {
                 'location_id'   => $this->location->id,
                 'quantity'      => 80,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 1000,
+                'unit_cost'     => 10.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -57,7 +57,7 @@ it('successfully processes an adjustment UP transaction', function (): void {
 
     // THEN a new stock lot of 30 should be created
     $this->assertDatabaseCount('inventory_stocks', 2);
-    $this->assertDatabaseHas('inventory_stocks', ['quantity' => 30, 'remaining' => 30]);
+    $this->assertDatabaseHas('inventory_stocks', ['quantity' => 30, 'remaining' => 30, 'unit_cost' => 1000]);
 
     // AND total stock should be 80
     expect((float) $this->location->stocks()->sum('remaining'))->toEqual(80.0);

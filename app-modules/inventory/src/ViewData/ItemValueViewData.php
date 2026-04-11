@@ -30,11 +30,11 @@ readonly class ItemValueViewData implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'item_id'    => $this->itemId,
-            'totals'     => $this->totals
+            'item_id' => $this->itemId,
+            'totals'  => $this->totals
                 ->map(fn (CurrencyValueViewData $value): array => $value->toArray())
                 ->all(),
-            'locations'  => $this->locations
+            'locations' => $this->locations
                 ->map(fn (ItemValueLocationViewData $location): array => $location->toArray())
                 ->all(),
         ];
