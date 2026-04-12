@@ -15,6 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $option_id
  * @property string $value
  * @property CarbonImmutable|null $created_at
@@ -43,16 +44,18 @@ class OptionValue extends Model
     protected $table = 'catalog_option_values';
 
     protected $fillable = [
+        'organization_id',
         'option_id',
         'value',
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'option_id'  => 'string',
-        'value'      => 'string',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'option_id'       => 'string',
+        'value'           => 'string',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function option(): BelongsTo

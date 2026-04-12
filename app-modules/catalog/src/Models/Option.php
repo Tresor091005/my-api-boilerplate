@@ -15,6 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -42,14 +43,16 @@ class Option extends Model
     protected $table = 'catalog_options';
 
     protected $fillable = [
+        'organization_id',
         'name',
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'name'       => 'string',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'name'            => 'string',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function values(): HasMany

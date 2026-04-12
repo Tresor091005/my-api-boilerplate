@@ -300,6 +300,33 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
     expect(true)->toBeTrue();
 });
 
+it('ensures all business tables have an organization_id column for multi-tenancy', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = array_merge(
+        config('model-integrity.ignored_tables', []),
+        config('model-integrity.tenancy_ignored_tables', []),
+    );
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        if (!Schema::hasColumn($tableName, 'organization_id')) {
+            $failures[] = "Table [{$tableName}] is missing 'organization_id' column.";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Multi-tenancy Integrity Failures (missing organization_id):\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
 todo('ensure non-negativity constraints on critical columns (stock, prices)');
 todo('ensure polymorphic type columns are indexed');
 todo('ensure timestamps are present on all business tables');

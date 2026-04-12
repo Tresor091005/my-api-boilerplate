@@ -36,6 +36,27 @@ return [
         'password_reset_tokens',
     ],
 
+    'tenancy_ignored_tables' => [
+        'organization_organizations',
+        'users',
+        'iam_users',
+        'iam_roles',
+        'iam_permissions',
+        'iam_model_has_roles',
+        'iam_model_has_permissions',
+        'iam_role_has_permissions',
+        'master_currencies',
+        'master_units', // TODO: to be corrected
+        'master_unit_groups',
+        'catalog_product_categories',
+        'catalog_variant_option_value',
+        'inventory_items',
+        'inventory_locations',
+        'inventory_movements',
+        'inventory_stocks',
+        'inventory_transactions',
+    ],
+
     'composite_pkey' => [
         'iam_model_has_permissions',
         'iam_model_has_roles',

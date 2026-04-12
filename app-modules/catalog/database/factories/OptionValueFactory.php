@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
+use Lahatre\Organization\Models\Organization;
 
 /**
  * @extends Factory<OptionValue>
@@ -15,9 +16,12 @@ class OptionValueFactory extends Factory
 {
     public function definition(): array
     {
+        $organizationId = getPermissionsTeamId() ?? Organization::factory();
+
         return [
-            'option_id' => Option::factory(),
-            'value'     => fake()->word(),
+            'organization_id' => $organizationId,
+            'option_id'       => Option::factory(['organization_id' => $organizationId]),
+            'value'           => fake()->word(),
         ];
     }
 }

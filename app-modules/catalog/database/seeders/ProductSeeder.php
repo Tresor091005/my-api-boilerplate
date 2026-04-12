@@ -19,32 +19,34 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        $organizationId = getPermissionsTeamId();
+
         // Fetch common unit groups needed for variants
         $massGroup = UnitGroup::where('name', 'mass')->first();
         $packagingGroup = UnitGroup::where('name', 'packaging')->first();
 
         // Fetch product options and values
-        $colorOption = Option::where('name', 'color')->first();
-        $storageOption = Option::where('name', 'storage')->first();
-        $ramOption = Option::where('name', 'ram')->first();
+        $colorOption = Option::where('organization_id', $organizationId)->where('name', 'color')->first();
+        $storageOption = Option::where('organization_id', $organizationId)->where('name', 'storage')->first();
+        $ramOption = Option::where('organization_id', $organizationId)->where('name', 'ram')->first();
 
         // Color Option Values
-        $blackColor = OptionValue::where('option_id', $colorOption->id)->where('value', 'black')->first();
-        $whiteColor = OptionValue::where('option_id', $colorOption->id)->where('value', 'white')->first();
-        $silverColor = OptionValue::where('option_id', $colorOption->id)->where('value', 'silver')->first();
-        $spaceGrayColor = OptionValue::where('option_id', $colorOption->id)->where('value', 'space-gray')->first();
-        $blueColor = OptionValue::where('option_id', $colorOption->id)->where('value', 'blue')->first();
+        $blackColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'black')->first();
+        $whiteColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'white')->first();
+        $silverColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'silver')->first();
+        $spaceGrayColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'space-gray')->first();
+        $blueColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'blue')->first();
 
         // Storage Option Values
-        $storage128GB = OptionValue::where('option_id', $storageOption->id)->where('value', '128gb')->first();
-        $storage256GB = OptionValue::where('option_id', $storageOption->id)->where('value', '256gb')->first();
-        $storage512GB = OptionValue::where('option_id', $storageOption->id)->where('value', '512gb')->first();
-        $storage1TB = OptionValue::where('option_id', $storageOption->id)->where('value', '1tb')->first();
+        $storage128GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $storageOption?->id)->where('value', '128gb')->first();
+        $storage256GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $storageOption?->id)->where('value', '256gb')->first();
+        $storage512GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $storageOption?->id)->where('value', '512gb')->first();
+        $storage1TB = OptionValue::where('organization_id', $organizationId)->where('option_id', $storageOption?->id)->where('value', '1tb')->first();
 
         // RAM Option Values
-        $ram8GB = OptionValue::where('option_id', $ramOption->id)->where('value', '8gb')->first();
-        $ram16GB = OptionValue::where('option_id', $ramOption->id)->where('value', '16gb')->first();
-        $ram32GB = OptionValue::where('option_id', $ramOption->id)->where('value', '32gb')->first();
+        $ram8GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $ramOption?->id)->where('value', '8gb')->first();
+        $ram16GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $ramOption?->id)->where('value', '16gb')->first();
+        $ram32GB = OptionValue::where('organization_id', $organizationId)->where('option_id', $ramOption?->id)->where('value', '32gb')->first();
 
         $productsData = [
             [
@@ -181,31 +183,41 @@ class ProductSeeder extends Seeder
             unset($productData['categories'], $productData['variants']);
 
             $product = Product::firstOrCreate(
-                ['handle' => $productData['handle']],
-                $productData
+                [
+                    'handle'          => $productData['handle'],
+                    'organization_id' => $organizationId,
+                ],
+                array_merge($productData, ['organization_id' => $organizationId])
             );
 
             // Attach categories
-            $categoryIds = Category::whereIn('handle', $categoriesToAttach)->pluck('id');
+            $categoryIds = Category::where('organization_id', $organizationId)->whereIn('handle', $categoriesToAttach)->pluck('id');
             $product->categories()->sync($categoryIds);
 
             // Create and attach variants
             foreach ($variantsData as $variantData) {
-                $optionValuesToAttach = $variantData['option_values'];
+                $optionValuesToAttach = array_filter($variantData['option_values']);
                 $price = $variantData['price'];
                 unset($variantData['option_values'], $variantData['price']);
 
                 /** @var ProductVariant $variant */
                 $variant = $product->variants()->firstOrCreate(
-                    ['sku' => $variantData['sku']],
-                    $variantData
+                    [
+                        'sku'             => $variantData['sku'],
+                        'organization_id' => $organizationId,
+                    ],
+                    array_merge($variantData, ['organization_id' => $organizationId])
                 );
 
                 $variant->prices()->firstOrCreate(
-                    ['amount' => $price],
                     [
-                        'currency_code' => 'XOF',
-                        'amount'        => $price,
+                        'amount'          => $price,
+                        'organization_id' => $organizationId,
+                    ],
+                    [
+                        'organization_id' => $organizationId,
+                        'currency_code'   => 'XOF',
+                        'amount'          => $price,
                     ]
                 );
 

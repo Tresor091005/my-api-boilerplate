@@ -90,13 +90,21 @@ class CategorySeeder extends Seeder
 
     private function seedCategories(array $categories, ?Category $parent = null): void
     {
+        $organizationId = getPermissionsTeamId();
+
         foreach ($categories as $categoryData) {
             $children = $categoryData['children'] ?? [];
             unset($categoryData['children']);
 
             $category = Category::firstOrCreate(
-                ['handle' => $categoryData['handle']],
-                array_merge($categoryData, ['parent_id' => $parent?->id])
+                [
+                    'handle'          => $categoryData['handle'],
+                    'organization_id' => $organizationId,
+                ],
+                array_merge($categoryData, [
+                    'parent_id'       => $parent?->id,
+                    'organization_id' => $organizationId,
+                ])
             );
 
             if (!empty($children)) {

@@ -21,6 +21,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $product_id
  * @property string $sku
  * @property string $unit_group_id
@@ -61,6 +62,7 @@ class ProductVariant extends Model implements HasInventoryItem, ProvidesInventor
     protected $table = 'catalog_product_variants';
 
     protected $fillable = [
+        'organization_id',
         'product_id',
         'sku',
         'unit_group_id',
@@ -70,6 +72,7 @@ class ProductVariant extends Model implements HasInventoryItem, ProvidesInventor
 
     protected $casts = [
         'id'                  => 'string',
+        'organization_id'     => 'string',
         'product_id'          => 'string',
         'sku'                 => 'string',
         'unit_group_id'       => 'string',

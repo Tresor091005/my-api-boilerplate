@@ -15,6 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $priceable_type
  * @property string $priceable_id
  * @property string $currency_code
@@ -57,6 +58,7 @@ class Price extends Model
     protected $table = 'catalog_prices';
 
     protected $fillable = [
+        'organization_id',
         'priceable_type',
         'priceable_id',
         'currency_code',
@@ -70,19 +72,20 @@ class Price extends Model
     ];
 
     protected $casts = [
-        'id'             => 'string',
-        'priceable_type' => 'string',
-        'priceable_id'   => 'string',
-        'currency_code'  => 'string',
-        'min_quantity'   => 'integer',
-        'max_quantity'   => 'integer',
-        'step'           => 'integer',
-        'amount'         => 'integer',
-        'is_active'      => 'boolean',
-        'active_from'    => 'immutable_datetime',
-        'active_to'      => 'immutable_datetime',
-        'created_at'     => 'immutable_datetime',
-        'updated_at'     => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'priceable_type'  => 'string',
+        'priceable_id'    => 'string',
+        'currency_code'   => 'string',
+        'min_quantity'    => 'integer',
+        'max_quantity'    => 'integer',
+        'step'            => 'integer',
+        'amount'          => 'integer',
+        'is_active'       => 'boolean',
+        'active_from'     => 'immutable_datetime',
+        'active_to'       => 'immutable_datetime',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function priceable(): MorphTo

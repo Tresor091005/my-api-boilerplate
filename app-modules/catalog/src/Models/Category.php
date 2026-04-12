@@ -15,6 +15,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $handle
  * @property string $name
  * @property bool $is_active
@@ -88,19 +89,21 @@ class Category extends Model
     protected $table = 'catalog_categories';
 
     protected $fillable = [
+        'organization_id',
         'name',
         'parent_id',
         'is_active',
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'handle'     => 'string',
-        'name'       => 'string',
-        'parent_id'  => 'string',
-        'is_active'  => 'boolean',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'handle'          => 'string',
+        'name'            => 'string',
+        'parent_id'       => 'string',
+        'is_active'       => 'boolean',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function products(): BelongsToMany

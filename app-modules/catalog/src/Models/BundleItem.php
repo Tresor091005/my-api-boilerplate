@@ -14,6 +14,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $item_type
  * @property string $item_id
  * @property string $bundle_id
@@ -44,6 +45,7 @@ class BundleItem extends Model
     protected $table = 'catalog_bundle_items';
 
     protected $fillable = [
+        'organization_id',
         'item_type',
         'item_id',
         'bundle_id',
@@ -51,13 +53,14 @@ class BundleItem extends Model
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'item_type'  => 'string',
-        'item_id'    => 'string',
-        'bundle_id'  => 'string',
-        'quantity'   => 'integer',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'item_type'       => 'string',
+        'item_id'         => 'string',
+        'bundle_id'       => 'string',
+        'quantity'        => 'integer',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function item(): MorphTo

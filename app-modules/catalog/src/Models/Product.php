@@ -15,6 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $handle
  * @property string $name
  * @property string|null $description
@@ -50,6 +51,7 @@ class Product extends Model
     protected $table = 'catalog_products';
 
     protected $fillable = [
+        'organization_id',
         'handle',
         'name',
         'description',
@@ -57,13 +59,14 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'id'          => 'string',
-        'handle'      => 'string',
-        'name'        => 'string',
-        'description' => 'string',
-        'is_active'   => 'boolean',
-        'created_at'  => 'immutable_datetime',
-        'updated_at'  => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'handle'          => 'string',
+        'name'            => 'string',
+        'description'     => 'string',
+        'is_active'       => 'boolean',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
     ];
 
     public function categories(): BelongsToMany

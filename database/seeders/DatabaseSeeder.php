@@ -27,13 +27,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            CategorySeeder::class,
-            OptionSeeder::class,
-            ProductSeeder::class,
-            BundleSeeder::class,
-        ]);
-
         $user = User::firstOrCreate(
             ['email' => 'admin@lahatre.com'],
             [
@@ -56,8 +49,18 @@ class DatabaseSeeder extends Seeder
 
         setPermissionsTeamId($organization->id);
 
+        $this->call([
+            CategorySeeder::class,
+            OptionSeeder::class,
+            ProductSeeder::class,
+            BundleSeeder::class,
+        ]);
+
         foreach (SysRole::cases() as $sysRole) {
-            $this->assignRole($member, Role::whereName($sysRole->value)->first());
+            $this->assignRole(
+                $member, 
+                Role::whereNull('team_id')->whereName($sysRole->value)->first()
+            );
         }
     }
 

@@ -15,6 +15,10 @@ return new class() extends Migration
     {
         Schema::create('catalog_categories', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->text('handle')->unique()->index();
             $table->text('name');
             $table->boolean('is_active')->default(false);
@@ -31,6 +35,10 @@ return new class() extends Migration
 
         Schema::create('catalog_products', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->text('handle')->unique()->index();
             $table->text('name');
             $table->text('description')->nullable();
@@ -40,6 +48,10 @@ return new class() extends Migration
 
         Schema::create('catalog_options', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->text('code')->unique()->index();
             $table->text('name');
             $table->timestamps();
@@ -47,6 +59,10 @@ return new class() extends Migration
 
         Schema::create('catalog_option_values', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->foreignUuid('option_id')
                 ->index()
                 ->constrained('catalog_options')
@@ -59,6 +75,10 @@ return new class() extends Migration
 
         Schema::create('catalog_prices', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->uuidMorphs('priceable', 'catalog_prices_priceable_id_priceable_type_index');
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
@@ -82,6 +102,10 @@ return new class() extends Migration
 
         Schema::create('catalog_bundles', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->text('handle')->unique()->index();
             $table->text('name');
             $table->string('unit_code')
@@ -98,6 +122,10 @@ return new class() extends Migration
 
         Schema::create('catalog_bundle_items', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->uuidMorphs('item', 'catalog_bundle_items_item_id_item_type_index');
             $table->foreignUuid('bundle_id')
                 ->index()
@@ -122,6 +150,10 @@ return new class() extends Migration
 
         Schema::create('catalog_product_variants', function (Blueprint $table): void {
             $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->index()
+                ->constrained('organization_organizations')
+                ->onDelete('restrict');
             $table->foreignUuid('product_id')
                 ->index()
                 ->constrained('catalog_products')

@@ -15,6 +15,8 @@ class OptionSeeder extends Seeder
      */
     public function run(): void
     {
+        $organizationId = getPermissionsTeamId();
+
         $optionsData = [
             [
                 'name'   => 'color',
@@ -61,18 +63,22 @@ class OptionSeeder extends Seeder
             $optionValues = $optionData['values'];
             unset($optionData['values']);
 
-            $Option = Option::firstOrCreate(
-                ['name' => $optionData['name']],
-                $optionData
+            $option = Option::firstOrCreate(
+                [
+                    'name'            => $optionData['name'],
+                    'organization_id' => $organizationId,
+                ],
+                array_merge($optionData, ['organization_id' => $organizationId])
             );
 
             foreach ($optionValues as $optionValueData) {
                 OptionValue::firstOrCreate(
                     [
-                        'option_id' => $Option->id,
-                        'value'     => $optionValueData['value'],
+                        'organization_id' => $organizationId,
+                        'option_id'       => $option->id,
+                        'value'           => $optionValueData['value'],
                     ],
-                    $optionValueData
+                    array_merge($optionValueData, ['organization_id' => $organizationId])
                 );
             }
         }
