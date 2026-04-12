@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
 
         foreach (SysRole::cases() as $sysRole) {
             $this->assignRole(
-                $member, 
+                $member,
                 Role::whereNull('team_id')->whereName($sysRole->value)->first()
             );
         }

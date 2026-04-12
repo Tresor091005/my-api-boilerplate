@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\DTO\LahatreDTO;
 
 class UnitSyncDTO extends LahatreDTO

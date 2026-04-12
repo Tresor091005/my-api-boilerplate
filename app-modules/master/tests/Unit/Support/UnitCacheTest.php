@@ -15,15 +15,15 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     $this->cache = new UnitCache();
     $this->group = UnitGroup::factory()->create([
-        'name'      => 'Test Group',
+        'name'            => 'Test Group',
         'organization_id' => null,
     ]);
 
     $this->baseUnit = Unit::factory()->create([
-        'code'      => 'test-m',
-        'name'      => 'Test Meter',
-        'ratio'    => 1,
-        'group_id'  => $this->group->id,
+        'code'            => 'test-m',
+        'name'            => 'Test Meter',
+        'ratio'           => 1,
+        'group_id'        => $this->group->id,
         'organization_id' => null,
     ]);
 
@@ -63,8 +63,8 @@ it('resets local memory when rewarming units', function (): void {
 
     // Add a new unit to DB directly
     Unit::factory()->create([
-        'code'      => 'test-km',
-        'group_id'  => $this->group->id,
+        'code'            => 'test-km',
+        'group_id'        => $this->group->id,
         'organization_id' => null,
     ]);
 

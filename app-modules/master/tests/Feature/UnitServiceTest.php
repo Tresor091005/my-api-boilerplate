@@ -14,7 +14,6 @@ use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
 use Lahatre\Organization\Models\Organization;
-use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -83,34 +82,34 @@ it('lists both system units and tenant units but excludes other tenant units', f
 
     // 1. System Unit (organization_id is NULL) - use 'a' prefix to stay on first page
     $systemGroup = UnitGroup::factory()->create([
-        'name'      => 'system-mass-test',
+        'name'            => 'system-mass-test',
         'organization_id' => null,
     ]);
     Unit::factory()->create([
-        'code'      => 'a-kg-sys',
-        'group_id'  => $systemGroup->id,
+        'code'            => 'a-kg-sys',
+        'group_id'        => $systemGroup->id,
         'organization_id' => null,
     ]);
 
     // 2. Our Tenant Unit
     $ourGroup = UnitGroup::factory()->create([
-        'name'      => 'our-custom-mass-test',
+        'name'            => 'our-custom-mass-test',
         'organization_id' => $this->organization->id,
     ]);
     Unit::factory()->create([
-        'code'      => 'a-our-kg',
-        'group_id'  => $ourGroup->id,
+        'code'            => 'a-our-kg',
+        'group_id'        => $ourGroup->id,
         'organization_id' => $this->organization->id,
     ]);
 
     // 3. Other Tenant Unit
     $otherGroup = UnitGroup::factory()->create([
-        'name'      => 'other-custom-mass-test',
+        'name'            => 'other-custom-mass-test',
         'organization_id' => $otherOrg->id,
     ]);
     Unit::factory()->create([
-        'code'      => 'a-other-kg',
-        'group_id'  => $otherGroup->id,
+        'code'            => 'a-other-kg',
+        'group_id'        => $otherGroup->id,
         'organization_id' => $otherOrg->id,
     ]);
 
@@ -141,7 +140,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
 
     // 2. Prevent syncing/updating a system group (should fail validation)
     $systemGroup = UnitGroup::factory()->create([
-        'name'      => 'system-group-test',
+        'name'            => 'system-group-test',
         'organization_id' => null,
     ]);
 
@@ -154,7 +153,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
     // 3. Prevent syncing/updating another tenant's group
     $otherOrg = Organization::factory()->create();
     $otherGroup = UnitGroup::factory()->create([
-        'name'      => 'other-tenant-group-test',
+        'name'            => 'other-tenant-group-test',
         'organization_id' => $otherOrg->id,
     ]);
 
@@ -171,8 +170,8 @@ it('verifies that unit codes are unique across the entire system', function (): 
     // Create a unit in another organization with code 'unique-code'
     $otherGroup = UnitGroup::factory()->create(['organization_id' => $otherOrg->id]);
     Unit::factory()->create([
-        'code'      => 'unique-code',
-        'group_id'  => $otherGroup->id,
+        'code'            => 'unique-code',
+        'group_id'        => $otherGroup->id,
         'organization_id' => $otherOrg->id,
     ]);
 

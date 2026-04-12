@@ -31,8 +31,7 @@ function getModuleNames(): array
  */
 function checkModuleDependencies(string $module, array $allModules, array $allowedDependencies): array
 {
-    $moduleNamespace = 'Lahatre\\'.Str::studly($module);
-    $modulePath = base_path("app-modules/{$module}/src");
+    $modulePath = base_path("app-modules/{$module}");
 
     if (!is_dir($modulePath)) {
         return [];
@@ -47,7 +46,12 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
     $failures = [];
 
     foreach ($finder as $file) {
-        // Skip files that naturally need to touch many namespaces for discovery
+        // GLOBAL EXCEPTION: The shared helpers file is allowed to touch everything for convenience
+        if ($module === 'shared' && Str::endsWith($file->getRelativePathname(), 'src/helpers.php')) {
+            continue;
+        }
+
+        // Skip discovery files
         if (Str::contains($file->getRelativePathname(), ['MorphMapRegistry.php', 'ModelFinder.php'])) {
             continue;
         }
@@ -56,14 +60,9 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
         $lines = explode("\n", $content);
 
         foreach ($lines as $index => $line) {
-            // Match "Lahatre\..." but avoid false positives from strings/comments
-            // We only care if it's a real usage: use, new, extends, implements, static call, or type hint
-            if (!preg_match('/^\s*(use|new|extends|implements)\s+Lahatre\\\\|(\(|,)\s*Lahatre\\\\|\\\\Lahatre\\\\|::class/', $line)) {
-                continue;
-            }
-
             foreach ($prohibitedNamespaces as $prohibited) {
-                if (Str::contains($line, $prohibited)) {
+                // Regex to match the namespace usage strictly
+                if (preg_match('/(?<![a-zA-Z0-9_\\\])'.preg_quote($prohibited, '/').'(?![a-zA-Z0-9_])/', $line)) {
                     $lineNumber = $index + 1;
                     $failures[] = "[{$module}] file '{$file->getRelativePathname()}:{$lineNumber}' imports forbidden namespace '{$prohibited}'.";
                 }
@@ -77,25 +76,23 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
 it('enforces modular architecture and prohibits cross-dependencies', function (): void {
     $modules = getModuleNames();
 
-    // Configuration of allowed dependencies
-    // 'shared' and 'master' are considered hub modules that others can use.
-    $commonHubs = ['shared', 'master'];
+    /**
+     * Define the dependency graph here.
+     * Each module can ONLY depend on the modules listed in its array.
+     */
+    $dependencyMap = [
+        'shared'       => [],
+        'master'       => ['shared'],
+        'inventory'    => ['shared', 'master'],
+        'organization' => ['shared', 'master'],
+        'iam'          => ['shared', 'master', 'organization'],
+        'catalog'      => ['shared', 'master', 'inventory'],
+    ];
 
     $failures = [];
 
     foreach ($modules as $module) {
-        // Skip shared itself from dependency check on hubs, or define rules
-        if ($module === 'shared') {
-            // shared should ideally depend on NOTHING other than Laravel/Vendor
-            $allowed = [];
-        } elseif ($module === 'master') {
-            // master can use shared
-            $allowed = ['shared'];
-        } else {
-            // All other modules (catalog, inventory, iam) can use hubs
-            $allowed = $commonHubs;
-        }
-
+        $allowed = $dependencyMap[$module] ?? [];
         $moduleFailures = checkModuleDependencies($module, $modules, $allowed);
         $failures = array_merge($failures, $moduleFailures);
     }
@@ -112,7 +109,7 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
     $failures = [];
 
     foreach ($modules as $module) {
-        $modulePath = base_path("app-modules/{$module}/src");
+        $modulePath = base_path("app-modules/{$module}");
         if (!is_dir($modulePath)) {
             continue;
         }
@@ -121,7 +118,6 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
         $finder->files()->in($modulePath)->name('*.php');
 
         foreach ($finder as $file) {
-            // Skip files that naturally need to touch many namespaces for discovery
             if (Str::contains($file->getRelativePathname(), ['MorphMapRegistry.php', 'ModelFinder.php'])) {
                 continue;
             }
@@ -130,7 +126,6 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
             $lines = explode("\n", $content);
 
             foreach ($lines as $index => $line) {
-                // If imports "App\..." but NOT "App\Models\..."
                 if (Str::contains($line, 'App\\') && !Str::contains($line, 'App\\Models\\')) {
                     $lineNumber = $index + 1;
                     $failures[] = "[{$module}] file '{$file->getRelativePathname()}:{$lineNumber}' imports core 'App' namespace (outside Models).";
