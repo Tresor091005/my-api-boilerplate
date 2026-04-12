@@ -64,7 +64,13 @@ class ProductVariantDataDTO extends LahatreDTO
                 Rule::unique('catalog_product_variants', 'sku')
                     ->where('organization_id', getPermissionsTeamId()),
             ],
-            'unit_group_id'       => ['required', 'uuid'],
+            'unit_group_id' => [
+                'required',
+                'uuid',
+                Rule::exists('master_unit_groups', 'id')
+                    ->whereNull('deleted_at')
+                    ->where(fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId())),
+            ],
             'should_manage_stock' => ['boolean'],
             'is_active'           => ['boolean'],
             'options'             => ['required', 'array', 'min:1'],

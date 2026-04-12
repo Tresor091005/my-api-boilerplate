@@ -18,10 +18,15 @@ use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Organization\Models\Organization;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    // Setup Organization context
+    $this->organization = Organization::factory()->create();
+    setPermissionsTeamId($this->organization->id);
+
     $this->service = app(InventoryService::class);
 
     // Setup Master Data
@@ -119,7 +124,8 @@ it('fails when a resolved inventory item is inactive', function (): void {
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,
@@ -162,7 +168,8 @@ it('fails when a resolved inventory location is inactive', function (): void {
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,
@@ -204,7 +211,8 @@ it('does not persist resolved references when preprocessing is enabled but valid
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,

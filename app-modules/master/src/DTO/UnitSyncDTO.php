@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Lahatre\Master\DTO;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\DTO\LahatreDTO;
-use Lahatre\Shared\Rules\BulkExists;
 
 class UnitSyncDTO extends LahatreDTO
 {
@@ -43,10 +44,17 @@ class UnitSyncDTO extends LahatreDTO
 
     protected function rules(): array
     {
+        $organizationId = getPermissionsTeamId();
+
+        // Strict tenancy check: must belong to the current organization AND must NOT be a system record (organization_id is NULL)
         $groupExists = Rule::exists('master_unit_groups', 'id')
+            ->whereNotNull('organization_id')
+            ->where('organization_id', $organizationId)
             ->whereNull('deleted_at');
 
         $uniqueGroupName = Rule::unique('master_unit_groups', 'name')
+            ->whereNotNull('organization_id')
+            ->where('organization_id', $organizationId)
             ->whereNull('deleted_at');
 
         if (isset($this->dtoData['group_id'])) {
@@ -60,13 +68,36 @@ class UnitSyncDTO extends LahatreDTO
                 'required_without:group_id',
                 'nullable',
                 'array',
-                new BulkExists('master_units', 'id', 'id', 'uuid', true),
+                'min:1',
             ],
         ];
     }
 
     public function withValidator(Validator $validator): void
     {
-        //
+        $validator->after(function (Validator $validator): void {
+            if (empty($this->dtoData['units'])) {
+                return;
+            }
+
+            $organizationId = getPermissionsTeamId();
+            $unitIds = collect($this->dtoData['units'])
+                ->pluck('id')
+                ->filter()
+                ->all();
+
+            if ($unitIds !== []) {
+                $existingCount = DB::table('master_units')
+                    ->whereIn('id', $unitIds)
+                    ->whereNotNull('organization_id')
+                    ->where('organization_id', $organizationId)
+                    ->whereNull('deleted_at')
+                    ->count();
+
+                if ($existingCount !== count($unitIds)) {
+                    $validator->errors()->add('units', __('shared::validation.bulk_exists', ['attribute' => 'units']));
+                }
+            }
+        });
     }
 }

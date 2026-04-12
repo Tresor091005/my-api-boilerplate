@@ -20,6 +20,7 @@ class BulkExists implements ValidationRule
      * @param  string  $keyInArray  The key to extract from the array of objects (if applicable).
      * @param  string  $type  The expected data type: 'uuid', 'string', 'int'.
      * @param  bool  $handleSoftDelete  Whether to filter out soft deleted records.
+     * @param  array  $extraConditions  Additional where conditions.
      */
     public function __construct(
         protected string $table,
@@ -67,7 +68,11 @@ class BulkExists implements ValidationRule
             ->whereIn($this->column, $validIds->toArray());
 
         foreach ($this->extraConditions as $col => $val) {
-            $query->where($col, $val);
+            if (is_callable($val) && is_numeric($col)) {
+                $query->where($val);
+            } else {
+                $query->where($col, $val);
+            }
         }
 
         if ($this->handleSoftDelete) {

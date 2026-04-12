@@ -327,7 +327,7 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
     expect(true)->toBeTrue();
 });
 
-it('ensures all business tables have an organization_id column for multi-tenancy', function (): void {
+it('ensures all business tables have a multi-tenancy column (organization_id or tenant_id)', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = array_merge(
         config('model-integrity.ignored_tables', []),
@@ -342,19 +342,22 @@ it('ensures all business tables have an organization_id column for multi-tenancy
             continue;
         }
 
-        if (!Schema::hasColumn($tableName, 'organization_id')) {
-            $failures[] = "Table [{$tableName}] is missing 'organization_id' column.";
+        $hasOrgId = Schema::hasColumn($tableName, 'organization_id');
+        $hasTenantId = Schema::hasColumn($tableName, 'tenant_id');
+
+        if (!$hasOrgId && !$hasTenantId) {
+            $failures[] = "Table [{$tableName}] is missing a multi-tenancy column ('organization_id' or 'tenant_id').";
         }
     }
 
     if ($failures !== []) {
-        $this->fail("Multi-tenancy Integrity Failures (missing organization_id):\n\n".implode("\n", $failures));
+        $this->fail("Multi-tenancy Integrity Failures:\n\n".implode("\n", $failures));
     }
 
     expect(true)->toBeTrue();
 });
 
-it('ensures all unique indexes in business tables include organization_id', function (): void {
+it('ensures all unique indexes in business tables include multi-tenancy columns', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);
     $exemptions = config('model-integrity.exempt_global_uniqueness', []);
@@ -367,8 +370,14 @@ it('ensures all unique indexes in business tables include organization_id', func
             continue;
         }
 
-        // Only check tables that HAVE organization_id
-        if (!Schema::hasColumn($tableName, 'organization_id')) {
+        $tenancyColumn = null;
+        if (Schema::hasColumn($tableName, 'organization_id')) {
+            $tenancyColumn = 'organization_id';
+        } elseif (Schema::hasColumn($tableName, 'tenant_id')) {
+            $tenancyColumn = 'tenant_id';
+        }
+
+        if (!$tenancyColumn) {
             continue;
         }
 
@@ -391,9 +400,9 @@ it('ensures all unique indexes in business tables include organization_id', func
                 continue;
             }
 
-            // Check if organization_id is in the columns
-            if (!in_array('organization_id', $index['columns'], true)) {
-                $failures[] = "Table [{$tableName}]: Unique index [{$index['name']}] on columns [".implode(', ', $index['columns'])."] is missing 'organization_id'.";
+            // Check if tenancy column is in the columns
+            if (!in_array($tenancyColumn, $index['columns'], true)) {
+                $failures[] = "Table [{$tableName}]: Unique index [{$index['name']}] on columns [".implode(', ', $index['columns'])."] is missing '{$tenancyColumn}'.";
             }
         }
     }

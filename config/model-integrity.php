@@ -46,8 +46,6 @@ return [
         'iam_model_has_permissions',
         'iam_role_has_permissions',
         'master_currencies',
-        'master_units', // TODO: to be corrected
-        'master_unit_groups',
         'catalog_product_categories',
         'catalog_variant_option_value',
         'inventory_items',
@@ -68,7 +66,11 @@ return [
     |
     */
     'exempt_global_uniqueness' => [
-        // 'catalog_products' => ['catalog_products_handle_unique'],
+        'master_unit_groups' => ['master_unit_groups_name_unique'],
+        'master_units'       => [
+            'master_units_code_unique',
+            'master_units_group_id_ratio_unique',
+        ],
     ],
 
     'composite_pkey' => [

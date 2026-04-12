@@ -32,7 +32,9 @@ class ProductVariantDTO extends LahatreDTO
                 'required',
                 'array',
                 'min:1',
-                new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true),
+                new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true, [
+                    fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId()),
+                ]),
             ],
         ];
     }

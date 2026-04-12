@@ -25,10 +25,15 @@ use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Organization\Models\Organization;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    // Setup Organization context
+    $this->organization = Organization::factory()->create();
+    setPermissionsTeamId($this->organization->id);
+
     $this->service = app(InventoryService::class);
     $this->currency = Currency::factory()->create();
     $this->group = UnitGroup::factory()->create(['is_builtin' => false]);
@@ -37,14 +42,16 @@ beforeEach(function (): void {
 
 it('createManyItems supports mixed morph types through the resolver', function (): void {
     $variantA = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,
         'is_active'           => true,
     ]);
     $variantB = TestInventoryAltVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,
@@ -80,7 +87,8 @@ it('createManyLocations skips already existing external_id/type pairs without fa
 
 it('updateItem validates the deduction_strategy enum', function (): void {
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,
@@ -101,7 +109,8 @@ it('updateItem validates the deduction_strategy enum', function (): void {
 
 it('deleteItem and deleteLocation perform a soft delete and preserve stock history', function (): void {
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,

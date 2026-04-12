@@ -68,7 +68,13 @@ class ProductVariantUpdateDTO extends LahatreDTO
                     ->where('organization_id', getPermissionsTeamId())
                     ->ignore($this->modelId),
             ],
-            'unit_group_id'       => ['nullable', 'uuid', Rule::exists('master_unit_groups', 'id')],
+            'unit_group_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('master_unit_groups', 'id')
+                    ->whereNull('deleted_at')
+                    ->where(fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId())),
+            ],
             'should_manage_stock' => ['nullable', 'boolean'],
             'is_active'           => ['nullable', 'boolean'],
             'options'             => ['nullable', 'array'],

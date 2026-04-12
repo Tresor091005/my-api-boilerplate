@@ -37,7 +37,9 @@ class UnitCache
             return $this->units;
         }
 
-        return $this->units = Cache::remember('master:units:all', self::TTL, fn () => Unit::all()->keyBy('code'));
+        $key = 'master:units:all:'.(getPermissionsTeamId() ?? 'system');
+
+        return $this->units = Cache::remember($key, self::TTL, fn () => Unit::all()->keyBy('code'));
     }
 
     /**
@@ -71,7 +73,10 @@ class UnitCache
             return $this->currencies;
         }
 
-        return $this->currencies = Cache::remember('master:currencies:all', self::TTL, fn () => Currency::all()->keyBy('code'));
+        // Currency doesn't have organization_id yet, but keeping consistency if it gets added
+        $key = 'master:currencies:all';
+
+        return $this->currencies = Cache::remember($key, self::TTL, fn () => Currency::all()->keyBy('code'));
     }
 
     /**
@@ -131,10 +136,12 @@ class UnitCache
      */
     public function rewarmUnits(): void
     {
+        $key = 'master:units:all:'.(getPermissionsTeamId() ?? 'system');
+
         $this->units = null;
         $this->unitsByGroup = null;
         $this->baseUnits = null;
-        Cache::forget('master:units:all');
+        Cache::forget($key);
         $this->units();
     }
 

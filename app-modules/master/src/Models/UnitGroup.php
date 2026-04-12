@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string|null $organization_id
  * @property string $name
  * @property bool $is_builtin
  * @property CarbonImmutable|null $created_at
@@ -51,17 +52,19 @@ class UnitGroup extends Model
     protected $table = 'master_unit_groups';
 
     protected $fillable = [
+        'organization_id',
         'name',
         'is_builtin',
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'name'       => 'string',
-        'is_builtin' => 'boolean',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
-        'deleted_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'name'            => 'string',
+        'is_builtin'      => 'boolean',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function units(): HasMany

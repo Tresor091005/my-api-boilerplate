@@ -20,10 +20,15 @@ use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Organization\Models\Organization;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    // Setup Organization context
+    $this->organization = Organization::factory()->create();
+    setPermissionsTeamId($this->organization->id);
+
     $this->service = app(InventoryService::class);
 
     // Setup Master Data
@@ -117,7 +122,8 @@ it('resolves inventory contracts passed in item_id and location_id before record
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
     $variant = TestInventoryVariant::query()->create([
-        'product_id'          => Product::factory()->create()->id,
+        'organization_id'     => $this->organization->id,
+        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
         'sku'                 => fake()->unique()->bothify('SKU-####-????'),
         'unit_group_id'       => $this->group->id,
         'should_manage_stock' => true,

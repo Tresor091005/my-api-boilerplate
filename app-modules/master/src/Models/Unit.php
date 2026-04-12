@@ -14,6 +14,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string|null $organization_id
  * @property string $code
  * @property string $name
  * @property string|null $symbol
@@ -51,6 +52,7 @@ class Unit extends Model
     protected $table = 'master_units';
 
     protected $fillable = [
+        'organization_id',
         'code',
         'name',
         'ratio',
@@ -59,15 +61,16 @@ class Unit extends Model
     ];
 
     protected $casts = [
-        'id'         => 'string',
-        'code'       => 'string',
-        'name'       => 'string',
-        'ratio'      => 'integer',
-        'symbol'     => 'string',
-        'group_id'   => 'string',
-        'created_at' => 'immutable_datetime',
-        'updated_at' => 'immutable_datetime',
-        'deleted_at' => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'code'            => 'string',
+        'name'            => 'string',
+        'ratio'           => 'integer',
+        'symbol'          => 'string',
+        'group_id'        => 'string',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function group(): BelongsTo

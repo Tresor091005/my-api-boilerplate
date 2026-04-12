@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -27,7 +28,10 @@ class UnitService implements StandaloneService
 
     public function list(UnitFilterDTO $filters): UnitCollection
     {
-        $query = Unit::query()->with('group');
+        $query = Unit::query()->with('group')->where(function (Builder $query): void {
+            $query->whereNull('organization_id')
+                ->orWhere('organization_id', getPermissionsTeamId());
+        });
 
         if ($filters->code) {
             $query->where('code', 'like', "$filters->code%");
@@ -65,13 +69,18 @@ class UnitService implements StandaloneService
     {
         return DB::transaction(function () use ($dto): UnitGroupResource {
             if ($dto->group_id) {
-                $group = UnitGroup::where('is_builtin', false)->findOrFail($dto->group_id);
+                $group = UnitGroup::where('is_builtin', false)
+                    ->whereNotNull('organization_id')
+                    ->where('organization_id', getPermissionsTeamId())
+                    ->findOrFail($dto->group_id);
+
                 $group->name = $dto->group_name ?? $group->name;
                 $group->save();
             } else {
                 $group = UnitGroup::create([
-                    'is_builtin' => false,
-                    'name'       => $dto->group_name,
+                    'is_builtin'      => false,
+                    'name'            => $dto->group_name,
+                    'organization_id' => getPermissionsTeamId(),
                 ]);
             }
 
@@ -89,26 +98,28 @@ class UnitService implements StandaloneService
                         $unit = $existingUnits->firstWhere('id', $unitDto->id);
 
                         return [
-                            'id'         => $unit->id,
-                            'code'       => $unit->code,
-                            'name'       => $unitDto->name,
-                            'symbol'     => $unitDto->symbol,
-                            'ratio'      => $unit->ratio,
-                            'group_id'   => $group->id,
-                            'created_at' => $unit->created_at,
-                            'updated_at' => $now,
+                            'id'              => $unit->id,
+                            'organization_id' => $unit->organization_id,
+                            'code'            => $unit->code,
+                            'name'            => $unitDto->name,
+                            'symbol'          => $unitDto->symbol,
+                            'ratio'           => $unit->ratio,
+                            'group_id'        => $group->id,
+                            'created_at'      => $unit->created_at,
+                            'updated_at'      => $now,
                         ];
                     }
 
                     return [
-                        'id'         => (string) Str::uuid7(),
-                        'code'       => HandleGenerator::generate($unitDto->name, 'master_units', 'code'),
-                        'name'       => $unitDto->name,
-                        'symbol'     => $unitDto->symbol,
-                        'ratio'      => $unitDto->ratio,
-                        'group_id'   => $group->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'id'              => (string) Str::uuid7(),
+                        'organization_id' => getPermissionsTeamId(),
+                        'code'            => HandleGenerator::generate($unitDto->name, 'master_units', 'code'),
+                        'name'            => $unitDto->name,
+                        'symbol'          => $unitDto->symbol,
+                        'ratio'           => $unitDto->ratio,
+                        'group_id'        => $group->id,
+                        'created_at'      => $now,
+                        'updated_at'      => $now,
                     ];
                 })->toArray();
 

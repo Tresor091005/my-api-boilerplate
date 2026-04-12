@@ -14,13 +14,17 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->cache = new UnitCache();
-    $this->group = UnitGroup::factory()->create(['name' => 'Test Group']);
+    $this->group = UnitGroup::factory()->create([
+        'name'      => 'Test Group',
+        'organization_id' => null,
+    ]);
 
     $this->baseUnit = Unit::factory()->create([
-        'code'     => 'test-m',
-        'name'     => 'Test Meter',
+        'code'      => 'test-m',
+        'name'      => 'Test Meter',
         'ratio'    => 1,
-        'group_id' => $this->group->id,
+        'group_id'  => $this->group->id,
+        'organization_id' => null,
     ]);
 
     $this->currency = Currency::factory()->create([
@@ -31,7 +35,7 @@ beforeEach(function (): void {
 });
 
 it('uses a single cache key for all units', function (): void {
-    $key = 'master:units:all';
+    $key = 'master:units:all:system';
     expect(Cache::has($key))->toBeFalse();
 
     $unit = $this->cache->getByCode('test-m');
@@ -40,11 +44,13 @@ it('uses a single cache key for all units', function (): void {
 });
 
 it('memoizes units collection in memory during the same request', function (): void {
+    $key = 'master:units:all:system';
+
     // First call: loads from DB into Cache and then into local property
     $collection1 = $this->cache->units();
 
     // Manually clear the shared cache to prove we don't hit it again
-    Cache::forget('master:units:all');
+    Cache::forget($key);
 
     // Second call: should return the exact same instance from the private property
     $collection2 = $this->cache->units();
@@ -56,7 +62,11 @@ it('resets local memory when rewarming units', function (): void {
     $collection1 = $this->cache->units();
 
     // Add a new unit to DB directly
-    Unit::factory()->create(['code' => 'test-km', 'group_id' => $this->group->id]);
+    Unit::factory()->create([
+        'code'      => 'test-km',
+        'group_id'  => $this->group->id,
+        'organization_id' => null,
+    ]);
 
     // Rewarm should clear both local property and shared cache
     $this->cache->rewarmUnits();
