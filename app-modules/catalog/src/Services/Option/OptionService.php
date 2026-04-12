@@ -23,25 +23,28 @@ class OptionService implements TransactionalService
         }
 
         $now = now();
+        $organizationId = getPermissionsTeamId();
 
         $uniqueOptions = $allOptionsData->map(fn (array $item): array => [
-            'id'         => (string) Str::uuid7(),
-            'name'       => $item['name'],
-            'created_at' => $now,
-            'updated_at' => $now,
+            'id'              => (string) Str::uuid7(),
+            'organization_id' => $organizationId,
+            'name'            => $item['name'],
+            'created_at'      => $now,
+            'updated_at'      => $now,
         ])->unique('name')->values();
 
         Option::upsert(
             $uniqueOptions->toArray(),
-            ['name'],
+            ['organization_id', 'name'],
             ['updated_at']
         );
 
-        $options = Option::whereIn('name', $uniqueOptions->pluck('name'))
+        $options = Option::where('organization_id', $organizationId)
+            ->whereIn('name', $uniqueOptions->pluck('name'))
             ->get()
             ->keyBy('name');
 
-        $uniqueValues = $allOptionsData->map(function (array $item) use ($options, $now): ?array {
+        $uniqueValues = $allOptionsData->map(function (array $item) use ($options, $now, $organizationId): ?array {
             $option = $options->get($item['name']);
 
             if (!$option) {
@@ -49,21 +52,23 @@ class OptionService implements TransactionalService
             }
 
             return [
-                'id'         => (string) Str::uuid7(),
-                'option_id'  => $option->id,
-                'value'      => $item['value'],
-                'created_at' => $now,
-                'updated_at' => $now,
+                'id'              => (string) Str::uuid7(),
+                'organization_id' => $organizationId,
+                'option_id'       => $option->id,
+                'value'           => $item['value'],
+                'created_at'      => $now,
+                'updated_at'      => $now,
             ];
         })->filter()->unique(fn ($item): string => "{$item['option_id']}-{$item['value']}");
 
         OptionValue::upsert(
             $uniqueValues->toArray(),
-            ['option_id', 'value'],
+            ['organization_id', 'option_id', 'value'],
             ['updated_at']
         );
 
-        return OptionValue::with('option')->whereIn('option_id', $options->pluck('id'))
+        return OptionValue::with('option')->where('organization_id', $organizationId)
+            ->whereIn('option_id', $options->pluck('id'))
             ->get()
             ->keyBy(fn ($item): string => $item->option->name.'-'.$item->value);
     }

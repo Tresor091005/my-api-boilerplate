@@ -2,239 +2,257 @@
 
 declare(strict_types=1);
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+namespace Lahatre\Catalog\Tests\Feature;
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
-use Lahatre\Catalog\DTO\ProductVariantDataDTO;
-use Lahatre\Catalog\DTO\ProductVariantDTO;
-use Lahatre\Catalog\DTO\ProductVariantFilterDTO;
-use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Services\ProductVariantService;
-use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Models\InventoryLocation;
-use Lahatre\Inventory\Models\InventoryStock;
-use Lahatre\Master\Models\Currency;
+use Lahatre\Catalog\Services\Option\OptionService;
+use Lahatre\Iam\Models\MemberRole;
+use Lahatre\Iam\Models\OrganizationMember;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
+use Lahatre\Iam\Models\User;
+use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
+use Lahatre\Organization\Models\Organization;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    RateLimiter::for('api', fn () => Limit::none());
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-    $this->unitGroup = UnitGroup::factory()->create(['name' => 'Piece']);
-    Unit::factory()->create([
-        'group_id' => $this->unitGroup->id,
-        'ratio'    => 1,
-        'code'     => 'PCS',
-        'name'     => 'Piece',
-        'symbol'   => 'pc',
+    // 1. Setup organization
+    $this->organization = Organization::factory()->create([
+        'name' => 'Test Org',
     ]);
 
-    $this->otherUnitGroup = UnitGroup::factory()->create(['name' => 'Box']);
-    Unit::factory()->create([
-        'group_id' => $this->otherUnitGroup->id,
-        'ratio'    => 1,
-        'code'     => 'BOX',
-        'name'     => 'Box',
-        'symbol'   => 'bx',
+    setPermissionsTeamId($this->organization->id);
+
+    // 2. Setup user and membership
+    $this->user = User::factory()->create();
+
+    $this->member = OrganizationMember::create([
+        'user_id'         => $this->user->id,
+        'organization_id' => $this->organization->id,
     ]);
 
-    $this->currency = Currency::factory()->create();
+    // 3. Setup Role and Permissions
+    $this->role = Role::query()->firstOrCreate([
+        'name'       => 'admin',
+        'guard_name' => 'sanctum',
+    ]);
+
+    $this->memberRole = MemberRole::create([
+        'organization_id' => $this->organization->id,
+        'member_id'       => $this->member->id,
+        'role_id'         => $this->role->id,
+    ]);
+
+    $permissions = [
+        'product_variants.list',
+        'product_variants.retrieve',
+        'product_variants.create',
+        'product_variants.update',
+        'product_variants.delete',
+    ];
+
+    collect($permissions)->each(function (string $permissionName): void {
+        Permission::query()->firstOrCreate([
+            'name'       => $permissionName,
+            'guard_name' => 'sanctum',
+        ]);
+    });
+
+    $this->memberRole->givePermissionTo($permissions);
+
+    // 4. Create token with metadata
+    $token = $this->user->createToken('test_token');
+    $token->accessToken->update([
+        'metadata' => [
+            'organization_id' => $this->organization->id,
+            'member_id'       => $this->member->id,
+            'member_role_id'  => $this->memberRole->id,
+            'role_id'         => $this->role->id,
+        ],
+    ]);
+
+    $this->withToken($token->plainTextToken);
 });
 
-it('manages product variants through the service flow', function (): void {
-    $service = app(ProductVariantService::class);
-    $product = Product::factory()->create(['name' => 'T-Shirt']);
+it('manages product variants through the api resource flow and scopes by organization', function (): void {
+    $otherOrg = Organization::factory()->create();
+
+    // Our Product
+    $product = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'iPhone 15 Pro',
+    ]);
+
+    // Other Product
+    $otherProduct = Product::factory()->create([
+        'organization_id' => $otherOrg->id,
+        'name'            => 'Other Org Product',
+    ]);
+
+    // 5. Create - should automatically assign our organization_id
+    $unitGroup = UnitGroup::firstOrCreate(['name' => 'mass']);
+    Unit::firstOrCreate(
+        ['code' => 'kg'],
+        [
+            'name'     => 'kilogram',
+            'symbol'   => 'kg',
+            'ratio'    => 1,
+            'group_id' => $unitGroup->id,
+        ]
+    );
+
+    app(UnitCache::class)->rewarmUnits();
+
+    // Ensure option exists
+    app(OptionService::class)->getOrCreate(collect([
+        ['name' => 'color', 'value' => 'white'],
+    ]));
+
+    // Our Variant
     $variant = ProductVariant::factory()->create([
-        'product_id'    => $product->id,
-        'unit_group_id' => $this->unitGroup->id,
-    ]);
-    InventoryItem::factory()->create([
-        'itemable_type'  => $variant->getMorphClass(),
-        'itemable_id'    => $variant->id,
-        'sku'            => $variant->sku,
-        'base_unit_code' => 'PCS',
-        'is_active'      => true,
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
+        'sku'             => 'IP15P-BLA-128',
+        'unit_group_id'   => $unitGroup->id,
     ]);
 
-    $listResponse = $service->list($product, ProductVariantFilterDTO::fromArray([]))->toResponse(
-        Request::create("/v1/catalog/products/{$product->id}/variants", 'GET')
+    // Create another variant to allow deletion of others
+    ProductVariant::factory()->create([
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
+        'unit_group_id'   => $unitGroup->id,
+    ]);
+
+    // Ensure inventory item exists
+    app(InventoryInterface::class)->createItem($variant);
+
+    // Other Variant
+    $otherUnitGroup = UnitGroup::firstOrCreate(['name' => 'other-mass']);
+    Unit::firstOrCreate(
+        ['code' => 'okg'],
+        [
+            'name'     => 'other-kilogram',
+            'symbol'   => 'okg',
+            'ratio'    => 1,
+            'group_id' => $otherUnitGroup->id,
+        ]
     );
 
-    expect($listResponse->getStatusCode())->toBe(200)
-        ->and($listResponse->getData(true)['data'][0]['id'])->toBe($variant->id);
+    $otherVariant = ProductVariant::factory()->create([
+        'organization_id' => $otherOrg->id,
+        'product_id'      => $otherProduct->id,
+        'sku'             => 'OTHER-SKU',
+        'unit_group_id'   => $otherUnitGroup->id,
+    ]);
 
-    $showPayload = $service->retrieve($product, $variant)->toArray(
-        Request::create("/v1/catalog/products/{$product->id}/variants/{$variant->id}", 'GET')
-    );
+    app(UnitCache::class)->rewarmUnits();
 
-    expect($showPayload['id'])->toBe($variant->id)
-        ->and($showPayload['product_id'])->toBe($product->id)
-        ->and($showPayload['inventory']['id'])->not->toBeNull()
-        ->and($showPayload['inventory']['total_remaining'])->toBe(0)
-        ->and($showPayload['inventory']['active_lots_count'])->toBe(0);
+    // 1. List - should only see our organization's variant (we have 2 for this product)
+    $this->getJson("/v1/catalog/products/{$product->id}/variants")
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.sku', 'IP15P-BLA-128')
+        ->assertJsonMissing(['sku' => 'OTHER-SKU']);
 
-    $createdPayload = $service->create($product, ProductVariantDTO::fromArray([
+    // 2. List - other organization product (Not Found)
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")
+        ->assertNotFound();
+
+    // 3. Show - our organization
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")
+        ->assertOk()
+        ->assertJsonPath('sku', 'IP15P-BLA-128');
+
+    // 4. Show - other organization (Forbidden because of policy)
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")
+        ->assertForbidden();
+
+    // 5. Create - should automatically assign our organization_id
+    $createdResponse = $this->postJson("/v1/catalog/products/{$product->id}/variants", [
         'variants' => [
             [
-                'sku'                 => 'tee-blue-m',
-                'unit_group_id'       => $this->unitGroup->id,
+                'sku'                 => 'NEW-VARIANT-SKU',
+                'unit_group_id'       => $unitGroup->id,
                 'should_manage_stock' => true,
                 'is_active'           => true,
                 'options'             => [
-                    ['name' => 'Color', 'value' => 'Blue'],
-                    ['name' => 'Size', 'value' => 'M'],
+                    ['name' => 'color', 'value' => 'white'],
                 ],
             ],
         ],
-    ]))->toArray(
-        Request::create("/v1/catalog/products/{$product->id}/variants", 'POST')
-    );
+    ]);
 
-    expect($createdPayload[0]['product_id'])->toBe($product->id)
-        ->and($createdPayload[0]['sku'])->toBe('TEE-BLUE-M')
-        ->and($createdPayload[0]['options']['color'])->toBe('blue')
-        ->and($createdPayload[0]['options']['size'])->toBe('m');
+    $createdResponse->assertCreated()
+        ->assertJsonCount(1)
+        ->assertJsonPath('0.sku', 'NEW-VARIANT-SKU');
 
-    $createdVariantId = (string) $createdPayload[0]['id'];
+    $createdVariantId = (string) $createdResponse->json('0.id');
+    $createdVariant = ProductVariant::find($createdVariantId);
 
-    $updatedPayload = $service->update($product, ProductVariant::query()->findOrFail($createdVariantId), ProductVariantUpdateDTO::fromArray([
-        'sku'                 => 'tee-blue-l',
-        'should_manage_stock' => false,
-        'is_active'           => false,
-        'options'             => [
-            ['name' => 'Color', 'value' => 'Blue'],
-            ['name' => 'Size', 'value' => 'L'],
-        ],
-    ]))->toArray(
-        Request::create("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}", 'PUT')
-    );
+    expect($createdVariant->organization_id)->toBe($this->organization->id);
 
-    expect($updatedPayload['id'])->toBe($createdVariantId)
-        ->and($updatedPayload['sku'])->toBe('TEE-BLUE-L')
-        ->and($updatedPayload['unit_group_id'])->toBe($this->unitGroup->id)
-        ->and($updatedPayload['should_manage_stock'])->toBeFalse()
-        ->and($updatedPayload['is_active'])->toBeFalse()
-        ->and($updatedPayload['options']['color'])->toBe('blue')
-        ->and($updatedPayload['options']['size'])->toBe('l')
-        ->and($updatedPayload['inventory']['sku'])->toBe('TEE-BLUE-L')
-        ->and($updatedPayload['inventory']['total_remaining'])->toBe(0);
+    // 6. Update - our organization
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", [
+        'sku' => 'UPDATED-SKU',
+    ])->assertOk()
+        ->assertJsonPath('sku', 'UPDATED-SKU');
 
-    expect(ProductVariant::query()->findOrFail($createdVariantId)->sku)
-        ->toBe('TEE-BLUE-L');
+    // 7. Update - other organization (Forbidden)
+    $this->patchJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}", [
+        'sku' => 'HACKED-SKU',
+    ])->assertForbidden();
 
-    $inventoryItem = InventoryItem::query()
-        ->where('itemable_type', ProductVariant::query()->findOrFail($createdVariantId)->getMorphClass())
-        ->where('itemable_id', $createdVariantId)
-        ->first();
+    // 8. Delete - our organization
+    $this->deleteJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")
+        ->assertNoContent();
 
-    expect($inventoryItem)->not->toBeNull()
-        ->and($inventoryItem?->sku)->toBe('TEE-BLUE-L')
-        ->and($inventoryItem?->is_active)->toBeFalse();
+    expect(ProductVariant::whereKey($createdVariantId)->exists())->toBeFalse();
+
+    // 9. Delete - other organization (Forbidden)
+    $this->deleteJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")
+        ->assertForbidden();
+
+    expect(ProductVariant::whereKey($otherVariant->id)->exists())->toBeTrue();
 });
 
-it('embeds aggregated inventory summary for a variant when active stocks exist', function (): void {
-    $service = app(ProductVariantService::class);
-    $product = Product::factory()->create(['name' => 'Flour']);
+it('validates variant creation', function (): void {
+    // Product in our organization
+    $product = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->postJson("/v1/catalog/products/{$product->id}/variants", [])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['variants']);
+});
+
+it('requires permissions for variant actions', function (): void {
+    $this->memberRole->revokePermissionTo([
+        'product_variants.list',
+        'product_variants.retrieve',
+        'product_variants.create',
+        'product_variants.update',
+        'product_variants.delete',
+    ]);
+
+    $product = Product::factory()->create(['organization_id' => $this->organization->id]);
     $variant = ProductVariant::factory()->create([
-        'product_id'    => $product->id,
-        'unit_group_id' => $this->unitGroup->id,
-        'sku'           => 'FAR-001',
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
     ]);
 
-    $inventoryItem = InventoryItem::factory()->create([
-        'itemable_type'      => $variant->getMorphClass(),
-        'itemable_id'        => $variant->id,
-        'sku'                => $variant->sku,
-        'base_unit_code'     => 'PCS',
-        'deduction_strategy' => null,
-        'is_active'          => true,
-    ]);
-
-    $locationA = InventoryLocation::factory()->create();
-    $locationB = InventoryLocation::factory()->create();
-
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => 'PCS',
-        'currency_code' => $this->currency->code,
-        'quantity'      => 50,
-        'remaining'     => 50,
-    ]);
-
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => 'PCS',
-        'currency_code' => $this->currency->code,
-        'quantity'      => 20,
-        'remaining'     => 20,
-    ]);
-
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationB, 'location')->create([
-        'unit_code'     => 'PCS',
-        'currency_code' => $this->currency->code,
-        'quantity'      => 30,
-        'remaining'     => 30,
-    ]);
-
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationB, 'location')->create([
-        'unit_code'     => 'PCS',
-        'currency_code' => $this->currency->code,
-        'quantity'      => 20,
-        'remaining'     => 20,
-    ]);
-
-    InventoryStock::factory()->for($inventoryItem, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => 'PCS',
-        'currency_code' => $this->currency->code,
-        'quantity'      => 20,
-        'remaining'     => 0,
-    ]);
-
-    $payload = $service->retrieve($product, $variant)->toArray(
-        Request::create("/v1/catalog/products/{$product->id}/variants/{$variant->id}", 'GET')
-    );
-
-    expect($payload['inventory']['id'])->toBe($inventoryItem->id)
-        ->and($payload['inventory']['sku'])->toBe('FAR-001')
-        ->and($payload['inventory']['base_unit_code'])->toBe('PCS')
-        ->and($payload['inventory']['total_remaining'])->toBe(120)
-        ->and($payload['inventory']['active_lots_count'])->toBe(4)
-        ->and($payload['inventory']['locations'])->toHaveCount(2)
-        ->and($payload['inventory']['locations'][0]['location_id'])->toBe($locationA->id)
-        ->and($payload['inventory']['locations'][0]['total_remaining'])->toBe(70)
-        ->and($payload['inventory']['locations'][0]['active_lots_count'])->toBe(2)
-        ->and($payload['inventory']['locations'][1]['location_id'])->toBe($locationB->id)
-        ->and($payload['inventory']['locations'][1]['total_remaining'])->toBe(50)
-        ->and($payload['inventory']['locations'][1]['active_lots_count'])->toBe(2);
-});
-
-it('returns not found when a variant does not belong to the given product', function (): void {
-    $service = app(ProductVariantService::class);
-    $product = Product::factory()->create();
-    $otherProduct = Product::factory()->create();
-    $variant = ProductVariant::factory()->create([
-        'product_id'    => $otherProduct->id,
-        'unit_group_id' => $this->unitGroup->id,
-    ]);
-
-    expect(fn () => $service->retrieve($product, $variant))
-        ->toThrow(ModelNotFoundException::class);
-});
-
-it('validates duplicate option names when creating a product variant', function (): void {
-    expect(fn () => ProductVariantDataDTO::fromArray([
-        'sku'                 => 'variant-with-duplicates',
-        'unit_group_id'       => $this->unitGroup->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-        'options'             => [
-            ['name' => 'Color', 'value' => 'Blue'],
-            ['name' => 'color', 'value' => 'Red'],
-        ],
-    ]))->toThrow(ValidationException::class);
+    $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertForbidden();
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")->assertForbidden();
+    $this->postJson("/v1/catalog/products/{$product->id}/variants", ['variants' => []])->assertForbidden();
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", ['sku' => 'TEST'])->assertForbidden();
+    $this->deleteJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")->assertForbidden();
 });

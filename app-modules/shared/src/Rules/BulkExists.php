@@ -26,7 +26,8 @@ class BulkExists implements ValidationRule
         protected string $column = 'id',
         protected ?string $keyInArray = null,
         protected string $type = 'uuid',
-        protected bool $handleSoftDelete = false
+        protected bool $handleSoftDelete = false,
+        protected array $extraConditions = []
     ) {}
 
     /**
@@ -64,6 +65,10 @@ class BulkExists implements ValidationRule
 
         $query = DB::table($this->table)
             ->whereIn($this->column, $validIds->toArray());
+
+        foreach ($this->extraConditions as $col => $val) {
+            $query->where($col, $val);
+        }
 
         if ($this->handleSoftDelete) {
             $query->whereNull('deleted_at');

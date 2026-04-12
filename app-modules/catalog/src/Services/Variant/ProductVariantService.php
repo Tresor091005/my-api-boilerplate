@@ -36,6 +36,7 @@ class ProductVariantService implements TransactionalService
 
         $variantRows = $variantsData->map(fn (ProductVariantDataDTO $variantDto): array => [
             'id'                  => (string) Str::uuid7(),
+            'organization_id'     => $product->organization_id,
             'product_id'          => $product->id,
             'sku'                 => $variantDto->sku ?? SkuGenerator::generate($product->name),
             'unit_group_id'       => $variantDto->unit_group_id,

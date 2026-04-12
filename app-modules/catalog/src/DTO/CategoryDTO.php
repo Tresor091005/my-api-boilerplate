@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Lahatre\Shared\DTO\LahatreDTO;
 
 class CategoryDTO extends LahatreDTO
@@ -42,7 +43,11 @@ class CategoryDTO extends LahatreDTO
     {
         return [
             'name'      => ['required', 'string', 'max:100'],
-            'parent_id' => ['nullable', 'string', 'exists:catalog_categories,id'],
+            'parent_id' => [
+                'nullable',
+                'string',
+                Rule::exists('catalog_categories', 'id')->where('organization_id', getPermissionsTeamId()),
+            ],
             'is_active' => ['required', 'boolean'],
         ];
     }

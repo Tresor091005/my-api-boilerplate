@@ -22,7 +22,8 @@ class CategoryPolicy
      */
     public function retrieve(Authorizable $user, Category $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('categories.retrieve');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('categories.retrieve');
     }
 
     /**
@@ -38,7 +39,8 @@ class CategoryPolicy
      */
     public function update(Authorizable $user, Category $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('categories.update');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('categories.update');
     }
 
     /**
@@ -46,7 +48,8 @@ class CategoryPolicy
      */
     public function delete(Authorizable $user, Category $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('categories.delete');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('categories.delete');
     }
 
     /**

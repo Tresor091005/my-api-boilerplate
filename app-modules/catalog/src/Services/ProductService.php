@@ -25,7 +25,7 @@ class ProductService implements StandaloneService
 
     public function list(ProductFilterDTO $filters): ProductCollection
     {
-        $query = Product::query()->with($this->relations());
+        $query = Product::query()->where('organization_id', getPermissionsTeamId())->with($this->relations());
 
         // TODO category filter
 
@@ -63,14 +63,16 @@ class ProductService implements StandaloneService
         $product = new Product();
 
         $product->fill([
-            'name'        => $dto->name,
-            'description' => $dto->description,
-            'is_active'   => $dto->is_active,
+            'organization_id' => getPermissionsTeamId(),
+            'name'            => $dto->name,
+            'description'     => $dto->description,
+            'is_active'       => $dto->is_active,
         ]);
 
         $product->handle = HandleGenerator::generate(
             $dto->name,
-            $product->getTable()
+            $product->getTable(),
+            extra: ['organization_id' => $product->organization_id]
         );
 
         DB::transaction(function () use ($product, $dto): void {
@@ -106,8 +108,6 @@ class ProductService implements StandaloneService
     {
         DB::transaction(function () use ($product): void {
             $product->categories()->sync([]);
-
-            $product->optionValues()->delete();
 
             $variants = $product->variants()->get();
             foreach ($variants as $variant) {

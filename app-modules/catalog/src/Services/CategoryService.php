@@ -22,7 +22,7 @@ class CategoryService implements StandaloneService
 
     public function list(CategoryFilterDTO $filters): CategoryCollection
     {
-        $query = Category::query();
+        $query = Category::query()->where('organization_id', getPermissionsTeamId());
 
         if ($filters->handle) {
             $query->where('handle', 'like', "$filters->handle%");
@@ -58,14 +58,16 @@ class CategoryService implements StandaloneService
         $category = new Category();
 
         $category->fill([
-            'name'      => $dto->name,
-            'parent_id' => $dto->parent_id,
-            'is_active' => $dto->is_active,
+            'organization_id' => getPermissionsTeamId(),
+            'name'            => $dto->name,
+            'parent_id'       => $dto->parent_id,
+            'is_active'       => $dto->is_active,
         ]);
 
         $category->handle = HandleGenerator::generate(
             $dto->name,
-            $category->getTable()
+            $category->getTable(),
+            extra: ['organization_id' => $category->organization_id]
         );
 
         DB::transaction(fn () => $category->save());

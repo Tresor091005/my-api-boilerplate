@@ -26,7 +26,11 @@ class OptionValueService implements StandaloneService
 
     public function list(Option $option, OptionValueFilterDTO $filters): AnonymousResourceCollection
     {
-        $query = $option->values();
+        if ($option->organization_id !== getPermissionsTeamId()) {
+            throw (new ModelNotFoundException())->setModel(Option::class, [$option->id]);
+        }
+
+        $query = $option->values()->where('organization_id', getPermissionsTeamId());
 
         if ($filters->value) {
             $query->where('value', 'like', "$filters->value%");
@@ -39,7 +43,7 @@ class OptionValueService implements StandaloneService
 
     public function retrieve(Option $option, OptionValue $optionValue): OptionValueResource
     {
-        if ($optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 
@@ -48,6 +52,10 @@ class OptionValueService implements StandaloneService
 
     public function create(Option $option, OptionValueDTO $dto): AnonymousResourceCollection
     {
+        if ($option->organization_id !== getPermissionsTeamId()) {
+            throw (new ModelNotFoundException())->setModel(Option::class, [$option->id]);
+        }
+
         $optionValues = DB::transaction(
             fn (): Collection => $this->transactionalOptionService->createMissingValues($option, $dto->values ?? [])
         );
@@ -57,7 +65,7 @@ class OptionValueService implements StandaloneService
 
     public function update(Option $option, OptionValue $optionValue, OptionValueDTO $dto): OptionValueResource
     {
-        if ($optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 
@@ -72,7 +80,7 @@ class OptionValueService implements StandaloneService
 
     public function delete(Option $option, OptionValue $optionValue): void
     {
-        if ($optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 

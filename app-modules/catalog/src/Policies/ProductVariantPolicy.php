@@ -16,7 +16,8 @@ class ProductVariantPolicy
 
     public function retrieve(Authorizable $user, ProductVariant $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('product_variants.retrieve');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('product_variants.retrieve');
     }
 
     public function create(Authorizable $user): bool
@@ -26,12 +27,14 @@ class ProductVariantPolicy
 
     public function update(Authorizable $user, ProductVariant $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('product_variants.update');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('product_variants.update');
     }
 
     public function delete(Authorizable $user, ProductVariant $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('product_variants.delete');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('product_variants.delete');
     }
 
     public function restore(Authorizable $user, ProductVariant $model): bool

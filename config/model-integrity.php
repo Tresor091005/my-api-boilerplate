@@ -57,6 +57,20 @@ return [
         'inventory_transactions',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Global Uniqueness Exemptions
+    |--------------------------------------------------------------------------
+    |
+    | Define unique indexes that are allowed to be global (not scoped by organization_id)
+    | even if the table has an organization_id column.
+    | Format: 'table_name' => ['index_name1', 'index_name2']
+    |
+    */
+    'exempt_global_uniqueness' => [
+        // 'catalog_products' => ['catalog_products_handle_unique'],
+    ],
+
     'composite_pkey' => [
         'iam_model_has_permissions',
         'iam_model_has_roles',
@@ -75,7 +89,14 @@ return [
     */
     'custom_index_names' => [
         'catalog_prices' => [
-            'catalog_prices_currency_code_min_quantity_priceable_id_priceable_type_step_unique' => 'catalog_prices_unique_idx',
+            'catalog_prices_currency_code_min_quantity_organization_id_priceable_id_priceable_type_step_unique' => 'catalog_prices_unique_idx',
+        ],
+        'inventory_stocks' => [
+            'inventory_stocks_expiration_date_index'     => 'inventory_stocks_expiration_date_active_index',
+            'inventory_stocks_item_id_location_id_index' => [
+                'inventory_stocks_item_id_location_id_active_index',
+                'inventory_stocks_location_id_item_id_active_index',
+            ],
         ],
     ],
 

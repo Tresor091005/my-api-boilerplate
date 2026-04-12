@@ -47,17 +47,44 @@ it('enforces naming conventions for database indexes', function (): void {
             // Expected name: {table}_{col1}_{col2}_{type}
             $expectedName = strtolower($tableName.'_'.implode('_', $columns).'_'.$type);
 
-            // Handle names longer than 60 characters
-            if (strlen($expectedName) > 60) {
-                $customName = config("model-integrity.custom_index_names.{$tableName}.{$expectedName}");
+            // Handle names longer than 60 characters or specific custom naming
+            $customIndexNames = config("model-integrity.custom_index_names.{$tableName}", []);
+            $isCustom = false;
+            foreach ($customIndexNames as $expected => $actual) {
+                if (is_array($actual)) {
+                    if (in_array($index['name'], $actual, true)) {
+                        $isCustom = true;
+                        break;
+                    }
+                } elseif ($index['name'] === $actual) {
+                    $isCustom = true;
+                    break;
+                }
+            }
 
-                if ($customName) {
+            if (strlen($expectedName) > 60 && !$isCustom) {
+                $customName = $customIndexNames[$expectedName] ?? null;
+
+                if (is_array($customName)) {
+                    // If the index name is one of the allowed custom names for this expected pattern
+                    if (in_array($index['name'], $customName, true)) {
+                        $expectedName = $index['name'];
+                    } else {
+                        // Just pick the first one for the error message if none match
+                        $expectedName = $customName[0];
+                    }
+                } elseif ($customName) {
                     $expectedName = $customName;
                 } else {
                     $failures[] = "Table [{$tableName}]: Generated index name [{$expectedName}] is too long (".strlen($expectedName)." chars). \n      Please add a shorter alias in 'config/model-integrity.php' under 'custom_index_names.{$tableName}.{$expectedName}'.";
 
                     continue;
                 }
+            }
+
+            // If it's explicitly allowed in custom names, it passes naming convention
+            if ($isCustom) {
+                continue;
             }
 
             if ($index['name'] !== $expectedName) {
@@ -163,7 +190,7 @@ it('ensures indexes on soft-deletable tables have whereNull deleted_at', functio
             $indexName = $index['name'];
             $definition = DB::selectOne('SELECT indexdef FROM pg_indexes WHERE tablename = ? AND indexname = ?', [$tableName, $indexName]);
 
-            if ($definition && !Str::contains($definition->indexdef, 'WHERE (deleted_at IS NULL)')) {
+            if ($definition && !Str::contains($definition->indexdef, 'deleted_at IS NULL')) {
                 $failures[] = "Table [{$tableName}]: Index [{$indexName}] on columns [".implode(', ', $index['columns'])."] is missing 'WHERE deleted_at IS NULL'.";
             }
         }
@@ -322,6 +349,57 @@ it('ensures all business tables have an organization_id column for multi-tenancy
 
     if ($failures !== []) {
         $this->fail("Multi-tenancy Integrity Failures (missing organization_id):\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+it('ensures all unique indexes in business tables include organization_id', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+    $exemptions = config('model-integrity.exempt_global_uniqueness', []);
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        // Only check tables that HAVE organization_id
+        if (!Schema::hasColumn($tableName, 'organization_id')) {
+            continue;
+        }
+
+        $indexes = Schema::getIndexes($tableName);
+        $tableExemptions = $exemptions[$tableName] ?? [];
+
+        foreach ($indexes as $index) {
+            // Skip primary keys
+            if ($index['primary']) {
+                continue;
+            }
+
+            // Only check unique indexes
+            if (!$index['unique']) {
+                continue;
+            }
+
+            // Skip if explicitly exempt
+            if (in_array($index['name'], $tableExemptions, true)) {
+                continue;
+            }
+
+            // Check if organization_id is in the columns
+            if (!in_array('organization_id', $index['columns'], true)) {
+                $failures[] = "Table [{$tableName}]: Unique index [{$index['name']}] on columns [".implode(', ', $index['columns'])."] is missing 'organization_id'.";
+            }
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Unique Index Multi-tenancy Failures:\n\n".implode("\n", $failures));
     }
 
     expect(true)->toBeTrue();

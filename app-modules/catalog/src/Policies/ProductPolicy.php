@@ -22,7 +22,8 @@ class ProductPolicy
      */
     public function retrieve(Authorizable $user, Product $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('products.retrieve');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('products.retrieve');
     }
 
     /**
@@ -38,7 +39,8 @@ class ProductPolicy
      */
     public function update(Authorizable $user, Product $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('products.update');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('products.update');
     }
 
     /**
@@ -46,7 +48,8 @@ class ProductPolicy
      */
     public function delete(Authorizable $user, Product $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('products.delete');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('products.delete');
     }
 
     /**

@@ -38,7 +38,7 @@ return new class() extends Migration
             $table->foreignUuid('role_id')->index()->constrained('iam_roles')->restrictOnDelete();
             $table->timestamps();
 
-            $table->unique(['member_id', 'role_id']);
+            $table->unique(['organization_id', 'member_id', 'role_id'], 'iam_member_roles_member_id_organization_id_role_id_unique');
         });
     }
 

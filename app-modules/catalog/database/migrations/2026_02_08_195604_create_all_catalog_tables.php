@@ -19,10 +19,12 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->text('handle')->unique()->index();
+            $table->text('handle')->index();
             $table->text('name');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            $table->unique(['organization_id', 'handle'], 'catalog_categories_handle_organization_id_unique');
         });
 
         Schema::table('catalog_categories', function (Blueprint $table): void {
@@ -39,11 +41,13 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->text('handle')->unique()->index();
+            $table->text('handle')->index();
             $table->text('name');
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            $table->unique(['organization_id', 'handle'], 'catalog_products_handle_organization_id_unique');
         });
 
         Schema::create('catalog_options', function (Blueprint $table): void {
@@ -52,9 +56,10 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->text('code')->unique()->index();
             $table->text('name');
             $table->timestamps();
+
+            $table->unique(['organization_id', 'name'], 'catalog_options_name_organization_id_unique');
         });
 
         Schema::create('catalog_option_values', function (Blueprint $table): void {
@@ -67,10 +72,10 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_options')
                 ->onDelete('cascade');
-            $table->text('code')->index();
             $table->text('value');
             $table->timestamps();
-            $table->unique(['option_id', 'code']);
+
+            $table->unique(['organization_id', 'option_id', 'value'], 'catalog_option_values_option_id_organization_id_value_unique');
         });
 
         Schema::create('catalog_prices', function (Blueprint $table): void {
@@ -95,7 +100,7 @@ return new class() extends Migration
             $table->timestamps();
 
             $table->unique(
-                ['currency_code', 'min_quantity', 'priceable_id', 'priceable_type', 'step'],
+                ['organization_id', 'currency_code', 'min_quantity', 'priceable_id', 'priceable_type', 'step'],
                 'catalog_prices_unique_idx'
             );
         });
@@ -106,7 +111,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->text('handle')->unique()->index();
+            $table->text('handle')->index();
             $table->text('name');
             $table->string('unit_code')
                 ->nullable()
@@ -118,6 +123,8 @@ return new class() extends Migration
             $table->integer('step')->default(1);
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            $table->unique(['organization_id', 'handle'], 'catalog_bundles_handle_organization_id_unique');
         });
 
         Schema::create('catalog_bundle_items', function (Blueprint $table): void {
@@ -158,7 +165,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('catalog_products')
                 ->onDelete('cascade');
-            $table->text('sku')->unique()->index();
+            $table->text('sku')->index();
             $table->string('unit_code')
                 ->nullable()
                 ->index();
@@ -173,6 +180,8 @@ return new class() extends Migration
             $table->boolean('is_stockable')->default(true);
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            $table->unique(['organization_id', 'sku'], 'catalog_product_variants_organization_id_sku_unique');
         });
 
         Schema::create('catalog_variant_option_value', function (Blueprint $table): void {

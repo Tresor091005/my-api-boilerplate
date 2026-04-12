@@ -11,11 +11,11 @@ class ProductVariantAssertion
 {
     public function assertCanDelete(ProductVariant $variant): void
     {
-        $lastVariant = ProductVariant::where('product_id', $variant->product_id)
+        $otherVariantsExist = ProductVariant::where('product_id', $variant->product_id)
             ->where('id', '!=', $variant->id)
             ->exists();
 
-        if ($lastVariant) {
+        if (!$otherVariantsExist) {
             throw new ProductVariantIsLastException($variant);
         }
     }

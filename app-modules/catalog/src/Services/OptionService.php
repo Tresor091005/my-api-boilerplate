@@ -23,7 +23,7 @@ class OptionService implements StandaloneService
 
     public function list(OptionFilterDTO $filters): OptionCollection
     {
-        $query = Option::query();
+        $query = Option::query()->where('organization_id', getPermissionsTeamId());
 
         if ($filters->name) {
             $query->where('name', 'like', "$filters->name%");
@@ -48,7 +48,8 @@ class OptionService implements StandaloneService
         $option = new Option();
 
         $option->fill([
-            'name' => $dto->name,
+            'organization_id' => getPermissionsTeamId(),
+            'name'            => $dto->name,
         ]);
 
         DB::transaction(function () use ($option, $dto): void {

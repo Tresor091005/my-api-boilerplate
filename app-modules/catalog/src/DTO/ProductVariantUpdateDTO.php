@@ -60,7 +60,14 @@ class ProductVariantUpdateDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'sku'                 => ['nullable', 'string', 'max:255'],
+            'sku' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('catalog_product_variants', 'sku')
+                    ->where('organization_id', getPermissionsTeamId())
+                    ->ignore($this->modelId),
+            ],
             'unit_group_id'       => ['nullable', 'uuid', Rule::exists('master_unit_groups', 'id')],
             'should_manage_stock' => ['nullable', 'boolean'],
             'is_active'           => ['nullable', 'boolean'],

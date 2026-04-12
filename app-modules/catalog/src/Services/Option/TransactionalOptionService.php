@@ -44,11 +44,12 @@ class TransactionalOptionService implements TransactionalService
 
         OptionValue::insert(
             $missingValues->map(fn (string $value): array => [
-                'id'         => (string) Str::uuid7(),
-                'option_id'  => $option->id,
-                'value'      => $value,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'id'              => (string) Str::uuid7(),
+                'organization_id' => $option->organization_id,
+                'option_id'       => $option->id,
+                'value'           => $value,
+                'created_at'      => $now,
+                'updated_at'      => $now,
             ])->all()
         );
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\DTO;
 
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\DTO\LahatreDTO;
 
@@ -56,7 +57,13 @@ class ProductVariantDataDTO extends LahatreDTO
     protected function rules(): array
     {
         return [
-            'sku'                 => ['nullable', 'string', 'max:255'],
+            'sku' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('catalog_product_variants', 'sku')
+                    ->where('organization_id', getPermissionsTeamId()),
+            ],
             'unit_group_id'       => ['required', 'uuid'],
             'should_manage_stock' => ['boolean'],
             'is_active'           => ['boolean'],

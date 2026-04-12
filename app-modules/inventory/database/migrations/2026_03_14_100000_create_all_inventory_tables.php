@@ -30,7 +30,7 @@ return new class() extends Migration
             $table->uuid('itemable_id');
             $table->string('base_unit_code');
             $table->boolean('is_active')->default(true);
-            $table->string('sku')->nullable()->unique();
+            $table->string('sku')->nullable()->unique(); // TODO organization_scope
             $table->string('deduction_strategy')->nullable();
             $table->timestamps();
             $table->softDeletes();

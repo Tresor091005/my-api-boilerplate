@@ -16,7 +16,8 @@ class OptionPolicy
 
     public function retrieve(Authorizable $user, Option $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('options.retrieve');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('options.retrieve');
     }
 
     public function create(Authorizable $user): bool
@@ -26,12 +27,14 @@ class OptionPolicy
 
     public function update(Authorizable $user, Option $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('options.update');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('options.update');
     }
 
     public function delete(Authorizable $user, Option $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('options.delete');
+        return $model->organization_id === getPermissionsTeamId()
+            && authContext()->memberRole()->hasPermissionTo('options.delete');
     }
 
     public function restore(Authorizable $user, Option $model): bool

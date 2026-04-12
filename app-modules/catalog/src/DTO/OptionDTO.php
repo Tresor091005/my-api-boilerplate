@@ -50,7 +50,8 @@ class OptionDTO extends LahatreDTO
 
     protected function rules(): array
     {
-        $uniqueName = Rule::unique('catalog_options', 'name');
+        $uniqueName = Rule::unique('catalog_options', 'name')
+            ->where('organization_id', getPermissionsTeamId());
 
         if ($this->modelId !== null) {
             $uniqueName->ignore($this->modelId);
