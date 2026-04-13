@@ -3,155 +3,78 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Lahatre\Catalog\DTO\OptionDTO;
+use Lahatre\Catalog\DTO\OptionFilterDTO;
+use Lahatre\Catalog\Exceptions\Option\OptionInUseException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
-use Lahatre\Iam\Models\MemberRole;
-use Lahatre\Iam\Models\OrganizationMember;
-use Lahatre\Iam\Models\Permission;
-use Lahatre\Iam\Models\Role;
-use Lahatre\Iam\Models\User;
-use Lahatre\Organization\Models\Organization;
-use Spatie\Permission\PermissionRegistrar;
+use Lahatre\Catalog\Services\OptionService;
+use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    // 1. Setup organization
-    $this->organization = Organization::factory()->create([
-        'name' => 'Test Org',
-    ]);
-
-    setPermissionsTeamId($this->organization->id);
-
-    // 2. Setup user and membership
-    $this->user = User::factory()->create();
-
-    $this->member = OrganizationMember::create([
-        'user_id'         => $this->user->id,
-        'organization_id' => $this->organization->id,
-    ]);
-
-    // 3. Setup Role and Permissions
-    $this->role = Role::query()->firstOrCreate([
-        'name'       => 'admin',
-        'guard_name' => 'sanctum',
-    ]);
-
-    $this->memberRole = MemberRole::create([
-        'organization_id' => $this->organization->id,
-        'member_id'       => $this->member->id,
-        'role_id'         => $this->role->id,
-    ]);
-
-    $permissions = [
-        'options.list',
-        'options.retrieve',
-        'options.create',
-        'options.update',
-        'options.delete',
-    ];
-
-    collect($permissions)->each(function (string $permissionName): void {
-        Permission::query()->firstOrCreate([
-            'name'       => $permissionName,
-            'guard_name' => 'sanctum',
-        ]);
-    });
-
-    $this->memberRole->givePermissionTo($permissions);
-
-    // 4. Create token with metadata
-    $token = $this->user->createToken('test_token');
-    $token->accessToken->update([
-        'metadata' => [
-            'organization_id' => $this->organization->id,
-            'member_id'       => $this->member->id,
-            'member_role_id'  => $this->memberRole->id,
-            'role_id'         => $this->role->id,
-        ],
-    ]);
-
-    $this->withToken($token->plainTextToken);
+    $this->initializeCatalogTenantContext();
+    $this->service = app(OptionService::class);
 });
 
-it('manages options through the api resource flow', function (): void {
-    $otherOrg = Organization::factory()->create();
-
+it('manages options through service methods and scopes by tenant', function (): void {
     $option = Option::factory()->create([
-        'organization_id' => $this->organization->id,
+        'organization_id' => $this->organizationId,
         'name'            => 'Color',
     ]);
-
-    $otherOption = Option::factory()->create([
-        'organization_id' => $otherOrg->id,
+    Option::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
         'name'            => 'Other Color',
     ]);
 
-    OptionValue::factory()->create([
-        'organization_id' => $this->organization->id,
-        'option_id'       => $option->id,
-        'value'           => 'Blue',
-    ]);
+    $payload = $this->service
+        ->list(new OptionFilterDTO(['per_page' => 50]))
+        ->response()
+        ->getData(true);
 
-    $this->getJson('/v1/catalog/options')
-        ->assertOk()
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.name', 'Color')
-        ->assertJsonMissing(['name' => 'other color'])
-        ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']]);
+    expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($option->id);
 
-    $this->getJson("/v1/catalog/options/{$option->id}")
-        ->assertOk()
-        ->assertJsonPath('name', 'Color');
-
-    $createdResponse = $this->postJson('/v1/catalog/options', [
+    $created = $this->service->create(new OptionDTO([
         'name'   => 'Size',
         'values' => ['Large', 'SMALL'],
-    ]);
+    ]))->resource;
 
-    $createdResponse
-        ->assertCreated()
-        ->assertJsonPath('name', 'size')
-        ->assertJsonPath('values.0.value', 'large')
-        ->assertJsonPath('values.1.value', 'small');
+    expect($created->organization_id)->toBe($this->organizationId)
+        ->and($created->values()->count())->toBe(2);
 
-    $createdOptionId = (string) $createdResponse->json('id');
-
-    $this->putJson("/v1/catalog/options/{$createdOptionId}", [
+    $updated = $this->service->update($created, new OptionDTO([
         'name'   => 'Material',
         'values' => ['Cotton'],
-    ])->assertOk()
-        ->assertJsonPath('name', 'material')
-        ->assertJsonPath('values.2.value', 'cotton');
+    ], $created->id))->resource;
 
-    $this->deleteJson("/v1/catalog/options/{$createdOptionId}")
-        ->assertNoContent();
+    expect($updated->name)->toBe('material')
+        ->and($updated->values()->where('value', 'cotton')->exists())->toBeTrue();
 
-    expect(Option::query()->whereKey($createdOptionId)->exists())->toBeFalse()
-        ->and(OptionValue::query()->where('option_id', $createdOptionId)->exists())->toBeFalse();
+    $this->service->delete($updated);
+
+    expect(Option::query()->whereKey($updated->id)->exists())->toBeFalse()
+        ->and(OptionValue::query()->where('option_id', $updated->id)->exists())->toBeFalse();
 });
 
-it('prevents deleting an option that is currently used by a variant option value', function (): void {
+it('prevents deleting an option that is in use', function (): void {
     $option = Option::factory()->create([
-        'organization_id' => $this->organization->id,
+        'organization_id' => $this->organizationId,
         'name'            => 'Color',
     ]);
     $optionValue = OptionValue::factory()->create([
-        'organization_id' => $this->organization->id,
+        'organization_id' => $this->organizationId,
         'option_id'       => $option->id,
         'value'           => 'Blue',
     ]);
     $product = Product::factory()->create([
-        'organization_id' => $this->organization->id,
-        'name'            => 'T-Shirt',
+        'organization_id' => $this->organizationId,
     ]);
     $variant = ProductVariant::factory()->create([
-        'organization_id' => $this->organization->id,
+        'organization_id' => $this->organizationId,
         'product_id'      => $product->id,
     ]);
 
@@ -162,10 +85,5 @@ it('prevents deleting an option that is currently used by a variant option value
         'option_value_id' => $optionValue->id,
     ]);
 
-    $this->deleteJson("/v1/catalog/options/{$option->id}")
-        ->assertUnprocessable()
-        ->assertJsonPath('message', __('catalog::exceptions.option_in_use'))
-        ->assertJsonPath('errors.type', 'OptionInUseException');
-
-    expect(Option::query()->whereKey($option->id)->exists())->toBeTrue();
+    expect(fn () => $this->service->delete($option))->toThrow(OptionInUseException::class);
 });

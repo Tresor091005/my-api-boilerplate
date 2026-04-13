@@ -1,0 +1,278 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Lahatre\Catalog\Models\Category;
+use Lahatre\Catalog\Models\Option;
+use Lahatre\Catalog\Models\OptionValue;
+use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Iam\Models\MemberRole;
+use Lahatre\Iam\Models\OrganizationMember;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
+use Lahatre\Iam\Models\User;
+use Lahatre\Master\Models\Unit;
+use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
+use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Organization\Models\Organization;
+use Spatie\Permission\PermissionRegistrar;
+
+uses(DatabaseTransactions::class);
+
+beforeEach(function (): void {
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $this->organization = Organization::factory()->create([
+        'name' => 'Catalog Tenant A',
+    ]);
+    $this->otherOrganization = Organization::factory()->create([
+        'name' => 'Catalog Tenant B',
+    ]);
+
+    setPermissionsTeamId($this->organization->id);
+
+    $this->user = User::factory()->create();
+    $this->member = OrganizationMember::create([
+        'user_id'         => $this->user->id,
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->role = Role::query()->firstOrCreate([
+        'name'       => 'catalog-tenant-admin',
+        'guard_name' => 'sanctum',
+    ]);
+    $this->memberRole = MemberRole::create([
+        'organization_id' => $this->organization->id,
+        'member_id'       => $this->member->id,
+        'role_id'         => $this->role->id,
+    ]);
+
+    $permissions = [
+        'categories.list', 'categories.retrieve', 'categories.create', 'categories.update', 'categories.delete',
+        'options.list', 'options.retrieve', 'options.create', 'options.update', 'options.delete',
+        'option_values.list', 'option_values.retrieve', 'option_values.create', 'option_values.update', 'option_values.delete',
+        'products.list', 'products.retrieve', 'products.create', 'products.update', 'products.delete',
+        'product_variants.list', 'product_variants.retrieve', 'product_variants.create', 'product_variants.update', 'product_variants.delete',
+    ];
+
+    collect($permissions)->each(function (string $permissionName): void {
+        Permission::query()->firstOrCreate([
+            'name'       => $permissionName,
+            'guard_name' => 'sanctum',
+        ]);
+    });
+    $this->memberRole->givePermissionTo($permissions);
+
+    $token = $this->user->createToken('tenant-token');
+    $token->accessToken->update([
+        'metadata' => [
+            'organization_id' => $this->organization->id,
+            'member_id'       => $this->member->id,
+            'member_role_id'  => $this->memberRole->id,
+            'role_id'         => $this->role->id,
+        ],
+    ]);
+    $this->withToken($token->plainTextToken);
+});
+
+it('enforces tenancy matrix for categories', function (): void {
+    $category = Category::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Electronics',
+    ]);
+    $otherCategory = Category::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+        'name'            => 'Other Org Category',
+    ]);
+
+    $this->getJson('/v1/catalog/categories')
+        ->assertOk()
+        ->assertJsonFragment(['id' => $category->id])
+        ->assertJsonMissing(['id' => $otherCategory->id]);
+
+    $this->getJson("/v1/catalog/categories/{$category->id}")->assertOk();
+    $this->getJson("/v1/catalog/categories/{$otherCategory->id}")->assertForbidden();
+
+    $created = $this->postJson('/v1/catalog/categories', [
+        'name'      => 'Smartphones',
+        'is_active' => true,
+    ])->assertCreated();
+
+    $createdId = (string) $created->json('id');
+    expect(Category::query()->findOrFail($createdId)->organization_id)->toBe($this->organization->id);
+
+    $this->putJson("/v1/catalog/categories/{$category->id}", [
+        'name'      => 'Gadgets',
+        'is_active' => true,
+    ])->assertOk();
+    $this->putJson("/v1/catalog/categories/{$otherCategory->id}", [
+        'name'      => 'Hacked',
+        'is_active' => true,
+    ])->assertForbidden();
+
+    $this->deleteJson("/v1/catalog/categories/{$createdId}")->assertNoContent();
+    $this->deleteJson("/v1/catalog/categories/{$otherCategory->id}")->assertForbidden();
+});
+
+it('enforces tenancy matrix for products and variants', function (): void {
+    $unitGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    Unit::factory()->create([
+        'group_id'        => $unitGroup->id,
+        'ratio'           => 1,
+        'organization_id' => null,
+    ]);
+    app(UnitCache::class)->rewarmUnits();
+
+    $product = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'My Product',
+    ]);
+    $otherProduct = Product::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+        'name'            => 'Other Product',
+    ]);
+
+    $variant = ProductVariant::factory()->create([
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
+        'unit_group_id'   => $unitGroup->id,
+    ]);
+    app(InventoryInterface::class)->createItem($variant);
+    ProductVariant::factory()->create([
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
+        'unit_group_id'   => $unitGroup->id,
+    ]);
+    $otherVariant = ProductVariant::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+        'product_id'      => $otherProduct->id,
+        'unit_group_id'   => $unitGroup->id,
+    ]);
+
+    $this->getJson('/v1/catalog/products')
+        ->assertOk()
+        ->assertJsonFragment(['id' => $product->id])
+        ->assertJsonMissing(['id' => $otherProduct->id]);
+
+    $this->getJson("/v1/catalog/products/{$product->id}")->assertOk();
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}")->assertForbidden();
+
+    $createdProduct = $this->postJson('/v1/catalog/products', [
+        'name'      => 'Created Product',
+        'is_active' => true,
+        'variants'  => [[
+            'sku'                 => 'CREATED-001',
+            'unit_group_id'       => $unitGroup->id,
+            'should_manage_stock' => true,
+            'is_active'           => true,
+            'options'             => [['name' => 'color', 'value' => 'white']],
+        ]],
+    ])->assertCreated();
+
+    $createdProductId = (string) $createdProduct->json('id');
+    expect(Product::query()->findOrFail($createdProductId)->organization_id)->toBe($this->organization->id);
+
+    $this->putJson("/v1/catalog/products/{$product->id}", [
+        'name'      => 'Updated Product',
+        'is_active' => true,
+    ])->assertOk();
+    $this->putJson("/v1/catalog/products/{$otherProduct->id}", [
+        'name'      => 'Hacked',
+        'is_active' => true,
+    ])->assertForbidden();
+
+    $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertOk();
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")->assertNotFound();
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")->assertOk();
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
+
+    $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants", [
+        'variants' => [[
+            'sku'                 => 'CREATED-VAR-001',
+            'unit_group_id'       => $unitGroup->id,
+            'should_manage_stock' => true,
+            'is_active'           => true,
+            'options'             => [['name' => 'size', 'value' => 'm']],
+        ]],
+    ])->assertCreated();
+
+    $createdVariantId = (string) $createdVariant->json('0.id');
+    expect(ProductVariant::query()->findOrFail($createdVariantId)->organization_id)->toBe($this->organization->id);
+
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", [
+        'sku' => 'UPDATED-VAR-SKU',
+    ])->assertOk();
+    $this->patchJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}", [
+        'sku' => 'HACKED',
+    ])->assertForbidden();
+
+    $this->deleteJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")->assertNoContent();
+    $this->deleteJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
+    $this->deleteJson("/v1/catalog/products/{$createdProductId}")->assertNoContent();
+    $this->deleteJson("/v1/catalog/products/{$otherProduct->id}")->assertForbidden();
+});
+
+it('enforces tenancy matrix for options and option values', function (): void {
+    $option = Option::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Color',
+    ]);
+    $otherOption = Option::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+        'name'            => 'Other Color',
+    ]);
+    $value = OptionValue::factory()->create([
+        'organization_id' => $this->organization->id,
+        'option_id'       => $option->id,
+        'value'           => 'Blue',
+    ]);
+    $otherValue = OptionValue::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+        'option_id'       => $otherOption->id,
+        'value'           => 'Red',
+    ]);
+
+    $this->getJson('/v1/catalog/options')
+        ->assertOk()
+        ->assertJsonFragment(['id' => $option->id])
+        ->assertJsonMissing(['id' => $otherOption->id]);
+
+    $this->getJson("/v1/catalog/options/{$option->id}")->assertOk();
+
+    $createdOption = $this->postJson('/v1/catalog/options', [
+        'name'   => 'Size',
+        'values' => ['Large'],
+    ])->assertCreated();
+    $createdOptionId = (string) $createdOption->json('id');
+    expect(Option::query()->findOrFail($createdOptionId)->organization_id)->toBe($this->organization->id);
+
+    $this->putJson("/v1/catalog/options/{$createdOptionId}", [
+        'name'   => 'Material',
+        'values' => ['Cotton'],
+    ])->assertOk();
+    $this->deleteJson("/v1/catalog/options/{$createdOptionId}")->assertNoContent();
+
+    $this->getJson("/v1/catalog/options/{$option->id}/values")->assertOk();
+    $this->getJson("/v1/catalog/options/{$otherOption->id}/values")->assertNotFound();
+    $this->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertOk();
+    $this->getJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
+
+    $createdValue = $this->postJson("/v1/catalog/options/{$option->id}/values", [
+        'values' => ['Yellow'],
+    ])->assertCreated();
+    $createdValueId = (string) $createdValue->json('0.id');
+    expect(OptionValue::query()->findOrFail($createdValueId)->organization_id)->toBe($this->organization->id);
+
+    $this->putJson("/v1/catalog/options/{$option->id}/values/{$value->id}", [
+        'value' => 'Cyan',
+    ])->assertOk();
+    $this->putJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}", [
+        'value' => 'Hacked',
+    ])->assertForbidden();
+
+    $this->deleteJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNoContent();
+    $this->deleteJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
+});

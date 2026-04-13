@@ -1,63 +1,72 @@
 ---
 name: test-generator
-description: Standard de création de tests Pest 4. Définit l'anatomie d'un Feature Test (DTO, Assertions, Service, Réponse) et les standards de mocking et datasets pour les modules Laravel. Utiliser ce skill lors de la création de nouveaux tests ou de la modification de tests existants.
+description: Standard de création de tests Pest 4. Définit l'anatomie d'un Feature Test (DTO, Assertions, Service, Resource) et les standards de découpage modulaire (module local vs intégration).
 ---
 
 # Test Generator & Quality Manifesto
 
-Ce skill définit l'anatomie et les standards de qualité pour les tests automatisés (Pest 4) au sein des modules.
+Ce skill définit les standards de qualité pour les tests Pest 4, avec priorité au découpage modulaire propre.
 
 ## 🚨 Règle d'Or : Couverture par l'Intention
-Un test ne doit pas seulement vérifier que le code "marche", il doit documenter une **intention métier**. Tout changement de comportement doit être précédé ou accompagné d'un test.
+Un test doit documenter une intention métier claire.  
+Tout changement de comportement doit être précédé ou accompagné d'un test.
+
+## 🧩 Découpage des Tests (Architecture Modulaire)
+
+Pour respecter `ModularDependencyTest`, séparer les responsabilités de test:
+
+1. **Tests module-locaux (`app-modules/<module>/tests`)**
+   - Cible: Services, DTO, Assertions métier, Persistance.
+   - Dépendances: uniquement celles autorisées par la matrice modulaire.
+   - Éviter le bootstrap IAM complet (`User`, `Role`, `Permission`, `Organization`) si le module ne dépend pas de ces modules.
+
+2. **Tests d’intégration cross-module (`tests/Feature/Integration/*`)**
+   - Cible: authorization HTTP réelle (Policies/Gates), middleware auth, permissions.
+   - Les dépendances IAM/Organization sont acceptées ici, car le scope est application-wide.
+
+3. **Règle pratique**
+   - Si le test répond à “qui a le droit ?” => intégration.
+   - Si le test répond à “que fait le métier ?” => module local.
+   - Ne pas mélanger les deux objectifs dans le même fichier.
+
+4. **Contrainte FK sans dépendance de namespace**
+   - Si un module référence une table externe via FK (ex: `organization_id`), créer les lignes minimales via `DB::table(...)` plutôt que d'importer les modèles du module externe.
 
 ## 🛡️ Isolation de l'Environnement (Stability)
 
-Pour garantir que les tests sont rapides et indépendants des services externes (Redis, Postgres), appliquez ces règles dans le `beforeEach` :
+Dans `beforeEach`:
 
-1.  **Désactivation du Rate Limiter** : Empêche les erreurs de connexion Redis (getaddrinfo).
-    ```php
-    RateLimiter::for('api', fn () => Limit::none());
-    ```
-2.  **Contexte IAM (Permissions & Team)** : Obligatoire si le module utilise des Policies ou `setPermissionsTeamId`.
-    ```php
-    setPermissionsTeamId(getDefaultTeamId());
-    // Créer les permissions nécessaires si test de sécurité réel
-    Permission::create(['name' => 'module.action', 'guard_name' => 'sanctum']);
-    ```
+1. **Contexte Team**
+```php
+setPermissionsTeamId($tenantId);
+```
 
-## 🧬 Anatomie d'un Feature Test (Les 4 Piliers)
+2. **Rate Limiter (si endpoints API testés)**
+```php
+RateLimiter::for('api', fn () => Limit::none());
+```
 
-Chaque action majeure (souvent un endpoint API) doit être testée selon ces 4 axes :
+## 🧬 Anatomie d'un Test Module-Local
 
-### 1. Validation (DTO)
-- **Objectif** : Vérifier que les données entrantes sont correctement filtrées et typées.
-- **Action** : Envoyer des payloads invalides (manquants, mauvais format, hors limites).
-- **Attente** : `422 Unprocessable Entity` avec les clés d'erreurs précises.
-- **Outil** : Utiliser les **Datasets Pest** pour tester plusieurs cas de validation en une seule fonction.
+### 1. Validation DTO
+- Construire le DTO avec payload invalide.
+- Attendre `ValidationException`.
 
-### 2. Assertions & Exceptions Métier
-- **Objectif** : Vérifier que les règles métier bloquent les actions illégitimes.
-- **Action** : Simuler un état de base de données qui devrait faire échouer l'action (ex: doubler un code unique, supprimer une entité liée).
-- **Attente** : L'exception attendue est levée (souvent `403 Forbidden` ou `422` selon le cas).
+### 2. Assertions Métier
+- Simuler les états invalides.
+- Vérifier l’exception métier attendue.
 
 ### 3. Logique Service & Persistance
-- **Objectif** : Vérifier que le Service transforme correctement l'état du système.
-- **Action** : Appeler l'action avec un payload valide.
-- **Attente** : 
-    - Vérifier la présence en base de données (`assertDatabaseHas`).
-    - Vérifier les relations créées/mises à jour.
-    - Vérifier les événements déclenchés (si applicable).
+- Appeler le service avec un payload valide.
+- Vérifier DB (`assertDatabaseHas`) et relations.
 
-### 4. Format de Réponse (Resource)
-- **Objectif** : Garantir la stabilité du contrat d'API.
-- **Action** : Analyser le JSON de retour.
-- **Attente** : `assertJsonStructure` ou `assertJsonPath` pour vérifier que les champs requis et les transformations (ex: dates, enums) sont corrects.
-
----
+### 4. Contrat de Sortie
+- Vérifier `resource` ou `collection` (`->response()->getData(true)`).
+- Vérifier les clés métier critiques.
 
 ## 🛠 Standards Pest & Structure
 
-### Configuration du Fichier
+### Configuration type (service-first)
 ```php
 <?php
 
@@ -65,51 +74,41 @@ declare(strict_types=1);
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Cache\RateLimiting\Limit;
-use function Pest\Laravel\{postJson, getJson, patchJson, deleteJson, actingAs, assertDatabaseHas};
+use Illuminate\Validation\ValidationException;
 
 uses(TestCase::class, RefreshDatabase::class);
 ```
 
-### Organisation (Describe/It)
-- **`describe()`** : Grouper les tests par endpoint ou action (ex: `describe('POST /v1/catalog/units/sync', ...)`).
-- **`it()`** : Nommer les tests par leur comportement attendu (ex: `it('validates required fields', ...)`).
-- **Prière de ne pas utiliser `test()`**, préférer `it()` pour la lisibilité ("it validates...").
-- **`beforeEach()`** : Initialiser l'utilisateur (`actingAs`), le Team ID et désactiver les Rate Limiters.
+### Organisation
+- Préférer `it()` à `test()`.
+- Nommer le test par comportement attendu.
+- Garder un `beforeEach` minimal et explicite.
 
-### Assertions Fluides
-Préférer les attentes fluides de Pest :
+### Assertions fluides
 ```php
 expect($unit->code)->toBe('KG')
     ->and($unit->name)->toBe('Kilogram');
 ```
 
----
+## 📊 Datasets (Validation DTO)
 
-## 📊 Utilisation des Datasets (Validation)
-
-Pour tester les règles de validation d'un DTO sans dupliquer le code :
 ```php
-it('fails validation', function (array $data, string $errorField) {
-    postJson(route('lahatre.catalog.units.sync'), $data)
-        ->assertJsonValidationErrors($errorField);
+it('fails validation', function (array $data) {
+    expect(fn () => new UnitSyncDTO($data))
+        ->toThrow(ValidationException::class);
 })->with([
-    'missing code' => [['name' => 'Test'], 'code'],
-    'invalid type' => [['code' => 123], 'code'],
+    'missing code' => [['name' => 'Test']],
+    'invalid type' => [['code' => 123]],
 ]);
 ```
 
----
-
 ## 🎭 Mocks & Fakes
-- **Events** : `Event::fake()` au début du test pour vérifier `Event::assertDispatched`.
-- **Notifications** : `Notification::fake()`.
-- **Storage** : `Storage::fake('public')`.
-- **Integrations** : Mocking des services externes (API tiers) via `Http::fake()` ou mock d'interface si nécessaire.
+- `Event::fake()`
+- `Notification::fake()`
+- `Storage::fake('public')`
+- `Http::fake()` pour intégrations externes
 
-## 🚀 Exécution des Tests (Fiabilité Maximale)
-Si l'environnement local n'est pas stable (DB/Redis), forcer SQLite et Array :
+## 🚀 Exécution Stable
 ```bash
 DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array SESSION_DRIVER=array php artisan test --compact --filter NameOfTest
 ```
