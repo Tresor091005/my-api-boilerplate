@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
-use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -15,11 +15,11 @@ use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Organization\Models\Organization;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
 beforeEach(function (): void {
+    $this->ensureInventoryTestTables();
     $this->inventoryService = app(InventoryService::class);
     $this->currency = Currency::factory()->create();
     $this->group = UnitGroup::factory()->create();
@@ -306,13 +306,19 @@ it('validates query filters on expiring stock endpoint', function (): void {
 });
 
 it('lists inventory items and locations with optional includes', function (): void {
+    $variant = $this->createTestMaterial();
     $item = InventoryItem::factory()->create([
+        'itemable_type'  => $variant->getMorphClass(),
+        'itemable_id'    => $variant->id,
+        'sku'            => $variant->sku,
         'base_unit_code' => $this->unit->code,
     ]);
-    $variant = ProductVariant::query()->findOrFail($item->itemable_id);
 
-    $location = InventoryLocation::factory()->create();
-    $org = Organization::query()->findOrFail($location->external_id);
+    $org = $this->createTestWarehouse();
+    $location = InventoryLocation::factory()->create([
+        'external_type' => $org->getMorphClass(),
+        'external_id'   => $org->id,
+    ]);
 
     $this->getJson("/v1/inventory/items/{$item->id}")
         ->assertOk()

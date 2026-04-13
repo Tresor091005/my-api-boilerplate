@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Catalog\Models\Product;
+use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -19,20 +19,14 @@ use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\InventoryService;
-use Lahatre\Inventory\Tests\Fixtures\TestInventoryAltVariant;
-use Lahatre\Inventory\Tests\Fixtures\TestInventoryCompany;
-use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Organization\Models\Organization;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
 beforeEach(function (): void {
-    // Setup Organization context
-    $this->organization = Organization::factory()->create();
-    setPermissionsTeamId($this->organization->id);
+    $this->ensureInventoryTestTables();
 
     $this->service = app(InventoryService::class);
     $this->currency = Currency::factory()->create();
@@ -41,22 +35,8 @@ beforeEach(function (): void {
 });
 
 it('createManyItems supports mixed morph types through the resolver', function (): void {
-    $variantA = TestInventoryVariant::query()->create([
-        'organization_id'     => $this->organization->id,
-        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
-        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-        'unit_group_id'       => $this->group->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-    ]);
-    $variantB = TestInventoryAltVariant::query()->create([
-        'organization_id'     => $this->organization->id,
-        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
-        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-        'unit_group_id'       => $this->group->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-    ]);
+    $variantA = $this->createTestMaterial();
+    $variantB = $this->createTestAltMaterial();
 
     $items = $this->service->createManyItems([$variantA, $variantB]);
 
@@ -68,8 +48,8 @@ it('createManyItems supports mixed morph types through the resolver', function (
 });
 
 it('createManyLocations skips already existing external_id/type pairs without failing', function (): void {
-    $companyA = TestInventoryCompany::query()->create(['name' => fake()->company()]);
-    $companyB = TestInventoryCompany::query()->create(['name' => fake()->company()]);
+    $companyA = $this->createTestWarehouse();
+    $companyB = $this->createTestWarehouse();
 
     InventoryLocation::factory()->create([
         'external_type' => $companyA->getMorphClass(),
@@ -86,14 +66,7 @@ it('createManyLocations skips already existing external_id/type pairs without fa
 });
 
 it('updateItem validates the deduction_strategy enum', function (): void {
-    $variant = TestInventoryVariant::query()->create([
-        'organization_id'     => $this->organization->id,
-        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
-        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-        'unit_group_id'       => $this->group->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-    ]);
+    $variant = $this->createTestMaterial();
 
     $this->service->createItem($variant);
 
@@ -108,15 +81,8 @@ it('updateItem validates the deduction_strategy enum', function (): void {
 });
 
 it('deleteItem and deleteLocation perform a soft delete and preserve stock history', function (): void {
-    $variant = TestInventoryVariant::query()->create([
-        'organization_id'     => $this->organization->id,
-        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
-        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-        'unit_group_id'       => $this->group->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-    ]);
-    $locationModel = TestInventoryCompany::query()->create(['name' => fake()->company()]);
+    $variant = $this->createTestMaterial();
+    $locationModel = $this->createTestWarehouse();
 
     $item = $this->service->createItem($variant);
     $location = $this->service->createLocation($locationModel);

@@ -7,7 +7,7 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Catalog\Models\Product; // TODO: violation
+use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -15,19 +15,14 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Services\InventoryService;
-use Lahatre\Inventory\Tests\Fixtures\TestInventoryCompany;
-use Lahatre\Inventory\Tests\Fixtures\TestInventoryVariant;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Organization\Models\Organization;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
 beforeEach(function (): void {
-    // Setup Organization context
-    $this->organization = Organization::factory()->create();
-    setPermissionsTeamId($this->organization->id);
+    $this->ensureInventoryTestTables();
 
     $this->service = app(InventoryService::class);
 
@@ -121,18 +116,8 @@ it('processes an IN transaction with unit conversion', function (): void {
 it('resolves inventory contracts passed in item_id and location_id before recording the transaction', function (): void {
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
-    $variant = TestInventoryVariant::query()->create([
-        'organization_id'     => $this->organization->id,
-        'product_id'          => Product::factory()->create(['organization_id' => $this->organization->id])->id,
-        'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-        'unit_group_id'       => $this->group->id,
-        'should_manage_stock' => true,
-        'is_active'           => true,
-    ]);
-
-    $company = TestInventoryCompany::query()->create([
-        'name' => fake()->company(),
-    ]);
+    $variant = $this->createTestMaterial();
+    $company = $this->createTestWarehouse();
 
     $payload = [
         'reference_type'   => 'purchase_order',
