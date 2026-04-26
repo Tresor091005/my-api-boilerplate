@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Tests\Concerns;
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Lahatre\Inventory\Tests\Fixtures\TestInventoryAltMaterial;
 use Lahatre\Inventory\Tests\Fixtures\TestInventoryMaterial;

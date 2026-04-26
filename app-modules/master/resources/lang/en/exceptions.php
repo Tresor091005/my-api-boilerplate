@@ -14,4 +14,10 @@ return [
     'unit_ratio_exists_in_group'     => 'The ratio :ratio already exists in the group :group.',
     'unit_active_limit'              => 'A unit group cannot have more than :limit active units at the same time.',
     'conversion_unit_group_mismatch' => 'Cannot convert :from to :to: different unit groups',
+
+    // Tags
+    'tag_not_found'                  => 'Some tags do not exist for type ":type": :names.',
+    'tag_link_not_found'             => 'Some tag links do not exist for type ":type": :names.',
+    'organization_resolution_failed' => 'Unable to resolve organization_id for tags operations.',
+    'model_missing_has_tags_trait'   => 'Model :model must use Lahatre\Master\Traits\HasTags to use tag operations.',
 ];

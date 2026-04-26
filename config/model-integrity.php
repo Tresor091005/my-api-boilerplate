@@ -48,6 +48,7 @@ return [
         'master_currencies',
         'catalog_product_categories',
         'catalog_variant_option_value',
+        'master_taggables',
         'inventory_items',
         'inventory_locations',
         'inventory_movements',

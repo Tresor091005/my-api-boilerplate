@@ -13,10 +13,10 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
+use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
-use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Organization\Models\Organization;
 use Spatie\Permission\PermissionRegistrar;
 
