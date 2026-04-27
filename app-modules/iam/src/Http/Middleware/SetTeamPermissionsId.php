@@ -19,7 +19,7 @@ class SetTeamPermissionsId
     public function handle(Request $request, Closure $next): Response
     {
         if (!authContext()->organization() || !authContext()->memberRole()) {
-            throw new AuthenticationException('Invalid session context.');
+            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
         setPermissionsTeamId(authContext()->organization()->getKey());

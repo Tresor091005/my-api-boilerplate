@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 return [
     'auth' => [
-        'invalid_login'         => 'Invalid login details',
-        'password_reset_failed' => 'Password reset failed',
+        'invalid_login'           => 'Invalid login details',
+        'password_reset_failed'   => 'Password reset failed',
+        'invalid_session_context' => 'Invalid session context.',
     ],
     'migration' => [
         'config_not_loaded'   => 'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.',

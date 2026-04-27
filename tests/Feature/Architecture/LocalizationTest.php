@@ -70,6 +70,7 @@ function getIgnoredPatterns(): Collection
         '/^<\?php/',                // Matches php open tag
         '/^--[\w-]+/',               // Matches CSS variables
         '/^[a-zA-Z0-9\s]+,\s*[a-zA-Z0-9\s]+/', // Matches font stacks or comma-separated lists
+        '/^(SUM|COUNT|AVG|MIN|MAX)\(.*\)(\sas\s\w+)?$/i', // SQL Aggregates
     ]);
 }
 

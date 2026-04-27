@@ -463,14 +463,19 @@ class InventoryService implements InventoryInterface
 
             if (bccomp($remainingToFill, '0', 10) > 0) {
                 throw new TransferDistributionException(
-                    "Transfer imbalance detected for item {$itemId}: Destination location {$movement->location_id} could not be fully filled from source stocks."
+                    __('inventory::exceptions.transfer.imbalance_destination', [
+                        'item'     => $itemId,
+                        'location' => $movement->location_id,
+                    ])
                 );
             }
         }
 
         if (isset($batches[$batchIndex])) {
             throw new TransferDistributionException(
-                "Transfer imbalance detected for item {$itemId}: Source stocks were not fully distributed to destinations."
+                __('inventory::exceptions.transfer.imbalance_source', [
+                    'item' => $itemId,
+                ])
             );
         }
     }

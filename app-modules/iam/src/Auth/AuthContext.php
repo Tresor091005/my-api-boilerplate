@@ -44,12 +44,12 @@ class AuthContext
         $member = $memberRole?->organizationMember;
 
         if (!$memberRole || !$member || $member->user_id !== $user->id) {
-            logger()->warning('Incoherent AuthContext metadata for user {user_id}', [
+            logger()->warning(__('iam::messages.auth.incoherent_auth_metadata', ['user_id' => $user->getAuthIdentifier()]), [
                 'user_id'  => $user->getAuthIdentifier(),
                 'metadata' => $metadata,
             ]);
 
-            throw new AuthenticationException('Invalid session context.');
+            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
         $this->organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);
