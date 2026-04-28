@@ -20,6 +20,7 @@ return new class() extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
+            $table->index('deleted_at');
         });
 
         Schema::create('iam_organization_members', function (Blueprint $table): void {
@@ -28,7 +29,7 @@ return new class() extends Migration
             $table->foreignUuid('organization_id')->index()->constrained('organization_organizations')->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['user_id', 'organization_id'], 'iam_organization_members_organization_id_user_id_unique');
+            $table->unique(['user_id', 'organization_id'], 'iam_organization_members_user_id_organization_id_unique');
         });
 
         Schema::create('iam_member_roles', function (Blueprint $table): void {
@@ -38,7 +39,7 @@ return new class() extends Migration
             $table->foreignUuid('role_id')->index()->constrained('iam_roles')->restrictOnDelete();
             $table->timestamps();
 
-            $table->unique(['organization_id', 'member_id', 'role_id'], 'iam_member_roles_member_id_organization_id_role_id_unique');
+            $table->unique(['organization_id', 'member_id', 'role_id'], 'iam_member_roles_organization_id_member_id_role_id_unique');
         });
     }
 

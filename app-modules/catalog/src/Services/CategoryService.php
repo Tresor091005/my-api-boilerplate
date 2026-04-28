@@ -94,9 +94,6 @@ class CategoryService implements StandaloneService
     {
         $this->categoryAssertion->assertCanDelete($category);
 
-        DB::transaction(function () use ($category): void {
-            $category->products()->sync([]);
-            $category->delete();
-        });
+        DB::transaction(fn () => $category->delete());
     }
 }

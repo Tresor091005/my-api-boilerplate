@@ -65,7 +65,7 @@ class ProductDTO extends LahatreDTO
             'categories'  => [
                 'nullable',
                 'array',
-                new BulkExists('catalog_categories', extraConditions: ['organization_id' => getPermissionsTeamId()]),
+                new BulkExists('catalog_categories', handleSoftDelete: true, extraConditions: ['organization_id' => getPermissionsTeamId()]),
             ],
             'variants' => [
                 'array',

@@ -51,7 +51,7 @@ return new class() extends Migration
 
         DB::statement('DROP INDEX IF EXISTS master_units_group_id_ratio_unique');
         DB::statement('CREATE UNIQUE INDEX master_units_group_id_ratio_unique ON master_units (group_id, ratio) WHERE organization_id IS NULL AND deleted_at IS NULL');
-        DB::statement('CREATE UNIQUE INDEX master_units_group_id_organization_id_ratio_unique ON master_units (group_id, ratio, organization_id) WHERE organization_id IS NOT NULL AND deleted_at IS NULL');
+        DB::statement('CREATE UNIQUE INDEX master_units_group_id_ratio_organization_id_unique ON master_units (group_id, ratio, organization_id) WHERE organization_id IS NOT NULL AND deleted_at IS NULL');
 
         // 4. Recreate foreign keys
         Schema::table('catalog_bundles', function (Blueprint $table) {
@@ -86,7 +86,7 @@ return new class() extends Migration
 
         // 2. Revert master_units
         Schema::table('master_units', function (Blueprint $table): void {
-            DB::statement('DROP INDEX IF EXISTS master_units_group_id_organization_id_ratio_unique');
+            DB::statement('DROP INDEX IF EXISTS master_units_group_id_ratio_organization_id_unique');
             DB::statement('DROP INDEX IF EXISTS master_units_group_id_ratio_unique');
             DB::statement('CREATE UNIQUE INDEX master_units_group_id_ratio_unique ON master_units (group_id, ratio) WHERE deleted_at IS NULL');
 

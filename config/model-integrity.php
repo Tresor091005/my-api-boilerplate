@@ -119,5 +119,6 @@ return [
         'inventory_items'          => ['sku'],
         'master_units'             => ['code'],
         'catalog_product_variants' => ['sku'],
+        'catalog_categories'       => ['handle'],
     ],
 ];

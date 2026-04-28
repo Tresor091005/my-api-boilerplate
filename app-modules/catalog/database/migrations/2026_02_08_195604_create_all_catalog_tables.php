@@ -24,7 +24,7 @@ return new class() extends Migration
             $table->boolean('is_active')->default(false);
             $table->timestamps();
 
-            $table->unique(['organization_id', 'handle'], 'catalog_categories_handle_organization_id_unique');
+            $table->unique(['organization_id', 'handle'], 'catalog_categories_organization_id_handle_unique');
         });
 
         Schema::table('catalog_categories', function (Blueprint $table): void {
@@ -47,7 +47,7 @@ return new class() extends Migration
             $table->boolean('is_active')->default(false);
             $table->timestamps();
 
-            $table->unique(['organization_id', 'handle'], 'catalog_products_handle_organization_id_unique');
+            $table->unique(['organization_id', 'handle'], 'catalog_products_organization_id_handle_unique');
         });
 
         Schema::create('catalog_options', function (Blueprint $table): void {
@@ -59,7 +59,7 @@ return new class() extends Migration
             $table->text('name');
             $table->timestamps();
 
-            $table->unique(['organization_id', 'name'], 'catalog_options_name_organization_id_unique');
+            $table->unique(['organization_id', 'name'], 'catalog_options_organization_id_name_unique');
         });
 
         Schema::create('catalog_option_values', function (Blueprint $table): void {
@@ -75,7 +75,7 @@ return new class() extends Migration
             $table->text('value');
             $table->timestamps();
 
-            $table->unique(['organization_id', 'option_id', 'value'], 'catalog_option_values_option_id_organization_id_value_unique');
+            $table->unique(['organization_id', 'option_id', 'value'], 'catalog_option_values_organization_id_option_id_value_unique');
         });
 
         Schema::create('catalog_prices', function (Blueprint $table): void {
@@ -84,7 +84,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->uuidMorphs('priceable', 'catalog_prices_priceable_id_priceable_type_index');
+            $table->uuidMorphs('priceable', 'catalog_prices_priceable_type_priceable_id_index');
             $table->string('currency_code', 3)->index();
             $table->foreign('currency_code')
                 ->references('code')
@@ -124,7 +124,7 @@ return new class() extends Migration
             $table->boolean('is_active')->default(false);
             $table->timestamps();
 
-            $table->unique(['organization_id', 'handle'], 'catalog_bundles_handle_organization_id_unique');
+            $table->unique(['organization_id', 'handle'], 'catalog_bundles_organization_id_handle_unique');
         });
 
         Schema::create('catalog_bundle_items', function (Blueprint $table): void {
@@ -133,7 +133,7 @@ return new class() extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->uuidMorphs('item', 'catalog_bundle_items_item_id_item_type_index');
+            $table->uuidMorphs('item', 'catalog_bundle_items_item_type_item_id_index');
             $table->foreignUuid('bundle_id')
                 ->index()
                 ->constrained('catalog_bundles')

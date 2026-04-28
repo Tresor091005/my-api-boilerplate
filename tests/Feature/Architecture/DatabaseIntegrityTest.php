@@ -34,15 +34,40 @@ it('enforces naming conventions for database indexes', function (): void {
 
             // 2. Handle Unique and Regular Indexes
             $type = $index['unique'] ? 'unique' : 'index';
-            $columns = $index['columns'];
+            $columns = DB::table('pg_index as i')
+                ->join('pg_class as t', 't.oid', '=', 'i.indrelid')
+                ->join('pg_class as idx', 'idx.oid', '=', 'i.indexrelid')
+                ->join(DB::raw('LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)'), DB::raw('true'), '=', DB::raw('true'))
+                ->join('pg_attribute as a', function ($join): void {
+                    $join->on('a.attrelid', '=', 't.oid')
+                        ->on('a.attnum', '=', 'k.attnum');
+                })
+                ->where('t.relname', $tableName)
+                ->where('idx.relname', $index['name'])
+                ->orderBy('k.ord')
+                ->pluck('a.attname')
+                ->toArray();
 
-            // Detect if it's a morph pair (e.g., taggable_id + taggable_type)
-            $isMorph = count($columns) === 2
-                && Str::endsWith($columns[0], ['_id', '_type'])
-                && Str::endsWith($columns[1], ['_id', '_type']);
+            if ($columns === []) {
+                $columns = $index['columns'];
+            }
 
-            // Alphabetical sort of columns for the name (Predictable)
-            sort($columns);
+            // Detect strict morph pair: same prefix + *_type and *_id.
+            $isMorph = false;
+            if (count($columns) === 2) {
+                [$first, $second] = $columns;
+
+                $firstIsType = Str::endsWith($first, '_type');
+                $secondIsType = Str::endsWith($second, '_type');
+                $firstIsId = Str::endsWith($first, '_id');
+                $secondIsId = Str::endsWith($second, '_id');
+
+                if (($firstIsType && $secondIsId) || ($firstIsId && $secondIsType)) {
+                    $firstPrefix = preg_replace('/_(id|type)$/', '', $first);
+                    $secondPrefix = preg_replace('/_(id|type)$/', '', $second);
+                    $isMorph = $firstPrefix === $secondPrefix;
+                }
+            }
 
             // Expected name: {table}_{col1}_{col2}_{type}
             $expectedName = strtolower($tableName.'_'.implode('_', $columns).'_'.$type);
@@ -180,6 +205,11 @@ it('ensures indexes on soft-deletable tables have whereNull deleted_at', functio
                 continue;
             }
 
+            // The single-column deleted_at index is intentionally global.
+            if ($index['columns'] === ['deleted_at']) {
+                continue;
+            }
+
             // Check if ANY column in the index is explicitly ignored
             $hasIgnoredColumn = array_intersect($index['columns'], $ignoredColumns) !== [];
             if ($hasIgnoredColumn) {
@@ -198,6 +228,50 @@ it('ensures indexes on soft-deletable tables have whereNull deleted_at', functio
 
     if ($failures !== []) {
         $this->fail("Soft Delete Index Failures (Indexes on SoftDelete tables should be partial):\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+it('ensures soft-deletable tables are indexed for deleted_at filtering', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        $columns = Schema::getColumnListing($tableName);
+        if (!in_array('deleted_at', $columns, true)) {
+            continue;
+        }
+
+        $indexes = Schema::getIndexes($tableName);
+        $hasDeletedAtColumnIndex = collect($indexes)->contains(
+            fn (array $index): bool => in_array('deleted_at', $index['columns'], true)
+        );
+
+        $hasPartialDeletedAtPredicate = collect($indexes)->contains(function (array $index) use ($tableName): bool {
+            if ($index['primary']) {
+                return false;
+            }
+
+            $definition = DB::selectOne('SELECT indexdef FROM pg_indexes WHERE tablename = ? AND indexname = ?', [$tableName, $index['name']]);
+
+            return $definition !== null && Str::contains($definition->indexdef, 'deleted_at IS NULL');
+        });
+
+        if (!$hasDeletedAtColumnIndex && !$hasPartialDeletedAtPredicate) {
+            $failures[] = "Table [{$tableName}] has soft deletes but neither a deleted_at index nor a partial index with 'WHERE deleted_at IS NULL'.";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Missing deleted_at filtering indexes on soft-deletable tables:\n\n".implode("\n", $failures));
     }
 
     expect(true)->toBeTrue();

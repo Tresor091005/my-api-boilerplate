@@ -75,7 +75,7 @@ return new class() extends Migration
             $table->jsonb('metadata')->nullable();
             $table->timestamps();
 
-            $table->index(['reference_type', 'reference_id'], 'inventory_transactions_reference_id_reference_type_index');
+            $table->index(['reference_type', 'reference_id'], 'inventory_transactions_reference_type_reference_id_index');
         });
 
         Schema::create('inventory_movements', function (Blueprint $table): void {

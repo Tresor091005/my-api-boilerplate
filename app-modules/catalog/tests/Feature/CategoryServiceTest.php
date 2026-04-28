@@ -51,7 +51,31 @@ it('manages categories through service methods and scopes by tenant', function (
     expect($updated->name)->toBe('Gadgets');
 
     $this->service->delete($created);
-    expect(Category::query()->whereKey($created->id)->exists())->toBeFalse();
+    expect(Category::query()->whereKey($created->id)->exists())->toBeFalse()
+        ->and(Category::withTrashed()->whereKey($created->id)->exists())->toBeTrue()
+        ->and(Category::withTrashed()->findOrFail($created->id)->deleted_at)->not->toBeNull();
+});
+
+it('rejects soft-deleted category ids in dto relations', function (): void {
+    $parent = Category::factory()->create([
+        'organization_id' => $this->organizationId,
+    ]);
+    $deletedCategory = Category::factory()->create([
+        'organization_id' => $this->organizationId,
+    ]);
+    $deletedCategory->delete();
+
+    expect(fn () => new CategoryDTO([
+        'name'      => 'Child category',
+        'parent_id' => $deletedCategory->id,
+        'is_active' => true,
+    ]))->toThrow(ValidationException::class);
+
+    expect(fn () => $this->service->create(new CategoryDTO([
+        'name'      => 'Valid child',
+        'parent_id' => $parent->id,
+        'is_active' => true,
+    ])))->not->toThrow(ValidationException::class);
 });
 
 it('validates category payload via dto', function (): void {

@@ -46,7 +46,9 @@ class CategoryDTO extends LahatreDTO
             'parent_id' => [
                 'nullable',
                 'string',
-                Rule::exists('catalog_categories', 'id')->where('organization_id', getPermissionsTeamId()),
+                Rule::exists('catalog_categories', 'id')
+                    ->where('organization_id', getPermissionsTeamId())
+                    ->whereNull('deleted_at'),
             ],
             'is_active' => ['required', 'boolean'],
         ];

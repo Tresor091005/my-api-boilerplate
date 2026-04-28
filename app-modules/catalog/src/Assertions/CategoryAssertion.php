@@ -18,7 +18,7 @@ class CategoryAssertion
      */
     public function assertCanDelete(Category $category): void
     {
-        if ($category->children()->exists()) {
+        if ($category->children()->whereNull('deleted_at')->exists()) {
             throw new CategoryHasChildrenException($category);
         }
     }

@@ -37,8 +37,8 @@ return new class() extends Migration
                 ->index()
                 ->constrained('master_tags')
                 ->onDelete('cascade');
-            $table->uuidMorphs('taggable', 'master_taggables_taggable_id_taggable_type_index');
-            $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'master_taggables_tag_id_taggable_id_taggable_type_unique');
+            $table->uuidMorphs('taggable', 'master_taggables_taggable_type_taggable_id_index');
+            $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'master_taggables_tag_id_taggable_type_taggable_id_unique');
         });
     }
 
