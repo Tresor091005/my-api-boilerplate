@@ -29,11 +29,11 @@ class OptionValueController
         return $this->optionValueService->list($option, $filters);
     }
 
-    public function show(Option $option, OptionValue $optionValue): JsonResponse
+    public function show(Option $option, OptionValue $value): JsonResponse
     {
-        Gate::authorize('retrieve', $optionValue);
+        Gate::authorize('retrieve', $value);
 
-        $response = $this->optionValueService->retrieve($option, $optionValue);
+        $response = $this->optionValueService->retrieve($option, $value);
 
         return response()->json($response);
     }
@@ -52,22 +52,22 @@ class OptionValueController
         return response()->json($response, 201);
     }
 
-    public function update(Request $request, Option $option, OptionValue $optionValue): JsonResponse
+    public function update(Request $request, Option $option, OptionValue $value): JsonResponse
     {
-        Gate::authorize('update', $optionValue);
+        Gate::authorize('update', $value);
 
-        $dto = OptionValueDTO::forUpdate($request, $optionValue);
+        $dto = OptionValueDTO::forUpdate($request, $value);
 
-        $response = $this->optionValueService->update($option, $optionValue, $dto);
+        $response = $this->optionValueService->update($option, $value, $dto);
 
         return response()->json($response);
     }
 
-    public function destroy(Option $option, OptionValue $optionValue): JsonResponse
+    public function destroy(Option $option, OptionValue $value): JsonResponse
     {
-        Gate::authorize('delete', $optionValue);
+        Gate::authorize('delete', $value);
 
-        $this->optionValueService->delete($option, $optionValue);
+        $this->optionValueService->delete($option, $value);
 
         return response()->json(null, 204);
     }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\OptionValueFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -40,6 +41,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class OptionValue extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_option_values';
 
@@ -56,6 +58,7 @@ class OptionValue extends Model
         'value'           => 'string',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function option(): BelongsTo

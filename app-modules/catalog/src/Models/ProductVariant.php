@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
@@ -58,6 +59,7 @@ class ProductVariant extends Model implements HasInventoryItem, ProvidesInventor
 {
     use InteractsWithInventoryItem;
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_product_variants';
 
@@ -80,6 +82,7 @@ class ProductVariant extends Model implements HasInventoryItem, ProvidesInventor
         'is_active'           => 'boolean',
         'created_at'          => 'immutable_datetime',
         'updated_at'          => 'immutable_datetime',
+        'deleted_at'          => 'immutable_datetime',
     ];
 
     public function getUnitGroupId(): string

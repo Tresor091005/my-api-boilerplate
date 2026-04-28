@@ -57,7 +57,10 @@ it('manages options through service methods and scopes by tenant', function (): 
     $this->service->delete($updated);
 
     expect(Option::query()->whereKey($updated->id)->exists())->toBeFalse()
-        ->and(OptionValue::query()->where('option_id', $updated->id)->exists())->toBeFalse();
+        ->and(Option::withTrashed()->whereKey($updated->id)->exists())->toBeTrue()
+        ->and(Option::withTrashed()->findOrFail($updated->id)->deleted_at)->not->toBeNull()
+        ->and(OptionValue::query()->where('option_id', $updated->id)->exists())->toBeFalse()
+        ->and(OptionValue::withTrashed()->where('option_id', $updated->id)->exists())->toBeTrue();
 });
 
 it('prevents deleting an option that is in use', function (): void {

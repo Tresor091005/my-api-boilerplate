@@ -107,8 +107,6 @@ class ProductService implements StandaloneService
     public function delete(Product $product): void
     {
         DB::transaction(function () use ($product): void {
-            $product->categories()->sync([]);
-
             $variants = $product->variants()->get();
             foreach ($variants as $variant) {
                 $this->productVariantService->delete($variant);

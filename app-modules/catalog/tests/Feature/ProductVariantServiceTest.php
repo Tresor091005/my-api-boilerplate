@@ -13,6 +13,7 @@ use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
 use Lahatre\Catalog\Exceptions\ProductVariant\ProductVariantIsLastException;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\ProductVariantService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Contracts\InventoryInterface;
@@ -94,6 +95,10 @@ it('manages product variants through service methods with tenant checks', functi
         ->where('product_id', $this->product->id)
         ->where('sku', 'NEW-VARIANT-SKU')
         ->firstOrFail();
+    $createdVariantPivotCount = VariantOptionValue::query()
+        ->where('product_id', $this->product->id)
+        ->where('variant_id', $createdVariant->id)
+        ->count();
 
     $updated = $this->service->update($this->product, $variant, new ProductVariantUpdateDTO([
         'sku' => 'UPDATED-SKU',
@@ -102,7 +107,11 @@ it('manages product variants through service methods with tenant checks', functi
     expect($updated->sku)->toBe('UPDATED-SKU');
 
     $this->service->delete($this->product, $createdVariant);
-    expect(ProductVariant::query()->whereKey($createdVariant->id)->exists())->toBeFalse();
+    expect(ProductVariant::query()->whereKey($createdVariant->id)->exists())->toBeFalse()
+        ->and(ProductVariant::withTrashed()->whereKey($createdVariant->id)->exists())->toBeTrue()
+        ->and(ProductVariant::withTrashed()->findOrFail($createdVariant->id)->deleted_at)->not->toBeNull()
+        ->and($createdVariantPivotCount)->toBeGreaterThan(0)
+        ->and(VariantOptionValue::query()->where('variant_id', $createdVariant->id)->exists())->toBeFalse();
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {

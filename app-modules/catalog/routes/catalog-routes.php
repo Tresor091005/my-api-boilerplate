@@ -28,7 +28,6 @@ Route::group([
             'products.variants' => ProductVariantController::class,
         ]);
 
-        Route::apiResource('options.values', OptionValueController::class)
-            ->parameters(['values' => 'optionValue']);
-    });
+        Route::apiResource('options.values', OptionValueController::class);
+    })->scopeBindings();
 });

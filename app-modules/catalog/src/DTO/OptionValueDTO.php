@@ -63,7 +63,10 @@ class OptionValueDTO extends LahatreDTO
         }
 
         $uniqueValue = Rule::unique('catalog_option_values', 'value')
-            ->where(fn ($query) => $query->where('option_id', $this->dtoData['option_id'] ?? null)->where('organization_id', getPermissionsTeamId()))
+            ->where(fn ($query) => $query
+                ->where('option_id', $this->dtoData['option_id'] ?? null)
+                ->where('organization_id', getPermissionsTeamId())
+                ->whereNull('deleted_at'))
             ->ignore($this->modelId);
 
         return [

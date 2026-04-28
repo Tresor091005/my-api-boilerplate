@@ -66,7 +66,9 @@ it('manages option values through service methods with tenant checks', function 
     expect($updated->value)->toBe('cyan');
 
     $this->service->delete($option, $created);
-    expect(OptionValue::query()->whereKey($created->id)->exists())->toBeFalse();
+    expect(OptionValue::query()->whereKey($created->id)->exists())->toBeFalse()
+        ->and(OptionValue::withTrashed()->whereKey($created->id)->exists())->toBeTrue()
+        ->and(OptionValue::withTrashed()->findOrFail($created->id)->deleted_at)->not->toBeNull();
 });
 
 it('prevents deleting an option value that is in use', function (): void {

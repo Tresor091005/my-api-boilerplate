@@ -43,7 +43,7 @@ class OptionValueService implements StandaloneService
 
     public function retrieve(Option $option, OptionValue $optionValue): OptionValueResource
     {
-        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 
@@ -65,7 +65,7 @@ class OptionValueService implements StandaloneService
 
     public function update(Option $option, OptionValue $optionValue, OptionValueDTO $dto): OptionValueResource
     {
-        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 
@@ -80,7 +80,7 @@ class OptionValueService implements StandaloneService
 
     public function delete(Option $option, OptionValue $optionValue): void
     {
-        if ($option->organization_id !== getPermissionsTeamId() || $optionValue->option_id !== $option->id) {
+        if ($option->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(OptionValue::class, [$optionValue->id]);
         }
 

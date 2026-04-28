@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -47,6 +48,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class Product extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_products';
 
@@ -67,6 +69,7 @@ class Product extends Model
         'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function categories(): BelongsToMany

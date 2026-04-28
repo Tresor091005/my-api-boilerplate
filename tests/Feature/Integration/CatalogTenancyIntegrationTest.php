@@ -114,6 +114,8 @@ it('enforces tenancy matrix for categories', function (): void {
     ])->assertForbidden();
 
     $this->deleteJson("/v1/catalog/categories/{$createdId}")->assertNoContent();
+    $this->getJson("/v1/catalog/categories/{$createdId}")->assertNotFound();
+    expect(Category::withTrashed()->whereKey($createdId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/categories/{$otherCategory->id}")->assertForbidden();
 });
 
@@ -210,8 +212,12 @@ it('enforces tenancy matrix for products and variants', function (): void {
     ])->assertForbidden();
 
     $this->deleteJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")->assertNoContent();
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")->assertNotFound();
+    expect(ProductVariant::withTrashed()->whereKey($createdVariantId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
     $this->deleteJson("/v1/catalog/products/{$createdProductId}")->assertNoContent();
+    $this->getJson("/v1/catalog/products/{$createdProductId}")->assertNotFound();
+    expect(Product::withTrashed()->whereKey($createdProductId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/products/{$otherProduct->id}")->assertForbidden();
 });
 
@@ -254,6 +260,8 @@ it('enforces tenancy matrix for options and option values', function (): void {
         'values' => ['Cotton'],
     ])->assertOk();
     $this->deleteJson("/v1/catalog/options/{$createdOptionId}")->assertNoContent();
+    $this->getJson("/v1/catalog/options/{$createdOptionId}")->assertNotFound();
+    expect(Option::withTrashed()->whereKey($createdOptionId)->exists())->toBeTrue();
 
     $this->getJson("/v1/catalog/options/{$option->id}/values")->assertOk();
     $this->getJson("/v1/catalog/options/{$otherOption->id}/values")->assertNotFound();
@@ -274,5 +282,7 @@ it('enforces tenancy matrix for options and option values', function (): void {
     ])->assertForbidden();
 
     $this->deleteJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNoContent();
+    $this->getJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNotFound();
+    expect(OptionValue::withTrashed()->whereKey($createdValueId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
 });

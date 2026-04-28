@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\DTO\ProductDTO;
 use Lahatre\Catalog\DTO\ProductFilterDTO;
+use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Services\ProductService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
@@ -76,9 +77,55 @@ it('manages products through service methods and scopes by tenant', function ():
     expect($updated->name)->toBe('iPhone 15 Pro Updated');
 
     $this->service->delete($created);
-    expect(Product::query()->whereKey($created->id)->exists())->toBeFalse();
+    expect(Product::query()->whereKey($created->id)->exists())->toBeFalse()
+        ->and(Product::withTrashed()->whereKey($created->id)->exists())->toBeTrue()
+        ->and(Product::withTrashed()->findOrFail($created->id)->deleted_at)->not->toBeNull();
 });
 
 it('validates product payload via dto', function (): void {
     expect(fn () => new ProductDTO([]))->toThrow(ValidationException::class);
+});
+
+it('rejects soft-deleted category ids in product dto', function (): void {
+    $activeCategory = Category::factory()->create([
+        'organization_id' => $this->organizationId,
+    ]);
+    $deletedCategory = Category::factory()->create([
+        'organization_id' => $this->organizationId,
+    ]);
+    $deletedCategory->delete();
+
+    expect(fn () => new ProductDTO([
+        'name'       => 'Product with deleted category',
+        'is_active'  => true,
+        'categories' => [$deletedCategory->id],
+        'variants'   => [
+            [
+                'sku'                 => 'PRD-DEL-CAT-01',
+                'unit_group_id'       => $this->unitGroup->id,
+                'should_manage_stock' => true,
+                'is_active'           => true,
+                'options'             => [
+                    ['name' => 'Color', 'value' => 'Blue'],
+                ],
+            ],
+        ],
+    ]))->toThrow(ValidationException::class);
+
+    expect(fn () => new ProductDTO([
+        'name'       => 'Product with active category',
+        'is_active'  => true,
+        'categories' => [$activeCategory->id],
+        'variants'   => [
+            [
+                'sku'                 => 'PRD-ACT-CAT-01',
+                'unit_group_id'       => $this->unitGroup->id,
+                'should_manage_stock' => true,
+                'is_active'           => true,
+                'options'             => [
+                    ['name' => 'Color', 'value' => 'Red'],
+                ],
+            ],
+        ],
+    ]))->not->toThrow(ValidationException::class);
 });

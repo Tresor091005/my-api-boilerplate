@@ -54,7 +54,7 @@ class ProductVariantService implements StandaloneService
 
     public function retrieve(Product $product, ProductVariant $variant): ProductVariantResource
     {
-        if ($product->organization_id !== getPermissionsTeamId() || $variant->product_id !== $product->id) {
+        if ($product->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variant->id]);
         }
 
@@ -78,7 +78,7 @@ class ProductVariantService implements StandaloneService
 
     public function update(Product $product, ProductVariant $variant, ProductVariantUpdateDTO $dto): ProductVariantResource
     {
-        if ($product->organization_id !== getPermissionsTeamId() || $variant->product_id !== $product->id) {
+        if ($product->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variant->id]);
         }
 
@@ -107,11 +107,7 @@ class ProductVariantService implements StandaloneService
 
     public function delete(Product $product, ProductVariant $variant): void
     {
-        if (
-            $product->organization_id !== getPermissionsTeamId() ||
-            $variant->organization_id !== getPermissionsTeamId() ||
-            $variant->product_id !== $product->id
-        ) {
+        if ($product->organization_id !== getPermissionsTeamId()) {
             throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variant->id]);
         }
 
