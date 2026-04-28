@@ -6,15 +6,16 @@ namespace {{ namespace }};
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use {{ namespacedModel }};
+use Lahatre\Shared\Policies\BasePolicy;
 
-class {{ class }}
+class {{ class }} extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.list');
+        return $this->can('{{ modelPluralSnake }}.list');
     }
 
     /**
@@ -22,7 +23,7 @@ class {{ class }}
      */
     public function retrieve(Authorizable $user, {{ model }} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.retrieve');
+        return $this->canOnModel('{{ modelPluralSnake }}.retrieve', $model);
     }
 
     /**
@@ -30,7 +31,7 @@ class {{ class }}
      */
     public function create(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.create');
+        return $this->can('{{ modelPluralSnake }}.create');
     }
 
     /**
@@ -38,7 +39,7 @@ class {{ class }}
      */
     public function update(Authorizable $user, {{ model }} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.update');
+        return $this->canOnModel('{{ modelPluralSnake }}.update', $model);
     }
 
     /**
@@ -46,7 +47,7 @@ class {{ class }}
      */
     public function delete(Authorizable $user, {{ model }} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{ modelPluralSnake }}.delete');
+        return $this->canOnModel('{{ modelPluralSnake }}.delete', $model);
     }
 
     /**

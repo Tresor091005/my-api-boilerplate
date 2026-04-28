@@ -6,15 +6,16 @@ namespace Lahatre\Master\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Lahatre\Master\Models\Currency;
+use Lahatre\Shared\Policies\BasePolicy;
 
-class CurrencyPolicy
+class CurrencyPolicy extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user)
     {
-        return authContext()->memberRole()->hasPermissionTo('currencies.list');
+        return $this->can('currencies.list');
     }
 
     /**

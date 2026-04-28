@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Lahatre\Master\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
+use Lahatre\Shared\Policies\BasePolicy;
 
-class UnitPolicy
+class UnitPolicy extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('units.list');
+        return $this->can('units.list');
     }
 
     /**
@@ -21,7 +22,6 @@ class UnitPolicy
      */
     public function sync(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('units.create') ||
-            authContext()->memberRole()->hasPermissionTo('units.update');
+        return $this->can('units.create') || $this->can('units.update');
     }
 }

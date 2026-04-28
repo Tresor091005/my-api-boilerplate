@@ -6,35 +6,33 @@ namespace Lahatre\Catalog\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Lahatre\Catalog\Models\Option;
+use Lahatre\Shared\Policies\BasePolicy;
 
-class OptionPolicy
+class OptionPolicy extends BasePolicy
 {
     public function list(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('options.list');
+        return $this->can('options.list');
     }
 
     public function retrieve(Authorizable $user, Option $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('options.retrieve');
+        return $this->canOnModel('options.retrieve', $model);
     }
 
     public function create(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('options.create');
+        return $this->can('options.create');
     }
 
     public function update(Authorizable $user, Option $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('options.update');
+        return $this->canOnModel('options.update', $model);
     }
 
     public function delete(Authorizable $user, Option $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('options.delete');
+        return $this->canOnModel('options.delete', $model);
     }
 
     public function restore(Authorizable $user, Option $model): bool

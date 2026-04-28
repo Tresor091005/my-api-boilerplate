@@ -6,15 +6,16 @@ namespace Lahatre\Catalog\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\Shared\Policies\BasePolicy;
 
-class CategoryPolicy
+class CategoryPolicy extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user)
     {
-        return authContext()->memberRole()->hasPermissionTo('categories.list');
+        return $this->can('categories.list');
     }
 
     /**
@@ -22,8 +23,7 @@ class CategoryPolicy
      */
     public function retrieve(Authorizable $user, Category $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('categories.retrieve');
+        return $this->canOnModel('categories.retrieve', $model);
     }
 
     /**
@@ -31,7 +31,7 @@ class CategoryPolicy
      */
     public function create(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('categories.create');
+        return $this->can('categories.create');
     }
 
     /**
@@ -39,8 +39,7 @@ class CategoryPolicy
      */
     public function update(Authorizable $user, Category $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('categories.update');
+        return $this->canOnModel('categories.update', $model);
     }
 
     /**
@@ -48,8 +47,7 @@ class CategoryPolicy
      */
     public function delete(Authorizable $user, Category $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('categories.delete');
+        return $this->canOnModel('categories.delete', $model);
     }
 
     /**

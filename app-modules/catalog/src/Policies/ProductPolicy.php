@@ -6,15 +6,16 @@ namespace Lahatre\Catalog\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Shared\Policies\BasePolicy;
 
-class ProductPolicy
+class ProductPolicy extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('products.list');
+        return $this->can('products.list');
     }
 
     /**
@@ -22,8 +23,7 @@ class ProductPolicy
      */
     public function retrieve(Authorizable $user, Product $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('products.retrieve');
+        return $this->canOnModel('products.retrieve', $model);
     }
 
     /**
@@ -31,7 +31,7 @@ class ProductPolicy
      */
     public function create(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('products.create');
+        return $this->can('products.create');
     }
 
     /**
@@ -39,8 +39,7 @@ class ProductPolicy
      */
     public function update(Authorizable $user, Product $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('products.update');
+        return $this->canOnModel('products.update', $model);
     }
 
     /**
@@ -48,8 +47,7 @@ class ProductPolicy
      */
     public function delete(Authorizable $user, Product $model): bool
     {
-        return $model->organization_id === getPermissionsTeamId()
-            && authContext()->memberRole()->hasPermissionTo('products.delete');
+        return $this->canOnModel('products.delete', $model);
     }
 
     /**
