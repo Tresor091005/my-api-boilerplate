@@ -454,7 +454,7 @@ class InventoryQueryService
         }
 
         if ($filters->item_id) {
-            $query->where('inventory_stocks.location_id', $filters->item_id);
+            $query->where('inventory_stocks.item_id', $filters->item_id);
         }
 
         $paginator = $filters->cursor

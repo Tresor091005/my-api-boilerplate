@@ -117,11 +117,11 @@ class InventoryMovement extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_code', 'code');
+        return $this->belongsTo(Unit::class, 'unit_code', 'code')->withTrashed();
     }
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(Currency::class, 'currency_code', 'code');
+        return $this->belongsTo(Currency::class, 'currency_code', 'code')->withTrashed();
     }
 }

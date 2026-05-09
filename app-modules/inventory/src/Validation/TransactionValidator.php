@@ -152,8 +152,8 @@ class TransactionValidator
         return [
             'items'      => InventoryItem::whereIn('id', $itemIds)->where('is_active', true)->get()->keyBy('id'),
             'locations'  => InventoryLocation::whereIn('id', $locationIds)->where('is_active', true)->get()->keyBy('id'),
-            'units'      => DB::table('master_units')->whereIn('code', $unitCodes)->get()->keyBy('code'),
-            'currencies' => $currencyCodes->isNotEmpty() ? DB::table('master_currencies')->whereIn('code', $currencyCodes)->get()->keyBy('code') : collect(),
+            'units'      => DB::table('master_units')->whereIn('code', $unitCodes)->whereNull('deleted_at')->get()->keyBy('code'),
+            'currencies' => $currencyCodes->isNotEmpty() ? DB::table('master_currencies')->whereIn('code', $currencyCodes)->whereNull('deleted_at')->get()->keyBy('code') : collect(),
             'stocks'     => $stockIds->isNotEmpty() ? InventoryStock::whereIn('id', $stockIds)->get()->keyBy('id') : collect(),
         ];
     }
