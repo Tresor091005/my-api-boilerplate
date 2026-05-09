@@ -65,17 +65,6 @@ class BundleSeeder extends Seeder
                     'quantity'        => 1,
                 ]
             );
-
-            $bundle->prices()->firstOrCreate(
-                [
-                    'currency_code'   => 'XOF',
-                    'organization_id' => $organizationId,
-                ],
-                [
-                    'organization_id' => $organizationId,
-                    'amount'          => 770000,
-                ]
-            );
         }
 
         // Bundle 2: Laptop & Hub Combo
@@ -115,20 +104,6 @@ class BundleSeeder extends Seeder
                     'organization_id' => $organizationId,
                     'item_type'       => $variantUsbCHubSilver->getMorphClass(),
                     'quantity'        => 2, // Varied quantity
-                ]
-            );
-
-            // Price calculation for bundle 2:
-            // MacBook: 1,500,000 XOF, USB-C Hub: 25,000 XOF * 2 = 50,000 XOF. Total: 1,550,000 XOF
-            // Discounted price
-            $bundle->prices()->firstOrCreate(
-                [
-                    'currency_code'   => 'XOF',
-                    'organization_id' => $organizationId,
-                ],
-                [
-                    'organization_id' => $organizationId,
-                    'amount'          => 1520000,
                 ]
             );
         }
@@ -172,20 +147,6 @@ class BundleSeeder extends Seeder
                     'quantity'        => 3, // Varied quantity
                 ]
             );
-
-            // Price calculation for bundle 3:
-            // Samsung S24: 650,000 XOF, USB-C Hub: 25,000 XOF * 3 = 75,000 XOF. Total: 725,000 XOF
-            // Discounted price
-            $bundle->prices()->firstOrCreate(
-                [
-                    'currency_code'   => 'XOF',
-                    'organization_id' => $organizationId,
-                ],
-                [
-                    'organization_id' => $organizationId,
-                    'amount'          => 700000,
-                ]
-            );
         }
 
         // Bundle 4: Home Office Furniture
@@ -225,20 +186,6 @@ class BundleSeeder extends Seeder
                     'organization_id' => $organizationId,
                     'item_type'       => $variantUsbCHubSilver->getMorphClass(),
                     'quantity'        => 1,
-                ]
-            );
-
-            // Price calculation for bundle 4:
-            // Dining Table: 175,000 XOF, USB-C Hub: 25,000 XOF. Total: 200,000 XOF
-            // Discounted price
-            $bundle->prices()->firstOrCreate(
-                [
-                    'currency_code'   => 'XOF',
-                    'organization_id' => $organizationId,
-                ],
-                [
-                    'organization_id' => $organizationId,
-                    'amount'          => 190000,
                 ]
             );
         }

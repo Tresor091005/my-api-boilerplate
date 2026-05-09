@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\BundleFactory;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -28,8 +28,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, BundleItem> $items
  * @property-read int|null $items_count
  * @property-read Unit|null $unit
- * @property-read Collection<int, Price> $prices
- * @property-read int|null $prices_count
  *
  * @method static Builder<static>|Bundle newModelQuery()
  * @method static Builder<static>|Bundle newQuery()
@@ -49,6 +47,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class Bundle extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_bundles';
 
@@ -71,6 +70,7 @@ class Bundle extends Model
         'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function unit(): BelongsTo
@@ -81,10 +81,5 @@ class Bundle extends Model
     public function items(): HasMany
     {
         return $this->hasMany(BundleItem::class, 'bundle_id', 'id');
-    }
-
-    public function prices(): MorphMany
-    {
-        return $this->morphMany(Price::class, 'priceable');
     }
 }

@@ -62,7 +62,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$blackColor, $storage128GB, $ram8GB],
-                        'price'               => 750000,
                     ],
                     [
                         'sku'                 => 'IP15P-SIL-256',
@@ -70,7 +69,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$silverColor, $storage256GB, $ram16GB],
-                        'price'               => 850000,
                     ],
                 ],
             ],
@@ -87,7 +85,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$whiteColor, $storage256GB],
-                        'price'               => 650000,
                     ],
                     [
                         'sku'                 => 'SGS24-BLU-512',
@@ -95,7 +92,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$blueColor, $storage512GB],
-                        'price'               => 780000,
                     ],
                 ],
             ],
@@ -112,7 +108,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$spaceGrayColor, $ram16GB, $storage512GB],
-                        'price'               => 1500000,
                     ],
                     [
                         'sku'                 => 'MBP16-SG-32-1TB',
@@ -120,7 +115,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$spaceGrayColor, $ram32GB, $storage1TB],
-                        'price'               => 2100000,
                     ],
                 ],
             ],
@@ -137,7 +131,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$blackColor, $ram32GB, $storage1TB],
-                        'price'               => 2500000,
                     ],
                 ],
             ],
@@ -154,7 +147,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [$silverColor],
-                        'price'               => 25000,
                     ],
                 ],
             ],
@@ -171,7 +163,6 @@ class ProductSeeder extends Seeder
                         'should_manage_stock' => true,
                         'is_active'           => true,
                         'option_values'       => [],
-                        'price'               => 175000,
                     ],
                 ],
             ],
@@ -197,8 +188,7 @@ class ProductSeeder extends Seeder
             // Create and attach variants
             foreach ($variantsData as $variantData) {
                 $optionValuesToAttach = array_filter($variantData['option_values']);
-                $price = $variantData['price'];
-                unset($variantData['option_values'], $variantData['price']);
+                unset($variantData['option_values']);
 
                 /** @var ProductVariant $variant */
                 $variant = $product->variants()->firstOrCreate(
@@ -207,18 +197,6 @@ class ProductSeeder extends Seeder
                         'organization_id' => $organizationId,
                     ],
                     array_merge($variantData, ['organization_id' => $organizationId])
-                );
-
-                $variant->prices()->firstOrCreate(
-                    [
-                        'amount'          => $price,
-                        'organization_id' => $organizationId,
-                    ],
-                    [
-                        'organization_id' => $organizationId,
-                        'currency_code'   => 'XOF',
-                        'amount'          => $price,
-                    ]
                 );
 
                 // Attach option values to the variant

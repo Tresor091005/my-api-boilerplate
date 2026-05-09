@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
@@ -37,8 +36,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $option_values_count
  * @property-read Product $product
  * @property-read UnitGroup|null $unitGroup
- * @property-read Collection<int, Price> $prices
- * @property-read int|null $prices_count
  *
  * @method static Builder<static>|ProductVariant newModelQuery()
  * @method static Builder<static>|ProductVariant newQuery()
@@ -135,11 +132,6 @@ class ProductVariant extends Model implements HasInventoryItem, ProvidesInventor
             'variant_id',
             'option_value_id'
         )->using(VariantOptionValue::class);
-    }
-
-    public function prices(): MorphMany
-    {
-        return $this->morphMany(Price::class, 'priceable');
     }
 
     public function toInventoryItemableSummary(): array

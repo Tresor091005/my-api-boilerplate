@@ -78,33 +78,6 @@ return new class() extends Migration
             $table->unique(['organization_id', 'option_id', 'value'], 'catalog_option_values_organization_id_option_id_value_unique');
         });
 
-        Schema::create('catalog_prices', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('organization_id')
-                ->index()
-                ->constrained('organization_organizations')
-                ->onDelete('restrict');
-            $table->uuidMorphs('priceable', 'catalog_prices_priceable_type_priceable_id_index');
-            $table->string('currency_code', 3)->index();
-            $table->foreign('currency_code')
-                ->references('code')
-                ->on('master_currencies')
-                ->onDelete('restrict');
-            $table->integer('min_quantity')->default(1);
-            $table->integer('max_quantity')->nullable();
-            $table->integer('step')->default(1);
-            $table->bigInteger('amount');
-            $table->boolean('is_active')->default(true);
-            $table->timestamp('active_from')->nullable()->index();
-            $table->timestamp('active_to')->nullable()->index();
-            $table->timestamps();
-
-            $table->unique(
-                ['organization_id', 'currency_code', 'min_quantity', 'priceable_id', 'priceable_type', 'step'],
-                'catalog_prices_unique_idx'
-            );
-        });
-
         Schema::create('catalog_bundles', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')
@@ -218,7 +191,6 @@ return new class() extends Migration
         Schema::dropIfExists('catalog_product_categories');
         Schema::dropIfExists('catalog_bundle_items');
         Schema::dropIfExists('catalog_bundles');
-        Schema::dropIfExists('catalog_prices');
         Schema::dropIfExists('catalog_option_values');
         Schema::dropIfExists('catalog_options');
         Schema::dropIfExists('catalog_products');

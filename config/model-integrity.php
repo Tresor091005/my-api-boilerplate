@@ -121,5 +121,6 @@ return [
         'catalog_product_variants' => ['sku'],
         'catalog_categories'       => ['handle'],
         'catalog_products'         => ['handle'],
+        'catalog_bundles'          => ['handle'],
     ],
 ];

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\BundleItemFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -41,6 +42,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class BundleItem extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_bundle_items';
 
@@ -61,6 +63,7 @@ class BundleItem extends Model
         'quantity'        => 'integer',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function item(): MorphTo
