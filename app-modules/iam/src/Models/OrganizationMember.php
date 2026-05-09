@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -39,6 +40,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class OrganizationMember extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'iam_organization_members';
 
@@ -53,6 +55,7 @@ class OrganizationMember extends Model
         'organization_id' => 'string',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function user(): BelongsTo

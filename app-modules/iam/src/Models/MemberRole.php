@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -48,6 +49,7 @@ class MemberRole extends Model
 {
     use HasRoles;
     use SharedTraits;
+    use SoftDeletes;
 
     protected string $guard_name = 'sanctum';
 
@@ -66,6 +68,7 @@ class MemberRole extends Model
         'role_id'         => 'string',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     protected function getDefaultGuardName(): string

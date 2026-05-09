@@ -7,6 +7,7 @@ namespace Lahatre\Master\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Master\Database\Factories\CurrencyFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -36,6 +37,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class Currency extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'master_currencies';
 
@@ -54,5 +56,6 @@ class Currency extends Model
         'precision'  => 'integer',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',
+        'deleted_at' => 'immutable_datetime',
     ];
 }

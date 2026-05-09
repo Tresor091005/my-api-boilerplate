@@ -118,6 +118,7 @@ return [
         'iam_users'                => ['email'],
         'inventory_items'          => ['sku'],
         'master_units'             => ['code'],
+        'master_currencies'        => ['code'],
         'catalog_product_variants' => ['sku'],
         'catalog_categories'       => ['handle'],
         'catalog_products'         => ['handle'],
