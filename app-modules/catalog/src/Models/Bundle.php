@@ -41,6 +41,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Bundle whereUnitCode($value)
  * @method static Builder<static>|Bundle whereUpdatedAt($value)
  * @method static BundleFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Bundle onlyTrashed()
+ * @method static Builder<static>|Bundle whereOrganizationId($value)
+ * @method static Builder<static>|Bundle withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Bundle withoutTrashed()
  *
  * @mixin \Eloquent
  */

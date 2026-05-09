@@ -36,6 +36,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|BundleItem whereQuantity($value)
  * @method static Builder<static>|BundleItem whereUpdatedAt($value)
  * @method static BundleItemFactory factory($count = null, $state = [])
+ * @method static Builder<static>|BundleItem onlyTrashed()
+ * @method static Builder<static>|BundleItem whereOrganizationId($value)
+ * @method static Builder<static>|BundleItem withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|BundleItem withoutTrashed()
  *
  * @mixin \Eloquent
  */

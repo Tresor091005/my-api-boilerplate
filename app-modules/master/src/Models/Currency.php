@@ -31,6 +31,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Currency whereSymbol($value)
  * @method static Builder<static>|Currency whereUpdatedAt($value)
  * @method static CurrencyFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Currency onlyTrashed()
+ * @method static Builder<static>|Currency withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Currency withoutTrashed()
  *
  * @mixin \Eloquent
  */

@@ -44,6 +44,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Tag withoutTrashed()
  * @method static TagFactory factory($count = null, $state = [])
  *
+ * @property-read int|null $taggables_count
+ *
  * @mixin \Eloquent
  */
 class Tag extends Model

@@ -65,7 +65,7 @@ it('rejects soft-deleted category ids in dto relations', function (): void {
     ]);
     $deletedCategory->delete();
 
-    expect(fn () => new CategoryDTO([
+    expect(fn (): CategoryDTO => new CategoryDTO([
         'name'      => 'Child category',
         'parent_id' => $deletedCategory->id,
         'is_active' => true,
@@ -79,5 +79,5 @@ it('rejects soft-deleted category ids in dto relations', function (): void {
 });
 
 it('validates category payload via dto', function (): void {
-    expect(fn () => new CategoryDTO([]))->toThrow(ValidationException::class);
+    expect(fn (): CategoryDTO => new CategoryDTO([]))->toThrow(ValidationException::class);
 });

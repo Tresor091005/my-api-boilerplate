@@ -26,9 +26,7 @@ class InventoryItemSummaryResource extends JsonResource
             'is_active'          => $this->is_active,
             'total_remaining'    => $this->resolveTotalRemaining(),
             'active_lots_count'  => $this->resolveActiveLotsCount(),
-            'locations'          => $this->whenLoaded('activeStockLocationSummaries', function (): array {
-                return InventoryItemStockLocationSummaryResource::collection($this->activeStockLocationSummaries)->resolve();
-            }),
+            'locations'          => $this->whenLoaded('activeStockLocationSummaries', fn (): array => InventoryItemStockLocationSummaryResource::collection($this->activeStockLocationSummaries)->resolve()),
         ];
     }
 

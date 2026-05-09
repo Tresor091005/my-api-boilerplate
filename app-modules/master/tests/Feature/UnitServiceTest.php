@@ -92,7 +92,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
         'organization_id' => null,
     ]);
 
-    expect(fn () => new UnitSyncDTO([
+    expect(fn (): UnitSyncDTO => new UnitSyncDTO([
         'group_id'   => $systemGroup->id,
         'group_name' => 'hacked-name',
     ]))->toThrow(ValidationException::class);
@@ -104,7 +104,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
         'organization_id' => $otherOrganizationId,
     ]);
 
-    expect(fn () => new UnitSyncDTO([
+    expect(fn (): UnitSyncDTO => new UnitSyncDTO([
         'group_id'   => $otherGroup->id,
         'group_name' => 'hacked-other-name',
     ]))->toThrow(ValidationException::class);

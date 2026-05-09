@@ -35,6 +35,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OptionValue whereUpdatedAt($value)
  * @method static Builder<static>|OptionValue whereValue($value)
  * @method static OptionValueFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OptionValue onlyTrashed()
+ * @method static Builder<static>|OptionValue whereOrganizationId($value)
+ * @method static Builder<static>|OptionValue withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|OptionValue withoutTrashed()
  *
  * @mixin \Eloquent
  */

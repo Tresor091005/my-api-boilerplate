@@ -41,6 +41,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|UnitGroup onlyTrashed()
  * @method static Builder<static>|UnitGroup withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|UnitGroup withoutTrashed()
+ * @method static Builder<static>|UnitGroup whereOrganizationId($value)
  *
  * @mixin \Eloquent
  */

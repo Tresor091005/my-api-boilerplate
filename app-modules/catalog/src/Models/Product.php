@@ -42,6 +42,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Product whereName($value)
  * @method static Builder<static>|Product whereUpdatedAt($value)
  * @method static ProductFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Product onlyTrashed()
+ * @method static Builder<static>|Product whereOrganizationId($value)
+ * @method static Builder<static>|Product withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Product withoutTrashed()
  *
  * @mixin \Eloquent
  */

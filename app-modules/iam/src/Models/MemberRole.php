@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Iam\Database\Factories\MemberRoleFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -42,6 +43,10 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static>|MemberRole withoutPermission($permissions)
  * @method static Builder<static>|MemberRole withoutRole($roles, ?string $guard = null)
  * @method static Builder<static>|MemberRole whereOrganizationId($value)
+ * @method static MemberRoleFactory factory($count = null, $state = [])
+ * @method static Builder<static>|MemberRole onlyTrashed()
+ * @method static Builder<static>|MemberRole withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|MemberRole withoutTrashed()
  *
  * @mixin \Eloquent
  */

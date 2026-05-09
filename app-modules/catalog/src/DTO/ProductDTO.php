@@ -52,11 +52,7 @@ class ProductDTO extends LahatreDTO
     {
         $rules = [];
 
-        if ($this->modelId) {
-            $rules['variants'] = ['prohibited'];
-        } else {
-            $rules['variants'] = ['required', 'min:1'];
-        }
+        $rules['variants'] = $this->modelId ? ['prohibited'] : ['required', 'min:1'];
 
         return array_merge_recursive($rules, [
             'name'        => ['required', 'string', 'max:255'],

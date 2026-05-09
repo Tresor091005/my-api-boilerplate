@@ -83,7 +83,7 @@ it('manages products through service methods and scopes by tenant', function ():
 });
 
 it('validates product payload via dto', function (): void {
-    expect(fn () => new ProductDTO([]))->toThrow(ValidationException::class);
+    expect(fn (): ProductDTO => new ProductDTO([]))->toThrow(ValidationException::class);
 });
 
 it('rejects soft-deleted category ids in product dto', function (): void {
@@ -95,7 +95,7 @@ it('rejects soft-deleted category ids in product dto', function (): void {
     ]);
     $deletedCategory->delete();
 
-    expect(fn () => new ProductDTO([
+    expect(fn (): ProductDTO => new ProductDTO([
         'name'       => 'Product with deleted category',
         'is_active'  => true,
         'categories' => [$deletedCategory->id],
@@ -112,7 +112,7 @@ it('rejects soft-deleted category ids in product dto', function (): void {
         ],
     ]))->toThrow(ValidationException::class);
 
-    expect(fn () => new ProductDTO([
+    expect(fn (): ProductDTO => new ProductDTO([
         'name'       => 'Product with active category',
         'is_active'  => true,
         'categories' => [$activeCategory->id],

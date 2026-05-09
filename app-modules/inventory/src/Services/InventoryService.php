@@ -82,7 +82,7 @@ class InventoryService implements InventoryInterface
             'is_active' => ['boolean'],
         ])->validate();
 
-        return DB::transaction(function () use ($model, $validated) {
+        return DB::transaction(function () use ($model, $validated): InventoryLocation {
             $location = $this->resolveLocation($model);
             $location->fill([
                 'is_active' => $validated['is_active'] ?? $location->is_active,
@@ -101,7 +101,7 @@ class InventoryService implements InventoryInterface
             'deduction_strategy' => ['nullable', Rule::enum(DeductionStrategy::class)],
         ])->validate();
 
-        return DB::transaction(function () use ($model, $validated) {
+        return DB::transaction(function () use ($model, $validated): InventoryItem {
             $item = $this->resolveItem($model);
             $item->fill([
                 'sku'                => $validated['sku'] ?? $item->sku,

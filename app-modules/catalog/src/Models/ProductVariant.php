@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
+use Lahatre\Inventory\Models\InventoryItem;
+use Lahatre\Inventory\Models\InventoryMovement;
+use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -49,6 +52,21 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
  * @method static Builder<static>|ProductVariant whereUpdatedAt($value)
  * @method static ProductVariantFactory factory($count = null, $state = [])
+ *
+ * @property-read InventoryItem|null $inventoryItem
+ * @property-read Collection<int, InventoryStock> $stocks
+ * @property-read int|null $stocks_count
+ * @property-read Collection<int, InventoryStock> $activeStocks
+ * @property-read int|null $active_stocks_count
+ * @property-read Collection<int, InventoryStock> $activeStockLocationSummaries
+ * @property-read int|null $active_stock_location_summaries_count
+ * @property-read Collection<int, InventoryMovement> $movements
+ * @property-read int|null $movements_count
+ *
+ * @method static Builder<static>|ProductVariant onlyTrashed()
+ * @method static Builder<static>|ProductVariant whereOrganizationId($value)
+ * @method static Builder<static>|ProductVariant withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|ProductVariant withoutTrashed()
  *
  * @mixin \Eloquent
  */

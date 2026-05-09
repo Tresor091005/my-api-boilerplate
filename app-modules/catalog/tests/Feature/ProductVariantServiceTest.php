@@ -115,7 +115,7 @@ it('manages product variants through service methods with tenant checks', functi
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {
-    expect(fn () => new ProductVariantDTO([]))->toThrow(ValidationException::class);
+    expect(fn (): ProductVariantDTO => new ProductVariantDTO([]))->toThrow(ValidationException::class);
 
     $singleVariant = ProductVariant::factory()->create([
         'organization_id' => $this->organizationId,

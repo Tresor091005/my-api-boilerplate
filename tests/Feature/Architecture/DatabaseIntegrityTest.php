@@ -63,8 +63,8 @@ it('enforces naming conventions for database indexes', function (): void {
                 $secondIsId = Str::endsWith($second, '_id');
 
                 if (($firstIsType && $secondIsId) || ($firstIsId && $secondIsType)) {
-                    $firstPrefix = preg_replace('/_(id|type)$/', '', $first);
-                    $secondPrefix = preg_replace('/_(id|type)$/', '', $second);
+                    $firstPrefix = preg_replace('/_(id|type)$/', '', (string) $first);
+                    $secondPrefix = preg_replace('/_(id|type)$/', '', (string) $second);
                     $isMorph = $firstPrefix === $secondPrefix;
                 }
             }

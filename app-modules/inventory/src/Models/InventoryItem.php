@@ -52,6 +52,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static InventoryItemFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryItem whereDeductionStrategy($value)
  *
+ * @property-read int|null $active_stock_location_summaries_count
+ * @property-read Collection<int, InventoryStock> $activeStocks
+ * @property-read int|null $active_stocks_count
+ *
  * @mixin \Eloquent
  */
 class InventoryItem extends Model

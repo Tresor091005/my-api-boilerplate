@@ -45,6 +45,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @method static InventoryLocationFactory factory($count = null, $state = [])
  *
+ * @property-read Collection<int, InventoryStock> $activeStocks
+ * @property-read int|null $active_stocks_count
+ *
  * @mixin \Eloquent
  */
 class InventoryLocation extends Model

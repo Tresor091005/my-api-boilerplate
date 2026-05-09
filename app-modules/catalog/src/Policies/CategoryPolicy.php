@@ -13,7 +13,7 @@ class CategoryPolicy extends BasePolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function list(Authorizable $user)
+    public function list(Authorizable $user): bool
     {
         return $this->can('categories.list');
     }

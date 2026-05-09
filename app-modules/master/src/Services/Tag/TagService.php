@@ -47,23 +47,21 @@ class TagService implements TransactionalService
 
             $missingNames = $names->reject(fn (string $name): bool => $existingTags->has($name));
             if ($missingNames->isNotEmpty()) {
-                $missingRows = $missingNames->map(function (string $name) use ($organizationId, $type, $now): array {
-                    return [
-                        'id'              => (string) Str::uuid7(),
-                        'organization_id' => $organizationId,
-                        'name'            => $name,
-                        'slug'            => HandleGenerator::generate(
-                            name: $name,
-                            table: 'master_tags',
-                            column: 'slug',
-                            extra: ['organization_id' => $organizationId],
-                        ),
-                        'type'       => $type,
-                        'order_col'  => 0,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                })->all();
+                $missingRows = $missingNames->map(fn (string $name): array => [
+                    'id'              => (string) Str::uuid7(),
+                    'organization_id' => $organizationId,
+                    'name'            => $name,
+                    'slug'            => HandleGenerator::generate(
+                        name: $name,
+                        table: 'master_tags',
+                        column: 'slug',
+                        extra: ['organization_id' => $organizationId],
+                    ),
+                    'type'       => $type,
+                    'order_col'  => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ])->all();
 
                 Tag::query()->insert($missingRows);
 

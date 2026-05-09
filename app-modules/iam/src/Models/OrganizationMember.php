@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Iam\Database\Factories\OrganizationMemberFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -34,6 +35,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OrganizationMember whereOrganizationId($value)
  * @method static Builder<static>|OrganizationMember whereUpdatedAt($value)
  * @method static Builder<static>|OrganizationMember whereUserId($value)
+ * @method static OrganizationMemberFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OrganizationMember onlyTrashed()
+ * @method static Builder<static>|OrganizationMember withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|OrganizationMember withoutTrashed()
  *
  * @mixin \Eloquent
  */

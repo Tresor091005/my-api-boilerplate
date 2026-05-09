@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\DTO\ProductVariantDTO;
@@ -68,7 +69,7 @@ class ProductVariantService implements StandaloneService
         }
 
         $variants = DB::transaction(
-            fn () => $this->transactionalProductVariantService->add($product, $dto->variants)
+            fn (): Collection => $this->transactionalProductVariantService->add($product, $dto->variants)
         );
 
         $variants->load($this->relations());

@@ -79,6 +79,10 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category withGlobalScopes(array $scopes)
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category withRelationshipExpression($direction, callable $constraint, $initialDepth, $from = null, $maxDepth = null)
  * @method static CategoryFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Category onlyTrashed()
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereOrganizationId($value)
+ * @method static Builder<static>|Category withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Category withoutTrashed()
  *
  * @mixin \Eloquent
  */
