@@ -29,11 +29,7 @@ class OptionService implements StandaloneService
             $query->where('name', 'like', "$filters->name%");
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-
-        $options = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $options = stableCursorPaginate($query, $filters);
 
         return OptionCollection::make($options);
     }

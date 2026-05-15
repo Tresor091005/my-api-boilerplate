@@ -96,6 +96,11 @@ This document is the single source of truth for the codebase rules.
 - Hydrating a model with `$dto->toArray()` is forbidden.
 - Eager loading is required when a resource depends on relations.
 - Prefer bulk operations when they simplify the code without harming readability.
+- Cursor pagination must always use deterministic ordering.
+- Sort inputs must come from a DTO whitelist, not arbitrary request values.
+- If the effective cursor order is not already unique, append a unique tie-breaker, usually `id`, using the same direction as the last explicit sort.
+- When the standard cursor filter quartet is used (`sort_by`, `sort_order`, `per_page`, `cursor`), prefer the shared `stableCursorPaginate()` helper.
+- If a query needs custom ordering logic beyond that quartet, write the `orderBy(...)` chain explicitly in the service and finish with `cursorPaginate(...)`.
 
 ### 2.4 `src/Assertions/*Assertion.php`
 - Single responsibility: validate a business rule.

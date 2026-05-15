@@ -80,14 +80,7 @@ class InventoryQueryService
             $query->with('itemable');
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-        if ($filters->sort_by !== 'id') {
-            $query->orderBy('id');
-        }
-
-        $items = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $items = stableCursorPaginate($query, $filters);
 
         return InventoryItemCollection::make($items);
     }
@@ -122,14 +115,7 @@ class InventoryQueryService
             $query->with('external');
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-        if ($filters->sort_by !== 'id') {
-            $query->orderBy('id');
-        }
-
-        $locations = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $locations = stableCursorPaginate($query, $filters);
 
         return InventoryLocationCollection::make($locations);
     }
@@ -429,9 +415,7 @@ class InventoryQueryService
             $query->whereIn('stocks.location_id', $locationIds->all());
         }
 
-        $paginator = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
 
         return InventorySummaryCollection::make($paginator);
     }
@@ -458,9 +442,9 @@ class InventoryQueryService
             $query->where('inventory_stocks.item_id', $filters->item_id);
         }
 
-        $paginator = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['inventory_stocks.*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page, ['inventory_stocks.*']);
+        $query->orderBy('inventory_stocks.id');
+
+        $paginator = $query->cursorPaginate($filters->per_page, ['inventory_stocks.*'], 'cursor', $filters->cursor);
 
         return InventoryExpiringLotCollection::make($paginator);
     }
@@ -477,9 +461,7 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
 
         return InventoryMovementCollection::make($paginator);
     }
@@ -496,9 +478,7 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
 
         return InventoryMovementCollection::make($paginator);
     }
@@ -533,14 +513,7 @@ class InventoryQueryService
             $query->where('transaction_type', $filters->transaction_type);
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-        if ($filters->sort_by !== 'id') {
-            $query->orderBy('id');
-        }
-
-        $transactions = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $transactions = stableCursorPaginate($query, $filters);
 
         return InventoryTransactionCollection::make($transactions);
     }

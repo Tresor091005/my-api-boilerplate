@@ -37,11 +37,7 @@ class CategoryService implements StandaloneService
             $query->where('parent_id', $filters->parent_id);
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-
-        $categories = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $categories = stableCursorPaginate($query, $filters);
 
         return CategoryCollection::make($categories);
     }

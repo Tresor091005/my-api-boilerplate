@@ -44,11 +44,7 @@ class ProductService implements StandaloneService
             $query->where('is_active', $filters->is_active);
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-
-        $products = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $products = stableCursorPaginate($query, $filters);
 
         return ProductCollection::make($products);
     }

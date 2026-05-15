@@ -52,15 +52,14 @@ class UnitService implements StandaloneService
 
         if ($filters->sort_by === 'group') {
             $query->join('master_unit_groups', 'master_units.group_id', '=', 'master_unit_groups.id')
+                ->select('master_units.*')
                 ->orderBy('master_unit_groups.name', $filters->sort_order)
-                ->select('master_units.*');
-        } else {
-            $query->orderBy($filters->sort_by, $filters->sort_order);
-        }
+                ->orderBy('master_units.id', $filters->sort_order);
 
-        $units = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+            $units = $query->cursorPaginate($filters->per_page, ['master_units.*'], 'cursor', $filters->cursor);
+        } else {
+            $units = stableCursorPaginate($query, $filters);
+        }
 
         return UnitCollection::make($units);
     }

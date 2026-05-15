@@ -22,11 +22,7 @@ class CurrencyService implements StandaloneService
             $query->where('name', 'like', "$filters->name%");
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-
-        $currencies = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $currencies = stableCursorPaginate($query, $filters);
 
         return CurrencyCollection::make($currencies);
     }

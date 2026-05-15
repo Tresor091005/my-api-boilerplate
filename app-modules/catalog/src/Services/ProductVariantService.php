@@ -39,11 +39,7 @@ class ProductVariantService implements StandaloneService
             $query->where('is_active', $filters->is_active);
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
-
-        $variants = $filters->cursor
-            ? $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor)
-            : $query->cursorPaginate($filters->per_page);
+        $variants = stableCursorPaginate($query, $filters);
 
         return ProductVariantCollection::make($variants);
     }
