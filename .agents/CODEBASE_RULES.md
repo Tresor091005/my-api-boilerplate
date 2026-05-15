@@ -49,6 +49,7 @@ This document is the single source of truth for the codebase rules.
 - Nested routes must use scoped parent/child binding.
 - A service must not be the first line of defense for HTTP permissions.
 - A service may still protect a domain invariant when it receives both parent and child models.
+- Every read path must make its tenancy boundary and soft-delete boundary locally provable.
 
 ## 2. Rules by File Type
 
@@ -58,6 +59,8 @@ This document is the single source of truth for the codebase rules.
 - The route name prefix must always be `lahatre.[module].`.
 - All API routes must use `api`.
 - Authenticated routes must use `auth.api`.
+- Package-oriented routes are allowed only when the module is intentionally host-agnostic.
+- A tenant-scoped host application must not expose package-generic routes directly when they do not enforce the host application's access boundary.
 - URIs must be RESTful, plural, `kebab-case`, and action-free.
 - Prefer `Route::apiResources([...])` for simple CRUD groups.
 - Nested resources are allowed.
@@ -70,6 +73,7 @@ This document is the single source of truth for the codebase rules.
 - No business logic.
 - No manual business validation outside DTOs.
 - The Controller authorizes access before calling the service.
+- If a module is package-oriented and tenant-agnostic, host-application Controllers or routes must add the missing business access boundary before exposing it.
 - For nested routes:
   - reads: authorize the parent with `retrieve`
   - mutations: authorize the parent with `update`
@@ -96,6 +100,9 @@ This document is the single source of truth for the codebase rules.
 - Hydrating a model with `$dto->toArray()` is forbidden.
 - Eager loading is required when a resource depends on relations.
 - Prefer bulk operations when they simplify the code without harming readability.
+- For tenant-owned data, each new query must make its tenancy boundary explicit or clearly inherit it from an already authorized and constrained parent model.
+- For soft-deletable tables, Eloquent model queries may rely on `SoftDeletes` by default, but `DB::table(...)`, joins, aggregates, and raw queries must make the `deleted_at` boundary explicit when it matters.
+- When a reviewer cannot locally prove the tenancy or soft-delete boundary of a new query, it is a warning that should be treated as an immediate fix unless the surrounding flow already constrains it in an obvious and documented way.
 - Cursor pagination must always use deterministic ordering.
 - Sort inputs must come from a DTO whitelist, not arbitrary request values.
 - If the effective cursor order is not already unique, append a unique tie-breaker, usually `id`, using the same direction as the last explicit sort.

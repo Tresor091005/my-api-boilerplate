@@ -95,5 +95,4 @@
 # Points importants 
 
 - revue des skills et laravel boost
-- soft delete global
 - activity logging global

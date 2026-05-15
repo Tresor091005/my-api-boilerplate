@@ -25,6 +25,7 @@ When asked to review a file or directory:
    - file responsibility
    - architectural compliance
    - authorization and nested binding rules for HTTP code
+   - query boundaries for tenancy and soft deletes
    - exception and translation contract for business code
    - minimum style expectations
 5. List each violation with:
@@ -48,6 +49,7 @@ When asked to review a file or directory:
 - No `throw new \Exception(...)` inside modules.
 - Nested resources are properly scoped.
 - Parent and child authorization both exist in nested Controllers.
+- Every tenant-owned or soft-deletable query has a locally provable boundary.
 - Business exceptions are translated through `AssertionException`.
 - If a reviewed file contains another language without a strong reason, translate it to English as part of the change.
 - Memory is contextual, not normative: use it to interpret intent, not to override a rule.

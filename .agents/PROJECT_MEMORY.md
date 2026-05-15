@@ -49,11 +49,31 @@ Use it together with `CODEBASE_RULES.md`:
 - In `AuthController`, runtime assertions are intentionally kept before calling `AuthService`.
 - If multi-guard or multi-authenticatable support is introduced later, widen the service contract deliberately instead of silently loosening controller assumptions.
 
+### 3.5 Query Boundaries
+- `deleted_at` and `organization_id` are cross-cutting boundaries in this codebase, but they are not enforced in the same way.
+- `SoftDeletes` is trusted on normal Eloquent model queries, so reviewers should focus extra attention on `DB::table(...)`, joins, grouped reads, and raw queries touching soft-deletable tables.
+- `organization_id` does not have a universal global scope. Reviewers must be able to point to the exact tenancy boundary of a query:
+  - an explicit `organization_id` constraint,
+  - an explicit system-plus-tenant rule such as `organization_id IS NULL OR organization_id = current team`,
+  - or an already authorized parent model that clearly constrains the child query.
+- If that proof is not locally visible, raise a warning and expect an immediate fix unless the surrounding flow makes the boundary obvious.
+
+### 3.6 Inventory Package Boundary
+- `inventory` is tenant-agnostic by design.
+- The module is closer to a reusable package contract than to a tenant-scoped application module.
+- `inventory` tables do not carry `organization_id`, and the module does not enforce host-application tenancy by itself.
+- The current `inventory` routes are package-generic routes.
+- In this repository, those routes must not be treated as safe final application routes for tenant-scoped exposure in their current form.
+- UUID identifiers reduce trivial enumeration, but they are not an authorization boundary.
+- If the host application needs tenant-safe inventory endpoints, it must add an explicit business access boundary through host-level routes, Controllers, parent resources, or authorization rules.
+
 ## 4. Known Review Traps
 
 - A nested route can look correct while still missing scoped binding.
 - A controller can authorize the child but forget the parent on nested routes.
 - A service can quietly reintroduce tenancy or HTTP permission checks that should live in controllers and policies.
+- A query can look technically correct while silently missing its tenancy boundary or its soft-delete boundary.
+- A package-oriented module route can look acceptable while still being unsafe for direct exposure in a tenant-scoped host application.
 - A module exception can extend `Exception` instead of `AssertionException`, which bypasses the intended render contract.
 - User-facing text can drift into code instead of translations.
 - Test code often hides architecture mistakes because it bypasses the HTTP layer.
