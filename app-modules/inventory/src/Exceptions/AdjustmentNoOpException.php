@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Exceptions;
 
-use Exception;
+use Lahatre\Shared\Exceptions\AssertionException;
 
-class AdjustmentNoOpException extends Exception
+class AdjustmentNoOpException extends AssertionException
 {
     public function __construct(string $itemId, string $locationId)
     {
         parent::__construct(
-            "The target quantity is already the current stock. Item {$itemId}, location {$locationId}."
+            __('inventory::exceptions.adjustment_no_op', [
+                'item_id'     => $itemId,
+                'location_id' => $locationId,
+            ]),
+            [
+                'item_id'     => $itemId,
+                'location_id' => $locationId,
+            ]
         );
     }
 }

@@ -22,12 +22,12 @@ Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
         Route::apiResources([
-            'categories'        => CategoryController::class,
-            'options'           => OptionController::class,
-            'products'          => ProductController::class,
-            'products.variants' => ProductVariantController::class,
+            'categories' => CategoryController::class,
+            'options'    => OptionController::class,
+            'products'   => ProductController::class,
         ]);
 
-        Route::apiResource('options.values', OptionValueController::class);
+        Route::apiResource('products.variants', ProductVariantController::class)->scoped();
+        Route::apiResource('options.values', OptionValueController::class)->scoped();
     })->scopeBindings();
 });

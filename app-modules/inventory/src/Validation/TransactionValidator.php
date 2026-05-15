@@ -11,6 +11,7 @@ use Illuminate\Validation\Validator;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
+use Lahatre\Inventory\Exceptions\BaseUnitRatioIntegrityException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
@@ -300,7 +301,7 @@ class TransactionValidator
             $providedUnit = $this->unitCache->getByCode($m['unit_code']);
 
             if ($baseUnit->ratio !== 1) {
-                throw new \Exception("System Integrity Error: Base unit '{$item->base_unit_code}' for item '{$item->id}' must have a ratio of 1.");
+                throw new BaseUnitRatioIntegrityException($item->id, $item->base_unit_code);
             }
 
             if ($baseUnit->group_id !== $providedUnit->group_id) {

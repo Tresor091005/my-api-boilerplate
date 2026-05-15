@@ -187,7 +187,7 @@ it('enforces tenancy matrix for products and variants', function (): void {
     ])->assertForbidden();
 
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertOk();
-    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")->assertNotFound();
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")->assertForbidden();
     $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")->assertOk();
     $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
 
@@ -264,7 +264,7 @@ it('enforces tenancy matrix for options and option values', function (): void {
     expect(Option::withTrashed()->whereKey($createdOptionId)->exists())->toBeTrue();
 
     $this->getJson("/v1/catalog/options/{$option->id}/values")->assertOk();
-    $this->getJson("/v1/catalog/options/{$otherOption->id}/values")->assertNotFound();
+    $this->getJson("/v1/catalog/options/{$otherOption->id}/values")->assertForbidden();
     $this->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertOk();
     $this->getJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
 
@@ -285,4 +285,60 @@ it('enforces tenancy matrix for options and option values', function (): void {
     $this->getJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNotFound();
     expect(OptionValue::withTrashed()->whereKey($createdValueId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
+});
+
+it('rejects nested catalog bindings when child does not belong to parent', function (): void {
+    $unitGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    Unit::factory()->create([
+        'group_id'        => $unitGroup->id,
+        'ratio'           => 1,
+        'organization_id' => null,
+    ]);
+    app(UnitCache::class)->rewarmUnits();
+
+    $productA = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Product A',
+    ]);
+    $productB = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Product B',
+    ]);
+
+    $variantOfB = ProductVariant::factory()->create([
+        'organization_id' => $this->organization->id,
+        'product_id'      => $productB->id,
+        'unit_group_id'   => $unitGroup->id,
+    ]);
+
+    $optionA = Option::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Color',
+    ]);
+    $optionB = Option::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Size',
+    ]);
+
+    $valueOfB = OptionValue::factory()->create([
+        'organization_id' => $this->organization->id,
+        'option_id'       => $optionB->id,
+        'value'           => 'XL',
+    ]);
+
+    $this->getJson("/v1/catalog/products/{$productA->id}/variants/{$variantOfB->id}")
+        ->assertNotFound();
+    $this->patchJson("/v1/catalog/products/{$productA->id}/variants/{$variantOfB->id}", [
+        'sku' => 'SHOULD-NOT-PASS',
+    ])->assertNotFound();
+    $this->deleteJson("/v1/catalog/products/{$productA->id}/variants/{$variantOfB->id}")
+        ->assertNotFound();
+
+    $this->getJson("/v1/catalog/options/{$optionA->id}/values/{$valueOfB->id}")
+        ->assertNotFound();
+    $this->putJson("/v1/catalog/options/{$optionA->id}/values/{$valueOfB->id}", [
+        'value' => 'SHOULD-NOT-PASS',
+    ])->assertNotFound();
+    $this->deleteJson("/v1/catalog/options/{$optionA->id}/values/{$valueOfB->id}")
+        ->assertNotFound();
 });

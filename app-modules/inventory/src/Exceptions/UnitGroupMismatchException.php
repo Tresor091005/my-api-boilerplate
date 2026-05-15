@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Exceptions;
 
-use Exception;
+use Lahatre\Shared\Exceptions\AssertionException;
 
-class UnitGroupMismatchException extends Exception
+class UnitGroupMismatchException extends AssertionException
 {
     public function __construct(string $itemCode, string $providedUnitCode, string $baseUnitCode)
     {
         parent::__construct(
-            "Unit group mismatch for item {$itemCode}: provided unit {$providedUnitCode} belongs to a different group than base unit {$baseUnitCode}."
+            __('inventory::exceptions.unit_group_mismatch', [
+                'item_code'          => $itemCode,
+                'provided_unit_code' => $providedUnitCode,
+                'base_unit_code'     => $baseUnitCode,
+            ]),
+            [
+                'item_code'          => $itemCode,
+                'provided_unit_code' => $providedUnitCode,
+                'base_unit_code'     => $baseUnitCode,
+            ]
         );
     }
 }

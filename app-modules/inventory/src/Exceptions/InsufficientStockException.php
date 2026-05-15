@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Exceptions;
 
-use Exception;
+use Lahatre\Shared\Exceptions\AssertionException;
 
-class InsufficientStockException extends Exception
+class InsufficientStockException extends AssertionException
 {
     public function __construct(string $itemId, string $locationId, string $requested, string $available, string $unitCode)
     {
         parent::__construct(
-            "Insufficient stock for item {$itemId} at location {$locationId}. Requested: {$requested} {$unitCode}, Available: {$available} {$unitCode}."
+            __('inventory::exceptions.insufficient_stock', [
+                'item_id'     => $itemId,
+                'location_id' => $locationId,
+                'requested'   => $requested,
+                'available'   => $available,
+                'unit_code'   => $unitCode,
+            ]),
+            [
+                'item_id'     => $itemId,
+                'location_id' => $locationId,
+                'requested'   => $requested,
+                'available'   => $available,
+                'unit_code'   => $unitCode,
+            ]
         );
     }
 }

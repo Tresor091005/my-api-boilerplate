@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\DTO\OptionValueDTO;
 use Lahatre\Catalog\DTO\OptionValueFilterDTO;
@@ -22,16 +21,11 @@ beforeEach(function (): void {
     $this->service = app(OptionValueService::class);
 });
 
-it('manages option values through service methods with tenant checks', function (): void {
+it('manages option values through service methods', function (): void {
     $option = Option::factory()->create([
         'organization_id' => $this->organizationId,
         'name'            => 'Color',
     ]);
-    $otherOption = Option::factory()->create([
-        'organization_id' => $this->otherOrganizationId,
-        'name'            => 'Other Color',
-    ]);
-
     $optionValue = OptionValue::factory()->create([
         'organization_id' => $this->organizationId,
         'option_id'       => $option->id,
@@ -44,9 +38,6 @@ it('manages option values through service methods with tenant checks', function 
         ->getData(true);
 
     expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($optionValue->id);
-
-    expect(fn () => $this->service->list($otherOption, new OptionValueFilterDTO([])))
-        ->toThrow(ModelNotFoundException::class);
 
     $this->service->create($option, new OptionValueDTO([
         'option_id' => $option->id,

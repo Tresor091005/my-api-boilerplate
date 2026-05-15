@@ -1,35 +1,50 @@
 ---
 name: code-reviewer
-description: Auditeur de code pour Laravel Boost. Vérifie la conformité du code avec le Manifeste de Responsabilité et les Standards de Propreté (lisibilité, nommage, usage des collections).
+description: Code review workflow for this modular Laravel codebase. It must read the central codebase rules before auditing files.
 ---
 
 # Skill: Code Reviewer
 
-Ce skill a pour mission de vérifier qu'aucun fichier ne viole les principes définis dans le `code-generator/SKILL.md`.
+This skill reviews code against the project source of truth.
 
-## 🔍 Processus de Review
+## Source of Truth
 
-Quand on te demande de vérifier un fichier ou un dossier :
+Before any review, always read:
 
-1. **Charger la Source de Vérité** : Lis systématiquement `.agents/skills/code-generator/SKILL.md` pour avoir les dernières règles à jour.
-2. **Analyse de Responsabilité** :
-    - Vérifie que le fichier est au bon endroit.
-    - Vérifie qu'il ne fait pas plus que ce pour quoi il est prévu (ex: logique métier dans un Controller, validation dans un Service).
-3. **Analyse de Style** :
-    - **Nommage** : `camelCase` pour PHP, `snake_case` pour JSON/DB/Requests.
-    - **Collections** : Pas de `array` là où une `Collection` Laravel devrait être.
-    - **Signatures** : Types de retour et PHPDoc (`Collection<int, Model>`) obligatoires.
-    - **Helpers** : Utilisation de `str()`, `data_get()`, `optional()`.
-4. **Rapport de Non-Conformité** :
-    - Liste chaque violation avec le fichier et la ligne concernée.
-    - Explique **pourquoi** c'est une violation selon le manifeste.
-    - Propose le code corrigé.
+`/Users/imac/Documents/my-api-boilerplate/.agents/CODEBASE_RULES.md`
 
-## 🚨 Points de Vigilance Critiques
-- **N+1** : S'assurer que les Resources utilisent `whenLoaded()`.
-- **Eager Loading** : S'assurer que le Service fait bien son job de chargement des relations.
-- **Idempotence** : S'assurer que les Seeders utilisent `firstOrCreate()`.
-- **Migrations** : Vérifier la présence des index sur les FK et les contraintes uniques.
+## Review Process
 
-## 🛑 Action Immédiate
-Si une violation est détectée, n'attends pas la fin de ton tour pour le signaler. Bloque tout processus de commit ou de déploiement tant que le code n'est pas conforme.
+When asked to review a file or directory:
+
+1. Identify the file type.
+2. Load the matching section in `CODEBASE_RULES.md`.
+3. Check:
+   - file responsibility
+   - architectural compliance
+   - authorization and nested binding rules for HTTP code
+   - exception and translation contract for business code
+   - minimum style expectations
+4. List each violation with:
+   - file and line
+   - violated rule
+   - concrete impact
+   - expected correction
+
+## Finding Priorities
+
+1. Responsibility violation.
+2. Functional regression.
+3. Security or authorization gap.
+4. Durable convention violation.
+5. Style debt.
+
+## Watch Points
+
+- `whenLoaded()` in resources.
+- Eager loading on the service side.
+- No `throw new \Exception(...)` inside modules.
+- Nested resources are properly scoped.
+- Parent and child authorization both exist in nested Controllers.
+- Business exceptions are translated through `AssertionException`.
+- If a reviewed file contains another language without a strong reason, translate it to English as part of the change.

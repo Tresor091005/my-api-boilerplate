@@ -22,6 +22,7 @@ class OptionValueController
 
     public function index(Request $request, Option $option): AnonymousResourceCollection
     {
+        Gate::authorize('retrieve', $option);
         Gate::authorize('list', OptionValue::class);
 
         $filters = OptionValueFilterDTO::fromRequest($request);
@@ -31,6 +32,7 @@ class OptionValueController
 
     public function show(Option $option, OptionValue $value): JsonResponse
     {
+        Gate::authorize('retrieve', $option);
         Gate::authorize('retrieve', $value);
 
         $response = $this->optionValueService->retrieve($option, $value);
@@ -40,6 +42,7 @@ class OptionValueController
 
     public function store(Request $request, Option $option): JsonResponse
     {
+        Gate::authorize('update', $option);
         Gate::authorize('create', OptionValue::class);
 
         $dto = OptionValueDTO::fromArray([
@@ -54,6 +57,7 @@ class OptionValueController
 
     public function update(Request $request, Option $option, OptionValue $value): JsonResponse
     {
+        Gate::authorize('update', $option);
         Gate::authorize('update', $value);
 
         $dto = OptionValueDTO::forUpdate($request, $value);
@@ -65,6 +69,7 @@ class OptionValueController
 
     public function destroy(Option $option, OptionValue $value): JsonResponse
     {
+        Gate::authorize('update', $option);
         Gate::authorize('delete', $value);
 
         $this->optionValueService->delete($option, $value);

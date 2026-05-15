@@ -23,6 +23,7 @@ class ProductVariantController
 
     public function index(Request $request, Product $product): ProductVariantCollection
     {
+        Gate::authorize('retrieve', $product);
         Gate::authorize('list', ProductVariant::class);
 
         $filters = ProductVariantFilterDTO::fromRequest($request);
@@ -32,6 +33,7 @@ class ProductVariantController
 
     public function show(Product $product, ProductVariant $variant): JsonResponse
     {
+        Gate::authorize('retrieve', $product);
         Gate::authorize('retrieve', $variant);
 
         $response = $this->productVariantService->retrieve($product, $variant);
@@ -41,6 +43,7 @@ class ProductVariantController
 
     public function store(Request $request, Product $product): JsonResponse
     {
+        Gate::authorize('update', $product);
         Gate::authorize('create', ProductVariant::class);
 
         $dto = ProductVariantDTO::fromRequest($request);
@@ -52,6 +55,7 @@ class ProductVariantController
 
     public function update(Request $request, Product $product, ProductVariant $variant): JsonResponse
     {
+        Gate::authorize('update', $product);
         Gate::authorize('update', $variant);
 
         $dto = ProductVariantUpdateDTO::fromRequest($request);
@@ -63,6 +67,7 @@ class ProductVariantController
 
     public function destroy(Product $product, ProductVariant $variant): JsonResponse
     {
+        Gate::authorize('update', $product);
         Gate::authorize('delete', $variant);
 
         $this->productVariantService->delete($product, $variant);

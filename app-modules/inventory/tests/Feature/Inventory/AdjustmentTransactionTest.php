@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\TransactionType;
+use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
@@ -103,7 +104,7 @@ it('fails an adjustment if target quantity is the same as current stock', functi
     ];
 
     $this->service->recordTransaction($payload);
-})->throws(\Exception::class, 'The target quantity is already the current stock.');
+})->throws(AdjustmentNoOpException::class, 'The target quantity is already the current stock.');
 
 it('fails an adjustment for the same item and location in one transaction', function (): void {
     $payload = [

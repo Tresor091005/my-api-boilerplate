@@ -462,21 +462,12 @@ class InventoryService implements InventoryInterface
             }
 
             if (bccomp($remainingToFill, '0', 10) > 0) {
-                throw new TransferDistributionException(
-                    __('inventory::exceptions.transfer.imbalance_destination', [
-                        'item'     => $itemId,
-                        'location' => $movement->location_id,
-                    ])
-                );
+                throw TransferDistributionException::destinationImbalance($itemId, $movement->location_id);
             }
         }
 
         if (isset($batches[$batchIndex])) {
-            throw new TransferDistributionException(
-                __('inventory::exceptions.transfer.imbalance_source', [
-                    'item' => $itemId,
-                ])
-            );
+            throw TransferDistributionException::sourceImbalance($itemId);
         }
     }
 

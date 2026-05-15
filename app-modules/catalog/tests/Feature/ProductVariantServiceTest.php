@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Tests\Feature;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\DTO\ProductVariantDTO;
@@ -45,7 +44,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('manages product variants through service methods with tenant checks', function (): void {
+it('manages product variants through service methods', function (): void {
     $variant = ProductVariant::factory()->create([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
@@ -73,9 +72,6 @@ it('manages product variants through service methods with tenant checks', functi
     expect(collect($payload['data'] ?? [])->pluck('id'))
         ->toContain($variant->id)
         ->not->toContain($otherVariant->id);
-
-    expect(fn () => $this->service->list($this->otherProduct, new ProductVariantFilterDTO(['per_page' => 50])))
-        ->toThrow(ModelNotFoundException::class);
 
     $this->service->create($this->product, new ProductVariantDTO([
         'variants' => [
