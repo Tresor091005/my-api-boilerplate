@@ -24,10 +24,15 @@ trait InteractsWithInventoryLocation
 
     /**
      * Get the model's inventory location.
+     *
+     * @return MorphOne<InventoryLocation, Model>
      */
     public function inventoryLocation(): MorphOne
     {
-        return $this->morphOne(InventoryLocation::class, 'external');
+        /** @var MorphOne<InventoryLocation, Model> $relation */
+        $relation = $this->morphOne(InventoryLocation::class, 'external');
+
+        return $relation;
     }
 
     /**

@@ -10,6 +10,12 @@ use Lahatre\Inventory\Contracts\ProvidesInventoryLocationExternalSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryLocation;
 use Lahatre\Shared\Traits\SharedTraits;
 
+/**
+ * @property string $id
+ * @property string $name
+ * @property string $code
+ * @property bool $is_active
+ */
 class TestInventoryWarehouse extends Model implements HasInventoryLocation, ProvidesInventoryLocationExternalSummary
 {
     use InteractsWithInventoryLocation;

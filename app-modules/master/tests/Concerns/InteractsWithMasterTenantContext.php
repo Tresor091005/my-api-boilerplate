@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
 
 trait InteractsWithMasterTenantContext
 {
+    protected string $organizationId;
+
+    protected string $otherOrganizationId;
+
     protected function initializeMasterTenantContext(): void
     {
         $this->organizationId = Str::uuid7()->toString();

@@ -48,6 +48,10 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static>|MemberRole withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|MemberRole withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|MemberRole whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class MemberRole extends Model

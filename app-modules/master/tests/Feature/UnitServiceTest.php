@@ -13,8 +13,9 @@ use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Services\UnitService;
 use Lahatre\Master\Support\UnitCache;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->service = app(UnitService::class);
@@ -67,8 +68,8 @@ it('lists both system units and tenant units but excludes other tenant units', f
     $codes = collect($payload['data'] ?? [])->pluck('code');
 
     expect($codes)->toContain('a-kg-sys')
-        ->toContain('a-our-kg')
-        ->not->toContain('a-other-kg');
+        ->toContain('a-our-kg');
+    expect($codes->contains('a-other-kg'))->toBeFalse();
 });
 
 it('syncs unit groups and units strictly for the current tenant', function (): void {
@@ -83,7 +84,8 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
     $group = UnitGroup::where('name', 'new-tenant-group')->first();
     expect($group->organization_id)->toBe($this->organizationId);
 
-    $unit = $group->units()->first();
+    /** @var Unit $unit */
+    $unit = $group->units()->firstOrFail();
     expect($unit->organization_id)->toBe($this->organizationId);
 
     // 2. Prevent syncing/updating a system group at DTO validation layer

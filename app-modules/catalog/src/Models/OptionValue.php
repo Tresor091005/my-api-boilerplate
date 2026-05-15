@@ -40,6 +40,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OptionValue withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|OptionValue withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|OptionValue whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class OptionValue extends Model

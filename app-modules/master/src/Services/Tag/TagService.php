@@ -6,6 +6,7 @@ namespace Lahatre\Master\Services\Tag;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -79,7 +80,7 @@ class TagService implements TransactionalService
 
         $tagIds = $tags->pluck('id')->unique()->values()->all();
         if ($tagIds !== []) {
-            $alreadyLinkedTagIds = $model->tags()
+            $alreadyLinkedTagIds = $this->tagsRelation($model)
                 ->whereIn('master_tags.id', $tagIds)
                 ->pluck('master_tags.id')
                 ->all();
@@ -93,7 +94,7 @@ class TagService implements TransactionalService
                 ->all();
 
             if ($syncPayload !== []) {
-                $model->tags()->syncWithoutDetaching($syncPayload);
+                $this->tagsRelation($model)->syncWithoutDetaching($syncPayload);
             }
         }
 
@@ -123,7 +124,7 @@ class TagService implements TransactionalService
             }
 
             $tagIds = $tags->pluck('id');
-            $linkedTagIds = $model->tags()
+            $linkedTagIds = $this->tagsRelation($model)
                 ->where('master_tags.type', $type)
                 ->whereIn('master_tags.id', $tagIds)
                 ->pluck('master_tags.id');
@@ -137,7 +138,7 @@ class TagService implements TransactionalService
                 throw new TagLinkNotFoundException($type, $missingLinkedNames->all());
             }
 
-            $model->tags()->detach($tagIds->all());
+            $this->tagsRelation($model)->detach($tagIds->all());
         }
     }
 
@@ -148,7 +149,7 @@ class TagService implements TransactionalService
     public function sync(Model $model, array $tagsByType): EloquentCollection
     {
         $this->assertModelUsesTags($model);
-        $model->tags()->detach();
+        $this->tagsRelation($model)->detach();
 
         return $this->attach($model, $tagsByType);
     }
@@ -162,13 +163,13 @@ class TagService implements TransactionalService
         $this->assertModelUsesTags($model);
         $normalizedType = str($type)->normalize()->value();
 
-        $existingTagIds = $model->tags()
+        $existingTagIds = $this->tagsRelation($model)
             ->where('master_tags.type', $normalizedType)
             ->pluck('master_tags.id')
             ->all();
 
         if ($existingTagIds !== []) {
-            $model->tags()->detach($existingTagIds);
+            $this->tagsRelation($model)->detach($existingTagIds);
         }
 
         return $this->attach($model, [$normalizedType => $tags]);
@@ -180,9 +181,11 @@ class TagService implements TransactionalService
      */
     protected function normalizeTagsByType(array $tagsByType): Collection
     {
-        return collect($tagsByType)
+        /** @var Collection<string, Collection<int, string>> $normalized */
+        $normalized = collect($tagsByType)
             ->mapWithKeys(function (mixed $tags, mixed $type): array {
                 $normalizedType = str((string) $type)->normalize()->value();
+                /** @var Collection<int, string> $normalizedTags */
                 $normalizedTags = collect($tags)
                     ->filter(fn (mixed $tag): bool => is_string($tag))
                     ->map(fn (string $tag): string => str($tag)->normalize()->value())
@@ -193,6 +196,8 @@ class TagService implements TransactionalService
                 return [$normalizedType => $normalizedTags];
             })
             ->filter(fn (Collection $tags): bool => $tags->isNotEmpty());
+
+        return $normalized;
     }
 
     protected function resolveOrganizationId(Model $model): string
@@ -217,5 +222,14 @@ class TagService implements TransactionalService
         if (!in_array(HasTags::class, class_uses_recursive($model::class), true)) {
             throw new ModelMissingHasTagsTraitException($model::class);
         }
+    }
+
+    /**
+     * @return MorphToMany<Tag, Model>
+     */
+    protected function tagsRelation(Model $model): MorphToMany
+    {
+        /** @phpstan-ignore-next-line */
+        return $model->tags();
     }
 }

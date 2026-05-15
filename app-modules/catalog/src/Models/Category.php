@@ -84,6 +84,10 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method static Builder<static>|Category withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Category withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Category extends Model

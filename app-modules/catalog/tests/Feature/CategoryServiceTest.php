@@ -9,8 +9,9 @@ use Lahatre\Catalog\DTO\CategoryFilterDTO;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Services\CategoryService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -32,9 +33,10 @@ it('manages categories through service methods and scopes by tenant', function (
         ->response()
         ->getData(true);
 
-    expect(collect($payload['data'] ?? [])->pluck('id'))
-        ->toContain($category->id)
-        ->not->toContain($otherCategory->id);
+    $categoryIds = collect($payload['data'] ?? [])->pluck('id');
+
+    expect($categoryIds)->toContain($category->id);
+    expect($categoryIds->contains($otherCategory->id))->toBeFalse();
 
     $created = $this->service->create(new CategoryDTO([
         'name'      => 'Smartphones',

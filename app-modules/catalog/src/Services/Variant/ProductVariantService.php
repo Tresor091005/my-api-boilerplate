@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services\Variant;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\Catalog\DTO\ProductVariantDataDTO;
@@ -24,12 +25,12 @@ class ProductVariantService implements TransactionalService
 
     /**
      * @param  Collection<int, ProductVariantDataDTO>  $variantsData
-     * @return Collection<int, ProductVariant>
+     * @return EloquentCollection<int, ProductVariant>
      */
-    public function add(Product $product, Collection $variantsData): Collection
+    public function add(Product $product, Collection $variantsData): EloquentCollection
     {
         if ($variantsData->isEmpty()) {
-            return collect();
+            return new EloquentCollection();
         }
 
         $now = now();
@@ -48,8 +49,9 @@ class ProductVariantService implements TransactionalService
 
         ProductVariant::insert($variantRows->all());
 
+        /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = ProductVariant::whereIn('id', $variantRows->pluck('id')->all())->get();
-        $this->inventoryService->createManyItems($variants);
+        $this->inventoryService->createManyItems($variants->all());
 
         $this->attachOptions(
             $product,

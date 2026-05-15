@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
@@ -12,6 +13,7 @@ use Lahatre\Catalog\DTO\ProductFilterDTO;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\ProductVariantService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
@@ -107,6 +109,7 @@ class ProductService implements StandaloneService
     public function delete(Product $product): void
     {
         DB::transaction(function () use ($product): void {
+            /** @var Collection<int, ProductVariant> $variants */
             $variants = $product->variants()->get();
             foreach ($variants as $variant) {
                 $this->productVariantService->delete($variant);

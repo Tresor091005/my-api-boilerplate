@@ -68,9 +68,12 @@ class InventoryLocationController
      */
     private function includes(Request $request): Collection
     {
-        return collect(explode(',', (string) $request->query('include', '')))
+        /** @var Collection<int, string> $includes */
+        $includes = collect(explode(',', (string) $request->query('include', '')))
             ->map(fn (string $include): string => trim($include))
             ->filter()
             ->values();
+
+        return $includes;
     }
 }

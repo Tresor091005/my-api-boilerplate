@@ -9,8 +9,9 @@ use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Tests\Concerns\InteractsWithMasterTenantContext;
 use Lahatre\Master\Tests\Support\Models\TestTaggableUnit;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, InteractsWithMasterTenantContext::class);
+uses(TestCase::class, RefreshDatabase::class, InteractsWithMasterTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeMasterTenantContext();

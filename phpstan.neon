@@ -1,5 +1,6 @@
 includes:
     - ./vendor/larastan/larastan/extension.neon
+    - ./vendor/pestphp/pest/extension.neon
 
 parameters:
     paths:
@@ -23,13 +24,20 @@ parameters:
     ignoreErrors:
         -
             message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z0-9_]+#'
-            path: 'app-modules/*/tests/*'
+            path: 'tests/**'
         -
-            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::assertDatabaseCount\(\)#'
-            path: 'app-modules/*/tests/*'
+            message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z0-9_]+#'
+            path: 'app-modules/*/tests/**'
         -
-            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::assertDatabaseHas\(\)#'
-            path: 'app-modules/*/tests/*'
+            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|initializeCatalogTenantContext|initializeMasterTenantContext|ensureInventoryTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse)\(\)#'
+            path: 'tests/**'
+        -
+            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|initializeCatalogTenantContext|initializeMasterTenantContext|ensureInventoryTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse)\(\)#'
+            path: 'app-modules/*/tests/**'
+        -
+            message: '#Trait Lahatre\\(Catalog|Inventory|Master)\\Tests\\Concerns\\.* is used zero times and is not analysed\.#'
+            path: 'app-modules/*/tests/Concerns/**'
 
     scanFiles:
         - bootstrap/app.php
+        - tests/Pest.php

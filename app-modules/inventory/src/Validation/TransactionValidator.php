@@ -201,7 +201,7 @@ class TransactionValidator
                     }
 
                     if (isset($m['expiration_date'])) {
-                        $validator->errors()->add("movements.{$index}.expiration_date", "The peremption date is prohibited for 'in' movements in a 'TRANSFER' transaction.");
+                        $validator->errors()->add("movements.{$index}.expiration_date", "The expiration date is prohibited for 'in' movements in a 'TRANSFER' transaction.");
                     }
                 }
 
@@ -224,7 +224,7 @@ class TransactionValidator
                 }
 
                 if (isset($m['expiration_date'])) {
-                    $validator->errors()->add("movements.{$index}.expiration_date", "The peremption date is prohibited for 'out' movements.");
+                    $validator->errors()->add("movements.{$index}.expiration_date", "The expiration date is prohibited for 'out' movements.");
                 }
             }
 
@@ -252,8 +252,10 @@ class TransactionValidator
                 $resolvedStrategy = DeductionStrategy::tryFrom($resolvedStrategy);
             }
 
-            $resolvedStrategy ??= $item?->deduction_strategy
-                ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
+            $resolvedStrategy ??= $item instanceof InventoryItem
+                ? $item->deduction_strategy
+                : null;
+            $resolvedStrategy ??= DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
                 ?? DeductionStrategy::Fifo;
 
             if ($resolvedStrategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {

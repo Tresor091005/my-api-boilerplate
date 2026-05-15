@@ -376,6 +376,7 @@ class InventoryQueryService
             $query->where('expiration_date', '<=', $filters->expiring_before->endOfDay());
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, InventoryStock> $lots */
         $lots = $this->applyLotOrdering($query, $strategy)->get();
 
         return new ItemLocationLotsViewData(

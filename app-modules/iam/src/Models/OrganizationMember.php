@@ -40,6 +40,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OrganizationMember withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|OrganizationMember withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|OrganizationMember whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class OrganizationMember extends Model

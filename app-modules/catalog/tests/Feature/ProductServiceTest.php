@@ -13,8 +13,9 @@ use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -46,9 +47,10 @@ it('manages products through service methods and scopes by tenant', function ():
         ->response()
         ->getData(true);
 
-    expect(collect($payload['data'] ?? [])->pluck('id'))
-        ->toContain($product->id)
-        ->not->toContain($otherProduct->id);
+    $productIds = collect($payload['data'] ?? [])->pluck('id');
+
+    expect($productIds)->toContain($product->id);
+    expect($productIds->contains($otherProduct->id))->toBeFalse();
 
     $created = $this->service->create(new ProductDTO([
         'name'      => 'Samsung Galaxy S24',

@@ -34,10 +34,10 @@ class AuthContext
 
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
-            ->with(['organizationMember', 'role'])
+            ->with(['organizationMember'])
             ->where('id', $metadata['member_role_id'] ?? null)
             ->where('member_id', $metadata['member_id'] ?? null)
-            ->where('organization_id', $metadata['organization_id'] ?? null)
+            ->where('organization_id', $metadata['organization_id'])
             ->where('role_id', $metadata['role_id'] ?? null)
             ->first();
 

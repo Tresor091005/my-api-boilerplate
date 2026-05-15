@@ -19,8 +19,9 @@ use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -69,9 +70,10 @@ it('manages product variants through service methods', function (): void {
         ->response()
         ->getData(true);
 
-    expect(collect($payload['data'] ?? [])->pluck('id'))
-        ->toContain($variant->id)
-        ->not->toContain($otherVariant->id);
+    $variantIds = collect($payload['data'] ?? [])->pluck('id');
+
+    expect($variantIds)->toContain($variant->id);
+    expect($variantIds->contains($otherVariant->id))->toBeFalse();
 
     $this->service->create($this->product, new ProductVariantDTO([
         'variants' => [

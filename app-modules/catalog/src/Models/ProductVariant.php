@@ -68,6 +68,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|ProductVariant withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|ProductVariant whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ProductVariant extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary

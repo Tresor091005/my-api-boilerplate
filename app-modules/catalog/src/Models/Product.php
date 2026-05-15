@@ -47,6 +47,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Product withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Product withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|Product whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Product extends Model

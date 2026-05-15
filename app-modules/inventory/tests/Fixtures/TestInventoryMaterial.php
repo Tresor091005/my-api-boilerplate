@@ -10,6 +10,13 @@ use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Shared\Traits\SharedTraits;
 
+/**
+ * @property string $id
+ * @property string $name
+ * @property string $sku
+ * @property string $unit_group_id
+ * @property bool $is_active
+ */
 class TestInventoryMaterial extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary
 {
     use InteractsWithInventoryItem;

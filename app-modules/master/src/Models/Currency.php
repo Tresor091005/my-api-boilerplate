@@ -35,6 +35,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Currency withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Currency withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|Currency whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Currency extends Model

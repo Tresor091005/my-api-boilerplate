@@ -15,8 +15,9 @@ use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
+uses(TestCase::class, RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
 beforeEach(function (): void {
     $this->ensureInventoryTestTables();

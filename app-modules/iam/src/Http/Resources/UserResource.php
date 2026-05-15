@@ -35,30 +35,30 @@ class UserResource extends JsonResource
         /** @var OrganizationInterface $organizationService */
         $organizationService = app(OrganizationInterface::class);
 
-        $memberRoles = $user->organizationMemberships
-            ->flatMap(fn ($membership) => $membership->memberRoles->map(fn ($memberRole): array => [
-                'id'              => $memberRole->id,
-                'member_id'       => $memberRole->member_id,
-                'organization_id' => $memberRole->organization_id,
-                'role_id'         => $memberRole->role_id,
-                'role'            => $memberRole->role ? [
-                    'id'          => $memberRole->role->id,
-                    'name'        => $memberRole->role->name,
-                    'description' => $memberRole->role->description,
-                    'is_builtin'  => $memberRole->role->is_builtin,
-                ] : null,
-            ]))
-            ->map(function (array $memberRole) use ($organizationService): array {
-                $organization = $organizationService->findOrganizationById($memberRole['organization_id']);
+        $memberRoles = [];
 
-                $memberRole['organization'] = $organization ? [
-                    'id'   => $organization->id,
-                    'name' => $organization->name,
-                ] : null;
+        foreach ($user->organizationMemberships as $membership) {
+            foreach ($membership->memberRoles as $memberRole) {
+                $organization = $organizationService->findOrganizationById($memberRole->organization_id);
 
-                return $memberRole;
-            })
-            ->values();
+                $memberRoles[] = [
+                    'id'              => $memberRole->id,
+                    'member_id'       => $memberRole->member_id,
+                    'organization_id' => $memberRole->organization_id,
+                    'role_id'         => $memberRole->role_id,
+                    'role'            => [
+                        'id'          => $memberRole->role->id,
+                        'name'        => $memberRole->role->name,
+                        'description' => $memberRole->role->description,
+                        'is_builtin'  => $memberRole->role->is_builtin,
+                    ],
+                    'organization' => $organization ? [
+                        'id'   => $organization->id,
+                        'name' => $organization->name,
+                    ] : null,
+                ];
+            }
+        }
 
         return [
             'id'                     => $user->id,

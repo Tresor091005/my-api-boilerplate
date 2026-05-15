@@ -24,10 +24,15 @@ trait InteractsWithInventoryItem
 
     /**
      * Get the model's inventory item.
+     *
+     * @return MorphOne<InventoryItem, Model>
      */
     public function inventoryItem(): MorphOne
     {
-        return $this->morphOne(InventoryItem::class, 'itemable');
+        /** @var MorphOne<InventoryItem, Model> $relation */
+        $relation = $this->morphOne(InventoryItem::class, 'itemable');
+
+        return $relation;
     }
 
     /**

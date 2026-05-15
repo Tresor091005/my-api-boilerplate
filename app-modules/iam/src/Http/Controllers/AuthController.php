@@ -12,6 +12,7 @@ use Lahatre\Iam\DTO\ResetPasswordDTO;
 use Lahatre\Iam\DTO\SwitchMemberRoleDTO;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Http\Resources\UserResource;
+use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\AuthService;
 
 class AuthController
@@ -35,8 +36,14 @@ class AuthController
      */
     public function me(): UserResource
     {
+        $user = authContext()->user();
+
+        // Note: AuthService currently accepts the IAM user model only. If we later support
+        // multi-guard authenticatables here, widen the service contract instead of removing this assertion.
+        assert($user instanceof User);
+
         return $this->authService->me(
-            user: authContext()->user(),
+            user: $user,
             currentMemberRoleId: authContext()->memberRole()?->id
         );
     }
@@ -58,8 +65,14 @@ class AuthController
      */
     public function switchMemberRole(Request $request): UserResource
     {
+        $user = authContext()->user();
+
+        // Note: AuthService currently accepts the IAM user model only. If we later support
+        // multi-guard authenticatables here, widen the service contract instead of removing this assertion.
+        assert($user instanceof User);
+
         return $this->authService->switchMemberRole(
-            authContext()->user(),
+            $user,
             SwitchMemberRoleDTO::fromRequest($request)->member_role_id
         );
     }

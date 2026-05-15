@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services\Option;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\Catalog\Models\Option;
@@ -14,9 +15,9 @@ class TransactionalOptionService implements TransactionalService
 {
     /**
      * @param  array<int, string>|Collection<int, string>  $values
-     * @return Collection<int, OptionValue>
+     * @return EloquentCollection<int, OptionValue>
      */
-    public function createMissingValues(Option $option, Collection|array $values): Collection
+    public function createMissingValues(Option $option, Collection|array $values): EloquentCollection
     {
         $normalizedValues = collect($values)
             ->filter(fn (mixed $value): bool => is_string($value) && $value !== '')
@@ -24,7 +25,7 @@ class TransactionalOptionService implements TransactionalService
             ->values();
 
         if ($normalizedValues->isEmpty()) {
-            return collect();
+            return new EloquentCollection();
         }
 
         $existingValues = $option->values()
@@ -37,7 +38,10 @@ class TransactionalOptionService implements TransactionalService
             ->values();
 
         if ($missingValues->isEmpty()) {
-            return $existingValues->values();
+            /** @var array<int, OptionValue> $existingOptionValues */
+            $existingOptionValues = $existingValues->values()->all();
+
+            return new EloquentCollection($existingOptionValues);
         }
 
         $now = now();
@@ -53,8 +57,11 @@ class TransactionalOptionService implements TransactionalService
             ])->all()
         );
 
-        return $option->values()
+        /** @var EloquentCollection<int, OptionValue> $optionValues */
+        $optionValues = $option->values()
             ->whereIn('value', $normalizedValues)
             ->get();
+
+        return $optionValues;
     }
 }

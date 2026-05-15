@@ -155,12 +155,14 @@ trait HasTags
      */
     protected function normalizeTagNames(array $tags): Collection
     {
-        return collect($tags)
-            ->filter(fn (mixed $tag): bool => is_string($tag))
+        /** @var Collection<int, string> $normalized */
+        $normalized = collect($tags)
             ->map(fn (string $tag): string => str($tag)->normalize()->value())
             ->filter(fn (string $tag): bool => $tag !== '')
             ->unique()
             ->values();
+
+        return $normalized;
     }
 
     protected function normalizeTagType(string $type): string

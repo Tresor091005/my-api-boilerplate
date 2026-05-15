@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Schema;
 use Lahatre\Inventory\Tests\Fixtures\TestInventoryAltMaterial;
 use Lahatre\Inventory\Tests\Fixtures\TestInventoryMaterial;
 use Lahatre\Inventory\Tests\Fixtures\TestInventoryWarehouse;
+use Lahatre\Master\Models\UnitGroup;
 
 trait InteractsWithInventoryTestFixtures
 {
+    protected UnitGroup $group;
+
     protected function ensureInventoryTestTables(): void
     {
         Relation::morphMap([

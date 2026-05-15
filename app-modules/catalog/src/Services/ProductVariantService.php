@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\DTO\ProductVariantDTO;
@@ -55,8 +55,9 @@ class ProductVariantService implements StandaloneService
 
     public function create(Product $product, ProductVariantDTO $dto): AnonymousResourceCollection
     {
+        /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = DB::transaction(
-            fn (): Collection => $this->transactionalProductVariantService->add($product, $dto->variants)
+            fn (): EloquentCollection => $this->transactionalProductVariantService->add($product, $dto->variants)
         );
 
         $variants->load($this->relations());

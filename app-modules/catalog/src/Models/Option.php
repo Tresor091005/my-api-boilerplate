@@ -39,6 +39,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Option withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Option withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|Option whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Option extends Model

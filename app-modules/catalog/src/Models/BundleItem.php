@@ -41,6 +41,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|BundleItem withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|BundleItem withoutTrashed()
  *
+ * @property CarbonImmutable|null $deleted_at
+ *
+ * @method static Builder<static>|BundleItem whereDeletedAt($value)
+ *
  * @mixin \Eloquent
  */
 class BundleItem extends Model

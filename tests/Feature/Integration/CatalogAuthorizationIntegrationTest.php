@@ -15,8 +15,9 @@ use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Organization\Models\Organization;
 use Spatie\Permission\PermissionRegistrar;
+use Tests\TestCase;
 
-uses(DatabaseTransactions::class);
+uses(TestCase::class, DatabaseTransactions::class);
 
 beforeEach(function (): void {
     app(PermissionRegistrar::class)->forgetCachedPermissions();
