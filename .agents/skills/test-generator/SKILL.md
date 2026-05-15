@@ -1,99 +1,109 @@
 ---
 name: test-generator
-description: Standard de création de tests Pest 4. Définit l'anatomie d'un Feature Test (DTO, Assertions, Service, Resource) et les standards de découpage modulaire (module local vs intégration).
+description: Pest 4 test-generation standards for this modular Laravel codebase, including module-local vs integration boundaries and the required project rule sources.
 ---
 
-# Test Generator & Quality Manifesto
+# Test Generator
 
-Ce skill définit les standards de qualité pour les tests Pest 4, avec priorité au découpage modulaire propre.
+This skill defines the quality standard for Pest 4 tests in this codebase, with priority on clean modular separation.
 
-## 🚨 Règle d'Or : Couverture par l'Intention
-Un test doit documenter une intention métier claire.  
-Tout changement de comportement doit être précédé ou accompagné d'un test.
+## Source Files
 
-## 🧩 Découpage des Tests (Architecture Modulaire)
+Before generating or reshaping tests, always read:
 
-Pour respecter `ModularDependencyTest`, séparer les responsabilités de test:
+`/Users/imac/Documents/my-api-boilerplate/.agents/CODEBASE_RULES.md`
+`/Users/imac/Documents/my-api-boilerplate/.agents/PROJECT_MEMORY.md`
 
-1. **Tests module-locaux (`app-modules/<module>/tests`)**
-   - Cible: Services, DTO, Assertions métier, Persistance.
-   - Dépendances: uniquement celles autorisées par la matrice modulaire.
-   - Éviter le bootstrap IAM complet (`User`, `Role`, `Permission`, `Organization`) si le module ne dépend pas de ces modules.
+## Golden Rule
 
-2. **Tests d’intégration cross-module (`tests/Feature/Integration/*`)**
-   - Cible: authorization HTTP réelle (Policies/Gates), middleware auth, permissions.
-   - Les dépendances IAM/Organization sont acceptées ici, car le scope est application-wide.
+- A test must document a clear business or application intent.
+- Any behavior change should be preceded or accompanied by a test.
 
-3. **Règle pratique**
-   - Si le test répond à “qui a le droit ?” => intégration.
-   - Si le test répond à “que fait le métier ?” => module local.
-   - Ne pas mélanger les deux objectifs dans le même fichier.
+## Test Boundaries In This Codebase
 
-4. **Contrainte FK sans dépendance de namespace**
-   - Si un module référence une table externe via FK (ex: `organization_id`), créer les lignes minimales via `DB::table(...)` plutôt que d'importer les modèles du module externe.
+To respect modular architecture constraints, keep test responsibilities separate:
 
-## 🛡️ Isolation de l'Environnement (Stability)
+1. Module-local tests: `app-modules/<module>/tests`
+   - Target services, DTOs, business assertions, and persistence local to the module.
+   - Use only dependencies allowed by the module dependency graph.
+   - Avoid full IAM bootstrap when the module does not depend on IAM or Organization.
 
-Dans `beforeEach`:
+2. Cross-module integration tests: `tests/Feature/Integration/*`
+   - Target real HTTP authorization, middleware, policy, gate, and application-wide interactions.
+   - IAM and Organization dependencies are acceptable here.
 
-1. **Contexte Team**
+3. Practical decision rule
+   - If the test answers “who is allowed?” it belongs to integration.
+   - If the test answers “what does the business logic do?” it belongs to the module.
+   - Do not mix both questions in the same test file.
+
+4. Foreign-key constraint without namespace dependency
+   - If a module references an external table through a foreign key such as `organization_id`, insert the minimum required rows with `DB::table(...)` instead of importing the external module model.
+
+## Environment Stability
+
+In `beforeEach`, prefer explicit setup:
+
+1. Team context
 ```php
 setPermissionsTeamId($tenantId);
 ```
 
-2. **Rate Limiter (si endpoints API testés)**
+2. Rate limiter for API endpoint tests when needed
 ```php
 RateLimiter::for('api', fn () => Limit::none());
 ```
 
-## 🧬 Anatomie d'un Test Module-Local
+## Anatomy Of A Module-Local Test
 
-### 1. Validation DTO
-- Construire le DTO avec payload invalide.
-- Attendre `ValidationException`.
+1. DTO validation
+   - Build the DTO with invalid payload.
+   - Expect `ValidationException`.
 
-### 2. Assertions Métier
-- Simuler les états invalides.
-- Vérifier l’exception métier attendue.
+2. Business assertions
+   - Reproduce invalid domain state.
+   - Assert the expected business exception.
 
-### 3. Logique Service & Persistance
-- Appeler le service avec un payload valide.
-- Vérifier DB (`assertDatabaseHas`) et relations.
+3. Service logic and persistence
+   - Call the service with valid payload.
+   - Assert persistence and relations.
 
-### 4. Contrat de Sortie
-- Vérifier `resource` ou `collection` (`->response()->getData(true)`).
-- Vérifier les clés métier critiques.
+4. Output contract
+   - Assert the `resource` or `collection` payload with `->response()->getData(true)`.
+   - Assert critical business keys.
 
-## 🛠 Standards Pest & Structure
+## Pest Structure
 
-### Configuration type (service-first)
+Typical service-first setup:
+
 ```php
 <?php
 
 declare(strict_types=1);
 
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 ```
 
-### Organisation
-- Préférer `it()` à `test()`.
-- Nommer le test par comportement attendu.
-- Garder un `beforeEach` minimal et explicite.
+Conventions:
+- Prefer `it()` over `test()`.
+- Name tests by expected behavior.
+- Keep `beforeEach` minimal and explicit.
 
-### Assertions fluides
+Expectation style:
+
 ```php
 expect($unit->code)->toBe('KG')
     ->and($unit->name)->toBe('Kilogram');
 ```
 
-## 📊 Datasets (Validation DTO)
+## DTO Validation Datasets
 
 ```php
-it('fails validation', function (array $data) {
+it('fails validation', function (array $data): void {
     expect(fn () => new UnitSyncDTO($data))
         ->toThrow(ValidationException::class);
 })->with([
@@ -102,13 +112,15 @@ it('fails validation', function (array $data) {
 ]);
 ```
 
-## 🎭 Mocks & Fakes
+## Mocks And Fakes
+
 - `Event::fake()`
 - `Notification::fake()`
 - `Storage::fake('public')`
-- `Http::fake()` pour intégrations externes
+- `Http::fake()` for external integrations
 
-## 🚀 Exécution Stable
-```bash
-DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array SESSION_DRIVER=array php artisan test --compact --filter NameOfTest
-```
+## Stability Reminder
+
+- `PROJECT_MEMORY.md` documents the current interpretation of test boundaries and known tooling limitations.
+- Application integration tests should own HTTP authorization expectations.
+- Module-local tests should not pretend to be HTTP contract tests.

@@ -9,9 +9,8 @@ use Lahatre\Catalog\DTO\CategoryFilterDTO;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Services\CategoryService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();

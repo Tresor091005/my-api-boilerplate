@@ -13,9 +13,8 @@ use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Services\UnitService;
 use Lahatre\Master\Support\UnitCache;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->service = app(UnitService::class);

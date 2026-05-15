@@ -16,9 +16,8 @@ use Lahatre\Master\Services\Tag\TagService;
 use Lahatre\Master\Tests\Concerns\InteractsWithMasterTenantContext;
 use Lahatre\Master\Tests\Support\Models\TestTaggableCurrency;
 use Lahatre\Master\Tests\Support\Models\TestTaggableUnit;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class, InteractsWithMasterTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithMasterTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeMasterTenantContext();

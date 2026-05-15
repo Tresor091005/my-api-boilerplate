@@ -7,12 +7,12 @@ namespace Lahatre\Shared\Console\Commands\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
-use InterNACHI\Modular\Console\Commands\Make\Modularize;
+use InterNACHI\Modularize\ModularizeGeneratorCommand;
 use Symfony\Component\Console\Input\InputOption;
 
 class MakePolicy extends GeneratorCommand
 {
-    use Modularize;
+    use ModularizeGeneratorCommand;
 
     /**
      * The console command name.
@@ -44,6 +44,7 @@ class MakePolicy extends GeneratorCommand
      *
      * @return string
      */
+    #[\Override]
     protected function buildClass($name)
     {
         $stub = $this->files->get($this->getStub());
@@ -105,6 +106,7 @@ class MakePolicy extends GeneratorCommand
      * @param  string  $rootNamespace
      * @return string
      */
+    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {
@@ -119,6 +121,7 @@ class MakePolicy extends GeneratorCommand
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

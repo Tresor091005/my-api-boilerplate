@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Lahatre\Shared\Console\Commands\Make;
 
 use Illuminate\Console\GeneratorCommand;
-use InterNACHI\Modular\Console\Commands\Make\Modularize;
+use InterNACHI\Modularize\ModularizeGeneratorCommand;
 
 class MakeDTO extends GeneratorCommand
 {
-    use Modularize;
+    use ModularizeGeneratorCommand;
 
     /**
      * The console command name.
@@ -48,6 +48,7 @@ class MakeDTO extends GeneratorCommand
      * @param  string  $rootNamespace
      * @return string
      */
+    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {

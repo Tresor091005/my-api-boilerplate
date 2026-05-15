@@ -7,7 +7,7 @@ namespace Lahatre\Shared\Console\Commands\Make;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
-use InterNACHI\Modular\Console\Commands\Make\Modularize;
+use InterNACHI\Modularize\ModularizeGeneratorCommand;
 use Lahatre\Shared\Http\Resources\BaseCollection;
 use ReflectionClass;
 use ReflectionException;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 
 class MakeApiResource extends GeneratorCommand
 {
-    use Modularize;
+    use ModularizeGeneratorCommand;
 
     protected $name = 'make:api-resource';
 
@@ -28,6 +28,7 @@ class MakeApiResource extends GeneratorCommand
         return dirname(__DIR__, 4).'/stubs/api-resource.stub';
     }
 
+    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {
@@ -37,6 +38,7 @@ class MakeApiResource extends GeneratorCommand
         return rtrim($rootNamespace, '\\').'\\Http\\Resources';
     }
 
+    #[\Override]
     protected function getOptions()
     {
         return [
@@ -52,6 +54,7 @@ class MakeApiResource extends GeneratorCommand
      *
      * @return bool|null
      */
+    #[\Override]
     public function handle()
     {
         // Generate the Resource
@@ -190,6 +193,7 @@ class MakeApiResource extends GeneratorCommand
         ];';
     }
 
+    #[\Override]
     protected function qualifyModel(string $model): string
     {
         $model = ltrim($model, '\\/');

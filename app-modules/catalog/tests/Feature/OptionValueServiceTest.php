@@ -13,9 +13,8 @@ use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\OptionValueService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();

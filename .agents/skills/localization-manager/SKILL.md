@@ -7,6 +7,11 @@ description: Manage Laravel localization and language files across modules. Use 
 
 This skill focuses on maintaining a high standard for Laravel application localization, specifically for projects using modular architectures (like `app-modules`).
 
+Before acting, always read:
+
+`/Users/imac/Documents/my-api-boilerplate/.agents/CODEBASE_RULES.md`
+`/Users/imac/Documents/my-api-boilerplate/.agents/PROJECT_MEMORY.md`
+
 ## Responsibilities
 
 ### 1. Translation Identification
@@ -39,6 +44,11 @@ This skill focuses on maintaining a high standard for Laravel application locali
 3.  **Propose**: Suggest keys and translations, following the "period at the end" rule for sentences.
 4.  **Implement**: Update or create the relevant `.php` file in the correct module.
 5.  **Refactor**: Replace the hardcoded strings in the code with the localization helper (`__()`).
+
+## Context Reminder
+
+- `CODEBASE_RULES.md` defines the localization contract.
+- `PROJECT_MEMORY.md` may explain why a current localization-related choice exists in this repository.
 
 ## Efficiency
 - Use `grep_search` to quickly find strings like `'text'` or `"text"` in views, controllers, and services.

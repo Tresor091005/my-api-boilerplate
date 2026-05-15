@@ -19,9 +19,8 @@ use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();

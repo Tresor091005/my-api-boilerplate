@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
-use Tests\TestCase;
-
-uses(TestCase::class);
 
 it('renders module assertion exceptions as standardized json responses', function (): void {
     Route::middleware('api')->get('/_test/assertion-exception', function (): void {

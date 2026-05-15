@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Str;
+use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Models\Unit;
 
 return [
 
@@ -122,5 +125,11 @@ return [
     */
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
+
+    'serializable_classes' => [
+        EloquentCollection::class,
+        Unit::class,
+        Currency::class,
+    ],
 
 ];
