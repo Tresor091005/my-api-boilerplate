@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/pricing",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Pricing\\": "src/",
+			"Lahatre\\Pricing\\Tests\\": "tests/",
+			"Lahatre\\Pricing\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Pricing\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Pricing\\Providers\\PricingServiceProvider"
+			]
+		}
+	}
+}

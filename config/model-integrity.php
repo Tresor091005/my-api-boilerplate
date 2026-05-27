@@ -101,6 +101,17 @@ return [
                 'inventory_stocks_location_id_item_id_active_index',
             ],
         ],
+        'pricing_price_entries' => [
+            'pricing_price_entries_organization_id_context_currency_code_is_active_index' => 'pricing_pe_org_ctx_currency_active_idx',
+            'pricing_price_entries_priceable_type_priceable_id_priceable_kind_index'      => 'pricing_pe_priceable_scope_idx',
+        ],
+        'pricing_priceable_group_members' => [
+            'pricing_priceable_group_members_organization_id_group_id_priceable_type_priceable_id_unique' => 'pricing_pgm_org_group_target_unique',
+            'pricing_priceable_group_members_priceable_type_priceable_id_index'                           => 'pricing_pgm_priceable_lookup_idx',
+        ],
+        'pricing_party_group_members' => [
+            'pricing_party_group_members_organization_id_group_id_party_type_party_id_unique' => 'pricing_pagm_org_group_target_unique',
+        ],
     ],
 
     /*

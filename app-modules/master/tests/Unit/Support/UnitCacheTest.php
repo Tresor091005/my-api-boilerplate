@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -13,6 +14,8 @@ use Lahatre\Master\Support\UnitCache;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    setPermissionsTeamId(null);
+
     $this->cache = new UnitCache();
     $this->group = UnitGroup::factory()->create([
         'name'            => 'Test Group',
@@ -41,6 +44,60 @@ it('uses a single cache key for all units', function (): void {
     $unit = $this->cache->getByCode('test-m');
     expect($unit->id)->toBe($this->baseUnit->id);
     expect(Cache::has($key))->toBeTrue();
+});
+
+it('scopes cached units to system and the current organization', function (): void {
+    $organizationId = (string) str()->uuid();
+    $otherOrganizationId = (string) str()->uuid();
+    $now = now();
+
+    DB::table('organization_organizations')->insert([
+        [
+            'id'         => $organizationId,
+            'name'       => 'Cache Test Organization',
+            'created_at' => $now,
+            'updated_at' => $now,
+            'deleted_at' => null,
+        ],
+        [
+            'id'         => $otherOrganizationId,
+            'name'       => 'Other Cache Test Organization',
+            'created_at' => $now,
+            'updated_at' => $now,
+            'deleted_at' => null,
+        ],
+    ]);
+
+    $tenantGroup = UnitGroup::factory()->create([
+        'name'            => 'Tenant Group',
+        'organization_id' => $organizationId,
+    ]);
+    $otherTenantGroup = UnitGroup::factory()->create([
+        'name'            => 'Other Tenant Group',
+        'organization_id' => $otherOrganizationId,
+    ]);
+
+    $tenantUnit = Unit::factory()->create([
+        'code'            => 'tenant-m',
+        'group_id'        => $tenantGroup->id,
+        'organization_id' => $organizationId,
+    ]);
+    Unit::factory()->create([
+        'code'            => 'other-tenant-m',
+        'group_id'        => $otherTenantGroup->id,
+        'organization_id' => $otherOrganizationId,
+    ]);
+
+    setPermissionsTeamId($organizationId);
+
+    $tenantCache = new UnitCache();
+    $units = $tenantCache->units();
+
+    expect(Cache::has("master:units:all:{$organizationId}"))->toBeTrue()
+        ->and($units->keys()->all())->toContain('test-m')
+        ->and($units->keys()->all())->toContain('tenant-m')
+        ->and($units->keys()->all())->not->toContain('other-tenant-m')
+        ->and($tenantCache->getByCode('tenant-m')->id)->toBe($tenantUnit->id);
 });
 
 it('memoizes units collection in memory during the same request', function (): void {

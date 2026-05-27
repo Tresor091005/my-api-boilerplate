@@ -18,6 +18,7 @@
         "lahatre/inventory": "*",
         "lahatre/master": "*",
         "lahatre/organization": "*",
+        "lahatre/pricing": "*",
         "lahatre/shared": "*",
         "laravel/framework": "^13.0",
         "laravel/horizon": "*",

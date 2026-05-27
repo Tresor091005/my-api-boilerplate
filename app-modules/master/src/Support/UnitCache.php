@@ -37,9 +37,20 @@ class UnitCache
             return $this->units;
         }
 
-        $key = 'master:units:all:'.(getPermissionsTeamId() ?? 'system');
+        $key = $this->unitsCacheKey();
 
-        return $this->units = Cache::remember($key, self::TTL, fn () => Unit::all()->keyBy('code'));
+        return $this->units = Cache::remember($key, self::TTL, function (): Collection {
+            return Unit::query()
+                ->where(function ($query): void {
+                    $query->whereNull('organization_id');
+
+                    if (getPermissionsTeamId() !== null) {
+                        $query->orWhere('organization_id', getPermissionsTeamId());
+                    }
+                })
+                ->get()
+                ->keyBy('code');
+        });
     }
 
     /**
@@ -136,7 +147,7 @@ class UnitCache
      */
     public function rewarmUnits(): void
     {
-        $key = 'master:units:all:'.(getPermissionsTeamId() ?? 'system');
+        $key = $this->unitsCacheKey();
 
         $this->units = null;
         $this->unitsByGroup = null;
@@ -153,5 +164,10 @@ class UnitCache
         $this->currencies = null;
         Cache::forget('master:currencies:all');
         $this->currencies();
+    }
+
+    private function unitsCacheKey(): string
+    {
+        return 'master:units:all:'.(getPermissionsTeamId() ?? 'system');
     }
 }

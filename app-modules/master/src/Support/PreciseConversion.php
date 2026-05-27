@@ -77,6 +77,7 @@ class PreciseConversion
 
     /**
      * Converts an amount to the base unit of the group (ratio = 1).
+     * TODO: manage trailing zeros
      *
      * @return array{amount: string, unit: Unit}
      */

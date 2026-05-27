@@ -120,7 +120,7 @@ Proposed fields:
 - `unit_code` string
 - `min_quantity` decimal or bigint
 - `max_quantity` decimal or bigint nullable
-- `amount` bigint
+- `unit_price` bigint
 - `starts_at` timestamp nullable
 - `ends_at` timestamp nullable
 - `is_active` boolean default true
@@ -130,7 +130,7 @@ Proposed fields:
 
 Notes:
 
-- `amount` should use minor currency units.
+- `unit_price` should use minor currency units.
 - `unit_code` references the master unit code and represents the commercial/display unit of the price entry.
 - `min_quantity` and `max_quantity` belong to pricing, not to master units.
 - Units describe conversion. Price entries describe when a price applies.
@@ -160,7 +160,7 @@ Recommended indexes:
 
 Uniqueness rule for v1:
 
-- A price entry must be unique by resolution scope, not by amount.
+- A price entry must be unique by resolution scope, not by `unit_price`.
 - Two active entries must not describe the exact same case for the same `organization_id`, `priceable` target, `party` target, `context`, `currency_code`, `unit_code`, quantity range, and active period.
 - Because overlap detection is hard to guarantee with a simple database unique index, v1 may enforce this rule at the application service level.
 
@@ -256,7 +256,7 @@ Filtering rules:
 - Currency matches.
 - Date is inside `starts_at` and `ends_at` when boundaries exist.
 - Quantity is inside `min_quantity` and `max_quantity` when boundaries exist.
-- Unit matches or is compatible through the master unit conversion strategy chosen by the implementation.
+- Unit matches exactly. A price entry applies only to its own `unit_code`.
 - Priceable matches the precise item or one of its pricing groups.
 - Party matches the precise actor, one of its pricing groups, or null.
 
@@ -294,7 +294,7 @@ The validator must verify that the chosen amount appears in the applicable price
 
 This deliberately validates by `amount`, not only by `price_entry_id`, because business records such as quote lines, sales order lines, invoices, purchase order lines, and receipts often need to debug the visible price that was applied. A `price_entry_id` may still be stored as trace metadata when available, but the amount remains the core validation input.
 
-The validator may accept a decimal amount from the caller, but it must convert that amount into the stored minor-unit representation before comparison.
+The validator may accept a decimal unit price from the caller, but it must convert that value into the stored minor-unit representation before comparison.
 
 Validation outcomes:
 
@@ -330,7 +330,7 @@ Tomato Roma has a public selling price:
 - currency: `XOF`
 - unit: `kg`
 - min quantity: `1`
-- amount: `1000`
+- unit_price: `1000`
 
 Any customer buying Tomato Roma in this context may use `1000 XOF/kg` unless a more specific price is selected.
 
@@ -344,7 +344,7 @@ Tomato Roma has a wholesale selling price:
 - currency: `XOF`
 - unit: `kg`
 - min quantity: `50`
-- amount: `850`
+- unit_price: `850`
 
 For a wholesale customer buying `80 kg`, both public and wholesale prices may be applicable. The resolver returns the wholesale price first because the party match is more specific and the quantity tier is higher.
 
@@ -358,7 +358,7 @@ The pricing group Green Vegetables has a fallback selling price:
 - currency: `XOF`
 - unit: `kg`
 - min quantity: `1`
-- amount: `700`
+- unit_price: `700`
 
 If Tomato Roma belongs to Green Vegetables and has no better direct price, this group price may be used.
 
@@ -372,7 +372,7 @@ Tomato Roma has a purchase price for Local Suppliers:
 - currency: `XOF`
 - unit: `kg`
 - min quantity: `1`
-- amount: `600`
+- unit_price: `600`
 
 This price is valid for buying from a supplier in the Local Suppliers pricing group. It is not valid for selling.
 

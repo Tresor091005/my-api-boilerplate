@@ -29,5 +29,5 @@ Route::group([
 
         Route::apiResource('products.variants', ProductVariantController::class)->scoped();
         Route::apiResource('options.values', OptionValueController::class)->scoped();
-    })->scopeBindings();
+    });
 });
