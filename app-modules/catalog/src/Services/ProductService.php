@@ -128,7 +128,7 @@ class ProductService implements StandaloneService
                     'product',
                     'optionValues.option',
                     'unitGroup',
-                    'inventoryItem.activeStockLocationSummaries',
+                    'inventoryItem.stockSummaries',
                 ]);
             },
         ];

@@ -63,16 +63,15 @@ While this module provides a mathematically perfect ledger, **physical logistics
 To make a model "Inventoryable", implement the `HasInventoryItem` or `HasInventoryLocation` interface and use the corresponding trait.
 
 **Advanced Integration**: By using the traits, your domain models gain direct access to deep relationships (via `staudenmeir/eloquent-has-many-deep`):
-- `$product->stocks()`: All lots for this product across all locations.
-- `$product->activeStocks()`: Only lots with remaining quantity > 0.
-- `$warehouse->locationMovements()`: All movements that occurred in this location.
+- `$product->inventoryItemStocks()`: All lots for this product across all locations.
+- `$product->activeInventoryItemStocks()`: Only lots with remaining quantity > 0.
+- `$warehouse->inventoryLocationMovements()`: All movements that occurred in this location.
 
 ```php
 use Lahatre\Inventory\Contracts\HasInventoryItem;
-use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 
-class Product extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary
+class Product extends Model implements HasInventoryItem
 {
     use InteractsWithInventoryItem;
 

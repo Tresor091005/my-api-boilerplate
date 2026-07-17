@@ -6,7 +6,7 @@ namespace Lahatre\Inventory\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Contracts\ProvidesInventoryLocationExternalSummary;
+use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Models\InventoryLocation;
 
 /**
@@ -27,7 +27,7 @@ class InventoryLocationResource extends JsonResource
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
             'external'      => $this->whenLoaded('external', function (): ?array {
-                if ($this->external instanceof ProvidesInventoryLocationExternalSummary) {
+                if ($this->external instanceof HasInventoryLocation) {
                     return $this->external->toInventoryLocationExternalSummary();
                 }
 

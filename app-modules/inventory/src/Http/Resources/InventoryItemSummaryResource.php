@@ -26,21 +26,21 @@ class InventoryItemSummaryResource extends JsonResource
             'is_active'          => $this->is_active,
             'total_remaining'    => $this->resolveTotalRemaining(),
             'active_lots_count'  => $this->resolveActiveLotsCount(),
-            'locations'          => $this->whenLoaded('activeStockLocationSummaries', fn (): array => InventoryItemStockLocationSummaryResource::collection($this->activeStockLocationSummaries)->resolve()),
+            'locations'          => $this->whenLoaded('stockSummaries', fn (): array => InventoryItemStockLocationSummaryResource::collection($this->stockSummaries)->resolve()),
         ];
     }
 
     private function resolveTotalRemaining(): int
     {
-        return $this->relationLoaded('activeStockLocationSummaries')
-            ? (int) $this->activeStockLocationSummaries->sum('total_remaining')
+        return $this->relationLoaded('stockSummaries')
+            ? (int) $this->stockSummaries->sum('total_remaining')
             : ($this->relationLoaded('activeStocks') ? (int) $this->activeStocks->sum('remaining') : 0);
     }
 
     private function resolveActiveLotsCount(): int
     {
-        return $this->relationLoaded('activeStockLocationSummaries')
-            ? (int) $this->activeStockLocationSummaries->sum('active_lots_count')
+        return $this->relationLoaded('stockSummaries')
+            ? (int) $this->stockSummaries->sum('active_lots_count')
             : ($this->relationLoaded('activeStocks') ? $this->activeStocks->count() : 0);
     }
 }

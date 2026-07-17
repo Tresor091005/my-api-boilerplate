@@ -90,6 +90,28 @@ it('fails if manual strategy is used without providing stock_ids', function (): 
         ->toThrow(ValidationException::class, 'Stock IDs are required when strategy is manual.');
 });
 
+it('fails if the same stock_id is selected more than once in one movement', function (): void {
+    $stock = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create();
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'reference_id'     => '123',
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'type'        => 'out',
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'quantity'    => 10,
+            'unit_code'   => $this->unit->code,
+            'strategy'    => DeductionStrategy::Manual->value,
+            'stock_ids'   => [$stock->id, $stock->id],
+        ]],
+    ]))->toThrow(ValidationException::class, __('inventory::validation.duplicate_stock_ids'));
+});
+
 it('fails if a provided stock_id does not belong to the correct item and location', function (): void {
     $otherItem = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
     $stockForOtherItem = InventoryStock::factory()->for($otherItem, 'item')->for($this->location, 'location')->create();

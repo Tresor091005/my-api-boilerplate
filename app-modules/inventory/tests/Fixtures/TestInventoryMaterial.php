@@ -6,7 +6,6 @@ namespace Lahatre\Inventory\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
-use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -17,7 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $unit_group_id
  * @property bool $is_active
  */
-class TestInventoryMaterial extends Model implements HasInventoryItem, ProvidesInventoryItemableSummary
+class TestInventoryMaterial extends Model implements HasInventoryItem
 {
     use InteractsWithInventoryItem;
     use SharedTraits;

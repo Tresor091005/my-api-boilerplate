@@ -6,7 +6,7 @@ namespace Lahatre\Inventory\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
+use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
 
 /**
@@ -30,7 +30,7 @@ class InventoryItemResource extends JsonResource
             'created_at'         => $this->created_at,
             'updated_at'         => $this->updated_at,
             'itemable'           => $this->whenLoaded('itemable', function (): ?array {
-                if ($this->itemable instanceof ProvidesInventoryItemableSummary) {
+                if ($this->itemable instanceof HasInventoryItem) {
                     return $this->itemable->toInventoryItemableSummary();
                 }
 

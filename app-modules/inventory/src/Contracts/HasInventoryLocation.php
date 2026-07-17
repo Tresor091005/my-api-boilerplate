@@ -24,4 +24,11 @@ interface HasInventoryLocation
      * @return string|int
      */
     public function getKey();
+
+    /**
+     * Return the lightweight representation exposed under location.external.
+     *
+     * @return array<string, mixed>
+     */
+    public function toInventoryLocationExternalSummary(): array;
 }

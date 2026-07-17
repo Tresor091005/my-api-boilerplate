@@ -30,7 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Model|\Eloquent $itemable
  * @property-read Collection<int, InventoryStock> $stocks
  * @property-read int|null $stocks_count
- * @property-read Collection<int, InventoryStock> $activeStockLocationSummaries
+ * @property-read Collection<int, InventoryStock> $stockSummaries
  * @property-read Collection<int, InventoryMovement> $movements
  * @property-read int|null $movements_count
  *
@@ -107,7 +107,7 @@ class InventoryItem extends Model
      *
      * Note: This returns InventoryStock models with only the aggregated attributes selected.
      */
-    public function activeStockLocationSummaries(): HasMany
+    public function stockSummaries(): HasMany
     {
         return $this->activeStocks()
             ->select([

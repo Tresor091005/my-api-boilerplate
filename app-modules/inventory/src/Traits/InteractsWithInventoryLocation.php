@@ -38,7 +38,7 @@ trait InteractsWithInventoryLocation
     /**
      * Get all the model's inventory stocks through its inventory location.
      */
-    public function locationStocks(): HasManyDeep
+    public function inventoryLocationStocks(): HasManyDeep
     {
         return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->stocks());
     }
@@ -46,15 +46,23 @@ trait InteractsWithInventoryLocation
     /**
      * Get all active inventory stocks through its inventory location.
      */
-    public function activeLocationStocks(): HasManyDeep
+    public function activeInventoryLocationStocks(): HasManyDeep
     {
         return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->activeStocks());
     }
 
     /**
+     * Get aggregated active stocks grouped by item through its inventory location.
+     */
+    public function inventoryLocationStockSummaries(): HasManyDeep
+    {
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->stockSummaries());
+    }
+
+    /**
      * Get all the model's inventory movements through its inventory location.
      */
-    public function locationMovements(): HasManyDeep
+    public function inventoryLocationMovements(): HasManyDeep
     {
         return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->movements());
     }

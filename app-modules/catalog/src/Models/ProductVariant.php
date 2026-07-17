@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
-use Lahatre\Inventory\Contracts\ProvidesInventoryItemableSummary;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
@@ -56,14 +55,14 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static ProductVariantFactory factory($count = null, $state = [])
  *
  * @property-read InventoryItem|null $inventoryItem
- * @property-read Collection<int, InventoryStock> $stocks
- * @property-read int|null $stocks_count
- * @property-read Collection<int, InventoryStock> $activeStocks
- * @property-read int|null $active_stocks_count
- * @property-read Collection<int, InventoryStock> $activeStockLocationSummaries
- * @property-read int|null $active_stock_location_summaries_count
- * @property-read Collection<int, InventoryMovement> $movements
- * @property-read int|null $movements_count
+ * @property-read Collection<int, InventoryStock> $inventoryItemStocks
+ * @property-read int|null $inventory_item_stocks_count
+ * @property-read Collection<int, InventoryStock> $activeInventoryItemStocks
+ * @property-read int|null $active_inventory_item_stocks_count
+ * @property-read Collection<int, InventoryStock> $inventoryItemStockSummaries
+ * @property-read int|null $inventory_item_stock_summaries_count
+ * @property-read Collection<int, InventoryMovement> $inventoryItemMovements
+ * @property-read int|null $inventory_item_movements_count
  *
  * @method static Builder<static>|ProductVariant onlyTrashed()
  * @method static Builder<static>|ProductVariant whereOrganizationId($value)
@@ -76,7 +75,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem, HasPriceable, ProvidesInventoryItemableSummary
+class ProductVariant extends Model implements HasInventoryItem, HasPriceable
 {
     use InteractsWithInventoryItem;
     use SharedTraits;

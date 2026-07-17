@@ -61,6 +61,7 @@ interface InventoryInterface
      *         metadata?: array
      *     }>
      * } $data
+     * @param  array<int|string, mixed>  $with
      */
-    public function recordTransaction(array $data): InventoryTransaction;
+    public function recordTransaction(array $data, array $with = ['movements']): InventoryTransaction;
 }

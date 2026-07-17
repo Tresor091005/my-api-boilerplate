@@ -6,7 +6,6 @@ namespace Lahatre\Inventory\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
-use Lahatre\Inventory\Contracts\ProvidesInventoryLocationExternalSummary;
 use Lahatre\Inventory\Traits\InteractsWithInventoryLocation;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -16,7 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $code
  * @property bool $is_active
  */
-class TestInventoryWarehouse extends Model implements HasInventoryLocation, ProvidesInventoryLocationExternalSummary
+class TestInventoryWarehouse extends Model implements HasInventoryLocation
 {
     use InteractsWithInventoryLocation;
     use SharedTraits;

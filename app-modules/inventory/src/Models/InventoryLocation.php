@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Database\Factories\InventoryLocationFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -47,6 +48,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @property-read Collection<int, InventoryStock> $activeStocks
  * @property-read int|null $active_stocks_count
+ * @property-read Collection<int, InventoryStock> $stockSummaries
  *
  * @mixin \Eloquent
  */
@@ -86,6 +88,22 @@ class InventoryLocation extends Model
     public function activeStocks(): HasMany
     {
         return $this->stocks()->where('remaining', '>', 0);
+    }
+
+    /**
+     * Aggregated active stocks grouped by item for lightweight summary reads.
+     */
+    public function stockSummaries(): HasMany
+    {
+        return $this->activeStocks()
+            ->select([
+                'location_id',
+                'item_id',
+                DB::raw('SUM(remaining) as total_remaining'),
+                DB::raw('COUNT(*) as active_lots_count'),
+            ])
+            ->groupBy('location_id', 'item_id')
+            ->orderBy('item_id');
     }
 
     public function movements(): HasMany

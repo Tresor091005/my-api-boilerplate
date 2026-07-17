@@ -74,6 +74,7 @@ class TransactionValidator
             'movements.*.metadata'        => ['nullable', 'array'],
             'movements.*.strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
             'movements.*.stock_ids'       => ['nullable', 'array'],
+            'movements.*.stock_ids.*'     => ['string'],
         ];
     }
 
@@ -86,19 +87,46 @@ class TransactionValidator
             $txType = TransactionType::tryFrom($txType);
         }
 
-        // 1. Bulk Lookups (Hydrate context)
+        // 1. Input structure (before any database lookup)
+        $this->validateStockIdStructure($validator, $movements);
+
+        if ($validator->errors()->any()) {
+            return;
+        }
+
+        // 2. Bulk Lookups (Hydrate context)
         $this->lookups = $this->performBulkLookups($movements);
 
-        // 2. Existence & Entity Integrity (Are entities valid and requirements met?)
+        // 3. Existence & Entity Integrity (Are entities valid and requirements met?)
         $this->validateExistence($validator, $txType, $movements, $this->lookups);
 
-        // 3. Structural Consistency (Duplicates, Type mismatches)
+        // 4. Structural Consistency (Duplicates, Type mismatches)
         $this->validateUniquePairs($validator, $txType, $movements);
         $this->validateTransactionTypeConsistency($validator, $txType, $movements);
 
-        // 4. Business Logic (Only if basic integrity and structure are valid)
+        // 5. Business Logic (Only if basic integrity and structure are valid)
         if (!$validator->errors()->any()) {
             $this->validateBusinessLogic($validator, $txType, $movements, $this->lookups);
+        }
+    }
+
+    protected function validateStockIdStructure(Validator $validator, Collection $movements): void
+    {
+        foreach ($movements as $index => $movement) {
+            if (!is_array($movement)) {
+                continue;
+            }
+
+            $stockIds = collect($movement['stock_ids'] ?? []);
+
+            if ($stockIds->count() === $stockIds->unique()->count()) {
+                continue;
+            }
+
+            $validator->errors()->add(
+                "movements.{$index}.stock_ids",
+                __('inventory::validation.duplicate_stock_ids')
+            );
         }
     }
 
@@ -114,11 +142,11 @@ class TransactionValidator
             if (isset($seen[$key])) {
                 $validator->errors()->add(
                     "movements.{$index}",
-                    'For Adjustment transactions, the same item cannot appear multiple times for the same location.'
+                    __('inventory::validation.adjustment_duplicate_item_location')
                 );
                 $validator->errors()->add(
                     "movements.{$seen[$key]}",
-                    'For Adjustment transactions, the same item cannot appear multiple times for the same location.'
+                    __('inventory::validation.adjustment_duplicate_item_location')
                 );
             }
             $seen[$key] = $index;
@@ -135,9 +163,9 @@ class TransactionValidator
         $hasOut = $movements->contains(fn ($m): bool => ($m['type'] ?? null) === MovementType::Out->value);
 
         match ($txType) {
-            TransactionType::In       => $hasOut && $validator->errors()->add('transaction_type', "An 'IN' transaction can only contain 'in' movements."),
-            TransactionType::Out      => $hasIn && $validator->errors()->add('transaction_type', "An 'OUT' transaction can only contain 'out' movements."),
-            TransactionType::Transfer => (!$hasIn || !$hasOut) && $validator->errors()->add('transaction_type', "A 'TRANSFER' transaction must have at least one 'in' and one 'out' movement."),
+            TransactionType::In       => $hasOut && $validator->errors()->add('transaction_type', __('inventory::validation.in_transaction_only_in_movements')),
+            TransactionType::Out      => $hasIn && $validator->errors()->add('transaction_type', __('inventory::validation.out_transaction_only_out_movements')),
+            TransactionType::Transfer => (!$hasIn || !$hasOut) && $validator->errors()->add('transaction_type', __('inventory::validation.transfer_requires_in_and_out_movements')),
             default                   => null,
         };
     }
@@ -168,63 +196,63 @@ class TransactionValidator
             }
 
             if (isset($m['item_id']) && !$lookups['items']->has($m['item_id'])) {
-                $validator->errors()->add("movements.{$index}.item_id", 'The selected item is invalid or inactive.');
+                $validator->errors()->add("movements.{$index}.item_id", __('inventory::validation.item_invalid_or_inactive'));
             }
             if (isset($m['location_id']) && !$lookups['locations']->has($m['location_id'])) {
-                $validator->errors()->add("movements.{$index}.location_id", 'The selected location is invalid or inactive.');
+                $validator->errors()->add("movements.{$index}.location_id", __('inventory::validation.location_invalid_or_inactive'));
             }
             if (isset($m['unit_code']) && !$lookups['units']->has($m['unit_code'])) {
-                $validator->errors()->add("movements.{$index}.unit_code", 'The selected unit code is invalid.');
+                $validator->errors()->add("movements.{$index}.unit_code", __('inventory::validation.unit_code_invalid'));
             }
             if (isset($m['currency_code']) && !$lookups['currencies']->has($m['currency_code'])) {
-                $validator->errors()->add("movements.{$index}.currency_code", 'The selected currency code is invalid.');
+                $validator->errors()->add("movements.{$index}.currency_code", __('inventory::validation.currency_code_invalid'));
             }
 
             if ($type === MovementType::In) {
                 if ($txType === TransactionType::In) {
                     if (!isset($m['unit_cost'])) {
-                        $validator->errors()->add("movements.{$index}.unit_cost", "The unit cost is required for 'in' movements in an 'IN' transaction.");
+                        $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.in_unit_cost_required'));
                     }
 
                     if (!isset($m['currency_code'])) {
-                        $validator->errors()->add("movements.{$index}.currency_code", "The currency code is required for 'in' movements in an 'IN' transaction.");
+                        $validator->errors()->add("movements.{$index}.currency_code", __('inventory::validation.in_currency_code_required'));
                     }
                 }
 
                 if ($txType === TransactionType::Transfer) {
                     if (isset($m['unit_cost'])) {
-                        $validator->errors()->add("movements.{$index}.unit_cost", "The unit cost is prohibited for 'in' movements in a 'TRANSFER' transaction (it is inherited from the source).");
+                        $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.transfer_in_unit_cost_prohibited'));
                     }
 
                     if (isset($m['currency_code'])) {
-                        $validator->errors()->add("movements.{$index}.currency_code", "The currency code is prohibited for 'in' movements in a 'TRANSFER' transaction.");
+                        $validator->errors()->add("movements.{$index}.currency_code", __('inventory::validation.transfer_in_currency_code_prohibited'));
                     }
 
                     if (isset($m['expiration_date'])) {
-                        $validator->errors()->add("movements.{$index}.expiration_date", "The expiration date is prohibited for 'in' movements in a 'TRANSFER' transaction.");
+                        $validator->errors()->add("movements.{$index}.expiration_date", __('inventory::validation.transfer_in_expiration_date_prohibited'));
                     }
                 }
 
                 if (isset($m['strategy'])) {
-                    $validator->errors()->add("movements.{$index}.strategy", "Stock deduction strategy is prohibited for 'in' movements.");
+                    $validator->errors()->add("movements.{$index}.strategy", __('inventory::validation.in_strategy_prohibited'));
                 }
 
                 if (isset($m['stock_ids'])) {
-                    $validator->errors()->add("movements.{$index}.stock_ids", "Stock IDs are prohibited for 'in' movements.");
+                    $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.in_stock_ids_prohibited'));
                 }
             }
 
             if ($type === MovementType::Out) {
                 if (isset($m['unit_cost'])) {
-                    $validator->errors()->add("movements.{$index}.unit_cost", "The unit cost is prohibited for 'out' movements.");
+                    $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.out_unit_cost_prohibited'));
                 }
 
                 if (isset($m['currency_code'])) {
-                    $validator->errors()->add("movements.{$index}.currency_code", "The currency code is prohibited for 'out' movements.");
+                    $validator->errors()->add("movements.{$index}.currency_code", __('inventory::validation.out_currency_code_prohibited'));
                 }
 
                 if (isset($m['expiration_date'])) {
-                    $validator->errors()->add("movements.{$index}.expiration_date", "The expiration date is prohibited for 'out' movements.");
+                    $validator->errors()->add("movements.{$index}.expiration_date", __('inventory::validation.out_expiration_date_prohibited'));
                 }
             }
 
@@ -240,7 +268,10 @@ class TransactionValidator
                 if ($v->fails()) {
                     $validator->errors()->add(
                         "movements.{$index}.unit_cost",
-                        "The unit cost for currency {$m['currency_code']} must have at most {$precision} decimal places."
+                        __('inventory::validation.unit_cost_precision', [
+                            'currency_code' => $m['currency_code'],
+                            'precision'     => $precision,
+                        ])
                     );
                 }
             }
@@ -259,16 +290,16 @@ class TransactionValidator
                 ?? DeductionStrategy::Fifo;
 
             if ($resolvedStrategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
-                $validator->errors()->add("movements.{$index}.stock_ids", 'Stock IDs are required when strategy is manual.');
+                $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.manual_stock_ids_required'));
             }
 
             if (!empty($m['stock_ids']) && $type === MovementType::Out) {
                 foreach ($m['stock_ids'] as $sid) {
                     $stock = $lookups['stocks']->get($sid);
                     if (!$stock) {
-                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} is invalid.");
+                        $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.stock_id_invalid', ['stock_id' => $sid]));
                     } elseif ($stock->item_id !== ($m['item_id'] ?? null) || $stock->location_id !== ($m['location_id'] ?? null)) {
-                        $validator->errors()->add("movements.{$index}.stock_ids", "Stock ID {$sid} does not belong to the correct item and location.");
+                        $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.stock_id_wrong_scope', ['stock_id' => $sid]));
                     }
                 }
             }
@@ -276,7 +307,7 @@ class TransactionValidator
 
         $currencies = $movements->pluck('currency_code')->filter()->unique();
         if ($currencies->count() > 1) {
-            $validator->errors()->add('movements', 'All movements in a transaction must use the same currency code.');
+            $validator->errors()->add('movements', __('inventory::validation.transaction_single_currency'));
         }
     }
 
@@ -307,7 +338,10 @@ class TransactionValidator
             }
 
             if ($baseUnit->group_id !== $providedUnit->group_id) {
-                $validator->errors()->add("movements.{$index}.unit_code", "Unit {$m['unit_code']} belongs to a different group than item base unit {$item->base_unit_code}.");
+                $validator->errors()->add("movements.{$index}.unit_code", __('inventory::validation.unit_group_mismatch', [
+                    'unit_code'      => $m['unit_code'],
+                    'base_unit_code' => $item->base_unit_code,
+                ]));
             }
         }
     }
@@ -335,7 +369,12 @@ class TransactionValidator
             }
 
             if (bccomp($totalIn, $totalOut, 10) !== 0) {
-                $validator->errors()->add('movements', "Transfer imbalance for item {$itemId}. Total IN: {$totalIn}, Total OUT: {$totalOut} (in base unit {$item->base_unit_code}).");
+                $validator->errors()->add('movements', __('inventory::validation.transfer_imbalance', [
+                    'item_id'        => $itemId,
+                    'total_in'       => $totalIn,
+                    'total_out'      => $totalOut,
+                    'base_unit_code' => $item->base_unit_code,
+                ]));
             }
         }
     }

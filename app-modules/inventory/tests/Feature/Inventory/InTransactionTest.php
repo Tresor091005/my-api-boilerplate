@@ -80,6 +80,28 @@ it('successfully processes a simple IN transaction', function (): void {
     ]);
 });
 
+it('loads only the requested transaction relations', function (): void {
+    $payload = [
+        'reference_type'   => 'purchase_order',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'type'          => MovementType::In->value,
+            'quantity'      => 100,
+            'unit_code'     => $this->unit->code,
+            'unit_cost'     => 15.50,
+            'currency_code' => $this->currency->code,
+        ]],
+    ];
+
+    $transaction = $this->service->recordTransaction($payload, ['movements.stock']);
+
+    expect($transaction->relationLoaded('movements'))->toBeTrue()
+        ->and($transaction->movements->first()->relationLoaded('stock'))->toBeTrue();
+});
+
 it('processes an IN transaction with unit conversion', function (): void {
     $kgUnit = Unit::factory()->create(['ratio' => 1000, 'group_id' => $this->group->id]);
 
