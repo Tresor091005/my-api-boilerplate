@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'organization_context_required' => 'An organization context is required for Inventory operations.',
     'organization_mismatch'         => 'The referenced model does not belong to the current organization.',
+    'idempotency_key_reused'        => 'The idempotency key has already been used with a different transaction payload.',
     'adjustment_no_op'              => 'The target quantity is already the current stock. Item :item_id, location :location_id.',
     'base_unit_not_found'           => 'System integrity error: base unit :base_unit_code for item :item_id could not be resolved.',
     'base_unit_ratio_integrity'     => 'System integrity error: base unit :base_unit_code for item :item_id must have a ratio of 1.',

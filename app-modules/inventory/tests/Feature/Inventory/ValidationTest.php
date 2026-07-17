@@ -40,6 +40,7 @@ it('fails if multiple currencies are used in one transaction', function (): void
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -59,6 +60,7 @@ it('does not allow a transaction to reference another organization item', functi
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -84,6 +86,7 @@ it('does not allow a transaction to reference another organization unit', functi
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -104,6 +107,7 @@ it('fails if unit does not belong to the same group as item base unit', function
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -118,6 +122,7 @@ it('fails if unit does not belong to the same group as item base unit', function
 it('fails if manual strategy is used without providing stock_ids', function (): void {
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -145,6 +150,7 @@ it('fails if the same stock_id is selected more than once in one movement', func
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -165,6 +171,7 @@ it('fails if a provided stock_id does not belong to the correct item and locatio
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -199,6 +206,7 @@ it('fails when a resolved inventory item is inactive', function (): void {
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -232,6 +240,7 @@ it('fails when a resolved inventory location is inactive', function (): void {
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -259,6 +268,7 @@ it('does not persist resolved references when preprocessing is enabled but valid
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -289,6 +299,7 @@ it('fails validation if Manual strategy is resolved via Item settings but stock_
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -307,6 +318,7 @@ it('fails validation if Manual strategy is resolved via Global config but stock_
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -324,6 +336,7 @@ it('fails transaction if the selected item is inactive', function (): void {
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -343,6 +356,7 @@ it('fails transaction if the selected location is inactive', function (): void {
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -363,6 +377,7 @@ it('fails if the item base unit has a ratio different than 1', function (): void
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -382,6 +397,7 @@ it('fails if unit_cost has more decimal places than allowed by the currency', fu
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -399,6 +415,7 @@ it('fails if unit_cost has more decimal places than allowed by the currency', fu
 it('fails if unit_cost is negative', function (): void {
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[

@@ -39,6 +39,7 @@ beforeEach(function (): void {
 it('successfully processes a simple IN transaction', function (): void {
     $payload = [
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -83,6 +84,7 @@ it('successfully processes a simple IN transaction', function (): void {
 it('loads only the requested transaction relations', function (): void {
     $payload = [
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -107,6 +109,7 @@ it('processes an IN transaction with unit conversion', function (): void {
 
     $payload = [
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -143,6 +146,7 @@ it('resolves inventory contracts passed in item_id and location_id before record
 
     $payload = [
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -186,6 +190,7 @@ it('resolves inventory contracts passed in item_id and location_id before record
 it('fails an IN transaction if it contains an OUT movement', function (): void {
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
@@ -211,6 +216,7 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
 
     $payload = [
         'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [$movement],
@@ -222,6 +228,7 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
 it('uses the same metadata for Movement and Stock during an IN transaction', function (): void {
     $payload = [
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [

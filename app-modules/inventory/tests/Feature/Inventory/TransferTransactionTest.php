@@ -45,6 +45,7 @@ it('successfully processes a balanced transfer with lot splitting', function ():
     // WHEN we transfer 70 units from A to B
     $payload = [
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [
@@ -81,6 +82,7 @@ it('successfully processes a balanced transfer with lot splitting', function ():
 it('fails a transfer if it is not balanced', function (): void {
     $payload = [
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [
@@ -104,6 +106,7 @@ it('fails a transfer if cost or currency is provided for an IN movement', functi
 
     $payload = [
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [
@@ -137,6 +140,7 @@ it('distributes transfer batches correctly across multiple source and destinatio
 
     $payload = [
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [
@@ -208,6 +212,7 @@ it('merges source stock metadata and movement metadata into destination stock du
 
     $this->service->recordTransaction([
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [
@@ -246,6 +251,7 @@ it('handles rounding differences in transfers between units of different precisi
 
     $this->service->recordTransaction([
         'reference_type'   => 'transfer_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Transfer->value,
         'movements'        => [

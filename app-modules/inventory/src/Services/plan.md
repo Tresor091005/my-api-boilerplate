@@ -1,6 +1,6 @@
 TODO:
 
-- 1. Add transaction idempotency with:
+- [x] 1. Add transaction idempotency with:
   - `idempotency_key` validated as a required string with a minimum length of 3.
   - `payload_hash` stored to detect reuse of the same idempotency key with a different payload.
   - No uniqueness constraint on `reference_type` + `reference_id`.

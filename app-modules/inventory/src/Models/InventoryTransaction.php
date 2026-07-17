@@ -17,6 +17,8 @@ use Lahatre\Shared\Traits\SharedTraits;
 /**
  * @property string $id
  * @property string $organization_id
+ * @property string $idempotency_key
+ * @property string $payload_hash
  * @property string $reference_type
  * @property string $reference_id
  * @property TransactionType $transaction_type
@@ -50,6 +52,8 @@ class InventoryTransaction extends Model
 
     protected $fillable = [
         'organization_id',
+        'idempotency_key',
+        'payload_hash',
         'reference_type',
         'reference_id',
         'transaction_type',
@@ -59,6 +63,8 @@ class InventoryTransaction extends Model
     protected $casts = [
         'id'               => 'string',
         'organization_id'  => 'string',
+        'idempotency_key'  => 'string',
+        'payload_hash'     => 'string',
         'reference_type'   => 'string',
         'reference_id'     => 'string',
         'transaction_type' => TransactionType::class,

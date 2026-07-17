@@ -52,6 +52,7 @@ class TransactionValidator
     protected function rules(): array
     {
         return [
+            'idempotency_key'  => ['required', 'string', 'min:3'],
             'reference_type'   => ['required', 'string'],
             'reference_id'     => ['required', 'string'],
             'transaction_type' => ['required', Rule::enum(TransactionType::class)],

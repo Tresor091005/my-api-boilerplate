@@ -20,6 +20,7 @@ class InventoryTransactionResource extends JsonResource
     {
         return [
             'id'               => $this->id,
+            'idempotency_key'  => $this->idempotency_key,
             'reference_type'   => $this->reference_type,
             'reference_id'     => $this->reference_id,
             'transaction_type' => $this->transaction_type,

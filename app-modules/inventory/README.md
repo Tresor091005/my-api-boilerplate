@@ -96,6 +96,7 @@ class Product extends Model implements HasInventoryItem
 #### Recording an Incoming Shipment with Metadata
 ```php
 $inventory->recordTransaction([
+    'idempotency_key' => 'purchase-order-'.$po->id,
     'reference_type' => 'purchase_order',
     'reference_id' => $po->id,
     'transaction_type' => TransactionType::In,

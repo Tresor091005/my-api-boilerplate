@@ -42,6 +42,7 @@ it('successfully processes an adjustment UP transaction', function (): void {
     // WHEN we adjust the quantity to 80
     $payload = [
         'reference_type'   => 'stock_take',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [
@@ -73,6 +74,7 @@ it('successfully processes an adjustment DOWN transaction', function (): void {
     // WHEN we adjust the quantity to 20
     $payload = [
         'reference_type'   => 'stock_take',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [
@@ -98,6 +100,7 @@ it('fails an adjustment if target quantity is the same as current stock', functi
     // WHEN we adjust the quantity to 50
     $payload = [
         'reference_type'   => 'stock_take',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [
@@ -111,6 +114,7 @@ it('fails an adjustment if target quantity is the same as current stock', functi
 it('fails an adjustment for the same item and location in one transaction', function (): void {
     $payload = [
         'reference_type'   => 'stock_take',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [

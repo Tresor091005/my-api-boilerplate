@@ -119,6 +119,7 @@ it('ensures all stock records are locked for update during a transaction', funct
 
     $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -144,6 +145,7 @@ it('rolls back all changes if a business logic error occurs in the middle of a m
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [

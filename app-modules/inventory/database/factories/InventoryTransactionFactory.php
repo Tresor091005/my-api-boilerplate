@@ -28,8 +28,12 @@ class InventoryTransactionFactory extends Factory
             ]);
         }
 
+        $idempotencyKey = (string) Str::uuid7();
+
         return [
             'organization_id'  => $organizationId,
+            'idempotency_key'  => $idempotencyKey,
+            'payload_hash'     => hash('sha256', $idempotencyKey),
             'reference_type'   => 'test_reference',
             'reference_id'     => (string) Str::uuid7(),
             'transaction_type' => fake()->randomElement(TransactionType::cases()),

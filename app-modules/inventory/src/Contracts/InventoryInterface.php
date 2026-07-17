@@ -44,6 +44,7 @@ interface InventoryInterface
 
     /**
      * @param array{
+     *     idempotency_key: string,
      *     reference_type: string,
      *     reference_id: string,
      *     transaction_type: TransactionType|string,

@@ -16,6 +16,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
+use Lahatre\Inventory\Exceptions\IdempotencyKeyReuseException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
 use Lahatre\Inventory\Exceptions\TransferDistributionException;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -43,6 +44,7 @@ class InventoryService implements InventoryInterface
         protected TransactionValidator $transactionValidator,
         protected ManageInventoryItemService $inventoryItemService,
         protected ManageInventoryLocationService $inventoryLocationService,
+        protected TransactionPayloadHasher $transactionPayloadHasher,
     ) {}
 
     public function createLocation(HasInventoryLocation $model): InventoryLocation
@@ -103,18 +105,37 @@ class InventoryService implements InventoryInterface
             $resolvedData = $this->resolveTransactionReferences($data);
             [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
             $transaction = TransactionDataDTO::fromArray($validatedData, $this->masterInterface);
+            $payloadHash = $this->transactionPayloadHasher->hash($transaction);
 
             /** @var Collection<string, InventoryItem> $items */
             $items = $lookups['items'];
             $movementContexts = $this->buildMovementContexts($transaction, $items);
 
-            $tx = InventoryTransaction::create([
-                'organization_id'  => $organizationId,
-                'reference_type'   => $transaction->reference_type,
-                'reference_id'     => $transaction->reference_id,
-                'transaction_type' => $transaction->transaction_type,
-                'metadata'         => $transaction->metadata,
-            ]);
+            $tx = InventoryTransaction::query()->firstOrCreate(
+                [
+                    'organization_id' => $organizationId,
+                    'idempotency_key' => $transaction->idempotency_key,
+                ],
+                [
+                    'payload_hash'     => $payloadHash,
+                    'reference_type'   => $transaction->reference_type,
+                    'reference_id'     => $transaction->reference_id,
+                    'transaction_type' => $transaction->transaction_type,
+                    'metadata'         => $transaction->metadata,
+                ]
+            );
+
+            if (!$tx->wasRecentlyCreated) {
+                if ($tx->payload_hash !== $payloadHash) {
+                    throw new IdempotencyKeyReuseException(
+                        $transaction->idempotency_key,
+                        $tx->payload_hash,
+                        $payloadHash
+                    );
+                }
+
+                return $tx->load($with);
+            }
 
             match ($transaction->transaction_type) {
                 TransactionType::In         => $this->processInMovements($tx, $movementContexts),

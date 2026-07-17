@@ -44,6 +44,7 @@ it('successfully processes an OUT transaction using FIFO strategy', function ():
     // WHEN we deduct 70 units
     $payload = [
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -78,6 +79,7 @@ it('successfully processes an OUT transaction using FEFO strategy', function ():
     // WHEN we deduct 70 units
     $payload = [
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -109,6 +111,7 @@ it('successfully processes an OUT transaction using Manual strategy', function (
     // WHEN we manually deduct 30 units from lot2
     $payload = [
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -143,6 +146,7 @@ it('throws an exception for an OUT transaction if stock is insufficient', functi
     // WHEN we try to deduct
     $payload = [
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -165,6 +169,7 @@ it('reuses the locked stock selection across multiple out movements for the same
 
     $payload = [
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [
@@ -216,6 +221,7 @@ it('successfully resolves FIFO when no strategy is defined anywhere', function (
 
     $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -250,6 +256,7 @@ it('processes FEFO correctly with a mix of stocks having and not having expirati
 
     $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -281,6 +288,7 @@ it('processes Manual strategy by depleting multiple specific stock IDs in the or
 
     $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -310,6 +318,7 @@ it('preserves original source stock metadata when performing an OUT movement', f
 
     $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
@@ -335,6 +344,7 @@ it('throws InsufficientStockException with accurate available quantity in the ex
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[

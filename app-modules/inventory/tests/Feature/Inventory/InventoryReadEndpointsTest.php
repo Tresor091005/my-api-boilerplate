@@ -388,6 +388,7 @@ it('returns movements filtered by item, location, and transaction reference plus
 
     $inTransaction = $this->inventoryService->recordTransaction([
         'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => $purchaseReferenceId,
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
@@ -404,6 +405,7 @@ it('returns movements filtered by item, location, and transaction reference plus
 
     $outTransaction = $this->inventoryService->recordTransaction([
         'reference_type'   => 'sale_order',
+        'idempotency_key'  => fake()->uuid(),
         'reference_id'     => $saleReferenceId,
         'transaction_type' => TransactionType::Out->value,
         'movements'        => [[
