@@ -8,6 +8,7 @@ The Inventory Module is a robust, location-aware stock management system designe
 - **Transactional Integrity (Ledger Principle)**: All stock changes are recorded as part of an immutable `Transaction`. Stock is managed like a financial ledger, allowing you to reconstitute the exact stock state at any given date by replaying movements.
 - **Data Persistence**: Both `InventoryItem` and `InventoryLocation` use Soft Deletes. This ensures that historical data, movements, and transactions are never lost even if the domain model is removed.
 - **Separation of Concerns**: Writing (mutations) is handled by the `InventoryInterface`, while Reading (queries) is optimized through the `InventoryQueryService`.
+- **Organization Scope**: Inventory records belong to the current organization resolved by `getPermissionsTeamId()`. Inventory routes require the `auth.api` context, and all referenced itemable, external, item, location, and stock records must belong to that organization.
 
 ## Key Concepts
 
@@ -62,6 +63,8 @@ While this module provides a mathematically perfect ledger, **physical logistics
 
 To make a model "Inventoryable", implement the `HasInventoryItem` or `HasInventoryLocation` interface and use the corresponding trait.
 
+Tenant-aware models must expose their `organization_id` through `getOrganizationId()`.
+
 **Advanced Integration**: By using the traits, your domain models gain direct access to deep relationships (via `staudenmeir/eloquent-has-many-deep`):
 - `$product->inventoryItemStocks()`: All lots for this product across all locations.
 - `$product->activeInventoryItemStocks()`: Only lots with remaining quantity > 0.
@@ -77,6 +80,7 @@ class Product extends Model implements HasInventoryItem
 
     public function getSku(): string { return $this->sku; }
     public function getUnitGroupId(): string { return $this->unit_group_id; }
+    public function getOrganizationId(): string { return $this->organization_id; }
 
     /**
      * Define which fields are shared with the Inventory API Resources.

@@ -5,25 +5,27 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Validation;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
+use Lahatre\Inventory\Exceptions\BaseUnitNotFoundException;
 use Lahatre\Inventory\Exceptions\BaseUnitRatioIntegrityException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Master\Contracts\MasterInterface;
-use Lahatre\Master\Support\UnitCache;
+use Lahatre\Master\Models\Unit;
 
 class TransactionValidator
 {
+    use ResolvesInventoryOrganization;
+
     protected array $lookups = [];
 
     public function __construct(
-        protected UnitCache $unitCache,
         protected MasterInterface $masterInterface,
     ) {}
 
@@ -172,18 +174,28 @@ class TransactionValidator
 
     protected function performBulkLookups(Collection $movements): array
     {
+        $organizationId = $this->organizationId();
         $itemIds = $movements->pluck('item_id')->filter()->unique();
         $locationIds = $movements->pluck('location_id')->filter()->unique();
-        $unitCodes = $movements->pluck('unit_code')->filter()->unique();
         $currencyCodes = $movements->pluck('currency_code')->filter()->unique();
         $stockIds = $movements->pluck('stock_ids')->flatten()->filter()->unique();
+        $items = InventoryItem::where('organization_id', $organizationId)
+            ->whereIn('id', $itemIds)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+        $unitCodes = $movements->pluck('unit_code')
+            ->merge($items->pluck('base_unit_code'))
+            ->filter()
+            ->unique()
+            ->values();
 
         return [
-            'items'      => InventoryItem::whereIn('id', $itemIds)->where('is_active', true)->get()->keyBy('id'),
-            'locations'  => InventoryLocation::whereIn('id', $locationIds)->where('is_active', true)->get()->keyBy('id'),
-            'units'      => DB::table('master_units')->whereIn('code', $unitCodes)->whereNull('deleted_at')->get()->keyBy('code'),
-            'currencies' => $currencyCodes->isNotEmpty() ? DB::table('master_currencies')->whereIn('code', $currencyCodes)->whereNull('deleted_at')->get()->keyBy('code') : collect(),
-            'stocks'     => $stockIds->isNotEmpty() ? InventoryStock::whereIn('id', $stockIds)->get()->keyBy('id') : collect(),
+            'items'      => $items,
+            'locations'  => InventoryLocation::where('organization_id', $organizationId)->whereIn('id', $locationIds)->where('is_active', true)->get()->keyBy('id'),
+            'units'      => $this->masterInterface->units($unitCodes),
+            'currencies' => $this->masterInterface->currencies($currencyCodes),
+            'stocks'     => $stockIds->isNotEmpty() ? InventoryStock::where('organization_id', $organizationId)->whereIn('id', $stockIds)->get()->keyBy('id') : collect(),
         ];
     }
 
@@ -315,14 +327,17 @@ class TransactionValidator
     {
         $items = $lookups['items'];
 
-        $this->checkUnitGroups($validator, $movements, $items);
+        $this->checkUnitGroups($validator, $movements, $items, $lookups['units']);
 
         if ($txType === TransactionType::Transfer) {
             $this->checkTransferBalance($validator, $movements, $items);
         }
     }
 
-    protected function checkUnitGroups(Validator $validator, Collection $movements, Collection $items): void
+    /**
+     * @param  Collection<string, Unit>  $units
+     */
+    protected function checkUnitGroups(Validator $validator, Collection $movements, Collection $items, Collection $units): void
     {
         foreach ($movements as $index => $m) {
             $item = $items->get($m['item_id']);
@@ -330,14 +345,22 @@ class TransactionValidator
                 continue;
             }
 
-            $baseUnit = $this->unitCache->getByCode($item->base_unit_code);
-            $providedUnit = $this->unitCache->getByCode($m['unit_code']);
+            $baseUnit = $units->get($item->base_unit_code);
+            $providedUnit = $units->get($m['unit_code']);
+
+            if (!$baseUnit) {
+                throw new BaseUnitNotFoundException($item->id, $item->base_unit_code);
+            }
+
+            if (!$providedUnit) {
+                $validator->errors()->add("movements.{$index}.unit_code", __('inventory::validation.unit_code_invalid'));
+            }
 
             if ($baseUnit->ratio !== 1) {
                 throw new BaseUnitRatioIntegrityException($item->id, $item->base_unit_code);
             }
 
-            if ($baseUnit->group_id !== $providedUnit->group_id) {
+            if ($providedUnit && $baseUnit->group_id !== $providedUnit->group_id) {
                 $validator->errors()->add("movements.{$index}.unit_code", __('inventory::validation.unit_group_mismatch', [
                     'unit_code'      => $m['unit_code'],
                     'base_unit_code' => $item->base_unit_code,

@@ -18,6 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $item_id
  * @property string $location_id
  * @property int $unit_cost
@@ -41,6 +42,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock newQuery()
  * @method static Builder<static>|InventoryStock query()
  * @method static Builder<static>|InventoryStock whereId($value)
+ * @method static Builder<static>|InventoryStock whereOrganizationId($value)
  * @method static Builder<static>|InventoryStock whereItemId($value)
  * @method static Builder<static>|InventoryStock whereLocationId($value)
  * @method static Builder<static>|InventoryStock whereRemaining($value)
@@ -68,6 +70,7 @@ class InventoryStock extends Model
     protected $table = 'inventory_stocks';
 
     protected $fillable = [
+        'organization_id',
         'item_id',
         'location_id',
         'unit_cost',
@@ -81,6 +84,7 @@ class InventoryStock extends Model
 
     protected $casts = [
         'id'              => 'string',
+        'organization_id' => 'string',
         'item_id'         => 'string',
         'location_id'     => 'string',
         'unit_cost'       => 'integer',

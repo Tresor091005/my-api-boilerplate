@@ -26,6 +26,8 @@ interface HasInventoryItem
 
     public function getSku(): string;
 
+    public function getOrganizationId(): string;
+
     /**
      * Return the lightweight representation exposed under item.itemable.
      *

@@ -18,6 +18,7 @@ use Lahatre\Inventory\DTO\InventoryStockExpiringFilterDTO;
 use Lahatre\Inventory\DTO\InventoryStockSummaryFilterDTO;
 use Lahatre\Inventory\DTO\InventoryTransactionFilterDTO;
 use Lahatre\Inventory\Enums\DeductionStrategy;
+use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Http\Resources\InventoryExpiringLotCollection;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
 use Lahatre\Inventory\Http\Resources\InventoryItemResource;
@@ -32,6 +33,7 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
+use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Inventory\ViewData\AvailableLotViewData;
 use Lahatre\Inventory\ViewData\CurrencyValueViewData;
 use Lahatre\Inventory\ViewData\ItemLocationLotsViewData;
@@ -47,13 +49,15 @@ use Lahatre\Master\Contracts\MasterInterface;
 
 class InventoryQueryService
 {
+    use ResolvesInventoryOrganization;
+
     public function __construct(
         protected MasterInterface $masterInterface
     ) {}
 
     public function listItems(InventoryItemFilterDTO $filters, bool $includeItemable = false): InventoryItemCollection
     {
-        $query = InventoryItem::query();
+        $query = InventoryItem::query()->where('organization_id', $this->organizationId());
 
         if ($filters->ids) {
             $query->whereIn('id', $filters->ids);
@@ -87,6 +91,8 @@ class InventoryQueryService
 
     public function retrieveItem(InventoryItem $item, bool $includeItemable = false): InventoryItemResource
     {
+        $this->assertOrganization($item->organization_id);
+
         if ($includeItemable) {
             $item->load('itemable');
         }
@@ -96,7 +102,7 @@ class InventoryQueryService
 
     public function listLocations(InventoryLocationFilterDTO $filters, bool $includeExternal = false): InventoryLocationCollection
     {
-        $query = InventoryLocation::query();
+        $query = InventoryLocation::query()->where('organization_id', $this->organizationId());
 
         if ($filters->ids) {
             $query->whereIn('id', $filters->ids);
@@ -122,6 +128,8 @@ class InventoryQueryService
 
     public function retrieveLocation(InventoryLocation $location, bool $includeExternal = false): InventoryLocationResource
     {
+        $this->assertOrganization($location->organization_id);
+
         if ($includeExternal) {
             $location->load('external');
         }
@@ -131,10 +139,13 @@ class InventoryQueryService
 
     public function getItemStock(InventoryItem $item): ItemStockViewData
     {
+        $this->assertOrganization($item->organization_id);
+
         $locations = InventoryStock::query()
             ->select('location_id')
             ->selectRaw('SUM(remaining) as remaining')
             ->where('item_id', $item->id)
+            ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
             ->groupBy('location_id')
             ->orderBy('location_id')
@@ -155,10 +166,13 @@ class InventoryQueryService
 
     public function getItemValue(InventoryItem $item, InventoryItemValueFilterDTO $filters): ItemValueViewData
     {
+        $this->assertOrganization($item->organization_id);
+
         $query = InventoryStock::query()
             ->select(['location_id', 'currency_code'])
             ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric)) as total_value_minor')
             ->where('item_id', $item->id)
+            ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
             ->whereNotNull('currency_code')
             ->groupBy('location_id', 'currency_code')
@@ -233,16 +247,20 @@ class InventoryQueryService
 
     public function getLocationStock(InventoryLocation $location): LocationStockViewData
     {
+        $this->assertOrganization($location->organization_id);
+
         $aggregatedStocks = InventoryStock::query()
             ->select('item_id')
             ->selectRaw('SUM(remaining) as remaining')
             ->where('location_id', $location->id)
+            ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
             ->groupBy('item_id')
             ->get();
 
         /** @var Collection<string, InventoryItem> $items */
         $items = InventoryItem::query()
+            ->where('organization_id', $this->organizationId())
             ->whereIn('id', $aggregatedStocks->pluck('item_id')->all())
             ->get()
             ->keyBy('id');
@@ -267,10 +285,13 @@ class InventoryQueryService
 
     public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterDTO $filters): LocationValueViewData
     {
+        $this->assertOrganization($location->organization_id);
+
         $query = InventoryStock::query()
             ->select(['item_id', 'currency_code'])
             ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric)) as total_value_minor')
             ->where('location_id', $location->id)
+            ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
             ->whereNotNull('currency_code')
             ->groupBy('item_id', 'currency_code')
@@ -348,6 +369,9 @@ class InventoryQueryService
         InventoryLocation $location,
         InventoryLotFilterDTO $filters
     ): ItemLocationLotsViewData {
+        $this->assertOrganization($item->organization_id);
+        $this->assertOrganization($location->organization_id);
+
         $strategy = $filters->strategy
             ?? $item->deduction_strategy
             ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
@@ -356,6 +380,7 @@ class InventoryQueryService
         $query = InventoryStock::query()
             ->where('item_id', $item->id)
             ->where('location_id', $location->id)
+            ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0);
 
         if ($filters->expiring_before instanceof CarbonImmutable) {
@@ -389,6 +414,7 @@ class InventoryQueryService
         $query = DB::table('inventory_stocks as stocks')
             ->join('inventory_items as items', 'items.id', '=', 'stocks.item_id')
             ->join('inventory_locations as locations', 'locations.id', '=', 'stocks.location_id')
+            ->where('stocks.organization_id', $this->organizationId())
             ->whereNull('stocks.deleted_at')
             ->whereNull('items.deleted_at')
             ->whereNull('locations.deleted_at')
@@ -425,6 +451,7 @@ class InventoryQueryService
         $query = InventoryStock::query()
             ->join('inventory_items', 'inventory_items.id', '=', 'inventory_stocks.item_id')
             ->join('inventory_locations', 'inventory_locations.id', '=', 'inventory_stocks.location_id')
+            ->where('inventory_stocks.organization_id', $this->organizationId())
             ->whereNull('inventory_items.deleted_at')
             ->whereNull('inventory_locations.deleted_at')
             ->where('inventory_stocks.remaining', '>', 0)
@@ -451,9 +478,12 @@ class InventoryQueryService
 
     public function listItemMovements(InventoryItem $item, InventoryMovementFilterDTO $filters): InventoryMovementCollection
     {
+        $this->assertOrganization($item->organization_id);
+
         $query = InventoryMovement::query()
             ->with(['stock', 'location', 'unit', 'currency'])
-            ->where('item_id', $item->id);
+            ->where('item_id', $item->id)
+            ->where('organization_id', $this->organizationId());
 
         $this->applyMovementFilters($query, $filters);
 
@@ -468,9 +498,12 @@ class InventoryQueryService
 
     public function listLocationMovements(InventoryLocation $location, InventoryMovementFilterDTO $filters): InventoryMovementCollection
     {
+        $this->assertOrganization($location->organization_id);
+
         $query = InventoryMovement::query()
             ->with(['stock', 'location', 'unit', 'currency'])
-            ->where('location_id', $location->id);
+            ->where('location_id', $location->id)
+            ->where('organization_id', $this->organizationId());
 
         $this->applyMovementFilters($query, $filters);
 
@@ -485,6 +518,8 @@ class InventoryQueryService
 
     public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransactionResource
     {
+        $this->assertOrganization($transaction->organization_id);
+
         $transaction->load([
             'movements.stock.unit',
             'movements.stock.currency',
@@ -498,7 +533,7 @@ class InventoryQueryService
 
     public function listTransactions(InventoryTransactionFilterDTO $filters): InventoryTransactionCollection
     {
-        $query = InventoryTransaction::query();
+        $query = InventoryTransaction::query()->where('organization_id', $this->organizationId());
 
         if ($filters->ids) {
             $query->whereIn('id', $filters->ids);
@@ -553,6 +588,15 @@ class InventoryQueryService
                     $transactionQuery->where('reference_id', $filters->reference_id);
                 }
             });
+        }
+    }
+
+    protected function assertOrganization(string $organizationId): void
+    {
+        $currentOrganizationId = $this->organizationId();
+
+        if ($organizationId !== $currentOrganizationId) {
+            throw OrganizationScopeException::mismatch($currentOrganizationId, $organizationId);
         }
     }
 }

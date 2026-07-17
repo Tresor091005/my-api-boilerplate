@@ -12,6 +12,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
+use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
@@ -45,6 +46,15 @@ it('createManyItems supports mixed morph types through the resolver', function (
             ->whereIn('itemable_type', [$variantA->getMorphClass(), $variantB->getMorphClass()])
             ->whereIn('itemable_id', [$variantA->getKey(), $variantB->getKey()])
             ->count())->toBe(2);
+});
+
+it('rejects an itemable from another organization', function (): void {
+    $foreignMaterial = $this->createTestMaterial([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+
+    expect(fn () => $this->service->createItem($foreignMaterial))
+        ->toThrow(OrganizationScopeException::class);
 });
 
 it('createManyLocations skips already existing external_id/type pairs without failing', function (): void {

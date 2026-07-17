@@ -17,6 +17,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $external_type
  * @property string $external_id
  * @property bool $is_active
@@ -32,6 +33,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryLocation newQuery()
  * @method static Builder<static>|InventoryLocation query()
  * @method static Builder<static>|InventoryLocation whereId($value)
+ * @method static Builder<static>|InventoryLocation whereOrganizationId($value)
  * @method static Builder<static>|InventoryLocation whereExternalType($value)
  * @method static Builder<static>|InventoryLocation whereExternalId($value)
  * @method static Builder<static>|InventoryLocation onlyTrashed()
@@ -60,19 +62,21 @@ class InventoryLocation extends Model
     protected $table = 'inventory_locations';
 
     protected $fillable = [
+        'organization_id',
         'external_type',
         'external_id',
         'is_active',
     ];
 
     protected $casts = [
-        'id'            => 'string',
-        'external_type' => 'string',
-        'external_id'   => 'string',
-        'is_active'     => 'boolean',
-        'created_at'    => 'immutable_datetime',
-        'updated_at'    => 'immutable_datetime',
-        'deleted_at'    => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'external_type'   => 'string',
+        'external_id'     => 'string',
+        'is_active'       => 'boolean',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function external(): MorphTo

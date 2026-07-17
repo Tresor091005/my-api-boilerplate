@@ -18,8 +18,8 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Master\Support\UnitCache;
 use Lahatre\Pricing\Contracts\HasPriceable;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -117,12 +117,17 @@ class ProductVariant extends Model implements HasInventoryItem, HasPriceable
 
     public function getDefaultPricingUnitCode(): string
     {
-        return app(UnitCache::class)->getBaseUnit($this->unit_group_id)->code;
+        return app(MasterInterface::class)->baseUnit($this->unit_group_id)->code;
     }
 
     public function getSku(): string
     {
         return $this->sku;
+    }
+
+    public function getOrganizationId(): string
+    {
+        return $this->organization_id;
     }
 
     protected function optionsLabel(): Attribute

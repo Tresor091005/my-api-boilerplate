@@ -25,6 +25,8 @@ interface HasInventoryLocation
      */
     public function getKey();
 
+    public function getOrganizationId(): string;
+
     /**
      * Return the lightweight representation exposed under location.external.
      *

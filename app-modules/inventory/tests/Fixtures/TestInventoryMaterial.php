@@ -11,6 +11,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $name
  * @property string $sku
  * @property string $unit_group_id
@@ -24,6 +25,7 @@ class TestInventoryMaterial extends Model implements HasInventoryItem
     protected $table = 'test_materials';
 
     protected $fillable = [
+        'organization_id',
         'name',
         'sku',
         'unit_group_id',
@@ -31,16 +33,22 @@ class TestInventoryMaterial extends Model implements HasInventoryItem
     ];
 
     protected $casts = [
-        'id'            => 'string',
-        'name'          => 'string',
-        'sku'           => 'string',
-        'unit_group_id' => 'string',
-        'is_active'     => 'boolean',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'name'            => 'string',
+        'sku'             => 'string',
+        'unit_group_id'   => 'string',
+        'is_active'       => 'boolean',
     ];
 
     public function getUnitGroupId(): string
     {
         return (string) $this->unit_group_id;
+    }
+
+    public function getOrganizationId(): string
+    {
+        return $this->organization_id;
     }
 
     public function getSku(): string

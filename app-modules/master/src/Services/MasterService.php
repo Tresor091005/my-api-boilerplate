@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services;
 
+use Illuminate\Support\Collection;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
@@ -15,6 +16,15 @@ class MasterService implements MasterInterface
     public function __construct(
         protected UnitCache $unitCache
     ) {}
+
+    /**
+     * @param  Collection<int, string>  $codes
+     * @return Collection<string, Currency>
+     */
+    public function currencies(Collection $codes): Collection
+    {
+        return $this->unitCache->getCurrenciesByCodes($codes);
+    }
 
     public function currency(string $code): Currency
     {
@@ -31,9 +41,23 @@ class MasterService implements MasterInterface
         return PreciseConversion::toMinorUnits($minorAmount, $this->currency($currencyCode));
     }
 
+    /**
+     * @param  Collection<int, string>  $codes
+     * @return Collection<string, Unit>
+     */
+    public function units(Collection $codes): Collection
+    {
+        return $this->unitCache->getByCodes($codes);
+    }
+
     public function unit(string $code): Unit
     {
         return $this->unitCache->getByCode($code);
+    }
+
+    public function baseUnit(string $unitGroupId): Unit
+    {
+        return $this->unitCache->getBaseUnit($unitGroupId);
     }
 
     public function convertUnit(string $amount, string $fromCode, string $toCode): string

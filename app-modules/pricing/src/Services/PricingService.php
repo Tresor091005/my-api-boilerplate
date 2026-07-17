@@ -10,9 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
-use Lahatre\Master\Support\PreciseConversion;
-use Lahatre\Master\Support\UnitCache;
 use Lahatre\Pricing\Assertions\PricingAssertion;
 use Lahatre\Pricing\Contracts\HasPriceable;
 use Lahatre\Pricing\Contracts\HasPricingParty;
@@ -38,7 +37,7 @@ class PricingService implements PricingInterface, StandaloneService
 
     public function __construct(
         protected PricingAssertion $pricingAssertion,
-        protected UnitCache $unitCache,
+        protected MasterInterface $masterInterface,
     ) {}
 
     public function createPriceEntry(
@@ -56,8 +55,7 @@ class PricingService implements PricingInterface, StandaloneService
         bool $isActive = true,
         ?array $metadata = null,
     ): PriceEntry {
-        $unit = $this->unitCache->getByCode($unitCode);
-        $currency = $this->unitCache->getCurrencyByCode($currencyCode);
+        $unit = $this->masterInterface->unit($unitCode);
 
         if ($priceableTarget instanceof Model) {
             $this->pricingAssertion->assertScopedModelBelongsToOrganization($priceableTarget, $organizationId, InvalidPriceableTargetException::class, [
@@ -96,7 +94,7 @@ class PricingService implements PricingInterface, StandaloneService
             unitCode: $unitCode,
             minQuantity: $normalizedMinQuantity,
             maxQuantity: $normalizedMaxQuantity,
-            unitPrice: (int) PreciseConversion::toMinorUnits($this->normalizeNumeric($unitPrice), $currency),
+            unitPrice: (int) $this->masterInterface->toMinor($this->normalizeNumeric($unitPrice), $currencyCode),
             startsAt: $startsAt?->toDateTimeString(),
             endsAt: $endsAt?->toDateTimeString(),
             isActive: $isActive,
@@ -154,7 +152,7 @@ class PricingService implements PricingInterface, StandaloneService
             ]);
         }
 
-        $requestUnit = $this->unitCache->getByCode($unitCode);
+        $requestUnit = $this->masterInterface->unit($unitCode);
         if ($priceable->getPricingUnitGroupId() !== $requestUnit->group_id) {
             throw new PriceUnitMismatchException([
                 'unit_code'              => $requestUnit->code,
@@ -287,11 +285,10 @@ class PricingService implements PricingInterface, StandaloneService
             date: $date,
         );
 
-        $currency = $this->unitCache->getCurrencyByCode($currencyCode);
         $chosenAmount = $this->normalizeNumeric($unitPrice);
 
         $matchedPrices = $applicablePrices->filter(
-            fn (PriceEntry $priceEntry): bool => PreciseConversion::toMinorUnits($chosenAmount, $currency) === (string) $priceEntry->unit_price
+            fn (PriceEntry $priceEntry): bool => $this->masterInterface->toMinor($chosenAmount, $currencyCode) === (string) $priceEntry->unit_price
         )->values();
 
         if ($matchedPrices->isNotEmpty()) {
@@ -322,7 +319,7 @@ class PricingService implements PricingInterface, StandaloneService
         }
 
         $expectedAmounts = $applicablePrices
-            ->map(fn (PriceEntry $priceEntry): string => PreciseConversion::fromMinorUnits((string) $priceEntry->unit_price, $currency))
+            ->map(fn (PriceEntry $priceEntry): string => $this->masterInterface->fromMinor((string) $priceEntry->unit_price, $currencyCode))
             ->values();
 
         return new PriceValidationResult(
@@ -614,7 +611,7 @@ class PricingService implements PricingInterface, StandaloneService
     protected function normalizeQuantityToBase(string $quantity, Unit $unit): string
     {
         $baseQuantity = $this->trimTrailingZeroes(
-            PreciseConversion::convertUnitToBase($quantity, $unit)['amount']
+            $this->masterInterface->convertUnitToBase($quantity, $unit->code)['amount']
         );
 
         if (str_contains($baseQuantity, '.')) {

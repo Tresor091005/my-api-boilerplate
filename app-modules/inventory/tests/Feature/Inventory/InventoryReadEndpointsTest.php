@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
+use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -19,6 +22,11 @@ use Lahatre\Master\Models\UnitGroup;
 uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
 beforeEach(function (): void {
+    $this->withoutMiddleware([
+        Authenticate::class,
+        ResolveAuthContext::class,
+        SetTeamPermissionsId::class,
+    ]);
     $this->ensureInventoryTestTables();
     $this->inventoryService = app(InventoryService::class);
     $this->currency = Currency::factory()->create();

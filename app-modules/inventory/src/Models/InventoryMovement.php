@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property MovementType $movement_type
  * @property string $transaction_id
  * @property string $item_id
@@ -40,6 +41,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement newQuery()
  * @method static Builder<static>|InventoryMovement query()
  * @method static Builder<static>|InventoryMovement whereId($value)
+ * @method static Builder<static>|InventoryMovement whereOrganizationId($value)
  * @method static Builder<static>|InventoryMovement whereMovementType($value)
  * @method static Builder<static>|InventoryMovement whereTransactionId($value)
  * @method static Builder<static>|InventoryMovement whereStockId($value)
@@ -65,6 +67,7 @@ class InventoryMovement extends Model
     protected $table = 'inventory_movements';
 
     protected $fillable = [
+        'organization_id',
         'movement_type',
         'transaction_id',
         'item_id',
@@ -80,6 +83,7 @@ class InventoryMovement extends Model
 
     protected $casts = [
         'id'              => 'string',
+        'organization_id' => 'string',
         'movement_type'   => MovementType::class,
         'transaction_id'  => 'string',
         'item_id'         => 'string',

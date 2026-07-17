@@ -91,6 +91,36 @@ class UnitCache
     }
 
     /**
+     * Get multiple units by code from the cached collection.
+     *
+     * @param  Collection<int, string>  $codes
+     * @return Collection<string, Unit>
+     */
+    public function getByCodes(Collection $codes): Collection
+    {
+        if ($codes->isEmpty()) {
+            return collect();
+        }
+
+        return $this->units()->whereIn('code', $codes->all())->keyBy('code');
+    }
+
+    /**
+     * Get multiple currencies by code from the cached collection.
+     *
+     * @param  Collection<int, string>  $codes
+     * @return Collection<string, Currency>
+     */
+    public function getCurrenciesByCodes(Collection $codes): Collection
+    {
+        if ($codes->isEmpty()) {
+            return collect();
+        }
+
+        return $this->currencies()->whereIn('code', $codes->all())->keyBy('code');
+    }
+
+    /**
      * Get a unit by its code.
      */
     public function getByCode(string $code): Unit

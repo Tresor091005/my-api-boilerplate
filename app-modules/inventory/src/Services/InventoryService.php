@@ -25,19 +25,20 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
 use Lahatre\Inventory\Services\Location\ManageInventoryLocationService;
+use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Inventory\Validation\TransactionValidator;
 use Lahatre\Master\Contracts\MasterInterface;
-use Lahatre\Master\Support\UnitCache;
 
 class InventoryService implements InventoryInterface
 {
+    use ResolvesInventoryOrganization;
+
     /**
      * @var array<string, Collection<int, InventoryStock>>
      */
     protected array $stockSelectionCache = [];
 
     public function __construct(
-        protected UnitCache $unitCache,
         protected MasterInterface $masterInterface,
         protected TransactionValidator $transactionValidator,
         protected ManageInventoryItemService $inventoryItemService,
@@ -95,7 +96,9 @@ class InventoryService implements InventoryInterface
      */
     public function recordTransaction(array $data, array $with = ['movements']): InventoryTransaction
     {
-        return DB::transaction(function () use ($data, $with): InventoryTransaction {
+        $organizationId = $this->organizationId();
+
+        return DB::transaction(function () use ($data, $with, $organizationId): InventoryTransaction {
             $this->stockSelectionCache = [];
             $resolvedData = $this->resolveTransactionReferences($data);
             [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
@@ -106,6 +109,7 @@ class InventoryService implements InventoryInterface
             $movementContexts = $this->buildMovementContexts($transaction, $items);
 
             $tx = InventoryTransaction::create([
+                'organization_id'  => $organizationId,
                 'reference_type'   => $transaction->reference_type,
                 'reference_id'     => $transaction->reference_id,
                 'transaction_type' => $transaction->transaction_type,
@@ -298,6 +302,7 @@ class InventoryService implements InventoryInterface
         $quantityInBase = $quantityOverrideInBase ?? $context->quantityInBase;
 
         $stock = InventoryStock::create([
+            'organization_id' => $this->organizationId(),
             'item_id'         => $movement->item_id,
             'location_id'     => $movement->location_id,
             'unit_cost'       => $unitCost ?? $movement->unit_cost,
@@ -310,6 +315,7 @@ class InventoryService implements InventoryInterface
         ]);
 
         InventoryMovement::create([
+            'organization_id' => $this->organizationId(),
             'movement_type'   => MovementType::In,
             'transaction_id'  => $tx->id,
             'item_id'         => $movement->item_id,
@@ -367,6 +373,7 @@ class InventoryService implements InventoryInterface
             $stock->save();
 
             $outMovement = InventoryMovement::create([
+                'organization_id' => $this->organizationId(),
                 'movement_type'   => MovementType::Out,
                 'transaction_id'  => $tx->id,
                 'item_id'         => $movement->item_id,
@@ -466,6 +473,7 @@ class InventoryService implements InventoryInterface
         }
 
         $query = InventoryStock::where('item_id', $movement->item_id)
+            ->where('organization_id', $this->organizationId())
             ->where('location_id', $movement->location_id)
             ->where('remaining', '>', 0)
             ->lockForUpdate();

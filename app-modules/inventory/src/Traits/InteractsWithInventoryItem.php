@@ -29,8 +29,17 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItem(): MorphOne
     {
+        $organizationId = $this->getAttribute('organization_id');
+
+        if ($organizationId === null && $this->getKey() === null) {
+            $organizationId = getPermissionsTeamId();
+        } else {
+            $organizationId = $this->getOrganizationId();
+        }
+
         /** @var MorphOne<InventoryItem, Model> $relation */
-        $relation = $this->morphOne(InventoryItem::class, 'itemable');
+        $relation = $this->morphOne(InventoryItem::class, 'itemable')
+            ->where('organization_id', $organizationId);
 
         return $relation;
     }

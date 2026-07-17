@@ -10,13 +10,17 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Enums\DeductionStrategy;
+use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Master\Support\UnitCache;
+use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
+use Lahatre\Master\Contracts\MasterInterface;
 
 class ManageInventoryItemService
 {
+    use ResolvesInventoryOrganization;
+
     public function __construct(
-        protected UnitCache $unitCache,
+        protected MasterInterface $masterInterface,
     ) {}
 
     public function create(HasInventoryItem $model): InventoryItem
@@ -68,7 +72,11 @@ class ManageInventoryItemService
 
     public function resolve(HasInventoryItem $model): InventoryItem
     {
+        $organizationId = $this->organizationId();
+        $this->assertOrganization($model, $organizationId);
+
         return InventoryItem::query()
+            ->where('organization_id', $organizationId)
             ->where('itemable_type', $model->getMorphClass())
             ->where('itemable_id', (string) $model->getKey())
             ->firstOrFail();
@@ -84,6 +92,11 @@ class ManageInventoryItemService
             return collect();
         }
 
+        $organizationId = $this->organizationId();
+        $models->each(function (HasInventoryItem $model) use ($organizationId): void {
+            $this->assertOrganization($model, $organizationId);
+        });
+
         $groupedModels = $models
             ->unique(fn (HasInventoryItem $model): string => $model->getMorphClass().':'.(string) $model->getKey())
             ->groupBy(fn (HasInventoryItem $model): string => $model->getMorphClass());
@@ -96,6 +109,7 @@ class ManageInventoryItemService
                 ->values();
 
             $existingItems = InventoryItem::query()
+                ->where('organization_id', $organizationId)
                 ->where('itemable_type', $morphClass)
                 ->whereIn('itemable_id', $externalIds)
                 ->get()
@@ -111,19 +125,21 @@ class ManageInventoryItemService
                 InventoryItem::query()->insert(
                     $missingModels
                         ->map(fn (HasInventoryItem $model): array => [
-                            'id'             => (string) Str::uuid7(),
-                            'itemable_type'  => $model->getMorphClass(),
-                            'itemable_id'    => (string) $model->getKey(),
-                            'sku'            => $model->getSku(),
-                            'is_active'      => true,
-                            'base_unit_code' => $this->unitCache->getBaseUnit($model->getUnitGroupId())->code,
-                            'created_at'     => $now,
-                            'updated_at'     => $now,
+                            'id'              => (string) Str::uuid7(),
+                            'organization_id' => $organizationId,
+                            'itemable_type'   => $model->getMorphClass(),
+                            'itemable_id'     => (string) $model->getKey(),
+                            'sku'             => $model->getSku(),
+                            'is_active'       => true,
+                            'base_unit_code'  => $this->masterInterface->baseUnit($model->getUnitGroupId())->code,
+                            'created_at'      => $now,
+                            'updated_at'      => $now,
                         ])
                         ->all()
                 );
 
                 $existingItems = InventoryItem::query()
+                    ->where('organization_id', $organizationId)
                     ->where('itemable_type', $morphClass)
                     ->whereIn('itemable_id', $externalIds)
                     ->get()
@@ -136,5 +152,12 @@ class ManageInventoryItemService
         }
 
         return $resolvedItems->values();
+    }
+
+    protected function assertOrganization(HasInventoryItem $model, string $organizationId): void
+    {
+        if ($model->getOrganizationId() !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $model->getOrganizationId());
+        }
     }
 }

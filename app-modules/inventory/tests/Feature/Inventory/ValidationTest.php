@@ -51,6 +51,53 @@ it('fails if multiple currencies are used in one transaction', function (): void
     $this->service->recordTransaction($payload);
 })->throws(ValidationException::class, 'All movements in a transaction must use the same currency code.');
 
+it('does not allow a transaction to reference another organization item', function (): void {
+    $foreignItem = InventoryItem::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'base_unit_code'  => $this->unit->code,
+    ]);
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'reference_id'     => '123',
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'type'          => 'in',
+            'item_id'       => $foreignItem->id,
+            'location_id'   => $this->location->id,
+            'quantity'      => 10,
+            'unit_code'     => $this->unit->code,
+            'unit_cost'     => 10.00,
+            'currency_code' => $this->currency->code,
+        ]],
+    ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
+});
+
+it('does not allow a transaction to reference another organization unit', function (): void {
+    $foreignGroup = UnitGroup::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignUnit = Unit::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'group_id'        => $foreignGroup->id,
+    ]);
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'reference_id'     => '123',
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'type'          => 'in',
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'quantity'      => 10,
+            'unit_code'     => $foreignUnit->code,
+            'unit_cost'     => 10.00,
+            'currency_code' => $this->currency->code,
+        ]],
+    ]))->toThrow(ValidationException::class, __('inventory::validation.unit_code_invalid'));
+});
+
 it('fails if unit does not belong to the same group as item base unit', function (): void {
     $otherGroup = UnitGroup::factory()->create();
     $otherUnit = Unit::factory()->create(['group_id' => $otherGroup->id]);

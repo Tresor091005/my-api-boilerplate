@@ -18,6 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $itemable_type
  * @property string $itemable_id
  * @property string|null $sku
@@ -38,6 +39,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem newQuery()
  * @method static Builder<static>|InventoryItem query()
  * @method static Builder<static>|InventoryItem whereId($value)
+ * @method static Builder<static>|InventoryItem whereOrganizationId($value)
  * @method static Builder<static>|InventoryItem whereItemableType($value)
  * @method static Builder<static>|InventoryItem whereItemableId($value)
  * @method static Builder<static>|InventoryItem onlyTrashed()
@@ -66,6 +68,7 @@ class InventoryItem extends Model
     protected $table = 'inventory_items';
 
     protected $fillable = [
+        'organization_id',
         'itemable_type',
         'itemable_id',
         'sku',
@@ -76,6 +79,7 @@ class InventoryItem extends Model
 
     protected $casts = [
         'id'                 => 'string',
+        'organization_id'    => 'string',
         'itemable_type'      => 'string',
         'itemable_id'        => 'string',
         'sku'                => 'string',

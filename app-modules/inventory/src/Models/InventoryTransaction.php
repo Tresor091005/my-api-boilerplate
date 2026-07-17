@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $reference_type
  * @property string $reference_id
  * @property TransactionType $transaction_type
@@ -30,6 +31,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryTransaction newQuery()
  * @method static Builder<static>|InventoryTransaction query()
  * @method static Builder<static>|InventoryTransaction whereId($value)
+ * @method static Builder<static>|InventoryTransaction whereOrganizationId($value)
  * @method static Builder<static>|InventoryTransaction whereTransactionType($value)
  * @method static Builder<static>|InventoryTransaction whereCreatedAt($value)
  * @method static Builder<static>|InventoryTransaction whereMetadata($value)
@@ -47,6 +49,7 @@ class InventoryTransaction extends Model
     protected $table = 'inventory_transactions';
 
     protected $fillable = [
+        'organization_id',
         'reference_type',
         'reference_id',
         'transaction_type',
@@ -55,6 +58,7 @@ class InventoryTransaction extends Model
 
     protected $casts = [
         'id'               => 'string',
+        'organization_id'  => 'string',
         'reference_type'   => 'string',
         'reference_id'     => 'string',
         'transaction_type' => TransactionType::class,

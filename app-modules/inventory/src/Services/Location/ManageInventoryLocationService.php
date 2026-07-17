@@ -8,10 +8,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
+use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 
 class ManageInventoryLocationService
 {
+    use ResolvesInventoryOrganization;
+
     public function create(HasInventoryLocation $model): InventoryLocation
     {
         return DB::transaction(
@@ -57,7 +61,11 @@ class ManageInventoryLocationService
 
     public function resolve(HasInventoryLocation $model): InventoryLocation
     {
+        $organizationId = $this->organizationId();
+        $this->assertOrganization($model, $organizationId);
+
         return InventoryLocation::query()
+            ->where('organization_id', $organizationId)
             ->where('external_type', $model->getMorphClass())
             ->where('external_id', (string) $model->getKey())
             ->firstOrFail();
@@ -73,6 +81,11 @@ class ManageInventoryLocationService
             return collect();
         }
 
+        $organizationId = $this->organizationId();
+        $models->each(function (HasInventoryLocation $model) use ($organizationId): void {
+            $this->assertOrganization($model, $organizationId);
+        });
+
         $groupedModels = $models
             ->unique(fn (HasInventoryLocation $model): string => $model->getMorphClass().':'.(string) $model->getKey())
             ->groupBy(fn (HasInventoryLocation $model): string => $model->getMorphClass());
@@ -85,6 +98,7 @@ class ManageInventoryLocationService
                 ->values();
 
             $existingLocations = InventoryLocation::query()
+                ->where('organization_id', $organizationId)
                 ->where('external_type', $morphClass)
                 ->whereIn('external_id', $externalIds)
                 ->get()
@@ -100,17 +114,19 @@ class ManageInventoryLocationService
                 InventoryLocation::query()->insert(
                     $missingModels
                         ->map(fn (HasInventoryLocation $model): array => [
-                            'id'            => (string) Str::uuid7(),
-                            'external_type' => $model->getMorphClass(),
-                            'external_id'   => (string) $model->getKey(),
-                            'is_active'     => true,
-                            'created_at'    => $now,
-                            'updated_at'    => $now,
+                            'id'              => (string) Str::uuid7(),
+                            'organization_id' => $organizationId,
+                            'external_type'   => $model->getMorphClass(),
+                            'external_id'     => (string) $model->getKey(),
+                            'is_active'       => true,
+                            'created_at'      => $now,
+                            'updated_at'      => $now,
                         ])
                         ->all()
                 );
 
                 $existingLocations = InventoryLocation::query()
+                    ->where('organization_id', $organizationId)
                     ->where('external_type', $morphClass)
                     ->whereIn('external_id', $externalIds)
                     ->get()
@@ -123,5 +139,12 @@ class ManageInventoryLocationService
         }
 
         return $resolvedLocations->values();
+    }
+
+    protected function assertOrganization(HasInventoryLocation $model, string $organizationId): void
+    {
+        if ($model->getOrganizationId() !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $model->getOrganizationId());
+        }
     }
 }

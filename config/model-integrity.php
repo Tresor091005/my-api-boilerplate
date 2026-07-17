@@ -49,11 +49,6 @@ return [
         'catalog_product_categories',
         'catalog_variant_option_value',
         'master_taggables',
-        'inventory_items',
-        'inventory_locations',
-        'inventory_movements',
-        'inventory_stocks',
-        'inventory_transactions',
     ],
 
     /*
@@ -100,6 +95,12 @@ return [
                 'inventory_stocks_item_id_location_id_active_index',
                 'inventory_stocks_location_id_item_id_active_index',
             ],
+        ],
+        'inventory_locations' => [
+            'inventory_locations_organization_id_external_id_external_type_unique' => 'inventory_locations_org_external_unique',
+        ],
+        'inventory_items' => [
+            'inventory_items_organization_id_itemable_id_itemable_type_unique' => 'inventory_items_org_itemable_unique',
         ],
         'pricing_price_entries' => [
             'pricing_price_entries_organization_id_context_currency_code_is_active_index' => 'pricing_pe_org_ctx_currency_active_idx',

@@ -11,6 +11,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $name
  * @property string $code
  * @property bool $is_active
@@ -23,21 +24,25 @@ class TestInventoryWarehouse extends Model implements HasInventoryLocation
     protected $table = 'test_warehouses';
 
     protected $fillable = [
+        'organization_id',
         'name',
         'code',
         'is_active',
     ];
 
     protected $casts = [
-        'id'        => 'string',
-        'name'      => 'string',
-        'code'      => 'string',
-        'is_active' => 'boolean',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'name'            => 'string',
+        'code'            => 'string',
+        'is_active'       => 'boolean',
     ];
 
-    /**
-     * @return array<string, mixed>
-     */
+    public function getOrganizationId(): string
+    {
+        return $this->organization_id;
+    }
+
     public function toInventoryLocationExternalSummary(): array
     {
         return [
