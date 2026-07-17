@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Master\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Lahatre\Master\Models\Tag;
+use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 use Lahatre\Shared\Support\HandleGenerator;
 
 /**
@@ -15,19 +14,12 @@ use Lahatre\Shared\Support\HandleGenerator;
  */
 class TagFactory extends Factory
 {
+    use ResolvesOrganizationId;
+
     public function definition(): array
     {
         $name = str($this->faker->unique()->words(2, true))->normalize()->value();
-        $organizationId = getPermissionsTeamId() ?: (string) Str::uuid7();
-
-        if (!getPermissionsTeamId()) {
-            DB::table('organization_organizations')->insert([
-                'id'         => $organizationId,
-                'name'       => 'Factory Organization '.$organizationId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $organizationId = $this->resolveOrganizationId();
 
         return [
             'organization_id' => $organizationId,

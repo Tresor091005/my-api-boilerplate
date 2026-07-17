@@ -5,32 +5,24 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
+use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
  * @extends Factory<InventoryStock>
  */
 class InventoryStockFactory extends Factory
 {
+    use ResolvesOrganizationId;
+
     public function definition(): array
     {
         $quantity = fake()->numberBetween(10, 1000);
-        $organizationId = getPermissionsTeamId() ?: (string) Str::uuid7();
-
-        if (!getPermissionsTeamId()) {
-            DB::table('organization_organizations')->insert([
-                'id'         => $organizationId,
-                'name'       => 'Factory Organization '.$organizationId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $organizationId = $this->resolveOrganizationId();
 
         return [
             'organization_id' => $organizationId,

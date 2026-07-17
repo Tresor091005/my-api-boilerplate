@@ -5,28 +5,19 @@ declare(strict_types=1);
 namespace Lahatre\Pricing\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Lahatre\Pricing\Models\PartyGroup;
+use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
  * @extends Factory<PartyGroup>
  */
 class PartyGroupFactory extends Factory
 {
+    use ResolvesOrganizationId;
+
     public function definition(): array
     {
-        $organizationId = getPermissionsTeamId() ?: (string) Str::uuid7();
-
-        if (!getPermissionsTeamId()) {
-            DB::table('organization_organizations')->insert([
-                'id'         => $organizationId,
-                'name'       => 'Pricing Party Group Organization '.$organizationId,
-                'created_at' => now(),
-                'updated_at' => now(),
-                'deleted_at' => null,
-            ]);
-        }
+        $organizationId = $this->resolveOrganizationId();
 
         return [
             'organization_id' => $organizationId,

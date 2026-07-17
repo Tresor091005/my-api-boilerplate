@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -15,24 +13,18 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
+use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
  * @extends Factory<InventoryMovement>
  */
 class InventoryMovementFactory extends Factory
 {
+    use ResolvesOrganizationId;
+
     public function definition(): array
     {
-        $organizationId = getPermissionsTeamId() ?: (string) Str::uuid7();
-
-        if (!getPermissionsTeamId()) {
-            DB::table('organization_organizations')->insert([
-                'id'         => $organizationId,
-                'name'       => 'Factory Organization '.$organizationId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $organizationId = $this->resolveOrganizationId();
 
         return [
             'organization_id' => $organizationId,
