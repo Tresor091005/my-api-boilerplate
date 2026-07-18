@@ -35,7 +35,7 @@ class AdjustmentAverageCostUnavailableException extends AssertionException
                 'item_id'       => $itemId,
                 'location_id'   => $locationId,
                 'currency_code' => $currencyCode,
-                'reason'       => 'stock_unavailable',
+                'reason'        => 'stock_unavailable',
             ]
         );
     }

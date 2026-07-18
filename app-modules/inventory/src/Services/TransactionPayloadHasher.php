@@ -22,6 +22,7 @@ final class TransactionPayloadHasher
                 ->map(fn (MovementDataDTO $movement): array => [
                     'item_id'         => $movement->item_id,
                     'location_id'     => $movement->location_id,
+                    'to_location_id'  => $movement->to_location_id,
                     'type'            => $movement->type?->value,
                     'quantity'        => $movement->quantity,
                     'unit_code'       => $movement->unit_code,

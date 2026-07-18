@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
@@ -16,13 +18,12 @@ use Lahatre\Inventory\DTO\TransactionDataDTO;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
-use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
 use Lahatre\Inventory\Exceptions\AdjustmentAverageCostUnavailableException;
+use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
 use Lahatre\Inventory\Exceptions\IdempotencyKeyReuseException;
 use Lahatre\Inventory\Exceptions\InboundCostRequiredException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
 use Lahatre\Inventory\Exceptions\ReversalException;
-use Lahatre\Inventory\Exceptions\TransferDistributionException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
@@ -161,6 +162,7 @@ class InventoryService implements InventoryInterface
         $organizationId = $this->organizationId();
 
         $this->stockSelectionCache = [];
+        $transferReversalBatches = $data['_transfer_reversal_batches'] ?? null;
         $resolvedData = $this->resolveTransactionReferences($data);
         [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
 
@@ -198,9 +200,11 @@ class InventoryService implements InventoryInterface
         }
 
         match ($transaction->transaction_type) {
-            TransactionType::In         => $this->processInMovements($tx, $movementContexts),
-            TransactionType::Out        => $this->processOutMovements($tx, $movementContexts),
-            TransactionType::Transfer   => $this->processTransferMovements($tx, $movementContexts),
+            TransactionType::In       => $this->processInMovements($tx, $movementContexts),
+            TransactionType::Out      => $this->processOutMovements($tx, $movementContexts),
+            TransactionType::Transfer => $transferReversalBatches === null
+                ? $this->processTransferMovements($tx, $movementContexts)
+                : $this->processTransferReversalMovements($tx, $transferReversalBatches, $movementContexts),
             TransactionType::Adjustment => $this->processAdjustmentMovements($tx, $movementContexts),
         };
 
@@ -209,6 +213,10 @@ class InventoryService implements InventoryInterface
 
     protected function buildReversalPayload(InventoryTransaction $original, ?array $metadata): array
     {
+        if ($original->transaction_type === TransactionType::Transfer) {
+            return $this->buildTransferReversalPayload($original, $metadata);
+        }
+
         $transactionType = match ($original->transaction_type) {
             TransactionType::In  => TransactionType::Out,
             TransactionType::Out => TransactionType::In,
@@ -261,6 +269,81 @@ class InventoryService implements InventoryInterface
         ];
     }
 
+    protected function buildTransferReversalPayload(InventoryTransaction $original, ?array $metadata): array
+    {
+        $groups = $original->movements->groupBy('link_id');
+        if ($groups->has('')) {
+            throw ReversalException::inconsistentMovement($original->movements->first()->id);
+        }
+
+        $movements = [];
+        $batches = [];
+
+        foreach ($groups as $linkId => $group) {
+            $outbound = $group->where('movement_type', MovementType::Out);
+            $inbound = $group->where('movement_type', MovementType::In);
+
+            if ($outbound->isEmpty() || $inbound->isEmpty()) {
+                throw ReversalException::inconsistentMovement($group->first()->id);
+            }
+
+            $sourceId = $outbound->pluck('location_id')->unique();
+            $destinationId = $inbound->pluck('location_id')->unique();
+            $itemIds = $group->pluck('item_id')->unique();
+
+            if ($sourceId->count() !== 1 || $destinationId->count() !== 1 || $itemIds->count() !== 1) {
+                throw ReversalException::inconsistentMovement($group->first()->id);
+            }
+
+            $movements[] = [
+                'item_id'        => $itemIds->first(),
+                'location_id'    => $destinationId->first(),
+                'to_location_id' => $sourceId->first(),
+                'quantity'       => (string) $inbound->sum('quantity'),
+                'unit_code'      => $inbound->first()->unit_code,
+                'strategy'       => DeductionStrategy::Manual->value,
+                'stock_ids'      => $inbound->pluck('stock_id')->unique()->values()->all(),
+            ];
+
+            $batches[] = [
+                'link_id'  => $linkId,
+                'outbound' => $inbound->map(fn (InventoryMovement $movement): array => [
+                    'movement_id'   => $movement->id,
+                    'stock_id'      => $movement->stock_id,
+                    'item_id'       => $movement->item_id,
+                    'location_id'   => $movement->location_id,
+                    'quantity'      => $movement->quantity,
+                    'unit_code'     => $movement->unit_code,
+                    'total_cost'    => $movement->total_cost,
+                    'currency_code' => $movement->currency_code,
+                    'metadata'      => $movement->metadata,
+                ])->values()->all(),
+                'inbound' => $outbound->map(fn (InventoryMovement $movement): array => [
+                    'movement_id'     => $movement->id,
+                    'item_id'         => $movement->item_id,
+                    'location_id'     => $movement->location_id,
+                    'quantity'        => $movement->quantity,
+                    'unit_code'       => $movement->unit_code,
+                    'total_cost'      => $movement->total_cost,
+                    'currency_code'   => $movement->currency_code,
+                    'expiration_date' => $movement->expiration_date,
+                    'metadata'        => $movement->metadata,
+                    'stock_metadata'  => $movement->stock_metadata_snapshot,
+                ])->values()->all(),
+            ];
+        }
+
+        return [
+            'idempotency_key'            => $original->id.':reverse',
+            'reference_type'             => $original->reference_type,
+            'reference_id'               => $original->reference_id,
+            'transaction_type'           => TransactionType::Transfer->value,
+            'metadata'                   => $metadata,
+            'movements'                  => $movements,
+            '_transfer_reversal_batches' => $batches,
+        ];
+    }
+
     /**
      * Normalizes optional external item and location model references into internal inventory IDs
      * before transaction validation and ledger persistence.
@@ -284,7 +367,16 @@ class InventoryService implements InventoryInterface
 
         $resolvedLocations = $this->inventoryLocationService->ensure(
             $movements
-                ->map(fn (mixed $movement): mixed => is_array($movement) ? ($movement['location'] ?? $movement['location_id'] ?? null) : null)
+                ->flatMap(function (mixed $movement): array {
+                    if (!is_array($movement)) {
+                        return [];
+                    }
+
+                    return [
+                        $movement['location'] ?? $movement['location_id'] ?? null,
+                        $movement['to_location'] ?? $movement['to_location_id'] ?? null,
+                    ];
+                })
                 ->filter(fn (mixed $reference): bool => $reference instanceof HasInventoryLocation)
                 ->values()
         )->keyBy(fn (InventoryLocation $location): string => $location->external_type.':'.$location->external_id);
@@ -301,11 +393,15 @@ class InventoryService implements InventoryInterface
                 unset($movement['item']);
             }
 
-            $locationReference = $movement['location'] ?? $movement['location_id'] ?? null;
-            if ($locationReference instanceof HasInventoryLocation) {
+            foreach (['location', 'to_location'] as $locationField) {
+                $locationReference = $movement[$locationField] ?? $movement[$locationField.'_id'] ?? null;
+                if (!$locationReference instanceof HasInventoryLocation) {
+                    continue;
+                }
+
                 $locationKey = $locationReference->getMorphClass().':'.(string) $locationReference->getKey();
-                $movement['location_id'] = $resolvedLocations->get($locationKey)?->id;
-                unset($movement['location']);
+                $movement[$locationField.'_id'] = $resolvedLocations->get($locationKey)?->id;
+                unset($movement[$locationField]);
             }
 
             return $movement;
@@ -366,31 +462,6 @@ class InventoryService implements InventoryInterface
     /**
      * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
      */
-    protected function processTransferMovements(InventoryTransaction $tx, Collection $movementContexts): void
-    {
-        $groupedByItem = $movementContexts->groupBy(fn (MovementExecutionContextDTO $context): string => $context->movement->item_id);
-
-        foreach ($groupedByItem as $itemId => $itemMovementContexts) {
-            $item = $itemMovementContexts->first()->item;
-            $outMovementContexts = $itemMovementContexts
-                ->filter(fn (MovementExecutionContextDTO $context): bool => $context->movement->type === MovementType::Out)
-                ->values();
-            $inMovementContexts = $itemMovementContexts
-                ->filter(fn (MovementExecutionContextDTO $context): bool => $context->movement->type === MovementType::In)
-                ->values();
-
-            $this->applyTransferForItem(
-                tx: $tx,
-                item: $item,
-                outMovementContexts: $outMovementContexts,
-                inMovementContexts: $inMovementContexts,
-            );
-        }
-    }
-
-    /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
-     */
     protected function processAdjustmentMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
         foreach ($movementContexts as $context) {
@@ -441,46 +512,120 @@ class InventoryService implements InventoryInterface
         }
     }
 
-    protected function resolveStocksForAdjustment(MovementDataDTO $movement): Collection
+    /**
+     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     */
+    protected function processTransferMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
-        return InventoryStock::query()
-            ->where('item_id', $movement->item_id)
-            ->where('organization_id', $this->organizationId())
-            ->where('location_id', $movement->location_id)
-            ->where('remaining', '>', 0)
-            ->lockForUpdate()
-            ->get();
+        foreach ($movementContexts as $context) {
+            $linkId = Str::uuid()->toString();
+            $destinationContext = $this->buildTransferDestinationContext($context);
+            $deductedMovements = $this->applyDeduction(
+                tx: $tx,
+                context: $context,
+                quantityToDeduct: $context->quantityInBase,
+                linkId: $linkId,
+            );
+
+            foreach ($deductedMovements as $deductedMovement) {
+                $this->applyInbound(
+                    tx: $tx,
+                    context: $destinationContext,
+                    quantityOverrideInBase: (string) $deductedMovement->quantity,
+                    totalCost: $deductedMovement->total_cost,
+                    currencyCode: $deductedMovement->currency_code,
+                    stockMetadata: $deductedMovement->stock_metadata_snapshot,
+                    linkId: $linkId,
+                );
+            }
+        }
     }
 
-    protected function resolveAdjustmentAverageCost(
-        Collection $stocks,
-        string $currencyCode,
-        string $quantityToAdd,
-        string $itemId,
-        string $locationId,
-    ): int {
-        $currencyStocks = $stocks->where('currency_code', $currencyCode);
-        $currentQuantity = '0';
-        $currentValue = '0';
+    /**
+     * Replays persisted transfer allocations when reversing a transfer.
+     *
+     * @param  array<int, array{outbound: array<int, array<string, mixed>>, inbound: array<int, array<string, mixed>>}>  $batches
+     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     */
+    protected function processTransferReversalMovements(
+        InventoryTransaction $tx,
+        array $batches,
+        Collection $movementContexts,
+    ): void {
+        foreach ($batches as $batch) {
+            $linkId = Str::uuid()->toString();
 
-        foreach ($currencyStocks as $stock) {
-            $currentQuantity = bcadd($currentQuantity, (string) $stock->remaining, 0);
-            $stockValue = bcadd(
-                bcmul((string) $stock->remaining, (string) $stock->unit_cost, 0),
-                (string) $stock->cost_remainder,
-                0
-            );
-            $currentValue = bcadd($currentValue, $stockValue, 0);
+            foreach ($batch['outbound'] as $movementData) {
+                $template = $movementContexts->first(
+                    fn (MovementExecutionContextDTO $context): bool => $context->movement->item_id === $movementData['item_id']
+                        && $context->movement->location_id === $movementData['location_id']
+                );
+
+                if (!$template) {
+                    throw ReversalException::inconsistentMovement((string) $movementData['movement_id']);
+                }
+
+                $this->applyExactReversalDeduction($tx, $movementData, $linkId);
+            }
+
+            foreach ($batch['inbound'] as $movementData) {
+                $template = $movementContexts->first(
+                    fn (MovementExecutionContextDTO $context): bool => $context->movement->item_id === $movementData['item_id']
+                );
+
+                if (!$template || $movementData['currency_code'] === null) {
+                    throw ReversalException::inconsistentMovement((string) $movementData['movement_id']);
+                }
+
+                $context = new MovementExecutionContextDTO(
+                    movement: new MovementDataDTO(
+                        item_id: $movementData['item_id'],
+                        location_id: $movementData['location_id'],
+                        to_location_id: null,
+                        type: MovementType::In,
+                        quantity: (string) $movementData['quantity'],
+                        unit_code: $movementData['unit_code'],
+                        total_cost: (int) $movementData['total_cost'],
+                        currency_code: $movementData['currency_code'],
+                        expiration_date: $movementData['expiration_date']
+                            ? CarbonImmutable::parse($movementData['expiration_date'])
+                            : null,
+                        metadata: $movementData['metadata'],
+                        stock_metadata: $movementData['stock_metadata'],
+                    ),
+                    item: $template->item,
+                    quantityInBase: (string) $movementData['quantity'],
+                );
+
+                $this->applyInbound(
+                    tx: $tx,
+                    context: $context,
+                    totalCost: (int) $movementData['total_cost'],
+                    currencyCode: $movementData['currency_code'],
+                    stockMetadata: $movementData['stock_metadata'],
+                    linkId: $linkId,
+                );
+            }
         }
+    }
 
-        if (bccomp($currentQuantity, '0', 0) <= 0) {
-            throw AdjustmentAverageCostUnavailableException::stockUnavailable($itemId, $locationId, $currencyCode);
-        }
+    protected function buildTransferDestinationContext(MovementExecutionContextDTO $context): MovementExecutionContextDTO
+    {
+        $movement = $context->movement;
+        $destinationMovement = new MovementDataDTO(
+            item_id: $movement->item_id,
+            location_id: $movement->to_location_id,
+            to_location_id: null,
+            type: MovementType::In,
+            quantity: $movement->quantity,
+            unit_code: $movement->unit_code,
+            metadata: $movement->metadata,
+        );
 
-        return (int) bcdiv(
-            bcmul($currentValue, $quantityToAdd, 0),
-            $currentQuantity,
-            0
+        return new MovementExecutionContextDTO(
+            movement: $destinationMovement,
+            item: $context->item,
+            quantityInBase: $context->quantityInBase,
         );
     }
 
@@ -490,7 +635,8 @@ class InventoryService implements InventoryInterface
         ?string $quantityOverrideInBase = null,
         ?int $totalCost = null,
         ?string $currencyCode = null,
-        ?array $stockMetadata = null
+        ?array $stockMetadata = null,
+        ?string $linkId = null,
     ): InventoryStock {
         $movement = $context->movement;
         $item = $context->item;
@@ -524,6 +670,7 @@ class InventoryService implements InventoryInterface
             'organization_id' => $this->organizationId(),
             'movement_type'   => MovementType::In,
             'transaction_id'  => $tx->id,
+            'link_id'         => $linkId,
             'item_id'         => $movement->item_id,
             'location_id'     => $movement->location_id,
             'stock_id'        => $stock->id,
@@ -542,7 +689,8 @@ class InventoryService implements InventoryInterface
         InventoryTransaction $tx,
         MovementExecutionContextDTO $context,
         string $quantityToDeduct,
-        ?Collection $stocks = null
+        ?Collection $stocks = null,
+        ?string $linkId = null
     ): Collection {
         $movement = $context->movement;
         $item = $context->item;
@@ -590,6 +738,7 @@ class InventoryService implements InventoryInterface
                 'organization_id'         => $this->organizationId(),
                 'movement_type'           => MovementType::Out,
                 'transaction_id'          => $tx->id,
+                'link_id'                 => $linkId,
                 'item_id'                 => $movement->item_id,
                 'location_id'             => $movement->location_id,
                 'stock_id'                => $stock->id,
@@ -612,76 +761,100 @@ class InventoryService implements InventoryInterface
     }
 
     /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $outMovementContexts
-     * @param  Collection<int, MovementExecutionContextDTO>  $inMovementContexts
+     * Deducts the persisted inbound allocation of a transfer without recalculating
+     * its historical cost from the current stock state.
+     *
+     * @param  array<string, mixed>  $movementData
      */
-    protected function applyTransferForItem(
+    protected function applyExactReversalDeduction(
         InventoryTransaction $tx,
-        InventoryItem $item,
-        Collection $outMovementContexts,
-        Collection $inMovementContexts
+        array $movementData,
+        string $linkId,
     ): void {
-        /** @var list<InventoryMovement> $batches */
-        $batches = [];
+        $stock = InventoryStock::query()
+            ->where('organization_id', $this->organizationId())
+            ->whereKey($movementData['stock_id'])
+            ->lockForUpdate()
+            ->first();
 
-        foreach ($outMovementContexts as $context) {
-            $deductedMovements = $this->applyDeduction(
-                tx: $tx,
-                context: $context,
-                quantityToDeduct: $context->quantityInBase,
+        if (!$stock || $stock->item_id !== $movementData['item_id'] || $stock->location_id !== $movementData['location_id']) {
+            throw ReversalException::inconsistentMovement((string) $movementData['movement_id']);
+        }
+
+        if ((int) $stock->remaining < (int) $movementData['quantity']) {
+            throw ReversalException::stockAlreadyUsed(
+                movementId: (string) $movementData['movement_id'],
+                stockId: (string) $stock->id,
+                requested: (string) $movementData['quantity'],
+                remaining: (string) $stock->remaining,
             );
-
-            foreach ($deductedMovements as $deductedMovement) {
-                $batches[] = $deductedMovement;
-            }
         }
 
-        $batchIndex = 0;
+        $stock->remaining -= (int) $movementData['quantity'];
+        $stock->cost_remainder = 0;
+        $stock->save();
 
-        foreach ($inMovementContexts as $context) {
-            $movement = $context->movement;
-            $remainingToFill = $context->quantityInBase;
+        $outMovement = InventoryMovement::create([
+            'organization_id'         => $this->organizationId(),
+            'movement_type'           => MovementType::Out,
+            'transaction_id'          => $tx->id,
+            'link_id'                 => $linkId,
+            'item_id'                 => $movementData['item_id'],
+            'location_id'             => $movementData['location_id'],
+            'stock_id'                => $stock->id,
+            'quantity'                => (int) $movementData['quantity'],
+            'unit_code'               => $movementData['unit_code'],
+            'total_cost'              => (int) $movementData['total_cost'],
+            'currency_code'           => $movementData['currency_code'],
+            'expiration_date'         => $stock->expiration_date,
+            'metadata'                => $movementData['metadata'],
+            'stock_metadata_snapshot' => $stock->metadata,
+        ]);
 
-            while (bccomp($remainingToFill, '0', 10) > 0 && isset($batches[$batchIndex])) {
-                $currentBatch = $batches[$batchIndex];
-                $batchAvailable = (string) $currentBatch->quantity;
+        $outMovement->setRelation('stock', $stock);
+    }
 
-                $take = bccomp($remainingToFill, $batchAvailable, 10) >= 0
-                    ? $batchAvailable
-                    : $remainingToFill;
-                $takeQuantity = (int) $take;
-                $batchQuantity = (int) $batchAvailable;
-                $batchUnitCost = $currentBatch->stock->unit_cost;
-                $batchCostRemainder = $currentBatch->total_cost - ($batchQuantity * $batchUnitCost);
-                $takeTotalCost = ($takeQuantity * $batchUnitCost) + $batchCostRemainder;
+    protected function resolveStocksForAdjustment(MovementDataDTO $movement): Collection
+    {
+        return InventoryStock::query()
+            ->where('item_id', $movement->item_id)
+            ->where('organization_id', $this->organizationId())
+            ->where('location_id', $movement->location_id)
+            ->where('remaining', '>', 0)
+            ->lockForUpdate()
+            ->get();
+    }
 
-                $this->applyInbound(
-                    tx: $tx,
-                    context: $context,
-                    quantityOverrideInBase: $take,
-                    totalCost: $takeTotalCost,
-                    currencyCode: $currentBatch->currency_code,
-                    stockMetadata: $currentBatch->stock->metadata,
-                );
+    protected function resolveAdjustmentAverageCost(
+        Collection $stocks,
+        string $currencyCode,
+        string $quantityToAdd,
+        string $itemId,
+        string $locationId,
+    ): int {
+        $currencyStocks = $stocks->where('currency_code', $currencyCode);
+        $currentQuantity = '0';
+        $currentValue = '0';
 
-                $remainingToFill = bcsub($remainingToFill, $take, 10);
-
-                if (bccomp($take, $batchAvailable, 10) === 0) {
-                    $batchIndex++;
-                } else {
-                    $currentBatch->quantity = $batchQuantity - $takeQuantity;
-                    $currentBatch->total_cost -= $takeTotalCost;
-                }
-            }
-
-            if (bccomp($remainingToFill, '0', 10) > 0) {
-                throw TransferDistributionException::destinationImbalance($item->id, $movement->location_id);
-            }
+        foreach ($currencyStocks as $stock) {
+            $currentQuantity = bcadd($currentQuantity, (string) $stock->remaining, 0);
+            $stockValue = bcadd(
+                bcmul((string) $stock->remaining, (string) $stock->unit_cost, 0),
+                (string) $stock->cost_remainder,
+                0
+            );
+            $currentValue = bcadd($currentValue, $stockValue, 0);
         }
 
-        if (isset($batches[$batchIndex])) {
-            throw TransferDistributionException::sourceImbalance($item->id);
+        if (bccomp($currentQuantity, '0', 0) <= 0) {
+            throw AdjustmentAverageCostUnavailableException::stockUnavailable($itemId, $locationId, $currencyCode);
         }
+
+        return (int) bcdiv(
+            bcmul($currentValue, $quantityToAdd, 0),
+            $currentQuantity,
+            0
+        );
     }
 
     protected function resolveStocksForDeduction(MovementDataDTO $movement, InventoryItem $item): Collection

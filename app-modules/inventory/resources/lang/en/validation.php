@@ -7,7 +7,8 @@ return [
     'adjustment_duplicate_item_location'     => 'For Adjustment transactions, the same item cannot appear multiple times for the same location.',
     'in_transaction_only_in_movements'       => "An 'IN' transaction can only contain 'in' movements.",
     'out_transaction_only_out_movements'     => "An 'OUT' transaction can only contain 'out' movements.",
-    'transfer_requires_in_and_out_movements' => "A 'TRANSFER' transaction must have at least one 'in' and one 'out' movement.",
+    'transfer_same_location'                 => 'A transfer source and destination must be different.',
+    'transfer_field_prohibited'              => 'The :field field is not accepted on a transfer movement.',
     'item_invalid_or_inactive'               => 'The selected item is invalid or inactive.',
     'location_invalid_or_inactive'           => 'The selected location is invalid or inactive.',
     'unit_code_invalid'                      => 'The selected unit code is invalid.',
@@ -29,5 +30,4 @@ return [
     'stock_id_invalid'                       => 'Stock ID :stock_id is invalid.',
     'stock_id_wrong_scope'                   => 'Stock ID :stock_id does not belong to the correct item and location.',
     'unit_group_mismatch'                    => 'Unit :unit_code belongs to a different group than item base unit :base_unit_code.',
-    'transfer_imbalance'                     => 'Transfer imbalance for item :item_id. Total IN: :total_in, Total OUT: :total_out (in base unit :base_unit_code).',
 ];

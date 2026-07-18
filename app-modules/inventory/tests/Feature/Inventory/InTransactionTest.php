@@ -66,7 +66,7 @@ it('successfully processes a simple IN transaction', function (): void {
         'location_id'   => $this->location->id,
         'quantity'      => 100,
         'remaining'     => 100,
-            'unit_cost'     => 1550,
+        'unit_cost'     => 1550,
         'currency_code' => $this->currency->code,
     ]);
 

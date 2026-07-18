@@ -19,6 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $organization_id
  * @property MovementType $movement_type
  * @property string $transaction_id
+ * @property string|null $link_id
  * @property string $item_id
  * @property string $stock_id
  * @property string $location_id
@@ -70,6 +71,7 @@ class InventoryMovement extends Model
         'organization_id',
         'movement_type',
         'transaction_id',
+        'link_id',
         'item_id',
         'stock_id',
         'location_id',
@@ -87,6 +89,7 @@ class InventoryMovement extends Model
         'organization_id'         => 'string',
         'movement_type'           => MovementType::class,
         'transaction_id'          => 'string',
+        'link_id'                 => 'string',
         'item_id'                 => 'string',
         'stock_id'                => 'string',
         'location_id'             => 'string',

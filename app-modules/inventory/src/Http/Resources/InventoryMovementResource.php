@@ -25,6 +25,7 @@ class InventoryMovementResource extends JsonResource
             'id'                      => $this->id,
             'movement_type'           => $this->movement_type,
             'transaction_id'          => $this->transaction_id,
+            'link_id'                 => $this->link_id,
             'item_id'                 => $this->item_id,
             'stock_id'                => $this->stock_id,
             'location_id'             => $this->location_id,

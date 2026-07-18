@@ -81,11 +81,18 @@ class TransactionValidator
 
             'movements' => ['required', 'array', 'min:1'],
 
-            'movements.*.item_id'     => ['required', 'string'],
-            'movements.*.location_id' => ['required', 'string'],
-            'movements.*.type'        => [
-                'required_unless:transaction_type,'.TransactionType::Adjustment->value,
+            'movements.*.item_id'        => ['required', 'string'],
+            'movements.*.location_id'    => ['required', 'string'],
+            'movements.*.to_location_id' => [
+                'nullable',
+                'string',
+                'required_if:transaction_type,'.TransactionType::Transfer->value,
+                'prohibited_unless:transaction_type,'.TransactionType::Transfer->value,
+            ],
+            'movements.*.type' => [
+                'required_unless:transaction_type,'.TransactionType::Adjustment->value.','.TransactionType::Transfer->value,
                 'prohibited_if:transaction_type,'.TransactionType::Adjustment->value,
+                'prohibited_if:transaction_type,'.TransactionType::Transfer->value,
                 Rule::enum(MovementType::class),
             ],
             'movements.*.quantity'  => ['required', 'numeric', 'gt:0'],
@@ -188,10 +195,9 @@ class TransactionValidator
         $hasOut = $movements->contains(fn ($m): bool => ($m['type'] ?? null) === MovementType::Out->value);
 
         match ($txType) {
-            TransactionType::In       => $hasOut && $validator->errors()->add('transaction_type', __('inventory::validation.in_transaction_only_in_movements')),
-            TransactionType::Out      => $hasIn && $validator->errors()->add('transaction_type', __('inventory::validation.out_transaction_only_out_movements')),
-            TransactionType::Transfer => (!$hasIn || !$hasOut) && $validator->errors()->add('transaction_type', __('inventory::validation.transfer_requires_in_and_out_movements')),
-            default                   => null,
+            TransactionType::In  => $hasOut && $validator->errors()->add('transaction_type', __('inventory::validation.in_transaction_only_in_movements')),
+            TransactionType::Out => $hasIn && $validator->errors()->add('transaction_type', __('inventory::validation.out_transaction_only_out_movements')),
+            default              => null,
         };
     }
 
@@ -199,7 +205,10 @@ class TransactionValidator
     {
         $organizationId = $this->organizationId();
         $itemIds = $movements->pluck('item_id')->filter()->unique();
-        $locationIds = $movements->pluck('location_id')->filter()->unique();
+        $locationIds = $movements->pluck('location_id')
+            ->merge($movements->pluck('to_location_id'))
+            ->filter()
+            ->unique();
         $currencyCodes = $movements->pluck('currency_code')->filter()->unique();
         $stockIds = $movements->pluck('stock_ids')->flatten()->filter()->unique();
         $items = InventoryItem::where('organization_id', $organizationId)
@@ -235,6 +244,12 @@ class TransactionValidator
             }
             if (isset($m['location_id']) && !$lookups['locations']->has($m['location_id'])) {
                 $validator->errors()->add("movements.{$index}.location_id", __('inventory::validation.location_invalid_or_inactive'));
+            }
+            if (isset($m['to_location_id']) && !$lookups['locations']->has($m['to_location_id'])) {
+                $validator->errors()->add("movements.{$index}.to_location_id", __('inventory::validation.location_invalid_or_inactive'));
+            }
+            if ($txType === TransactionType::Transfer && ($m['location_id'] ?? null) === ($m['to_location_id'] ?? null)) {
+                $validator->errors()->add("movements.{$index}.to_location_id", __('inventory::validation.transfer_same_location'));
             }
             if (isset($m['unit_code']) && !$lookups['units']->has($m['unit_code'])) {
                 $validator->errors()->add("movements.{$index}.unit_code", __('inventory::validation.unit_code_invalid'));
@@ -278,6 +293,14 @@ class TransactionValidator
 
                 if ($txType !== TransactionType::In && ($m['stock_metadata'] ?? null) !== null) {
                     $validator->errors()->add("movements.{$index}.stock_metadata", __('inventory::validation.stock_metadata_in_only'));
+                }
+            }
+
+            if ($txType === TransactionType::Transfer) {
+                foreach (['total_cost', 'currency_code', 'expiration_date', 'stock_metadata'] as $field) {
+                    if (isset($m[$field])) {
+                        $validator->errors()->add("movements.{$index}.{$field}", __('inventory::validation.transfer_field_prohibited', ['field' => $field]));
+                    }
                 }
             }
 
@@ -336,7 +359,7 @@ class TransactionValidator
                 $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.manual_stock_ids_required'));
             }
 
-            if (!empty($m['stock_ids']) && $type === MovementType::Out) {
+            if (!empty($m['stock_ids']) && ($type === MovementType::Out || $txType === TransactionType::Transfer)) {
                 foreach ($m['stock_ids'] as $sid) {
                     $stock = $lookups['stocks']->get($sid);
                     if (!$stock) {
@@ -347,7 +370,6 @@ class TransactionValidator
                 }
             }
         }
-
     }
 
     protected function validateBusinessLogic(Validator $validator, ?TransactionType $txType, Collection $movements, array $lookups): void
@@ -356,9 +378,8 @@ class TransactionValidator
 
         $this->checkUnitGroups($validator, $movements, $items, $lookups['units']);
 
-        if ($txType === TransactionType::Transfer) {
-            $this->checkTransferBalance($validator, $movements, $items);
-        }
+        // Transfer quantities are validated per source-to-destination line and
+        // therefore do not require a global IN/OUT balance.
     }
 
     /**

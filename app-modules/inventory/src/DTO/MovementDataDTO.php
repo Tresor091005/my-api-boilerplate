@@ -14,6 +14,7 @@ readonly class MovementDataDTO
     public function __construct(
         public string $item_id,
         public string $location_id,
+        public ?string $to_location_id,
         public ?MovementType $type,
         public string $quantity, // string for BCMath
         public string $unit_code,
@@ -31,6 +32,7 @@ readonly class MovementDataDTO
         return new self(
             item_id: $data['item_id'],
             location_id: $data['location_id'],
+            to_location_id: $data['to_location_id'] ?? null,
             type: isset($data['type'])
                 ? (is_string($data['type']) ? MovementType::from($data['type']) : $data['type'])
                 : null,

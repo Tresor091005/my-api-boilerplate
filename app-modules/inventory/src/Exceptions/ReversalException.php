@@ -47,4 +47,26 @@ final class ReversalException extends AssertionException
             ['movement_id' => $movementId]
         );
     }
+
+    public static function stockAlreadyUsed(
+        string $movementId,
+        string $stockId,
+        string $requested,
+        string $remaining,
+    ): self {
+        return new self(
+            __('inventory::exceptions.reversal_stock_already_used', [
+                'movement_id' => $movementId,
+                'stock_id'    => $stockId,
+                'requested'   => $requested,
+                'remaining'   => $remaining,
+            ]),
+            [
+                'movement_id' => $movementId,
+                'stock_id'    => $stockId,
+                'requested'   => $requested,
+                'remaining'   => $remaining,
+            ]
+        );
+    }
 }

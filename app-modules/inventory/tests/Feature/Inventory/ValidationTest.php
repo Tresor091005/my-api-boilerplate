@@ -308,11 +308,11 @@ it('does not persist resolved references when preprocessing is enabled but valid
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
             [
-                'type'      => 'in',
-                'item'      => $variant,
-                'location'  => $company,
-                'quantity'  => 10,
-                'unit_code' => $this->unit->code,
+                'type'       => 'in',
+                'item'       => $variant,
+                'location'   => $company,
+                'quantity'   => 10,
+                'unit_code'  => $this->unit->code,
                 'total_cost' => 10.00,
                 // currency_code intentionally missing
             ],
@@ -380,7 +380,7 @@ it('fails transaction if the selected item is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-                'total_cost'    => 10.00,
+            'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
@@ -400,7 +400,7 @@ it('fails transaction if the selected location is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-                'total_cost'    => 10.00,
+            'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected location is invalid or inactive.');
@@ -421,7 +421,7 @@ it('fails if the item base unit has a ratio different than 1', function (): void
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $invalidBaseUnit->code,
-                'total_cost'    => 10.00,
+            'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(\Exception::class, 'must have a ratio of 1');

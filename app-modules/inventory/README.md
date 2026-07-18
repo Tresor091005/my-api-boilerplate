@@ -17,7 +17,7 @@ The Inventory Module is a robust, location-aware stock management system designe
 - **InventoryStock (Lots)**: A specific quantity of an item in a location, potentially with an expiration date and specific cost.
 - **InventoryTransaction**: A high-level record of a stock operation (e.g., "Purchase Order #123").
 - **InventoryMovement**: The granular changes to stock within a transaction (e.g., "Adding 50 units of SKU-A to Warehouse 1").
-- **Reversal**: A normal counter-entry transaction that inverts a supported `IN` or `OUT` transaction without rewriting historical stock state.
+- **Reversal**: A normal counter-entry transaction that inverts a supported `IN`, `OUT`, or linked `TRANSFER` transaction without rewriting historical stock state.
 
 ## Unit Management
 
@@ -91,11 +91,26 @@ When recording `Out` or `Transfer` movements, the system must decide which physi
 
 ### Transfer & Distribution Logic
 
-When recording a `Transfer`, the system follows a specific two-step process:
-1. **Global Deduction**: It first executes all `Out` movements, depleting the necessary lots from the source locations according to the item's deduction strategy (FIFO/FEFO).
-2. **Sequential Distribution**: It then takes the "pool" of deducted stock and fills the `In` movements in the exact order they appear in your request.
+A transfer movement represents one route from `location_id` to `to_location_id`:
 
-If your logistics require specific "Source A to Destination B" routing that differs from this automatic pooling, simply split the operation into **multiple transactions**. This keeps the system logic simple and predictable without the need for complex internal link IDs.
+```php
+[
+    'item_id'        => $itemId,
+    'location_id'    => $sourceLocationId,
+    'to_location_id' => $destinationLocationId,
+    'quantity'       => 60,
+    'unit_code'      => 'PCS',
+    'strategy'       => 'manual',
+    'stock_ids'      => [$stockId],
+]
+```
+
+The caller never supplies `type`, costs, currency, expiration, `stock_metadata`,
+or `link_id` for a transfer. The service generates one UUID `link_id` per
+route and stores it on every persisted `OUT` and `IN` movement produced by
+that route. `strategy` and `stock_ids` control the source deduction.
+Destination stocks inherit the source stock metadata and the persisted exact
+cost.
 
 ## Keeping Digital & Physical in Sync
 
@@ -183,7 +198,7 @@ The request replaces the complete metadata object. Sending `"metadata": null` cl
 
 ### 4. Reversing a Transaction
 
-Only regular `IN` and `OUT` transactions can currently be reversed. A reversal is a separate ledger transaction and does not restore the original stock row directly:
+Regular `IN`, `OUT`, and linked `TRANSFER` transactions can be reversed. A reversal is a separate ledger transaction and does not restore the original stock row directly:
 
 ```php
 $reversal = $inventory->reverseTransaction(
@@ -201,7 +216,7 @@ uses exactly the metadata supplied by the caller.
 - Original `OUT` → new `IN` using the persisted quantity, cost, currency, expiration, movement metadata, and outbound `stock_metadata_snapshot`.
 - The original stock's `remaining` value is never directly restored.
 - Repeating the same request returns the existing reversal; a different payload with the same key fails idempotency validation.
-- `TRANSFER` reversal is deferred until movements have an unambiguous `link_id`; `ADJUSTMENT` reversal is not supported.
+- A `TRANSFER` reversal groups movements by `link_id` and reverses each source-to-destination route independently. Transfers with missing or inconsistent links are not reversible. `ADJUSTMENT` reversal is not supported.
 
 #### Mapping validation error keys
 

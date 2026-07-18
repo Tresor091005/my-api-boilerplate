@@ -99,12 +99,12 @@ it('uses the selected currency average when multiple currencies exist', function
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [[
-            'item_id'        => $this->item->id,
-            'location_id'    => $this->location->id,
-            'quantity'       => 120,
-            'unit_code'      => $this->unit->code,
-            'total_cost'     => 1.00,
-            'currency_code'  => $secondCurrency->code,
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'quantity'      => 120,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => 1.00,
+            'currency_code' => $secondCurrency->code,
         ]],
     ]);
 
@@ -117,11 +117,11 @@ it('uses the selected currency average when multiple currencies exist', function
 
 it('uses the exact remaining value and rounds the added cost down', function (): void {
     InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
-        'quantity'      => 3,
-        'remaining'     => 3,
-        'unit_cost'     => 3333,
+        'quantity'       => 3,
+        'remaining'      => 3,
+        'unit_cost'      => 3333,
         'cost_remainder' => 2,
-        'currency_code' => $this->currency->code,
+        'currency_code'  => $this->currency->code,
     ]);
 
     $this->service->recordTransaction([
