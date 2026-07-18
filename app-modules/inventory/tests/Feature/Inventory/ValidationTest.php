@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -34,14 +35,14 @@ beforeEach(function (): void {
     $this->location = InventoryLocation::factory()->create();
 });
 
-it('fails if multiple currencies are used in one transaction', function (): void {
+it('allows multiple currencies in one transaction', function (): void {
     $currency2 = Currency::factory()->create();
     $item2 = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
 
     $payload = [
         'reference_type'   => 'test',
         'idempotency_key'  => fake()->uuid(),
-        'reference_id'     => '123',
+        'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
             ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'total_cost' => 10.00, 'currency_code' => $this->currency->code],
@@ -49,8 +50,42 @@ it('fails if multiple currencies are used in one transaction', function (): void
         ],
     ];
 
-    $this->service->recordTransaction($payload);
-})->throws(ValidationException::class, 'All movements in a transaction must use the same currency code.');
+    $transaction = $this->service->recordTransaction($payload);
+
+    expect($transaction->movements)->toHaveCount(2)
+        ->and($transaction->movements->pluck('currency_code')->all())
+        ->toBe([$this->currency->code, $currency2->code]);
+});
+
+it('maps validation error keys when recording a transaction', function (): void {
+    $exception = null;
+
+    try {
+        $this->service->recordTransaction([
+            'reference_type'   => 'test',
+            'idempotency_key'  => fake()->uuid(),
+            'reference_id'     => Str::uuid7()->toString(),
+            'transaction_type' => TransactionType::In->value,
+            'movements'        => [[
+                'type'          => 'in',
+                'item_id'       => Str::uuid7()->toString(),
+                'location_id'   => $this->location->id,
+                'quantity'      => 10,
+                'unit_code'     => $this->unit->code,
+                'total_cost'    => 10.00,
+                'currency_code' => $this->currency->code,
+            ]],
+        ], errorKeyMap: [
+            'movements.*.item_id' => 'lines.*.product_id',
+        ]);
+    } catch (ValidationException $caught) {
+        $exception = $caught;
+    }
+
+    expect($exception)->toBeInstanceOf(ValidationException::class)
+        ->and($exception->errors())->toHaveKey('lines.0.product_id')
+        ->not->toHaveKey('movements.0.item_id');
+});
 
 it('does not allow a transaction to reference another organization item', function (): void {
     $foreignItem = InventoryItem::factory()->create([

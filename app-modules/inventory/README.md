@@ -71,6 +71,16 @@ stored unit cost is `7.50 USD` per `PIECE`.
 
 The complete remainder is consumed by the first positive `OUT` deduction from the lot. Every movement persists only its exact `total_cost`, so transfers and reversals do not lose fractional minor units. Stock resources expose the derived `unit_cost`, the currency-formatted `cost_remainder`, and the total cost of the remaining stock. Persistence remains in minor units.
 
+Positive adjustments do not accept a caller-selected cost. The caller must provide
+`currency_code`, and the new quantity is valued using the weighted average cost
+of the remaining stock for that item, location, and currency. If no remaining
+stock exists in that currency, the adjustment is rejected. `total_cost`, when
+present in an adjustment payload, is ignored. Negative adjustments ignore cost
+and currency inputs and continue to use the configured deduction strategy.
+
+Transactions may contain movements in different currencies. Values are never
+averaged across currencies; each movement and stock lot retains its own currency.
+
 ## Deduction Strategies
 
 When recording `Out` or `Transfer` movements, the system must decide which physical lots to deplete. Three strategies are supported:
@@ -192,6 +202,27 @@ uses exactly the metadata supplied by the caller.
 - The original stock's `remaining` value is never directly restored.
 - Repeating the same request returns the existing reversal; a different payload with the same key fails idempotency validation.
 - `TRANSFER` reversal is deferred until movements have an unambiguous `link_id`; `ADJUSTMENT` reversal is not supported.
+
+#### Mapping validation error keys
+
+Transaction validation keeps package paths by default. Callers with a different
+payload shape may override those paths per operation:
+
+```php
+$inventory->recordTransaction(
+    data: $payload,
+    errorKeyMap: [
+        'movements.*.item_id'     => 'lines.*.product_id',
+        'movements.*.location_id' => 'locations.*.id',
+    ],
+);
+```
+
+The same `errorKeyMap` is available on `reverseTransaction`. Wildcards are
+replaced in order and their count must remain unchanged. A mapping for
+`movements.*.stock_ids` also covers descendant keys such as
+`movements.0.stock_ids.2`, allowing the caller to intentionally omit the
+internal stock index from its own error key.
 
 ### 5. Reading Operations (InventoryQueryService)
 

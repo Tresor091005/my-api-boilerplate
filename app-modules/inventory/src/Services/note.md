@@ -40,6 +40,25 @@ deducted_total_cost = quantity * unit_cost + allocated_cost_remainder
 After the first deduction, `allocated_cost_remainder` is zero. Transfers and
 reversals reuse the persisted minor-unit totals directly.
 
+### Adjustment valuation
+
+Positive adjustments do not accept a caller-provided cost. They require an
+explicit `currency_code` and calculate the added stock cost from all remaining
+stock for the same item, location, and currency:
+
+```text
+average_cost = total_remaining_value / total_remaining_quantity
+added_cost   = floor(average_cost * added_quantity)
+```
+
+The average uses `remaining * unit_cost + cost_remainder`. If the selected
+currency has no remaining stock, the positive adjustment fails because there is
+no cost source. Negative adjustments ignore cost and currency inputs and use
+the normal deduction strategy.
+
+Transactions can contain movements in different currencies. Inventory values
+are kept separate by currency and are never averaged across currencies.
+
 ### Inbound stock metadata
 
 `stock_metadata` is an optional input field for movements that create a stock:
@@ -159,6 +178,16 @@ changed, been depleted, or been soft-deleted after the original outbound event.
   pipeline;
 - a reversal fails atomically when its persisted source data is inconsistent,
   its required stock is unavailable, or the normal pipeline rejects the inverse.
+
+## Validation error key overrides
+
+The package keeps canonical validation paths such as
+`movements.0.item_id`. Callers may pass an optional `errorKeyMap` to
+`recordTransaction` or `reverseTransaction` to map those paths to their own
+payload keys. Unmapped paths remain unchanged. Wildcards are replaced in order
+and must have the same count on both sides, except that a mapping ending in
+`stock_ids` also matches descendant stock index paths and drops that internal
+index.
 
 ## Idempotency and failures
 

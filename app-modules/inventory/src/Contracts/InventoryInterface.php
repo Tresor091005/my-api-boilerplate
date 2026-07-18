@@ -64,8 +64,12 @@ interface InventoryInterface
      *     }>
      * } $data
      * @param  array<int|string, mixed>  $with
+     * @param  array<string, string>|null  $errorKeyMap
      */
-    public function recordTransaction(array $data, array $with = ['movements']): InventoryTransaction;
+    public function recordTransaction(array $data, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction;
 
-    public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements']): InventoryTransaction;
+    /**
+     * @param  array<string, string>|null  $errorKeyMap
+     */
+    public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction;
 }

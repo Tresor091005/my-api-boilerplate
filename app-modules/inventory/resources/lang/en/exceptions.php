@@ -7,6 +7,8 @@ return [
     'organization_mismatch'         => 'The referenced model does not belong to the current organization.',
     'idempotency_key_reused'        => 'The idempotency key has already been used with a different transaction payload.',
     'adjustment_no_op'              => 'The target quantity is already the current stock. Item :item_id, location :location_id.',
+    'adjustment_currency_required'  => 'A currency code is required to calculate the average cost for item :item_id at location :location_id.',
+    'adjustment_average_cost_unavailable' => 'No remaining stock exists in currency :currency_code to calculate the average cost for item :item_id at location :location_id.',
     'inbound_cost_required'         => 'A total cost is required when creating inbound stock for item :item_id at location :location_id.',
     'base_unit_not_found'           => 'System integrity error: base unit :base_unit_code for item :item_id could not be resolved.',
     'base_unit_ratio_integrity'     => 'System integrity error: base unit :base_unit_code for item :item_id must have a ratio of 1.',

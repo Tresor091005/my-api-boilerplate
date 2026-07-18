@@ -32,6 +32,7 @@ class TransactionValidator
     public function validate(array $data): array
     {
         $this->lookups = [];
+        $data = $this->normalizeIgnoredAdjustmentFields($data);
 
         $validator = validator($data, $this->rules());
 
@@ -47,6 +48,26 @@ class TransactionValidator
         $validatedData = $validator->validate();
 
         return [$validatedData, $this->lookups];
+    }
+
+    protected function normalizeIgnoredAdjustmentFields(array $data): array
+    {
+        $transactionType = $data['transaction_type'] ?? null;
+        if ($transactionType instanceof TransactionType) {
+            $transactionType = $transactionType->value;
+        }
+
+        if ($transactionType !== TransactionType::Adjustment->value) {
+            return $data;
+        }
+
+        foreach ($data['movements'] ?? [] as $index => $movement) {
+            if (is_array($movement)) {
+                unset($data['movements'][$index]['total_cost']);
+            }
+        }
+
+        return $data;
     }
 
     protected function rules(): array
@@ -327,10 +348,6 @@ class TransactionValidator
             }
         }
 
-        $currencies = $movements->pluck('currency_code')->filter()->unique();
-        if ($currencies->count() > 1) {
-            $validator->errors()->add('movements', __('inventory::validation.transaction_single_currency'));
-        }
     }
 
     protected function validateBusinessLogic(Validator $validator, ?TransactionType $txType, Collection $movements, array $lookups): void

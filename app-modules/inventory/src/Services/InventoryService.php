@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
@@ -16,6 +17,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
+use Lahatre\Inventory\Exceptions\AdjustmentAverageCostUnavailableException;
 use Lahatre\Inventory\Exceptions\IdempotencyKeyReuseException;
 use Lahatre\Inventory\Exceptions\InboundCostRequiredException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
@@ -47,6 +49,7 @@ class InventoryService implements InventoryInterface
         protected ManageInventoryItemService $inventoryItemService,
         protected ManageInventoryLocationService $inventoryLocationService,
         protected TransactionPayloadHasher $transactionPayloadHasher,
+        protected TransactionErrorKeyMapper $transactionErrorKeyMapper,
     ) {}
 
     public function createLocation(HasInventoryLocation $model): InventoryLocation
@@ -98,48 +101,59 @@ class InventoryService implements InventoryInterface
     /**
      * @param  array<int|string, mixed>  $with
      */
-    public function recordTransaction(array $data, array $with = ['movements']): InventoryTransaction
+    public function recordTransaction(array $data, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction
     {
-        return DB::transaction(function () use ($data, $with): InventoryTransaction {
-            return $this->recordTransactionInternal($data, $with);
-        });
+        $this->transactionErrorKeyMapper->validate($errorKeyMap);
+
+        try {
+            return DB::transaction(function () use ($data, $with): InventoryTransaction {
+                return $this->recordTransactionInternal($data, $with);
+            });
+        } catch (ValidationException $exception) {
+            throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
+        }
     }
 
-    public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements']): InventoryTransaction
+    public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction
     {
+        $this->transactionErrorKeyMapper->validate($errorKeyMap);
         $organizationId = $this->organizationId();
 
-        return DB::transaction(function () use ($originalTransactionId, $metadata, $with, $organizationId): InventoryTransaction {
-            $original = InventoryTransaction::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($originalTransactionId)
-                ->with([
-                    'movements.stock' => fn ($query) => $query->withTrashed(),
-                    'reversal',
-                ])
-                ->lockForUpdate()
-                ->first();
+        try {
+            return DB::transaction(function () use ($originalTransactionId, $metadata, $with, $organizationId): InventoryTransaction {
+                $original = InventoryTransaction::query()
+                    ->where('organization_id', $organizationId)
+                    ->whereKey($originalTransactionId)
+                    ->with([
+                        'movements.stock' => fn ($query) => $query->withTrashed(),
+                        'reversal',
+                    ])
+                    ->lockForUpdate()
+                    ->first();
 
-            if (!$original) {
-                throw ReversalException::transactionNotFound($originalTransactionId);
-            }
-
-            if ($original->reversal_of_transaction_id !== null) {
-                throw ReversalException::cannotReverseReversal($original->id);
-            }
-
-            $payload = $this->buildReversalPayload($original, $metadata);
-
-            if ($original->reversal !== null) {
-                if ($original->reversal->idempotency_key !== $payload['idempotency_key']) {
-                    throw ReversalException::alreadyReversed($original->id);
+                if (!$original) {
+                    throw ReversalException::transactionNotFound($originalTransactionId);
                 }
 
-                return $this->recordTransactionInternal($payload, $with, null, true);
-            }
+                if ($original->reversal_of_transaction_id !== null) {
+                    throw ReversalException::cannotReverseReversal($original->id);
+                }
 
-            return $this->recordTransactionInternal($payload, $with, $original->id, true);
-        });
+                $payload = $this->buildReversalPayload($original, $metadata);
+
+                if ($original->reversal !== null) {
+                    if ($original->reversal->idempotency_key !== $payload['idempotency_key']) {
+                        throw ReversalException::alreadyReversed($original->id);
+                    }
+
+                    return $this->recordTransactionInternal($payload, $with, null, true);
+                }
+
+                return $this->recordTransactionInternal($payload, $with, $original->id, true);
+            });
+        } catch (ValidationException $exception) {
+            throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
+        }
     }
 
     protected function recordTransactionInternal(array $data, array $with = ['movements'], ?string $reversalOfTransactionId = null, bool $costsInMinor = false): InventoryTransaction
@@ -383,22 +397,38 @@ class InventoryService implements InventoryInterface
             $movement = $context->movement;
             $item = $context->item;
             $targetQtyInBase = $context->quantityInBase;
-            $stocks = $this->resolveStocksForDeduction($movement, $item);
+            $currentStocks = $this->resolveStocksForAdjustment($movement);
 
-            $currentQtyInBase = (string) $stocks->sum('remaining');
+            $currentQtyInBase = (string) $currentStocks->sum('remaining');
             $delta = bcsub($targetQtyInBase, $currentQtyInBase, 10);
             $cmp = bccomp($delta, '0', 10);
 
             if ($cmp > 0) {
+                if ($movement->currency_code === null) {
+                    throw AdjustmentAverageCostUnavailableException::currencyRequired(
+                        $movement->item_id,
+                        $movement->location_id
+                    );
+                }
+
+                $averageCost = $this->resolveAdjustmentAverageCost(
+                    stocks: $currentStocks,
+                    currencyCode: $movement->currency_code,
+                    quantityToAdd: $delta,
+                    itemId: $movement->item_id,
+                    locationId: $movement->location_id,
+                );
+
                 $this->applyInbound(
                     tx: $tx,
                     context: $context,
                     quantityOverrideInBase: $delta,
                     currencyCode: $movement->currency_code,
                     stockMetadata: $movement->stock_metadata,
-                    totalCost: $movement->total_cost,
+                    totalCost: $averageCost,
                 );
             } elseif ($cmp < 0) {
+                $stocks = $this->resolveStocksForDeduction($movement, $item);
                 $this->applyDeduction(
                     tx: $tx,
                     context: $context,
@@ -409,6 +439,49 @@ class InventoryService implements InventoryInterface
                 throw new AdjustmentNoOpException($movement->item_id, $movement->location_id);
             }
         }
+    }
+
+    protected function resolveStocksForAdjustment(MovementDataDTO $movement): Collection
+    {
+        return InventoryStock::query()
+            ->where('item_id', $movement->item_id)
+            ->where('organization_id', $this->organizationId())
+            ->where('location_id', $movement->location_id)
+            ->where('remaining', '>', 0)
+            ->lockForUpdate()
+            ->get();
+    }
+
+    protected function resolveAdjustmentAverageCost(
+        Collection $stocks,
+        string $currencyCode,
+        string $quantityToAdd,
+        string $itemId,
+        string $locationId,
+    ): int {
+        $currencyStocks = $stocks->where('currency_code', $currencyCode);
+        $currentQuantity = '0';
+        $currentValue = '0';
+
+        foreach ($currencyStocks as $stock) {
+            $currentQuantity = bcadd($currentQuantity, (string) $stock->remaining, 0);
+            $stockValue = bcadd(
+                bcmul((string) $stock->remaining, (string) $stock->unit_cost, 0),
+                (string) $stock->cost_remainder,
+                0
+            );
+            $currentValue = bcadd($currentValue, $stockValue, 0);
+        }
+
+        if (bccomp($currentQuantity, '0', 0) <= 0) {
+            throw AdjustmentAverageCostUnavailableException::stockUnavailable($itemId, $locationId, $currencyCode);
+        }
+
+        return (int) bcdiv(
+            bcmul($currentValue, $quantityToAdd, 0),
+            $currentQuantity,
+            0
+        );
     }
 
     protected function applyInbound(

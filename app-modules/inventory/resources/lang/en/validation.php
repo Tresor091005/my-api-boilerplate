@@ -28,7 +28,6 @@ return [
     'manual_stock_ids_required'              => 'Stock IDs are required when strategy is manual.',
     'stock_id_invalid'                       => 'Stock ID :stock_id is invalid.',
     'stock_id_wrong_scope'                   => 'Stock ID :stock_id does not belong to the correct item and location.',
-    'transaction_single_currency'            => 'All movements in a transaction must use the same currency code.',
     'unit_group_mismatch'                    => 'Unit :unit_code belongs to a different group than item base unit :base_unit_code.',
     'transfer_imbalance'                     => 'Transfer imbalance for item :item_id. Total IN: :total_in, Total OUT: :total_out (in base unit :base_unit_code).',
 ];
