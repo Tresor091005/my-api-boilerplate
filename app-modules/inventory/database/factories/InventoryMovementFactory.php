@@ -27,18 +27,19 @@ class InventoryMovementFactory extends Factory
         $organizationId = $this->resolveOrganizationId();
 
         return [
-            'organization_id' => $organizationId,
-            'movement_type'   => fake()->randomElement(MovementType::cases()),
-            'transaction_id'  => InventoryTransaction::factory(['organization_id' => $organizationId]),
-            'item_id'         => InventoryItem::factory(['organization_id' => $organizationId]),
-            'stock_id'        => InventoryStock::factory(['organization_id' => $organizationId]),
-            'location_id'     => InventoryLocation::factory(['organization_id' => $organizationId]),
-            'quantity'        => fake()->numberBetween(1, 100),
-            'unit_code'       => Unit::factory(),
-            'unit_cost'       => fake()->numberBetween(100, 5000),
-            'currency_code'   => Currency::factory(),
-            'expiration_date' => null,
-            'metadata'        => null,
+            'organization_id'         => $organizationId,
+            'movement_type'           => fake()->randomElement(MovementType::cases()),
+            'transaction_id'          => InventoryTransaction::factory(['organization_id' => $organizationId]),
+            'item_id'                 => InventoryItem::factory(['organization_id' => $organizationId]),
+            'stock_id'                => InventoryStock::factory(['organization_id' => $organizationId]),
+            'location_id'             => InventoryLocation::factory(['organization_id' => $organizationId]),
+            'quantity'                => fake()->numberBetween(1, 100),
+            'unit_code'               => Unit::factory(),
+            'unit_cost'               => fake()->numberBetween(100, 5000),
+            'currency_code'           => Currency::factory(),
+            'expiration_date'         => null,
+            'metadata'                => null,
+            'stock_metadata_snapshot' => null,
         ];
     }
 }

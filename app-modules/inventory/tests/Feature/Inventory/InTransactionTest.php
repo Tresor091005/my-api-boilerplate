@@ -225,7 +225,7 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
     $this->service->recordTransaction($payload);
 })->with(['unit_cost', 'currency_code'])->throws(ValidationException::class);
 
-it('uses the same metadata for Movement and Stock during an IN transaction', function (): void {
+it('uses explicit stock metadata for the stock and movement metadata for the movement during an IN transaction', function (): void {
     $payload = [
         'reference_type'   => 'purchase_order',
         'idempotency_key'  => fake()->uuid(),
@@ -233,14 +233,15 @@ it('uses the same metadata for Movement and Stock during an IN transaction', fun
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->location->id,
-                'type'          => MovementType::In->value,
-                'quantity'      => 100,
-                'unit_code'     => $this->unit->code,
-                'unit_cost'     => 15.00,
-                'currency_code' => $this->currency->code,
-                'metadata'      => ['batch' => 'LOT-001', 'movement_note' => 'received'],
+                'item_id'        => $this->item->id,
+                'location_id'    => $this->location->id,
+                'type'           => MovementType::In->value,
+                'quantity'       => 100,
+                'unit_code'      => $this->unit->code,
+                'unit_cost'      => 15.00,
+                'currency_code'  => $this->currency->code,
+                'metadata'       => ['batch' => 'LOT-001', 'movement_note' => 'received'],
+                'stock_metadata' => ['batch' => 'LOT-001'],
             ],
         ],
     ];
@@ -250,6 +251,6 @@ it('uses the same metadata for Movement and Stock during an IN transaction', fun
     $stock = InventoryStock::firstOrFail();
     $movement = InventoryMovement::firstOrFail();
 
-    expect($stock->metadata)->toBe(['batch' => 'LOT-001', 'movement_note' => 'received'])
+    expect($stock->metadata)->toBe(['batch' => 'LOT-001'])
         ->and($movement->metadata)->toBe(['batch' => 'LOT-001', 'movement_note' => 'received']);
 });

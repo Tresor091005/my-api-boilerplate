@@ -37,7 +37,11 @@ beforeEach(function (): void {
 
 it('successfully processes an adjustment UP transaction', function (): void {
     // GIVEN there is a stock of 50
-    InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50]);
+    InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'  => 50,
+        'remaining' => 50,
+        'metadata'  => ['source' => 'original'],
+    ]);
 
     // WHEN we adjust the quantity to 80
     $payload = [
@@ -47,12 +51,13 @@ it('successfully processes an adjustment UP transaction', function (): void {
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [
             [
-                'item_id'       => $this->item->id,
-                'location_id'   => $this->location->id,
-                'quantity'      => 80,
-                'unit_code'     => $this->unit->code,
-                'unit_cost'     => 10.00,
-                'currency_code' => $this->currency->code,
+                'item_id'        => $this->item->id,
+                'location_id'    => $this->location->id,
+                'quantity'       => 80,
+                'unit_code'      => $this->unit->code,
+                'unit_cost'      => 10.00,
+                'currency_code'  => $this->currency->code,
+                'stock_metadata' => ['batch' => 'ADJ-LOT-1'],
             ],
         ],
     ];
@@ -62,6 +67,8 @@ it('successfully processes an adjustment UP transaction', function (): void {
     // THEN a new stock lot of 30 should be created
     $this->assertDatabaseCount('inventory_stocks', 2);
     $this->assertDatabaseHas('inventory_stocks', ['quantity' => 30, 'remaining' => 30, 'unit_cost' => 1000]);
+    expect(InventoryStock::query()->where('quantity', 30)->firstOrFail()->metadata)
+        ->toBe(['batch' => 'ADJ-LOT-1']);
 
     // AND total stock should be 80
     expect((float) $this->location->stocks()->sum('remaining'))->toEqual(80.0);
@@ -69,7 +76,11 @@ it('successfully processes an adjustment UP transaction', function (): void {
 
 it('successfully processes an adjustment DOWN transaction', function (): void {
     // GIVEN there is a stock of 50
-    InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50]);
+    $stock = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'  => 50,
+        'remaining' => 50,
+        'metadata'  => ['source' => 'original'],
+    ]);
 
     // WHEN we adjust the quantity to 20
     $payload = [
@@ -79,10 +90,11 @@ it('successfully processes an adjustment DOWN transaction', function (): void {
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [
             [
-                'item_id'     => $this->item->id,
-                'location_id' => $this->location->id,
-                'quantity'    => 20,
-                'unit_code'   => $this->unit->code,
+                'item_id'        => $this->item->id,
+                'location_id'    => $this->location->id,
+                'quantity'       => 20,
+                'unit_code'      => $this->unit->code,
+                'stock_metadata' => ['source' => 'ignored'],
             ],
         ],
     ];
@@ -91,6 +103,7 @@ it('successfully processes an adjustment DOWN transaction', function (): void {
 
     // THEN total stock should be 20
     expect((float) $this->location->stocks()->sum('remaining'))->toEqual(20.0);
+    expect($stock->refresh()->metadata)->toBe(['source' => 'original']);
 });
 
 it('fails an adjustment if target quantity is the same as current stock', function (): void {

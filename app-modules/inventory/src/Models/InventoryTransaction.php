@@ -8,7 +8,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Lahatre\Inventory\Database\Factories\InventoryTransactionFactory;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -23,10 +25,13 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $reference_id
  * @property TransactionType $transaction_type
  * @property array|null $metadata
+ * @property string|null $reversal_of_transaction_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Model|\Eloquent $reference
  * @property-read Collection<int, InventoryMovement> $movements
+ * @property-read InventoryTransaction|null $reversalOf
+ * @property-read InventoryTransaction|null $reversal
  * @property-read int|null $movements_count
  *
  * @method static Builder<static>|InventoryTransaction newModelQuery()
@@ -58,19 +63,21 @@ class InventoryTransaction extends Model
         'reference_id',
         'transaction_type',
         'metadata',
+        'reversal_of_transaction_id',
     ];
 
     protected $casts = [
-        'id'               => 'string',
-        'organization_id'  => 'string',
-        'idempotency_key'  => 'string',
-        'payload_hash'     => 'string',
-        'reference_type'   => 'string',
-        'reference_id'     => 'string',
-        'transaction_type' => TransactionType::class,
-        'metadata'         => 'array',
-        'created_at'       => 'immutable_datetime',
-        'updated_at'       => 'immutable_datetime',
+        'id'                         => 'string',
+        'organization_id'            => 'string',
+        'idempotency_key'            => 'string',
+        'payload_hash'               => 'string',
+        'reference_type'             => 'string',
+        'reference_id'               => 'string',
+        'transaction_type'           => TransactionType::class,
+        'metadata'                   => 'array',
+        'reversal_of_transaction_id' => 'string',
+        'created_at'                 => 'immutable_datetime',
+        'updated_at'                 => 'immutable_datetime',
     ];
 
     public function reference(): MorphTo
@@ -81,5 +88,15 @@ class InventoryTransaction extends Model
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class, 'transaction_id', 'id');
+    }
+
+    public function reversalOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reversal_of_transaction_id', 'id');
+    }
+
+    public function reversal(): HasOne
+    {
+        return $this->hasOne(self::class, 'reversal_of_transaction_id', 'id');
     }
 }

@@ -17,6 +17,7 @@ The Inventory Module is a robust, location-aware stock management system designe
 - **InventoryStock (Lots)**: A specific quantity of an item in a location, potentially with an expiration date and specific cost.
 - **InventoryTransaction**: A high-level record of a stock operation (e.g., "Purchase Order #123").
 - **InventoryMovement**: The granular changes to stock within a transaction (e.g., "Adding 50 units of SKU-A to Warehouse 1").
+- **Reversal**: A normal counter-entry transaction that inverts a supported `IN` or `OUT` transaction without rewriting historical stock state.
 
 ## Unit Management
 
@@ -29,10 +30,20 @@ The module handles multi-unit inventory seamlessly through integration with the 
 
 You can attach custom JSON metadata to various levels of the inventory ledger to store domain-specific information (e.g., batch numbers, external IDs, notes):
 - **Transaction Metadata**: High-level info about the overall operation.
-- **Movement Metadata**: Specific info about a single line item in a transaction.
-- **Stock (Lot) Metadata**: Persistent info that stays with the physical lot (only applicable during `In` or `Adjustment` creations).
+- **Movement Metadata**: Specific information about one persisted movement or event.
+- **Stock (Lot) Metadata**: Persistent information that belongs to the physical lot.
 
-**Note on Transfers**: During a `Transfer`, the system automatically merges the source lot's metadata with the movement's metadata into the new destination stock. This ensures batch traceability is preserved as items move between locations.
+These fields have different ownership. `movement.metadata` is never implicitly copied into `inventory_stocks.metadata`.
+
+### Stock metadata rules
+
+- Regular `IN`: optional `stock_metadata` initializes the newly created stock. If omitted, the stock metadata is `null`.
+- Positive `ADJUSTMENT`: optional `stock_metadata` initializes the newly created adjustment stock.
+- Negative `ADJUSTMENT`: `stock_metadata` is accepted but ignored because no stock is created.
+- `OUT`: `stock_metadata` is not accepted. The current stock metadata is captured automatically in `stock_metadata_snapshot` on the outbound movement.
+- `TRANSFER`: the caller does not provide destination `stock_metadata`; the destination stock inherits the source stock metadata. The inbound transfer movement keeps its own `movement.metadata` separately.
+
+Stock metadata can later be replaced through `PATCH /v1/inventory/stocks/{stock}`. The endpoint only changes the metadata field and does not alter quantity, cost, currency, expiration, item, location, or unit.
 
 ## Deduction Strategies
 
@@ -93,7 +104,7 @@ class Product extends Model implements HasInventoryItem
 
 ### 2. Writing Operations (InventoryInterface)
 
-#### Recording an Incoming Shipment with Metadata
+#### Recording an Incoming Shipment with Separate Metadata
 ```php
 $inventory->recordTransaction([
     'idempotency_key' => 'purchase-order-'.$po->id,
@@ -109,13 +120,54 @@ $inventory->recordTransaction([
             'unit_code' => 'BOX', // System converts this to base unit automatically
             'unit_cost' => 150.00,
             'currency_code' => 'USD',
-            'metadata' => ['batch_number' => 'B-12345'], // Attached to movement and new stock
+            'metadata' => ['source' => 'supplier'], // Movement/event metadata
+            'stock_metadata' => ['batch_number' => 'B-12345'], // New stock metadata
         ]
     ]
 ]);
 ```
 
-### 3. Reading Operations (InventoryQueryService)
+### 3. Updating Stock Metadata
+
+Stock metadata is managed independently from transaction creation:
+
+```http
+PATCH /v1/inventory/stocks/{stock}
+Content-Type: application/json
+
+{
+    "metadata": {
+        "batch_number": "B-12345",
+        "status": "quarantine"
+    }
+}
+```
+
+The request replaces the complete metadata object. Sending `"metadata": null` clears it.
+
+### 4. Reversing a Transaction
+
+Only regular `IN` and `OUT` transactions can currently be reversed. A reversal is a separate ledger transaction and does not restore the original stock row directly:
+
+```php
+$reversal = $inventory->reverseTransaction(
+    originalTransactionId: $transaction->id,
+    metadata: ['reason' => 'order_cancelled'],
+);
+```
+
+The reversal uses the deterministic idempotency key `{$originalTransactionId}:reverse` and stores `reversal_of_transaction_id`.
+
+The original transaction metadata is not copied automatically. The reversal
+uses exactly the metadata supplied by the caller.
+
+- Original `IN` → manual `OUT` against the original stock ID.
+- Original `OUT` → new `IN` using the persisted quantity, cost, currency, expiration, movement metadata, and outbound `stock_metadata_snapshot`.
+- The original stock's `remaining` value is never directly restored.
+- Repeating the same request returns the existing reversal; a different payload with the same key fails idempotency validation.
+- `TRANSFER` reversal is deferred until movements have an unambiguous `link_id`; `ADJUSTMENT` reversal is not supported.
+
+### 5. Reading Operations (InventoryQueryService)
 
 Optimized for retrieval and API consumption. It automatically converts internal minor units back to decimal strings.
 
@@ -128,7 +180,7 @@ echo $stock->totalRemaining; // 150
 
 ## API Reference
 
-The module provides several "Read-Only" endpoints for easy integration:
+The module provides read endpoints and a dedicated stock metadata mutation endpoint:
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -139,6 +191,7 @@ The module provides several "Read-Only" endpoints for easy integration:
 | GET | `/v1/inventory/locations/{location}/stock` | List all items and quantities in a location |
 | GET | `/v1/inventory/stock/summary` | Global summary of stock across all items/locations |
 | GET | `/v1/inventory/transactions` | List all historical ledger transactions |
+| PATCH | `/v1/inventory/stocks/{stock}` | Replace one stock lot's metadata |
 
 ## Testing
 

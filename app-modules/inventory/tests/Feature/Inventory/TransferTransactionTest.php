@@ -202,7 +202,7 @@ it('distributes transfer batches correctly across multiple source and destinatio
         ->and($incomingAtD->pluck('unit_cost')->all())->toBe([1100, 1200]);
 });
 
-it('merges source stock metadata and movement metadata into destination stock during transfer', function (): void {
+it('transfers source stock metadata without mixing movement metadata into destination stock', function (): void {
     InventoryStock::factory()->for($this->item, 'item')->for($this->locA, 'location')->create([
         'quantity'  => 10,
         'remaining' => 10,
@@ -236,9 +236,13 @@ it('merges source stock metadata and movement metadata into destination stock du
 
     $destinationStock = $this->locB->stocks()->firstOrFail();
 
-    expect($destinationStock->metadata['batch'])->toBe('LOT-001')
-        ->and($destinationStock->metadata['supplier'])->toBe('A')
-        ->and($destinationStock->metadata['reason'])->toBe('rebalance');
+    $destinationMovement = InventoryMovement::query()
+        ->where('movement_type', MovementType::In)
+        ->where('location_id', $this->locB->id)
+        ->firstOrFail();
+
+    expect($destinationStock->metadata)->toBe(['batch' => 'LOT-001', 'supplier' => 'A'])
+        ->and($destinationMovement->metadata)->toBe(['reason' => 'rebalance']);
 });
 
 it('handles rounding differences in transfers between units of different precisions', function (): void {

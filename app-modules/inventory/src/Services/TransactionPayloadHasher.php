@@ -31,6 +31,7 @@ final class TransactionPayloadHasher
                     'strategy'        => $movement->strategy?->value,
                     'stock_ids'       => $movement->stock_ids,
                     'metadata'        => $movement->metadata,
+                    'stock_metadata'  => $movement->stock_metadata,
                 ])
                 ->values()
                 ->all(),

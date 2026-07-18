@@ -16,4 +16,9 @@ return [
         'imbalance_source'      => 'Transfer imbalance detected for item :item: Source stocks were not fully distributed to destinations.',
     ],
     'unit_group_mismatch' => 'Unit group mismatch for item :item_code: provided unit :provided_unit_code belongs to a different group than base unit :base_unit_code.',
+    'transaction_not_found' => 'The inventory transaction could not be found in the current organization.',
+    'transaction_already_reversed' => 'The inventory transaction has already been reversed.',
+    'reversal_cannot_be_reversed' => 'A reversal transaction cannot itself be reversed.',
+    'reversal_type_not_supported' => 'Only IN and OUT transactions can be reversed.',
+    'reversal_inconsistency' => 'The inventory transaction cannot be reversed because its persisted data is inconsistent.',
 ];

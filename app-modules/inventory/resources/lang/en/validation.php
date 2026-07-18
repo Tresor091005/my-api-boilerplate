@@ -19,6 +19,8 @@ return [
     'transfer_in_expiration_date_prohibited' => "The expiration date is prohibited for 'in' movements in a 'TRANSFER' transaction.",
     'in_strategy_prohibited'                 => "Stock deduction strategy is prohibited for 'in' movements.",
     'in_stock_ids_prohibited'                => "Stock IDs are prohibited for 'in' movements.",
+    'stock_metadata_in_only'                 => "Stock metadata is only allowed for regular 'IN' transactions.",
+    'out_stock_metadata_prohibited'          => "Stock metadata is prohibited for 'out' movements.",
     'out_unit_cost_prohibited'               => "The unit cost is prohibited for 'out' movements.",
     'out_currency_code_prohibited'           => "The currency code is prohibited for 'out' movements.",
     'out_expiration_date_prohibited'         => "The expiration date is prohibited for 'out' movements.",

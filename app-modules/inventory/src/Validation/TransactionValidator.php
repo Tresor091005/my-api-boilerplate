@@ -78,6 +78,7 @@ class TransactionValidator
             'movements.*.strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
             'movements.*.stock_ids'       => ['nullable', 'array'],
             'movements.*.stock_ids.*'     => ['string'],
+            'movements.*.stock_metadata'  => ['nullable', 'array'],
         ];
     }
 
@@ -253,9 +254,17 @@ class TransactionValidator
                 if (isset($m['stock_ids'])) {
                     $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.in_stock_ids_prohibited'));
                 }
+
+                if ($txType !== TransactionType::In && ($m['stock_metadata'] ?? null) !== null) {
+                    $validator->errors()->add("movements.{$index}.stock_metadata", __('inventory::validation.stock_metadata_in_only'));
+                }
             }
 
             if ($type === MovementType::Out) {
+                if (($m['stock_metadata'] ?? null) !== null) {
+                    $validator->errors()->add("movements.{$index}.stock_metadata", __('inventory::validation.out_stock_metadata_prohibited'));
+                }
+
                 if (isset($m['unit_cost'])) {
                     $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.out_unit_cost_prohibited'));
                 }

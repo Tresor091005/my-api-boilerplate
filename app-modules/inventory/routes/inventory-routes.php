@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Lahatre\Inventory\Http\Controllers\InventoryItemController;
 use Lahatre\Inventory\Http\Controllers\InventoryLocationController;
 use Lahatre\Inventory\Http\Controllers\InventoryReadController;
+use Lahatre\Inventory\Http\Controllers\InventoryStockController;
 use Lahatre\Inventory\Http\Controllers\InventoryTransactionController;
 
 Route::group([
@@ -31,6 +32,7 @@ Route::group([
         // TODO: add low stock endpoint when inventory thresholds are modeled.
         // Route::get('stock/low', [InventoryReadController::class, 'indexLow'])->name('stock.low.index');
         Route::get('stock/expiring', [InventoryReadController::class, 'indexExpiring'])->name('stock.expiring.index');
+        Route::patch('stocks/{stock}', [InventoryStockController::class, 'update'])->name('stocks.update');
 
         Route::get('transactions', [InventoryTransactionController::class, 'index'])->name('transactions.index');
         Route::get('transactions/{transaction}', [InventoryTransactionController::class, 'show'])->name('transactions.show');

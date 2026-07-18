@@ -333,6 +333,7 @@ it('preserves original source stock metadata when performing an OUT movement', f
     $movement = InventoryMovement::firstOrFail();
 
     expect($movement->stock->metadata)->toBe(['batch' => 'LOT-001'])
+        ->and($movement->stock_metadata_snapshot)->toBe(['batch' => 'LOT-001'])
         ->and($lot->refresh()->metadata)->toBe(['batch' => 'LOT-001']);
 });
 

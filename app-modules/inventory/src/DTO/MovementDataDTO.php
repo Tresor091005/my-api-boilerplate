@@ -23,6 +23,7 @@ readonly class MovementDataDTO
         public ?DeductionStrategy $strategy = null,
         public ?array $stock_ids = null,
         public ?array $metadata = null,
+        public ?array $stock_metadata = null,
     ) {}
 
     public static function fromArray(array $data, MasterInterface $masterInterface): self
@@ -45,6 +46,7 @@ readonly class MovementDataDTO
                 : null,
             stock_ids: $data['stock_ids'] ?? null,
             metadata: $data['metadata'] ?? null,
+            stock_metadata: $data['stock_metadata'] ?? null,
         );
     }
 }

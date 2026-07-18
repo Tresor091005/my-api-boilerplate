@@ -35,27 +35,32 @@ beforeEach(function (): void {
     $this->location = InventoryLocation::factory()->create();
 });
 
-function idempotentTransactionPayload(object $testCase, string $key): array
-{
+function idempotentTransactionPayload(
+    InventoryItem $item,
+    InventoryLocation $location,
+    Unit $unit,
+    Currency $currency,
+    string $key,
+): array {
     return [
         'idempotency_key'  => $key,
         'reference_type'   => 'purchase_order',
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
-            'item_id'       => $testCase->item->id,
-            'location_id'   => $testCase->location->id,
+            'item_id'       => $item->id,
+            'location_id'   => $location->id,
             'type'          => MovementType::In->value,
             'quantity'      => 10,
-            'unit_code'     => $testCase->unit->code,
+            'unit_code'     => $unit->code,
             'unit_cost'     => 15.00,
-            'currency_code' => $testCase->currency->code,
+            'currency_code' => $currency->code,
         ]],
     ];
 }
 
 it('returns the original transaction without duplicating ledger entries on replay', function (): void {
-    $payload = idempotentTransactionPayload($this, 'purchase-order-123');
+    $payload = idempotentTransactionPayload($this->item, $this->location, $this->unit, $this->currency, 'purchase-order-123');
 
     $first = $this->service->recordTransaction($payload);
     $second = $this->service->recordTransaction($payload);
@@ -67,7 +72,7 @@ it('returns the original transaction without duplicating ledger entries on repla
 });
 
 it('rejects reuse of an idempotency key with a different payload', function (): void {
-    $payload = idempotentTransactionPayload($this, 'purchase-order-456');
+    $payload = idempotentTransactionPayload($this->item, $this->location, $this->unit, $this->currency, 'purchase-order-456');
     $this->service->recordTransaction($payload);
 
     $payload['movements'][0]['quantity'] = 11;
@@ -77,7 +82,7 @@ it('rejects reuse of an idempotency key with a different payload', function (): 
 });
 
 it('requires an idempotency key', function (): void {
-    $payload = idempotentTransactionPayload($this, 'purchase-order-789');
+    $payload = idempotentTransactionPayload($this->item, $this->location, $this->unit, $this->currency, 'purchase-order-789');
     unset($payload['idempotency_key']);
 
     expect(fn () => $this->service->recordTransaction($payload))

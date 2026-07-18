@@ -59,10 +59,13 @@ interface InventoryInterface
      *         unit_cost?: int,
      *         currency_code?: string,
      *         expiration_date?: string|\DateTimeInterface,
-     *         metadata?: array
+     *         metadata?: array,
+     *         stock_metadata?: array
      *     }>
      * } $data
      * @param  array<int|string, mixed>  $with
      */
     public function recordTransaction(array $data, array $with = ['movements']): InventoryTransaction;
+
+    public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements']): InventoryTransaction;
 }

@@ -28,6 +28,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string|null $currency_code
  * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
+ * @property array|null $stock_metadata_snapshot
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read InventoryTransaction $transaction
@@ -79,24 +80,26 @@ class InventoryMovement extends Model
         'currency_code',
         'expiration_date',
         'metadata',
+        'stock_metadata_snapshot',
     ];
 
     protected $casts = [
-        'id'              => 'string',
-        'organization_id' => 'string',
-        'movement_type'   => MovementType::class,
-        'transaction_id'  => 'string',
-        'item_id'         => 'string',
-        'stock_id'        => 'string',
-        'location_id'     => 'string',
-        'quantity'        => 'integer',
-        'unit_code'       => 'string',
-        'unit_cost'       => 'integer',
-        'currency_code'   => 'string',
-        'expiration_date' => 'immutable_datetime',
-        'metadata'        => 'array',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
+        'id'                      => 'string',
+        'organization_id'         => 'string',
+        'movement_type'           => MovementType::class,
+        'transaction_id'          => 'string',
+        'item_id'                 => 'string',
+        'stock_id'                => 'string',
+        'location_id'             => 'string',
+        'quantity'                => 'integer',
+        'unit_code'               => 'string',
+        'unit_cost'               => 'integer',
+        'currency_code'           => 'string',
+        'expiration_date'         => 'immutable_datetime',
+        'metadata'                => 'array',
+        'stock_metadata_snapshot' => 'array',
+        'created_at'              => 'immutable_datetime',
+        'updated_at'              => 'immutable_datetime',
     ];
 
     public function transaction(): BelongsTo
