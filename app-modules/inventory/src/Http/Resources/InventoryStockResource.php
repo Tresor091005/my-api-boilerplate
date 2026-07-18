@@ -26,6 +26,8 @@ class InventoryStockResource extends JsonResource
             'item_id'         => $this->item_id,
             'location_id'     => $this->location_id,
             'unit_cost'       => $this->resolveUnitCost(),
+            'total_cost'      => $this->resolveTotalCost(),
+            'cost_remainder'  => $this->resolveCostRemainder(),
             'currency_code'   => $this->currency_code,
             'quantity'        => $this->quantity,
             'remaining'       => $this->remaining,
@@ -48,5 +50,25 @@ class InventoryStockResource extends JsonResource
         }
 
         return app(MasterInterface::class)->fromMinor((string) $this->unit_cost, $this->currency_code);
+    }
+
+    private function resolveTotalCost(): string|int
+    {
+        $totalCost = ($this->remaining * $this->unit_cost) + $this->cost_remainder;
+
+        if (!$this->currency_code) {
+            return $totalCost;
+        }
+
+        return app(MasterInterface::class)->fromMinor((string) $totalCost, $this->currency_code);
+    }
+
+    private function resolveCostRemainder(): string|int
+    {
+        if (!$this->currency_code) {
+            return $this->cost_remainder;
+        }
+
+        return app(MasterInterface::class)->fromMinor((string) $this->cost_remainder, $this->currency_code);
     }
 }

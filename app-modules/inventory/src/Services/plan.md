@@ -12,7 +12,17 @@ TODO:
 - 5. Add a non-persistent transaction preview:
   - Expose `$inventory->previewTransaction($data)` for stock availability and projected impact checks.
   - Do not create transactions, movements, stocks, or dispatch events during a preview.
-- 6. Preserve exact lot costs with a cost remainder:
+- [x] 6. Preserve exact lot costs with a cost remainder:
+  - Accept `total_cost` as the public inbound cost.
+  - Persist normalized minor-unit `total_cost` on movements and `cost_remainder` on stocks.
   - Support `quantity * unit_cost + cost_remainder = total_cost`.
-  - Define a deterministic rule for allocating the remainder during partial deductions.
-  - Carry the remaining cost through transfers and reversal transactions.
+  - Consume the complete remainder during the first positive deduction from a lot.
+  - Carry the exact allocated cost through transfers and reversal transactions.
+
+Positive adjustments must not silently create zero-cost stock when no usable cost source exists; this follows the `total_cost` implementation.
+
+une exception est interessante quand elle contient plusieur static comme tu l'as fait pour reversal
+
+shape des differents type de fichier dans le code et normalisation
+
+supprimer le contrat de fichier transactionnel ou pas, pas important

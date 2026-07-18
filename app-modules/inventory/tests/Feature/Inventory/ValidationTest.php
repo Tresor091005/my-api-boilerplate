@@ -44,8 +44,8 @@ it('fails if multiple currencies are used in one transaction', function (): void
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
-            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'unit_cost' => 10.00, 'currency_code' => $this->currency->code],
-            ['type' => 'in', 'item_id' => $item2->id, 'location_id' => $this->location->id, 'quantity' => 5, 'unit_code' => $this->unit->code, 'unit_cost' => 10.00, 'currency_code' => $currency2->code],
+            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'total_cost' => 10.00, 'currency_code' => $this->currency->code],
+            ['type' => 'in', 'item_id' => $item2->id, 'location_id' => $this->location->id, 'quantity' => 5, 'unit_code' => $this->unit->code, 'total_cost' => 10.00, 'currency_code' => $currency2->code],
         ],
     ];
 
@@ -69,7 +69,7 @@ it('does not allow a transaction to reference another organization item', functi
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 10.00,
+            'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
@@ -95,7 +95,7 @@ it('does not allow a transaction to reference another organization unit', functi
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $foreignUnit->code,
-            'unit_cost'     => 10.00,
+            'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, __('inventory::validation.unit_code_invalid'));
@@ -111,7 +111,7 @@ it('fails if unit does not belong to the same group as item base unit', function
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
-            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $otherUnit->code, 'unit_cost' => 10.00, 'currency_code' => $this->currency->code],
+            ['type' => 'in', 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $otherUnit->code, 'total_cost' => 10.00, 'currency_code' => $this->currency->code],
         ],
     ];
 
@@ -216,7 +216,7 @@ it('fails when a resolved inventory item is inactive', function (): void {
                 'location'      => $company,
                 'quantity'      => 10,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 10.00,
+                'total_cost'    => 10.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -250,7 +250,7 @@ it('fails when a resolved inventory location is inactive', function (): void {
                 'location'      => $company,
                 'quantity'      => 10,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 10.00,
+                'total_cost'    => 10.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -278,7 +278,7 @@ it('does not persist resolved references when preprocessing is enabled but valid
                 'location'  => $company,
                 'quantity'  => 10,
                 'unit_code' => $this->unit->code,
-                'unit_cost' => 10.00,
+                'total_cost' => 10.00,
                 // currency_code intentionally missing
             ],
         ],
@@ -345,7 +345,7 @@ it('fails transaction if the selected item is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 10.00,
+                'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
@@ -365,7 +365,7 @@ it('fails transaction if the selected location is inactive', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 10.00,
+                'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class, 'The selected location is invalid or inactive.');
@@ -386,13 +386,13 @@ it('fails if the item base unit has a ratio different than 1', function (): void
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $invalidBaseUnit->code,
-            'unit_cost'     => 10.00,
+                'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(\Exception::class, 'must have a ratio of 1');
 });
 
-it('fails if unit_cost has more decimal places than allowed by the currency', function (): void {
+it('fails if total_cost has more decimal places than allowed by the currency', function (): void {
     $currency = Currency::factory()->create(['precision' => 2]);
 
     expect(fn () => $this->service->recordTransaction([
@@ -406,13 +406,13 @@ it('fails if unit_cost has more decimal places than allowed by the currency', fu
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => '10.123',
+            'total_cost'    => '10.123',
             'currency_code' => $currency->code,
         ]],
     ]))->toThrow(ValidationException::class, "must have at most {$currency->precision} decimal places");
 });
 
-it('fails if unit_cost is negative', function (): void {
+it('fails if total_cost is negative', function (): void {
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
         'idempotency_key'  => fake()->uuid(),
@@ -424,7 +424,7 @@ it('fails if unit_cost is negative', function (): void {
             'location_id'   => $this->location->id,
             'quantity'      => 10,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => -1,
+            'total_cost'    => -1,
             'currency_code' => $this->currency->code,
         ]],
     ]))->toThrow(ValidationException::class);

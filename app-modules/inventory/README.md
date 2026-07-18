@@ -45,6 +45,32 @@ These fields have different ownership. `movement.metadata` is never implicitly c
 
 Stock metadata can later be replaced through `PATCH /v1/inventory/stocks/{stock}`. The endpoint only changes the metadata field and does not alter quantity, cost, currency, expiration, item, location, or unit.
 
+## Exact Cost Tracking
+
+Inbound operations accept a `total_cost` rather than relying on a rounded unit cost:
+
+```php
+'quantity'      => 3,
+'total_cost'    => 100.01,
+'currency_code' => 'USD',
+```
+
+The module converts the amount to minor units and derives:
+
+```text
+unit_cost      = floor(total_cost / quantity)
+cost_remainder = total_cost % quantity
+```
+
+The calculation always uses the item's base unit. The input quantity is first
+converted to that base unit, and the derived `unit_cost` is therefore the cost
+per base unit—not necessarily the cost per unit supplied by the caller.
+
+For example, if `2 BOX = 20 PIECES` and the total cost is `150.00 USD`, the
+stored unit cost is `7.50 USD` per `PIECE`.
+
+The complete remainder is consumed by the first positive `OUT` deduction from the lot. Every movement persists only its exact `total_cost`, so transfers and reversals do not lose fractional minor units. Stock resources expose the derived `unit_cost`, the currency-formatted `cost_remainder`, and the total cost of the remaining stock. Persistence remains in minor units.
+
 ## Deduction Strategies
 
 When recording `Out` or `Transfer` movements, the system must decide which physical lots to deplete. Three strategies are supported:
@@ -118,7 +144,7 @@ $inventory->recordTransaction([
             'location_id' => $inventoryLocationId,
             'quantity' => 10,
             'unit_code' => 'BOX', // System converts this to base unit automatically
-            'unit_cost' => 150.00,
+            'total_cost' => 1500.00,
             'currency_code' => 'USD',
             'metadata' => ['source' => 'supplier'], // Movement/event metadata
             'stock_metadata' => ['batch_number' => 'B-12345'], // New stock metadata

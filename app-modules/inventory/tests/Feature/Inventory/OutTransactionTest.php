@@ -337,6 +337,38 @@ it('preserves original source stock metadata when performing an OUT movement', f
         ->and($lot->refresh()->metadata)->toBe(['batch' => 'LOT-001']);
 });
 
+it('consumes the stock cost remainder on the first OUT movement', function (): void {
+    $stock = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
+        'quantity'       => 10,
+        'remaining'      => 10,
+        'unit_cost'      => 1000,
+        'cost_remainder' => 1,
+        'currency_code'  => $this->currency->code,
+    ]);
+
+    $recordOut = fn (string $key, int $quantity) => $this->service->recordTransaction([
+        'reference_type'   => 'sale_order',
+        'idempotency_key'  => $key,
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Out->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'type'        => MovementType::Out->value,
+            'quantity'    => $quantity,
+            'unit_code'   => $this->unit->code,
+        ]],
+    ]);
+
+    $first = $recordOut(fake()->uuid(), 3);
+    $second = $recordOut(fake()->uuid(), 2);
+
+    expect($first->movements->firstOrFail()->total_cost)->toBe(3001)
+        ->and($second->movements->firstOrFail()->total_cost)->toBe(2000)
+        ->and($stock->refresh()->remaining)->toBe(5)
+        ->and($stock->cost_remainder)->toBe(0);
+});
+
 it('throws InsufficientStockException with accurate available quantity in the exception message', function (): void {
     InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'  => 15,

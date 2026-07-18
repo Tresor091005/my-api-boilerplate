@@ -397,7 +397,7 @@ it('returns movements filtered by item, location, and transaction reference plus
             'type'          => MovementType::In->value,
             'quantity'      => 100,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 4.50,
+            'total_cost'    => 450.00,
             'currency_code' => $this->currency->code,
             'metadata'      => ['batch' => 'IN-001'],
         ]],
@@ -435,7 +435,7 @@ it('returns movements filtered by item, location, and transaction reference plus
         ->assertJsonPath('id', $inTransaction->id)
         ->assertJsonPath('transaction_type', TransactionType::In->value)
         ->assertJsonPath('movements.0.transaction_id', $inTransaction->id)
-        ->assertJsonPath('movements.0.unit_cost', '4.50')
+        ->assertJsonPath('movements.0.total_cost', '450.00')
         ->assertJsonPath('movements.0.stock.unit_cost', '4.50')
         ->assertJsonPath('movements.0.metadata.batch', 'IN-001');
 

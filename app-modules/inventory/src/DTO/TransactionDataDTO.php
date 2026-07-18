@@ -22,7 +22,7 @@ readonly class TransactionDataDTO
         public ?array $metadata = null,
     ) {}
 
-    public static function fromArray(array $data, MasterInterface $masterInterface): self
+    public static function fromArray(array $data, MasterInterface $masterInterface, bool $costsInMinor = false): self
     {
         return new self(
             idempotency_key: $data['idempotency_key'],
@@ -31,7 +31,7 @@ readonly class TransactionDataDTO
             transaction_type: is_string($data['transaction_type'])
                 ? TransactionType::from($data['transaction_type'])
                 : $data['transaction_type'],
-            movements: collect($data['movements'])->map(fn (array $m): MovementDataDTO => MovementDataDTO::fromArray($m, $masterInterface)),
+            movements: collect($data['movements'])->map(fn (array $m): MovementDataDTO => MovementDataDTO::fromArray($m, $masterInterface, $costsInMinor)),
             metadata: $data['metadata'] ?? null,
         );
     }

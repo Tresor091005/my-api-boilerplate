@@ -49,7 +49,7 @@ it('successfully processes a simple IN transaction', function (): void {
                 'type'          => MovementType::In->value,
                 'quantity'      => 100,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 15.50, // 15.50 USD
+                'total_cost'    => 1550.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -66,7 +66,7 @@ it('successfully processes a simple IN transaction', function (): void {
         'location_id'   => $this->location->id,
         'quantity'      => 100,
         'remaining'     => 100,
-        'unit_cost'     => 1550,
+            'unit_cost'     => 1550,
         'currency_code' => $this->currency->code,
     ]);
 
@@ -77,8 +77,33 @@ it('successfully processes a simple IN transaction', function (): void {
         'item_id'        => $this->item->id,
         'location_id'    => $this->location->id,
         'quantity'       => 100,
-        'unit_cost'      => 1550,
+        'total_cost'     => 155000,
     ]);
+});
+
+it('derives unit cost and remainder from total cost', function (): void {
+    $tx = $this->service->recordTransaction([
+        'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'type'          => MovementType::In->value,
+            'quantity'      => 3,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => 100.01,
+            'currency_code' => $this->currency->code,
+        ]],
+    ]);
+
+    $stock = InventoryStock::query()->firstOrFail();
+    $movement = $tx->movements->firstOrFail();
+
+    expect($stock->unit_cost)->toBe(3333)
+        ->and($stock->cost_remainder)->toBe(2)
+        ->and($movement->total_cost)->toBe(10001);
 });
 
 it('loads only the requested transaction relations', function (): void {
@@ -93,7 +118,7 @@ it('loads only the requested transaction relations', function (): void {
             'type'          => MovementType::In->value,
             'quantity'      => 100,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 15.50,
+            'total_cost'    => 1550.00,
             'currency_code' => $this->currency->code,
         ]],
     ];
@@ -119,7 +144,7 @@ it('processes an IN transaction with unit conversion', function (): void {
                 'type'          => MovementType::In->value,
                 'quantity'      => 2.5, // 2.5 kg
                 'unit_code'     => $kgUnit->code,
-                'unit_cost'     => 15.00,
+                'total_cost'    => 37500.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -156,7 +181,7 @@ it('resolves inventory contracts passed in item_id and location_id before record
                 'type'          => MovementType::In->value,
                 'quantity'      => 100,
                 'unit_code'     => $this->unit->code,
-                'unit_cost'     => 15.00,
+                'total_cost'    => 1500.00,
                 'currency_code' => $this->currency->code,
             ],
         ],
@@ -194,7 +219,7 @@ it('fails an IN transaction if it contains an OUT movement', function (): void {
         'reference_id'     => '123',
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
-            ['type' => MovementType::In->value, 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'unit_cost' => 10, 'currency_code' => $this->currency->code],
+            ['type' => MovementType::In->value, 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 10, 'unit_code' => $this->unit->code, 'total_cost' => 100, 'currency_code' => $this->currency->code],
             ['type' => MovementType::Out->value, 'item_id' => $this->item->id, 'location_id' => $this->location->id, 'quantity' => 5, 'unit_code' => $this->unit->code],
         ],
     ];
@@ -202,14 +227,14 @@ it('fails an IN transaction if it contains an OUT movement', function (): void {
     $this->service->recordTransaction($payload);
 })->throws(ValidationException::class, "An 'IN' transaction can only contain 'in' movements.");
 
-it('fails an IN transaction if unit_cost or currency_code is missing', function ($fieldToRemove): void {
+it('fails an IN transaction if total_cost or currency_code is missing', function ($fieldToRemove): void {
     $movement = [
         'item_id'       => $this->item->id,
         'location_id'   => $this->location->id,
         'type'          => MovementType::In->value,
         'quantity'      => 100,
         'unit_code'     => $this->unit->code,
-        'unit_cost'     => 1500,
+        'total_cost'    => 1500,
         'currency_code' => $this->currency->code,
     ];
     unset($movement[$fieldToRemove]);
@@ -223,7 +248,7 @@ it('fails an IN transaction if unit_cost or currency_code is missing', function 
     ];
 
     $this->service->recordTransaction($payload);
-})->with(['unit_cost', 'currency_code'])->throws(ValidationException::class);
+})->with(['total_cost', 'currency_code'])->throws(ValidationException::class);
 
 it('uses explicit stock metadata for the stock and movement metadata for the movement during an IN transaction', function (): void {
     $payload = [
@@ -238,7 +263,7 @@ it('uses explicit stock metadata for the stock and movement metadata for the mov
                 'type'           => MovementType::In->value,
                 'quantity'       => 100,
                 'unit_code'      => $this->unit->code,
-                'unit_cost'      => 15.00,
+                'total_cost'     => 1500.00,
                 'currency_code'  => $this->currency->code,
                 'metadata'       => ['batch' => 'LOT-001', 'movement_note' => 'received'],
                 'stock_metadata' => ['batch' => 'LOT-001'],

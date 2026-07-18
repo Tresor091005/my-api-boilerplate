@@ -17,7 +17,7 @@ readonly class MovementDataDTO
         public ?MovementType $type,
         public string $quantity, // string for BCMath
         public string $unit_code,
-        public ?int $unit_cost = null,
+        public ?int $total_cost = null,
         public ?string $currency_code = null,
         public ?CarbonImmutable $expiration_date = null,
         public ?DeductionStrategy $strategy = null,
@@ -26,7 +26,7 @@ readonly class MovementDataDTO
         public ?array $stock_metadata = null,
     ) {}
 
-    public static function fromArray(array $data, MasterInterface $masterInterface): self
+    public static function fromArray(array $data, MasterInterface $masterInterface, bool $costsInMinor = false): self
     {
         return new self(
             item_id: $data['item_id'],
@@ -36,9 +36,11 @@ readonly class MovementDataDTO
                 : null,
             quantity: (string) $data['quantity'],
             unit_code: $data['unit_code'],
-            unit_cost: isset($data['unit_cost'], $data['currency_code'])
-                ? (int) $masterInterface->toMinor((string) $data['unit_cost'], $data['currency_code'])
-                : ($data['unit_cost'] ?? null),
+            total_cost: isset($data['total_cost'], $data['currency_code'])
+                ? ($costsInMinor
+                    ? (int) $data['total_cost']
+                    : (int) $masterInterface->toMinor((string) $data['total_cost'], $data['currency_code']))
+                : ($data['total_cost'] ?? null),
             currency_code: $data['currency_code'] ?? null,
             expiration_date: isset($data['expiration_date']) ? CarbonImmutable::parse($data['expiration_date']) : null,
             strategy: isset($data['strategy'])

@@ -24,7 +24,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $location_id
  * @property int $quantity
  * @property string $unit_code
- * @property int $unit_cost
+ * @property int $total_cost
  * @property string|null $currency_code
  * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
@@ -52,7 +52,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement whereLocationId($value)
  * @method static Builder<static>|InventoryMovement whereExpirationDate($value)
  * @method static Builder<static>|InventoryMovement whereQuantity($value)
- * @method static Builder<static>|InventoryMovement whereUnitCost($value)
  * @method static Builder<static>|InventoryMovement whereUnitCode($value)
  * @method static Builder<static>|InventoryMovement whereUpdatedAt($value)
  * @method static InventoryMovementFactory factory($count = null, $state = [])
@@ -76,7 +75,7 @@ class InventoryMovement extends Model
         'location_id',
         'quantity',
         'unit_code',
-        'unit_cost',
+        'total_cost',
         'currency_code',
         'expiration_date',
         'metadata',
@@ -93,7 +92,7 @@ class InventoryMovement extends Model
         'location_id'             => 'string',
         'quantity'                => 'integer',
         'unit_code'               => 'string',
-        'unit_cost'               => 'integer',
+        'total_cost'              => 'integer',
         'currency_code'           => 'string',
         'expiration_date'         => 'immutable_datetime',
         'metadata'                => 'array',

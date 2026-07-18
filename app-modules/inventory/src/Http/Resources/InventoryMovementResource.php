@@ -30,7 +30,7 @@ class InventoryMovementResource extends JsonResource
             'location_id'             => $this->location_id,
             'quantity'                => $this->quantity,
             'unit_code'               => $this->unit_code,
-            'unit_cost'               => $this->resolveUnitCost(),
+            'total_cost'              => $this->resolveTotalCost(),
             'currency_code'           => $this->currency_code,
             'expiration_date'         => $this->expiration_date,
             'metadata'                => $this->metadata,
@@ -44,12 +44,12 @@ class InventoryMovementResource extends JsonResource
         ];
     }
 
-    private function resolveUnitCost(): string|int
+    private function resolveTotalCost(): string|int
     {
         if (!$this->currency_code) {
-            return $this->unit_cost;
+            return $this->total_cost;
         }
 
-        return app(MasterInterface::class)->fromMinor((string) $this->unit_cost, $this->currency_code);
+        return app(MasterInterface::class)->fromMinor((string) $this->total_cost, $this->currency_code);
     }
 }

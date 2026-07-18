@@ -22,6 +22,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $item_id
  * @property string $location_id
  * @property int $unit_cost
+ * @property int $cost_remainder
  * @property string|null $currency_code
  * @property int $quantity
  * @property int $remaining
@@ -74,6 +75,7 @@ class InventoryStock extends Model
         'item_id',
         'location_id',
         'unit_cost',
+        'cost_remainder',
         'currency_code',
         'quantity',
         'remaining',
@@ -88,6 +90,7 @@ class InventoryStock extends Model
         'item_id'         => 'string',
         'location_id'     => 'string',
         'unit_cost'       => 'integer',
+        'cost_remainder'  => 'integer',
         'currency_code'   => 'string',
         'quantity'        => 'integer',
         'remaining'       => 'integer',

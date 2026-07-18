@@ -117,7 +117,7 @@ it('fails a transfer if cost or currency is provided for an IN movement', functi
 
     $this->service->recordTransaction($payload);
 })->with([
-    'unit_cost' => ['unit_cost', 100],
+    'total_cost' => ['total_cost', 1000],
     'currency'  => ['currency_code', 'EUR'],
 ])->throws(ValidationException::class);
 
@@ -196,10 +196,10 @@ it('distributes transfer batches correctly across multiple source and destinatio
 
     expect($incomingAtB)->toHaveCount(2)
         ->and($incomingAtB->pluck('quantity')->all())->toBe([25, 5])
-        ->and($incomingAtB->pluck('unit_cost')->all())->toBe([1000, 1100])
+        ->and($incomingAtB->pluck('total_cost')->all())->toBe([25000, 5500])
         ->and($incomingAtD)->toHaveCount(2)
         ->and($incomingAtD->pluck('quantity')->all())->toBe([10, 20])
-        ->and($incomingAtD->pluck('unit_cost')->all())->toBe([1100, 1200]);
+        ->and($incomingAtD->pluck('total_cost')->all())->toBe([11000, 24000]);
 });
 
 it('transfers source stock metadata without mixing movement metadata into destination stock', function (): void {

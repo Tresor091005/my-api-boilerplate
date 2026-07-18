@@ -25,6 +25,8 @@ class InventoryMovementFactory extends Factory
     public function definition(): array
     {
         $organizationId = $this->resolveOrganizationId();
+        $quantity = fake()->numberBetween(1, 100);
+        $unitCost = fake()->numberBetween(100, 5000);
 
         return [
             'organization_id'         => $organizationId,
@@ -33,9 +35,9 @@ class InventoryMovementFactory extends Factory
             'item_id'                 => InventoryItem::factory(['organization_id' => $organizationId]),
             'stock_id'                => InventoryStock::factory(['organization_id' => $organizationId]),
             'location_id'             => InventoryLocation::factory(['organization_id' => $organizationId]),
-            'quantity'                => fake()->numberBetween(1, 100),
+            'quantity'                => $quantity,
             'unit_code'               => Unit::factory(),
-            'unit_cost'               => fake()->numberBetween(100, 5000),
+            'total_cost'              => $quantity * $unitCost,
             'currency_code'           => Currency::factory(),
             'expiration_date'         => null,
             'metadata'                => null,

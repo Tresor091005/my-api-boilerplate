@@ -17,6 +17,7 @@ use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
 use Lahatre\Inventory\Exceptions\IdempotencyKeyReuseException;
+use Lahatre\Inventory\Exceptions\InboundCostRequiredException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
 use Lahatre\Inventory\Exceptions\ReversalException;
 use Lahatre\Inventory\Exceptions\TransferDistributionException;
@@ -134,25 +135,25 @@ class InventoryService implements InventoryInterface
                     throw ReversalException::alreadyReversed($original->id);
                 }
 
-                return $this->recordTransactionInternal($payload, $with);
+                return $this->recordTransactionInternal($payload, $with, null, true);
             }
 
-            return $this->recordTransactionInternal($payload, $with, $original->id);
+            return $this->recordTransactionInternal($payload, $with, $original->id, true);
         });
     }
 
-    protected function recordTransactionInternal(array $data, array $with = ['movements'], ?string $reversalOfTransactionId = null): InventoryTransaction
+    protected function recordTransactionInternal(array $data, array $with = ['movements'], ?string $reversalOfTransactionId = null, bool $costsInMinor = false): InventoryTransaction
     {
         $organizationId = $this->organizationId();
 
         $this->stockSelectionCache = [];
         $resolvedData = $this->resolveTransactionReferences($data);
         [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
-        $transaction = TransactionDataDTO::fromArray($validatedData, $this->masterInterface);
-        $payloadHash = $this->transactionPayloadHasher->hash($transaction);
 
         /** @var Collection<string, InventoryItem> $items */
         $items = $lookups['items'];
+        $transaction = TransactionDataDTO::fromArray($validatedData, $this->masterInterface, $costsInMinor);
+        $payloadHash = $this->transactionPayloadHasher->hash($transaction);
         $movementContexts = $this->buildMovementContexts($transaction, $items);
 
         $tx = InventoryTransaction::query()->firstOrCreate(
@@ -228,7 +229,7 @@ class InventoryService implements InventoryInterface
                 'type'            => MovementType::In->value,
                 'quantity'        => $movement->quantity,
                 'unit_code'       => $movement->unit_code,
-                'unit_cost'       => $this->masterInterface->fromMinor((string) $movement->unit_cost, $movement->currency_code),
+                'total_cost'      => $movement->total_cost,
                 'currency_code'   => $movement->currency_code,
                 'expiration_date' => $movement->expiration_date,
                 'metadata'        => $movement->metadata,
@@ -393,9 +394,9 @@ class InventoryService implements InventoryInterface
                     tx: $tx,
                     context: $context,
                     quantityOverrideInBase: $delta,
-                    unitCost: $movement->unit_cost ?? 0,
                     currencyCode: $movement->currency_code,
                     stockMetadata: $movement->stock_metadata,
+                    totalCost: $movement->total_cost,
                 );
             } elseif ($cmp < 0) {
                 $this->applyDeduction(
@@ -414,22 +415,33 @@ class InventoryService implements InventoryInterface
         InventoryTransaction $tx,
         MovementExecutionContextDTO $context,
         ?string $quantityOverrideInBase = null,
-        ?int $unitCost = null,
+        ?int $totalCost = null,
         ?string $currencyCode = null,
         ?array $stockMetadata = null
     ): InventoryStock {
         $movement = $context->movement;
         $item = $context->item;
         $quantityInBase = $quantityOverrideInBase ?? $context->quantityInBase;
+        $quantity = (int) $quantityInBase;
+        $resolvedCurrencyCode = $currencyCode ?? $movement->currency_code;
+        $resolvedTotalCost = $totalCost ?? $movement->total_cost;
+
+        if ($resolvedTotalCost === null) {
+            throw new InboundCostRequiredException($movement->item_id, $movement->location_id);
+        }
+
+        $resolvedUnitCost = intdiv($resolvedTotalCost, $quantity);
+        $costRemainder = $resolvedTotalCost % $quantity;
 
         $stock = InventoryStock::create([
             'organization_id' => $this->organizationId(),
             'item_id'         => $movement->item_id,
             'location_id'     => $movement->location_id,
-            'unit_cost'       => $unitCost ?? $movement->unit_cost,
-            'currency_code'   => $currencyCode ?? $movement->currency_code,
-            'quantity'        => (int) $quantityInBase,
-            'remaining'       => (int) $quantityInBase,
+            'unit_cost'       => $resolvedUnitCost,
+            'cost_remainder'  => $costRemainder,
+            'currency_code'   => $resolvedCurrencyCode,
+            'quantity'        => $quantity,
+            'remaining'       => $quantity,
             'unit_code'       => $item->base_unit_code,
             'expiration_date' => $movement->expiration_date,
             'metadata'        => $stockMetadata,
@@ -442,10 +454,10 @@ class InventoryService implements InventoryInterface
             'item_id'         => $movement->item_id,
             'location_id'     => $movement->location_id,
             'stock_id'        => $stock->id,
-            'quantity'        => (int) $quantityInBase,
+            'quantity'        => $quantity,
             'unit_code'       => $item->base_unit_code,
-            'unit_cost'       => $unitCost ?? $movement->unit_cost,
-            'currency_code'   => $currencyCode ?? $movement->currency_code,
+            'total_cost'      => $resolvedTotalCost,
+            'currency_code'   => $resolvedCurrencyCode,
             'expiration_date' => $movement->expiration_date,
             'metadata'        => $movement->metadata,
         ]);
@@ -491,7 +503,14 @@ class InventoryService implements InventoryInterface
                 ? $stockRemaining
                 : $remainingToDeduct;
 
+            $deductionQuantity = (int) $deduction;
+            $stockCostRemainder = $stock->cost_remainder;
+            $allocatedCostRemainder = $deductionQuantity > 0 ? $stockCostRemainder : 0;
+            $remainingCostRemainder = $stockCostRemainder - $allocatedCostRemainder;
+            $deductedTotalCost = ($deductionQuantity * $stock->unit_cost) + $allocatedCostRemainder;
+
             $stock->remaining = (int) bcsub($stockRemaining, $deduction, 0);
+            $stock->cost_remainder = $remainingCostRemainder;
             $stock->save();
 
             $outMovement = InventoryMovement::create([
@@ -503,7 +522,7 @@ class InventoryService implements InventoryInterface
                 'stock_id'                => $stock->id,
                 'quantity'                => (int) $deduction,
                 'unit_code'               => $item->base_unit_code,
-                'unit_cost'               => $stock->unit_cost,
+                'total_cost'              => $deductedTotalCost,
                 'currency_code'           => $stock->currency_code,
                 'expiration_date'         => $stock->expiration_date,
                 'metadata'                => $movement->metadata,
@@ -557,12 +576,17 @@ class InventoryService implements InventoryInterface
                 $take = bccomp($remainingToFill, $batchAvailable, 10) >= 0
                     ? $batchAvailable
                     : $remainingToFill;
+                $takeQuantity = (int) $take;
+                $batchQuantity = (int) $batchAvailable;
+                $batchUnitCost = $currentBatch->stock->unit_cost;
+                $batchCostRemainder = $currentBatch->total_cost - ($batchQuantity * $batchUnitCost);
+                $takeTotalCost = ($takeQuantity * $batchUnitCost) + $batchCostRemainder;
 
                 $this->applyInbound(
                     tx: $tx,
                     context: $context,
                     quantityOverrideInBase: $take,
-                    unitCost: $currentBatch->unit_cost,
+                    totalCost: $takeTotalCost,
                     currencyCode: $currentBatch->currency_code,
                     stockMetadata: $currentBatch->stock->metadata,
                 );
@@ -572,7 +596,8 @@ class InventoryService implements InventoryInterface
                 if (bccomp($take, $batchAvailable, 10) === 0) {
                     $batchIndex++;
                 } else {
-                    $currentBatch->quantity = (int) bcsub($batchAvailable, $take, 0);
+                    $currentBatch->quantity = $batchQuantity - $takeQuantity;
+                    $currentBatch->total_cost -= $takeTotalCost;
                 }
             }
 

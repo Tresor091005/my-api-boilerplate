@@ -71,7 +71,7 @@ class TransactionValidator
             'movements.*.unit_code' => ['required', 'string'],
 
             // Basic format/type checks
-            'movements.*.unit_cost'       => ['nullable', 'numeric', 'min:0'],
+            'movements.*.total_cost'      => ['nullable', 'numeric', 'min:0'],
             'movements.*.currency_code'   => ['nullable', 'string', 'size:3'],
             'movements.*.expiration_date' => ['nullable', 'date'],
             'movements.*.metadata'        => ['nullable', 'array'],
@@ -224,8 +224,8 @@ class TransactionValidator
 
             if ($type === MovementType::In) {
                 if ($txType === TransactionType::In) {
-                    if (!isset($m['unit_cost'])) {
-                        $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.in_unit_cost_required'));
+                    if (!isset($m['total_cost'])) {
+                        $validator->errors()->add("movements.{$index}.total_cost", __('inventory::validation.in_total_cost_required'));
                     }
 
                     if (!isset($m['currency_code'])) {
@@ -234,8 +234,8 @@ class TransactionValidator
                 }
 
                 if ($txType === TransactionType::Transfer) {
-                    if (isset($m['unit_cost'])) {
-                        $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.transfer_in_unit_cost_prohibited'));
+                    if (isset($m['total_cost'])) {
+                        $validator->errors()->add("movements.{$index}.total_cost", __('inventory::validation.transfer_in_total_cost_prohibited'));
                     }
 
                     if (isset($m['currency_code'])) {
@@ -265,8 +265,8 @@ class TransactionValidator
                     $validator->errors()->add("movements.{$index}.stock_metadata", __('inventory::validation.out_stock_metadata_prohibited'));
                 }
 
-                if (isset($m['unit_cost'])) {
-                    $validator->errors()->add("movements.{$index}.unit_cost", __('inventory::validation.out_unit_cost_prohibited'));
+                if (isset($m['total_cost'])) {
+                    $validator->errors()->add("movements.{$index}.total_cost", __('inventory::validation.out_total_cost_prohibited'));
                 }
 
                 if (isset($m['currency_code'])) {
@@ -278,19 +278,19 @@ class TransactionValidator
                 }
             }
 
-            if (isset($m['unit_cost'], $m['currency_code']) && $lookups['currencies']->has($m['currency_code'])) {
+            if (isset($m['total_cost'], $m['currency_code']) && $lookups['currencies']->has($m['currency_code'])) {
                 $currency = $lookups['currencies']->get($m['currency_code']);
                 $precision = $currency->precision;
 
                 $v = validator(
-                    ['unit_cost' => $m['unit_cost']],
-                    ['unit_cost' => "decimal:0,{$precision}"]
+                    ['total_cost' => $m['total_cost']],
+                    ['total_cost' => "decimal:0,{$precision}"]
                 );
 
                 if ($v->fails()) {
                     $validator->errors()->add(
-                        "movements.{$index}.unit_cost",
-                        __('inventory::validation.unit_cost_precision', [
+                        "movements.{$index}.total_cost",
+                        __('inventory::validation.total_cost_precision', [
                             'currency_code' => $m['currency_code'],
                             'precision'     => $precision,
                         ])

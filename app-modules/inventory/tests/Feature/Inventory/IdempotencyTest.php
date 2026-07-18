@@ -53,7 +53,7 @@ function idempotentTransactionPayload(
             'type'          => MovementType::In->value,
             'quantity'      => 10,
             'unit_code'     => $unit->code,
-            'unit_cost'     => 15.00,
+            'total_cost'    => 150.00,
             'currency_code' => $currency->code,
         ]],
     ];

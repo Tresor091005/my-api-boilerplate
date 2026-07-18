@@ -19,6 +19,7 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
         public int $remaining,
         public int $quantity,
         public int $unitCost,
+        public int $costRemainder,
         public ?string $currencyCode,
         public ?CarbonImmutable $expirationDate,
         public ?CarbonImmutable $createdAt,
@@ -26,7 +27,7 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
     ) {}
 
     /**
-     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
+     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
      */
     public function toArray(): array
     {
@@ -35,6 +36,8 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
             'remaining'       => $this->remaining,
             'quantity'        => $this->quantity,
             'unit_cost'       => $this->resolveUnitCost(),
+            'total_cost'      => $this->resolveTotalCost(),
+            'cost_remainder'  => $this->resolveCostRemainder(),
             'currency_code'   => $this->currencyCode,
             'expiration_date' => $this->expirationDate,
             'created_at'      => $this->createdAt,
@@ -43,7 +46,7 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
     }
 
     /**
-     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
+     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
      */
     public function jsonSerialize(): array
     {
@@ -57,5 +60,25 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
         }
 
         return app(MasterInterface::class)->fromMinor((string) $this->unitCost, $this->currencyCode);
+    }
+
+    private function resolveTotalCost(): string|int
+    {
+        $totalCost = ($this->remaining * $this->unitCost) + $this->costRemainder;
+
+        if (!$this->currencyCode) {
+            return $totalCost;
+        }
+
+        return app(MasterInterface::class)->fromMinor((string) $totalCost, $this->currencyCode);
+    }
+
+    private function resolveCostRemainder(): string|int
+    {
+        if (!$this->currencyCode) {
+            return $this->costRemainder;
+        }
+
+        return app(MasterInterface::class)->fromMinor((string) $this->costRemainder, $this->currencyCode);
     }
 }

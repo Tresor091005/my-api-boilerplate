@@ -170,7 +170,7 @@ class InventoryQueryService
 
         $query = InventoryStock::query()
             ->select(['location_id', 'currency_code'])
-            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric)) as total_value_minor')
+            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
             ->where('item_id', $item->id)
             ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
@@ -289,7 +289,7 @@ class InventoryQueryService
 
         $query = InventoryStock::query()
             ->select(['item_id', 'currency_code'])
-            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric)) as total_value_minor')
+            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
             ->where('location_id', $location->id)
             ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0)
@@ -401,6 +401,7 @@ class InventoryQueryService
                 remaining: $stock->remaining,
                 quantity: $stock->quantity,
                 unitCost: $stock->unit_cost,
+                costRemainder: $stock->cost_remainder,
                 currencyCode: $stock->currency_code,
                 expirationDate: $stock->expiration_date,
                 createdAt: $stock->created_at,

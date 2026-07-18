@@ -25,7 +25,7 @@ final class TransactionPayloadHasher
                     'type'            => $movement->type?->value,
                     'quantity'        => $movement->quantity,
                     'unit_code'       => $movement->unit_code,
-                    'unit_cost'       => $movement->unit_cost,
+                    'total_cost'      => $movement->total_cost,
                     'currency_code'   => $movement->currency_code,
                     'expiration_date' => $movement->expiration_date?->toISOString(),
                     'strategy'        => $movement->strategy?->value,

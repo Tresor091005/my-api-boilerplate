@@ -56,7 +56,7 @@ interface InventoryInterface
      *         location_id?: string,
      *         quantity: int|float|string,
      *         unit_code: string,
-     *         unit_cost?: int,
+     *         total_cost?: int|float|string,
      *         currency_code?: string,
      *         expiration_date?: string|\DateTimeInterface,
      *         metadata?: array,

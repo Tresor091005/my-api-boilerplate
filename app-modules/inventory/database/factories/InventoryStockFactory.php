@@ -29,6 +29,7 @@ class InventoryStockFactory extends Factory
             'item_id'         => InventoryItem::factory(['organization_id' => $organizationId]),
             'location_id'     => InventoryLocation::factory(['organization_id' => $organizationId]),
             'unit_cost'       => fake()->numberBetween(100, 5000),
+            'cost_remainder'  => 0,
             'currency_code'   => Currency::factory()->create()->code,
             'quantity'        => $quantity,
             'remaining'       => $quantity,

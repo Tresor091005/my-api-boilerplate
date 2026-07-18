@@ -47,7 +47,7 @@ it('reverses an IN by consuming the original stock', function (): void {
             'type'           => MovementType::In->value,
             'quantity'       => 10,
             'unit_code'      => $this->unit->code,
-            'unit_cost'      => 12.50,
+            'total_cost'      => 125.00,
             'currency_code'  => $this->currency->code,
             'metadata'       => ['received_by' => 'user-1'],
             'stock_metadata' => ['batch' => 'LOT-1'],
@@ -69,11 +69,12 @@ it('reverses an IN by consuming the original stock', function (): void {
 
 it('reverses an OUT by creating a new stock from the outbound snapshot', function (): void {
     $stock = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
-        'quantity'      => 10,
-        'remaining'     => 10,
-        'unit_cost'     => 1250,
-        'currency_code' => $this->currency->code,
-        'metadata'      => ['batch' => 'LOT-1', 'status' => 'available'],
+        'quantity'       => 10,
+        'remaining'      => 10,
+        'unit_cost'      => 1250,
+        'cost_remainder' => 1,
+        'currency_code'  => $this->currency->code,
+        'metadata'       => ['batch' => 'LOT-1', 'status' => 'available'],
     ]);
 
     $original = $this->service->recordTransaction([
@@ -101,6 +102,8 @@ it('reverses an OUT by creating a new stock from the outbound snapshot', functio
     expect($stock->refresh()->remaining)->toBe(6)
         ->and($newStock->quantity)->toBe(4)
         ->and($newStock->remaining)->toBe(4)
+        ->and($newStock->unit_cost)->toBe(1250)
+        ->and($newStock->cost_remainder)->toBe(1)
         ->and($newStock->metadata)->toBe(['batch' => 'LOT-1', 'status' => 'available'])
         ->and($reversal->transaction_type)->toBe(TransactionType::In)
         ->and($reversal->metadata)->toBe(['reason' => 'return']);
@@ -127,7 +130,7 @@ it('returns the same reversal on an idempotent retry', function (): void {
             'type'           => MovementType::In->value,
             'quantity'       => 5,
             'unit_code'      => $this->unit->code,
-            'unit_cost'      => 12.50,
+            'total_cost'      => 62.50,
             'currency_code'  => $this->currency->code,
             'stock_metadata' => ['batch' => 'LOT-1'],
         ]],
@@ -153,7 +156,7 @@ it('rejects a reversal request with different metadata on retry', function (): v
             'type'          => MovementType::In->value,
             'quantity'      => 5,
             'unit_code'     => $this->unit->code,
-            'unit_cost'     => 12.50,
+            'total_cost'     => 62.50,
             'currency_code' => $this->currency->code,
         ]],
     ]);

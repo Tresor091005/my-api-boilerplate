@@ -24,7 +24,7 @@ readonly class ItemLocationLotsViewData implements Arrayable, JsonSerializable
     ) {}
 
     /**
-     * @return array{item_id: string, location_id: string, deduction_strategy: string, total_remaining: int, unit_code: string, lots: array<int, array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}>}
+     * @return array{item_id: string, location_id: string, deduction_strategy: string, total_remaining: int, unit_code: string, lots: array<int, array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}>}
      */
     public function toArray(): array
     {
@@ -41,7 +41,7 @@ readonly class ItemLocationLotsViewData implements Arrayable, JsonSerializable
     }
 
     /**
-     * @return array{item_id: string, location_id: string, deduction_strategy: string, total_remaining: int, unit_code: string, lots: array<int, array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}>}
+     * @return array{item_id: string, location_id: string, deduction_strategy: string, total_remaining: int, unit_code: string, lots: array<int, array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}>}
      */
     public function jsonSerialize(): array
     {

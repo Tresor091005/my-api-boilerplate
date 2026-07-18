@@ -55,7 +55,7 @@ it('successfully processes an adjustment UP transaction', function (): void {
                 'location_id'    => $this->location->id,
                 'quantity'       => 80,
                 'unit_code'      => $this->unit->code,
-                'unit_cost'      => 10.00,
+                'total_cost'     => 300.00,
                 'currency_code'  => $this->currency->code,
                 'stock_metadata' => ['batch' => 'ADJ-LOT-1'],
             ],
