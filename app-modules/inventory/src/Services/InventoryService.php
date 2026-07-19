@@ -786,7 +786,11 @@ class InventoryService implements InventoryInterface
             throw new InsufficientStockException(
                 $movement->item_id,
                 $movement->location_id,
-                $movement->quantity,
+                $this->masterInterface->convertUnit(
+                    $quantityToDeduct,
+                    $item->base_unit_code,
+                    $movement->unit_code
+                ),
                 $this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $movement->unit_code),
                 $movement->unit_code
             );

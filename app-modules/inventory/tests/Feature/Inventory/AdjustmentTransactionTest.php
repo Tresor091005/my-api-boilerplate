@@ -11,6 +11,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\AdjustmentAverageCostUnavailableException;
 use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
+use Lahatre\Inventory\Exceptions\InsufficientStockException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
@@ -241,6 +242,35 @@ it('fails an adjustment if target quantity is the same as current stock', functi
 
     $this->service->recordTransaction($payload);
 })->throws(AdjustmentNoOpException::class, 'The target quantity is already the current stock.');
+
+it('reports the actual reduction when selected manual lots are insufficient', function (): void {
+    $selectedStock = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create(['quantity' => 5, 'remaining' => 5]);
+    $otherStock = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create(['quantity' => 5, 'remaining' => 5]);
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'stock_take',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::Adjustment->value,
+        'movements'        => [[
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'quantity'    => 1,
+            'unit_code'   => $this->unit->code,
+            'strategy'    => DeductionStrategy::Manual->value,
+            'stock_ids'   => [$selectedStock->id],
+        ]],
+    ]))->toThrow(InsufficientStockException::class, 'Requested: 9');
+
+    expect($selectedStock->refresh()->remaining)->toBe(5)
+        ->and($otherStock->refresh()->remaining)->toBe(5);
+});
 
 it('fails an adjustment for the same item and location in one transaction', function (): void {
     $payload = [
