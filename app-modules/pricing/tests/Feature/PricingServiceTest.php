@@ -17,8 +17,8 @@ use Lahatre\Pricing\Exceptions\Pricing\PricingBypassReasonRequiredException;
 use Lahatre\Pricing\Models\PartyGroup;
 use Lahatre\Pricing\Models\PriceableGroup;
 use Lahatre\Pricing\Services\PricingService;
-use Lahatre\Pricing\Tests\Concerns\InteractsWithPricingTestFixtures;
 use Lahatre\Pricing\Tests\Concerns\InteractsWithPricingTenantContext;
+use Lahatre\Pricing\Tests\Concerns\InteractsWithPricingTestFixtures;
 
 uses(RefreshDatabase::class, InteractsWithPricingTenantContext::class, InteractsWithPricingTestFixtures::class);
 

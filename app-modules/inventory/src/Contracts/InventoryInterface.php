@@ -54,6 +54,7 @@ interface InventoryInterface
      *         item_id?: string,
      *         location?: HasInventoryLocation,
      *         location_id?: string,
+     *         to_location_id?: string,
      *         quantity: int|float|string,
      *         unit_code: string,
      *         total_cost?: int|float|string,
@@ -71,5 +72,15 @@ interface InventoryInterface
     /**
      * @param  array<string, string>|null  $errorKeyMap
      */
+    public function previewTransaction(array $data, ?array $errorKeyMap = null): void;
+
+    /**
+     * @param  array<string, string>|null  $errorKeyMap
+     */
     public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction;
+
+    /**
+     * @param  array<string, string>|null  $errorKeyMap
+     */
+    public function previewReversal(string $originalTransactionId, ?array $metadata = null, ?array $errorKeyMap = null): void;
 }

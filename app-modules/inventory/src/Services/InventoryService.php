@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Services;
 
 use Carbon\CarbonImmutable;
+use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,6 +25,7 @@ use Lahatre\Inventory\Exceptions\AdjustmentNoOpException;
 use Lahatre\Inventory\Exceptions\IdempotencyKeyReuseException;
 use Lahatre\Inventory\Exceptions\InboundCostRequiredException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
+use Lahatre\Inventory\Exceptions\PreviewRollbackException;
 use Lahatre\Inventory\Exceptions\ReversalException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -115,30 +118,32 @@ class InventoryService implements InventoryInterface
         }
     }
 
+    public function previewTransaction(array $data, ?array $errorKeyMap = null): void
+    {
+        $this->transactionErrorKeyMapper->validate($errorKeyMap);
+
+        try {
+            $this->runPreview(function () use ($data): void {
+                $this->recordTransactionInternal(
+                    data: $data,
+                    with: [],
+                    preview: true,
+                );
+            });
+        } catch (ValidationException $exception) {
+            throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
+        }
+    }
+
     public function reverseTransaction(string $originalTransactionId, ?array $metadata = null, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction
     {
         $this->transactionErrorKeyMapper->validate($errorKeyMap);
-        $organizationId = $this->organizationId();
-
         try {
-            return DB::transaction(function () use ($originalTransactionId, $metadata, $with, $organizationId): InventoryTransaction {
-                $original = InventoryTransaction::query()
-                    ->where('organization_id', $organizationId)
-                    ->whereKey($originalTransactionId)
-                    ->with([
-                        'movements.stock' => fn ($query) => $query->withTrashed(),
-                        'reversal',
-                    ])
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$original) {
-                    throw ReversalException::transactionNotFound($originalTransactionId);
-                }
-
-                if ($original->reversal_of_transaction_id !== null) {
-                    throw ReversalException::cannotReverseReversal($original->id);
-                }
+            return DB::transaction(function () use ($originalTransactionId, $metadata, $with): InventoryTransaction {
+                $original = $this->loadTransactionForReversal(
+                    originalTransactionId: $originalTransactionId,
+                    organizationId: $this->organizationId(),
+                );
 
                 $payload = $this->buildReversalPayload($original, $metadata);
 
@@ -157,14 +162,92 @@ class InventoryService implements InventoryInterface
         }
     }
 
-    protected function recordTransactionInternal(array $data, array $with = ['movements'], ?string $reversalOfTransactionId = null, bool $costsInMinor = false): InventoryTransaction
+    public function previewReversal(string $originalTransactionId, ?array $metadata = null, ?array $errorKeyMap = null): void
     {
+        $this->transactionErrorKeyMapper->validate($errorKeyMap);
+        try {
+            $this->runPreview(function () use ($originalTransactionId, $metadata): void {
+                $original = $this->loadTransactionForReversal(
+                    originalTransactionId: $originalTransactionId,
+                    organizationId: $this->organizationId(),
+                );
+
+                if ($original->reversal !== null) {
+                    throw ReversalException::alreadyReversed($original->id);
+                }
+
+                $this->recordTransactionInternal(
+                    data: $this->buildReversalPayload($original, $metadata),
+                    with: [],
+                    reversalOfTransactionId: $original->id,
+                    costsInMinor: true,
+                    preview: true,
+                );
+            });
+        } catch (ValidationException $exception) {
+            throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
+        }
+    }
+
+    /**
+     * @param  Closure(): void  $operation
+     */
+    protected function runPreview(Closure $operation): void
+    {
+        try {
+            DB::transaction(function () use ($operation): void {
+                Model::withoutEvents(function () use ($operation): void {
+                    $operation();
+
+                    throw new PreviewRollbackException();
+                });
+            });
+        } catch (PreviewRollbackException) {
+            return;
+        }
+    }
+
+    protected function loadTransactionForReversal(
+        string $originalTransactionId,
+        string $organizationId,
+    ): InventoryTransaction {
+        $original = InventoryTransaction::query()
+            ->where('organization_id', $organizationId)
+            ->whereKey($originalTransactionId)
+            ->with([
+                'movements.stock' => fn ($query) => $query->withTrashed(),
+                'reversal',
+            ])
+            ->lockForUpdate()
+            ->first();
+
+        if (!$original) {
+            throw ReversalException::transactionNotFound($originalTransactionId);
+        }
+
+        if ($original->reversal_of_transaction_id !== null) {
+            throw ReversalException::cannotReverseReversal($original->id);
+        }
+
+        return $original;
+    }
+
+    protected function recordTransactionInternal(
+        array $data,
+        array $with = ['movements'],
+        ?string $reversalOfTransactionId = null,
+        bool $costsInMinor = false,
+        bool $preview = false,
+    ): InventoryTransaction {
         $organizationId = $this->organizationId();
 
         $this->stockSelectionCache = [];
         $transferReversalBatches = $data['_transfer_reversal_batches'] ?? null;
         $resolvedData = $this->resolveTransactionReferences($data);
         [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
+        if ($preview) {
+            $validatedData['idempotency_key'] = 'preview-'.Str::uuid()->toString();
+        }
 
         /** @var Collection<string, InventoryItem> $items */
         $items = $lookups['items'];

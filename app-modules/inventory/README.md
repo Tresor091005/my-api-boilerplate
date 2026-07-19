@@ -218,6 +218,19 @@ uses exactly the metadata supplied by the caller.
 - Repeating the same request returns the existing reversal; a different payload with the same key fails idempotency validation.
 - A `TRANSFER` reversal groups movements by `link_id` and reverses each source-to-destination route independently. Transfers with missing or inconsistent links are not reversible. `ADJUSTMENT` reversal is not supported.
 
+To check whether an operation is possible without persisting anything, use the
+preview methods:
+
+```php
+$inventory->previewTransaction($payload);
+$inventory->previewReversal($transaction->id, ['reason' => 'order_cancelled']);
+```
+
+They return `void` on success and propagate the same validation or business
+exception as the real operation on failure. The preview runs the complete
+calculation pipeline inside a rollback-only transaction. It does not leave
+transactions, movements, stocks, stock changes, or model events behind.
+
 #### Mapping validation error keys
 
 Transaction validation keeps package paths by default. Callers with a different
