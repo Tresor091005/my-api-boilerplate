@@ -26,6 +26,7 @@ class InventoryItemResource extends JsonResource
             'sku'                => $this->sku,
             'base_unit_code'     => $this->base_unit_code,
             'deduction_strategy' => $this->deduction_strategy,
+            'is_expirable'       => $this->is_expirable,
             'is_active'          => $this->is_active,
             'created_at'         => $this->created_at,
             'updated_at'         => $this->updated_at,

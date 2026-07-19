@@ -22,7 +22,7 @@ The complete operation examples live in [Movements](movements.md). This page rec
 | `item_id`, `location_id`, `quantity`, `unit_code` | required | required | required | required |
 | `to_location_id` | forbidden | forbidden | forbidden | required |
 | `total_cost`, `currency_code` | cost and currency required | forbidden | currency only for an increase; cost ignored | forbidden |
-| `expiration_date` | optional | forbidden | ignored for decrease | forbidden |
+| `expiration_date` | required for expirable / absent for non-expirable | forbidden | required for increase; ignored for decrease | inherited from source lot |
 | `stock_metadata` | initializes the new lot | forbidden | initializes an increase lot; ignored for decrease | forbidden; copied from source lot |
 | `strategy`, `stock_ids` | forbidden | optional / manual selection | optional / manual selection for decrease | optional / manual selection |
 | `link_id` | caller must not send | caller must not send | caller must not send | generated internally |

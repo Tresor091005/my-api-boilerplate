@@ -66,8 +66,9 @@ $inventory->createManyLocations(collect([$warehouse, $store, $serviceVan]));
 
 The module currently keeps configuration intentionally small:
 
-- `default_strategy`: fallback deduction strategy used only when neither the movement nor the item provides one;
 - `enable_model_reference_preprocessing`: enables direct model references in transaction movements; disabled by default for explicit ID-only payloads.
+
+Each inventory item also defines whether it is expirable. Expirable items use FEFO by default and require dates on new inbound lots; non-expirable items use FIFO by default and reject dates on new inbound lots. Existing lot dates are preserved when this setting changes.
 
 Record a receipt with optional stock metadata:
 

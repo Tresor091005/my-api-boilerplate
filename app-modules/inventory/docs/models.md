@@ -9,7 +9,12 @@ The module stores inventory records separately from the application's business m
 - `sku`: optional operational identifier;
 - `base_unit_code`: unit used for internal quantities and costing;
 - `deduction_strategy`: default FIFO, FEFO, or manual strategy;
+- `is_expirable`: whether new inbound lots require an expiration date;
 - `is_active`: whether the item can be used in new operations.
+
+When no item strategy is configured, expirable items default to FEFO and non-expirable items default to FIFO. FIFO is not valid for expirable items, and FEFO is not valid for non-expirable items. Changing `is_expirable` never rewrites existing stock dates.
+
+If an item becomes expirable while it has older undated lots, those lots remain valid legacy stock. FEFO orders dated lots first and undated lots last; future expiration alerts can report them as having an unknown date.
 
 The application model supplies `getSku()`, `getUnitGroupId()`, `getOrganizationId()`, and `toInventoryItemableSummary()`.
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
@@ -41,22 +42,53 @@ class ManageInventoryItemService
     }
 
     /**
-     * @param  array{sku?: string, is_active?: bool, deduction_strategy?: string}  $data
+     * @param  array{sku?: string, is_active?: bool, is_expirable?: bool, deduction_strategy?: string}  $data
      */
     public function update(HasInventoryItem $model, array $data): InventoryItem
     {
         $validated = validator($data, [
             'sku'                => ['string', 'max:255'],
             'is_active'          => ['boolean'],
+            'is_expirable'       => ['boolean'],
             'deduction_strategy' => ['nullable', Rule::enum(DeductionStrategy::class)],
         ])->validate();
 
         return DB::transaction(function () use ($model, $validated): InventoryItem {
             $item = $this->resolve($model);
+            $isExpirable = (bool) ($validated['is_expirable'] ?? $item->is_expirable);
+            $strategyWasProvided = array_key_exists('deduction_strategy', $validated);
+            $strategy = $strategyWasProvided
+                ? $validated['deduction_strategy']
+                : $item->deduction_strategy;
+            if (is_string($strategy)) {
+                $strategy = DeductionStrategy::from($strategy);
+            }
+
+            if ($strategy === DeductionStrategy::Fifo && $isExpirable) {
+                if ($strategyWasProvided) {
+                    throw ValidationException::withMessages([
+                        'deduction_strategy' => __('inventory::validation.fifo_expirable_prohibited'),
+                    ]);
+                }
+
+                $strategy = null;
+            }
+
+            if ($strategy === DeductionStrategy::Fefo && !$isExpirable) {
+                if ($strategyWasProvided) {
+                    throw ValidationException::withMessages([
+                        'deduction_strategy' => __('inventory::validation.fefo_non_expirable_prohibited'),
+                    ]);
+                }
+
+                $strategy = null;
+            }
+
             $item->fill([
                 'sku'                => $validated['sku'] ?? $item->sku,
                 'is_active'          => $validated['is_active'] ?? $item->is_active,
-                'deduction_strategy' => array_key_exists('deduction_strategy', $validated) ? $validated['deduction_strategy'] : $item->deduction_strategy,
+                'is_expirable'       => $isExpirable,
+                'deduction_strategy' => $strategy,
             ])->save();
 
             return $item;

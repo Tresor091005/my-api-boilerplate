@@ -27,6 +27,7 @@ class InventoryItemFactory extends Factory
             'sku'                => fake()->unique()->bothify('SKU-####-????'),
             'base_unit_code'     => 'unit',
             'deduction_strategy' => null,
+            'is_expirable'       => false,
             'is_active'          => true,
         ];
     }

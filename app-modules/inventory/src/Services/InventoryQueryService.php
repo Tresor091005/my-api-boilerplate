@@ -374,8 +374,7 @@ class InventoryQueryService
 
         $strategy = $filters->strategy
             ?? $item->deduction_strategy
-            ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-            ?? DeductionStrategy::Fifo;
+            ?? ($item->is_expirable ? DeductionStrategy::Fefo : DeductionStrategy::Fifo);
 
         $query = InventoryStock::query()
             ->where('item_id', $item->id)

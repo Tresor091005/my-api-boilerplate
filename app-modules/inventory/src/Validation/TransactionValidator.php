@@ -29,20 +29,20 @@ class TransactionValidator
         protected MasterInterface $masterInterface,
     ) {}
 
-    public function validate(array $data): array
+    public function validate(array $data, bool $allowLegacyExpiration = false): array
     {
         $this->lookups = [];
         $data = $this->normalizeIgnoredAdjustmentFields($data);
 
         $validator = validator($data, $this->rules());
 
-        $validator->after(function (Validator $validator) use ($data): void {
+        $validator->after(function (Validator $validator) use ($data, $allowLegacyExpiration): void {
             // Stop if there are structural errors (movements required, items missing fields, etc.)
             if ($validator->errors()->any()) {
                 return;
             }
 
-            $this->complexValidation($validator, $data);
+            $this->complexValidation($validator, $data, $allowLegacyExpiration);
         });
 
         $validatedData = $validator->validate();
@@ -110,7 +110,7 @@ class TransactionValidator
         ];
     }
 
-    protected function complexValidation(Validator $validator, array $data): void
+    protected function complexValidation(Validator $validator, array $data, bool $allowLegacyExpiration = false): void
     {
         $movements = collect($data['movements']);
         $txType = $data['transaction_type'];
@@ -130,7 +130,13 @@ class TransactionValidator
         $this->lookups = $this->performBulkLookups($movements);
 
         // 3. Existence & Entity Integrity (Are entities valid and requirements met?)
-        $this->validateExistence($validator, $txType, $movements, $this->lookups);
+        $this->validateExistence(
+            $validator,
+            $txType,
+            $movements,
+            $this->lookups,
+            $allowLegacyExpiration,
+        );
 
         // 4. Structural Consistency (Duplicates, Type mismatches)
         $this->validateUniquePairs($validator, $txType, $movements);
@@ -231,7 +237,13 @@ class TransactionValidator
         ];
     }
 
-    protected function validateExistence(Validator $validator, ?TransactionType $txType, Collection $movements, array $lookups): void
+    protected function validateExistence(
+        Validator $validator,
+        ?TransactionType $txType,
+        Collection $movements,
+        array $lookups,
+        bool $allowLegacyExpiration = false,
+    ): void
     {
         foreach ($movements as $index => $m) {
             $type = $m['type'] ?? null;
@@ -256,6 +268,58 @@ class TransactionValidator
             }
             if (isset($m['currency_code']) && !$lookups['currencies']->has($m['currency_code'])) {
                 $validator->errors()->add("movements.{$index}.currency_code", __('inventory::validation.currency_code_invalid'));
+            }
+
+            $item = $lookups['items']->get($m['item_id'] ?? null);
+            if ($item instanceof InventoryItem) {
+                $strategy = $m['strategy'] ?? null;
+                if (is_string($strategy)) {
+                    $strategy = DeductionStrategy::tryFrom($strategy);
+                }
+
+                if ($strategy === DeductionStrategy::Fifo && $item->is_expirable) {
+                    $validator->errors()->add(
+                        "movements.{$index}.strategy",
+                        __('inventory::validation.fifo_expirable_prohibited')
+                    );
+                }
+
+                if ($strategy === DeductionStrategy::Fefo && !$item->is_expirable) {
+                    $validator->errors()->add(
+                        "movements.{$index}.strategy",
+                        __('inventory::validation.fefo_non_expirable_prohibited')
+                    );
+                }
+
+                if ($item->deduction_strategy === DeductionStrategy::Fifo && $item->is_expirable) {
+                    $validator->errors()->add(
+                        "movements.{$index}.strategy",
+                        __('inventory::validation.fifo_expirable_prohibited')
+                    );
+                }
+
+                if ($item->deduction_strategy === DeductionStrategy::Fefo && !$item->is_expirable) {
+                    $validator->errors()->add(
+                        "movements.{$index}.strategy",
+                        __('inventory::validation.fefo_non_expirable_prohibited')
+                    );
+                }
+
+                if ($txType === TransactionType::In && $type === MovementType::In) {
+                    if ($item->is_expirable && ($m['expiration_date'] ?? null) === null && !$allowLegacyExpiration) {
+                        $validator->errors()->add(
+                            "movements.{$index}.expiration_date",
+                            __('inventory::validation.expiration_date_required_for_expirable_item')
+                        );
+                    }
+
+                    if (!$item->is_expirable && ($m['expiration_date'] ?? null) !== null) {
+                        $validator->errors()->add(
+                            "movements.{$index}.expiration_date",
+                            __('inventory::validation.expiration_date_prohibited_for_non_expirable_item')
+                        );
+                    }
+                }
             }
 
             if ($type === MovementType::In) {
@@ -343,7 +407,6 @@ class TransactionValidator
             }
 
             // Stock IDs validation
-            $item = $lookups['items']->get($m['item_id'] ?? null);
             $resolvedStrategy = $m['strategy'] ?? null;
             if (is_string($resolvedStrategy)) {
                 $resolvedStrategy = DeductionStrategy::tryFrom($resolvedStrategy);
@@ -352,8 +415,9 @@ class TransactionValidator
             $resolvedStrategy ??= $item instanceof InventoryItem
                 ? $item->deduction_strategy
                 : null;
-            $resolvedStrategy ??= DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-                ?? DeductionStrategy::Fifo;
+            $resolvedStrategy ??= $item instanceof InventoryItem && $item->is_expirable
+                ? DeductionStrategy::Fefo
+                : DeductionStrategy::Fifo;
 
             if ($resolvedStrategy === DeductionStrategy::Manual && empty($m['stock_ids'])) {
                 $validator->errors()->add("movements.{$index}.stock_ids", __('inventory::validation.manual_stock_ids_required'));

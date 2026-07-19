@@ -329,7 +329,7 @@ it('does not persist resolved references when preprocessing is enabled but valid
             ->exists())->toBeFalse();
 });
 
-it('fails validation if Manual strategy is resolved via Item settings but stock_ids are missing', function (): void {
+it('fails validation if Manual strategy remains item-resolved without stock_ids', function (): void {
     $this->item->update(['deduction_strategy' => DeductionStrategy::Manual]);
 
     expect(fn () => $this->service->recordTransaction([
@@ -347,9 +347,8 @@ it('fails validation if Manual strategy is resolved via Item settings but stock_
     ]))->toThrow(ValidationException::class, 'Stock IDs are required when strategy is manual.');
 });
 
-it('fails validation if Manual strategy is resolved via Global config but stock_ids are missing', function (): void {
-    config()->set('inventory.default_strategy', DeductionStrategy::Manual->value);
-    $this->item->update(['deduction_strategy' => null]);
+it('fails validation if Manual item strategy is missing stock_ids after config removal', function (): void {
+    $this->item->update(['deduction_strategy' => DeductionStrategy::Manual]);
 
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',

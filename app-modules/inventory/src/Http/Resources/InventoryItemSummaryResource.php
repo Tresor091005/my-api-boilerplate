@@ -23,6 +23,7 @@ class InventoryItemSummaryResource extends JsonResource
             'sku'                => $this->sku,
             'base_unit_code'     => $this->base_unit_code,
             'deduction_strategy' => $this->deduction_strategy,
+            'is_expirable'       => $this->is_expirable,
             'is_active'          => $this->is_active,
             'total_remaining'    => $this->resolveTotalRemaining(),
             'active_lots_count'  => $this->resolveActiveLotsCount(),

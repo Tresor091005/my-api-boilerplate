@@ -41,6 +41,7 @@ it('returns aggregated item stock, location stock, and active lots', function ()
     $item = InventoryItem::factory()->create([
         'base_unit_code'     => $this->unit->code,
         'deduction_strategy' => DeductionStrategy::Fefo,
+        'is_expirable'       => true,
     ]);
     $locationA = InventoryLocation::factory()->create();
     $locationB = InventoryLocation::factory()->create();
@@ -331,6 +332,7 @@ it('lists inventory items and locations with optional includes', function (): vo
     $this->getJson("/v1/inventory/items/{$item->id}")
         ->assertOk()
         ->assertJsonPath('id', $item->id)
+        ->assertJsonPath('is_expirable', false)
         ->assertJsonMissingPath('itemable');
 
     $this->getJson("/v1/inventory/items/{$item->id}?include=itemable")

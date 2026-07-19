@@ -152,10 +152,10 @@ class InventoryService implements InventoryInterface
                         throw ReversalException::alreadyReversed($original->id);
                     }
 
-                    return $this->recordTransactionInternal($payload, $with, null, true);
+                    return $this->recordTransactionInternal($payload, $with, null, true, false, true);
                 }
 
-                return $this->recordTransactionInternal($payload, $with, $original->id, true);
+                return $this->recordTransactionInternal($payload, $with, $original->id, true, false, true);
             });
         } catch (ValidationException $exception) {
             throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
@@ -182,6 +182,7 @@ class InventoryService implements InventoryInterface
                     reversalOfTransactionId: $original->id,
                     costsInMinor: true,
                     preview: true,
+                    allowLegacyExpiration: true,
                 );
             });
         } catch (ValidationException $exception) {
@@ -238,13 +239,14 @@ class InventoryService implements InventoryInterface
         ?string $reversalOfTransactionId = null,
         bool $costsInMinor = false,
         bool $preview = false,
+        bool $allowLegacyExpiration = false,
     ): InventoryTransaction {
         $organizationId = $this->organizationId();
 
         $this->stockSelectionCache = [];
         $transferReversalBatches = $data['_transfer_reversal_batches'] ?? null;
         $resolvedData = $this->resolveTransactionReferences($data);
-        [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData);
+        [$validatedData, $lookups] = $this->transactionValidator->validate($resolvedData, $allowLegacyExpiration);
         if ($preview) {
             $validatedData['idempotency_key'] = 'preview-'.Str::uuid()->toString();
         }
@@ -547,7 +549,7 @@ class InventoryService implements InventoryInterface
      */
     protected function processAdjustmentMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
-        foreach ($movementContexts as $context) {
+        foreach ($movementContexts as $index => $context) {
             $movement = $context->movement;
             $item = $context->item;
             $targetQtyInBase = $context->quantityInBase;
@@ -558,6 +560,18 @@ class InventoryService implements InventoryInterface
             $cmp = bccomp($delta, '0', 10);
 
             if ($cmp > 0) {
+                if ($item->is_expirable && $movement->expiration_date === null) {
+                    throw ValidationException::withMessages([
+                        "movements.{$index}.expiration_date" => __('inventory::validation.expiration_date_required_for_expirable_item'),
+                    ]);
+                }
+
+                if (!$item->is_expirable && $movement->expiration_date !== null) {
+                    throw ValidationException::withMessages([
+                        "movements.{$index}.expiration_date" => __('inventory::validation.expiration_date_prohibited_for_non_expirable_item'),
+                    ]);
+                }
+
                 if ($movement->currency_code === null) {
                     throw AdjustmentAverageCostUnavailableException::currencyRequired(
                         $movement->item_id,
@@ -976,8 +990,7 @@ class InventoryService implements InventoryInterface
     {
         return $movement->strategy
             ?? $item->deduction_strategy
-            ?? DeductionStrategy::tryFrom((string) config('inventory.default_strategy'))
-            ?? DeductionStrategy::Fifo;
+            ?? ($item->is_expirable ? DeductionStrategy::Fefo : DeductionStrategy::Fifo);
     }
 
     protected function buildStockSelectionCacheKey(MovementDataDTO $movement, DeductionStrategy $strategy): string

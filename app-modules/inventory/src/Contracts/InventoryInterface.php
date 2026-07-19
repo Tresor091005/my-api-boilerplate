@@ -34,7 +34,7 @@ interface InventoryInterface
     public function updateLocation(HasInventoryLocation $model, array $data): InventoryLocation;
 
     /**
-     * @param  array{sku?: string, is_active?: bool, deduction_strategy?: string}  $data
+     * @param  array{sku?: string, is_active?: bool, is_expirable?: bool, deduction_strategy?: string}  $data
      */
     public function updateItem(HasInventoryItem $model, array $data): InventoryItem;
 

@@ -24,6 +24,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string|null $sku
  * @property string $base_unit_code
  * @property DeductionStrategy|null $deduction_strategy
+ * @property bool $is_expirable
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -74,6 +75,7 @@ class InventoryItem extends Model
         'sku',
         'base_unit_code',
         'deduction_strategy',
+        'is_expirable',
         'is_active',
     ];
 
@@ -85,6 +87,7 @@ class InventoryItem extends Model
         'sku'                => 'string',
         'base_unit_code'     => 'string',
         'deduction_strategy' => DeductionStrategy::class,
+        'is_expirable'       => 'boolean',
         'is_active'          => 'boolean',
         'created_at'         => 'immutable_datetime',
         'updated_at'         => 'immutable_datetime',

@@ -4,7 +4,7 @@ Movements are grouped inside a transaction. The service supports incoming stock,
 
 ## Incoming stock
 
-An `IN` movement creates a new inventory stock lot. It accepts the quantity, total cost, currency, optional expiration, and optional `stock_metadata` used to populate that new lot.
+An `IN` movement creates a new inventory stock lot. It accepts the quantity, total cost, currency, and optional `stock_metadata` used to populate that new lot. `expiration_date` is required for expirable items and rejected for non-expirable items.
 
 ```php
 $inventory->recordTransaction([

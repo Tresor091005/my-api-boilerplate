@@ -16,6 +16,8 @@ Supported transformations:
 - Original `TRANSFER` reverses every linked route independently: destination `OUT`, then source `IN`.
 - `ADJUSTMENT` reversal is not supported.
 
+Reversal-generated inbound movements reuse the original persisted expiration date. A legacy movement with no date keeps that absence so the ledger is not rewritten.
+
 The original transaction metadata is not copied automatically. Reversal metadata belongs to the new reversal transaction and is supplied by the caller. Movement metadata is copied only where the reversal needs the original event context; stock metadata comes from the original inbound lot or the outbound snapshot.
 
 The reversal uses `{$originalTransactionId}:reverse` as its deterministic idempotency key. Repeating the same operation returns the existing reversal. Reusing that key with a different payload fails. A reversal also fails when the stock required for the inverse operation has already been consumed or is otherwise insufficient.

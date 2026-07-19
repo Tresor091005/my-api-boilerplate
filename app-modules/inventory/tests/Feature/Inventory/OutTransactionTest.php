@@ -72,6 +72,8 @@ it('successfully processes an OUT transaction using FIFO strategy', function ():
 });
 
 it('successfully processes an OUT transaction using FEFO strategy', function (): void {
+    $this->item->update(['is_expirable' => true]);
+
     // GIVEN two stock lots, lot2 expires sooner
     $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(10)]);
     $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(5)]);
@@ -209,8 +211,6 @@ it('reuses the locked stock selection across multiple out movements for the same
 });
 
 it('successfully resolves FIFO when no strategy is defined anywhere', function (): void {
-    config()->set('inventory.default_strategy', null);
-
     $item = InventoryItem::factory()->create([
         'base_unit_code'     => $this->unit->code,
         'deduction_strategy' => null,
@@ -238,6 +238,8 @@ it('successfully resolves FIFO when no strategy is defined anywhere', function (
 });
 
 it('processes FEFO correctly with a mix of stocks having and not having expiration dates', function (): void {
+    $this->item->update(['is_expirable' => true]);
+
     $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 20,
         'remaining'       => 20,
