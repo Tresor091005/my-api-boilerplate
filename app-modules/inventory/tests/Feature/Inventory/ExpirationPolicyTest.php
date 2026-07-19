@@ -44,16 +44,16 @@ function expirationPayload(array $movement, string $type = 'in'): array
 it('requires expiration dates for inbound movements of expirable items', function (): void {
     $item = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
-        'is_expirable' => true,
+        'is_expirable'   => true,
     ]);
 
     expect(fn () => $this->service->recordTransaction(expirationPayload([
-        'item_id' => $item->id,
-        'location_id' => $this->location->id,
-        'type' => MovementType::In->value,
-        'quantity' => 10,
-        'unit_code' => $this->unit->code,
-        'total_cost' => 100,
+        'item_id'       => $item->id,
+        'location_id'   => $this->location->id,
+        'type'          => MovementType::In->value,
+        'quantity'      => 10,
+        'unit_code'     => $this->unit->code,
+        'total_cost'    => 100,
         'currency_code' => $this->currency->code,
     ])))->toThrow(ValidationException::class, 'expiration date is required');
 });
@@ -61,17 +61,17 @@ it('requires expiration dates for inbound movements of expirable items', functio
 it('does not allow public payloads to bypass expiration validation', function (): void {
     $item = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
-        'is_expirable' => true,
+        'is_expirable'   => true,
     ]);
 
     expect(fn () => $this->service->recordTransaction([
         ...expirationPayload([
-            'item_id' => $item->id,
-            'location_id' => $this->location->id,
-            'type' => MovementType::In->value,
-            'quantity' => 10,
-            'unit_code' => $this->unit->code,
-            'total_cost' => 100,
+            'item_id'       => $item->id,
+            'location_id'   => $this->location->id,
+            'type'          => MovementType::In->value,
+            'quantity'      => 10,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => 100,
             'currency_code' => $this->currency->code,
         ]),
         '_allow_legacy_expiration' => true,
@@ -82,13 +82,13 @@ it('rejects expiration dates for inbound movements of non-expirable items', func
     $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
 
     expect(fn () => $this->service->recordTransaction(expirationPayload([
-        'item_id' => $item->id,
-        'location_id' => $this->location->id,
-        'type' => MovementType::In->value,
-        'quantity' => 10,
-        'unit_code' => $this->unit->code,
-        'total_cost' => 100,
-        'currency_code' => $this->currency->code,
+        'item_id'         => $item->id,
+        'location_id'     => $this->location->id,
+        'type'            => MovementType::In->value,
+        'quantity'        => 10,
+        'unit_code'       => $this->unit->code,
+        'total_cost'      => 100,
+        'currency_code'   => $this->currency->code,
         'expiration_date' => now()->addDays(10),
     ])))->toThrow(ValidationException::class, 'prohibited for a non-expirable item');
 });
@@ -96,30 +96,30 @@ it('rejects expiration dates for inbound movements of non-expirable items', func
 it('uses FEFO automatically for expirable items and puts undated legacy lots last', function (): void {
     $item = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
-        'is_expirable' => true,
+        'is_expirable'   => true,
     ]);
     $later = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
-        'quantity' => 10,
-        'remaining' => 10,
+        'quantity'        => 10,
+        'remaining'       => 10,
         'expiration_date' => now()->addDays(10),
     ]);
     $unknown = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
-        'quantity' => 10,
-        'remaining' => 10,
+        'quantity'        => 10,
+        'remaining'       => 10,
         'expiration_date' => null,
     ]);
     $earlier = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
-        'quantity' => 10,
-        'remaining' => 10,
+        'quantity'        => 10,
+        'remaining'       => 10,
         'expiration_date' => now()->addDays(5),
     ]);
 
     $this->service->recordTransaction(expirationPayload([
-        'item_id' => $item->id,
+        'item_id'     => $item->id,
         'location_id' => $this->location->id,
-        'type' => MovementType::Out->value,
-        'quantity' => 15,
-        'unit_code' => $this->unit->code,
+        'type'        => MovementType::Out->value,
+        'quantity'    => 15,
+        'unit_code'   => $this->unit->code,
     ], TransactionType::Out->value));
 
     expect($earlier->refresh()->remaining)->toBe(0)
@@ -130,22 +130,22 @@ it('uses FEFO automatically for expirable items and puts undated legacy lots las
 it('rejects incompatible explicit deduction strategies', function (): void {
     $expirable = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
-        'is_expirable' => true,
+        'is_expirable'   => true,
     ]);
     $nonExpirable = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
 
     $base = [
         'location_id' => $this->location->id,
-        'type' => MovementType::Out->value,
-        'quantity' => 1,
-        'unit_code' => $this->unit->code,
-        'strategy' => DeductionStrategy::Fifo->value,
+        'type'        => MovementType::Out->value,
+        'quantity'    => 1,
+        'unit_code'   => $this->unit->code,
+        'strategy'    => DeductionStrategy::Fifo->value,
     ];
 
     expect(fn () => $this->service->recordTransaction(expirationPayload($base + ['item_id' => $expirable->id], TransactionType::Out->value)))
         ->toThrow(ValidationException::class, 'FIFO is not available')
         ->and(fn () => $this->service->recordTransaction(expirationPayload(array_replace($base, [
-            'item_id' => $nonExpirable->id,
+            'item_id'  => $nonExpirable->id,
             'strategy' => DeductionStrategy::Fefo->value,
         ]), TransactionType::Out->value)))
         ->toThrow(ValidationException::class, 'FEFO is not available');

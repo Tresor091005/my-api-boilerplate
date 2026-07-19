@@ -243,8 +243,7 @@ class TransactionValidator
         Collection $movements,
         array $lookups,
         bool $allowLegacyExpiration = false,
-    ): void
-    {
+    ): void {
         foreach ($movements as $index => $m) {
             $type = $m['type'] ?? null;
             if (is_string($type)) {
