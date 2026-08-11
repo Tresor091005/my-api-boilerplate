@@ -2390,7 +2390,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/shared",
-                "reference": "0b2d6d3e97a646b65cc75fd88b6541f1421adef4"
+                "reference": "a7b0b6112318873cd4116d549df912646ac7b8ea"
             },
             "type": "library",
             "extra": {
@@ -2408,7 +2408,8 @@
                     "Lahatre\\Shared\\Database\\Seeders\\": "database/seeders/"
                 },
                 "files": [
-                    "src/helpers.php"
+                    "src/helpers.php",
+                    "src/Data/functions.php"
                 ]
             },
             "license": [

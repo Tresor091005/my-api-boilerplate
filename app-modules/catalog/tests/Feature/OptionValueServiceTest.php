@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Lahatre\Catalog\DTO\OptionValueDTO;
-use Lahatre\Catalog\DTO\OptionValueFilterDTO;
+use Lahatre\Catalog\Data\OptionValueData;
+use Lahatre\Catalog\Data\OptionValueFilterData;
 use Lahatre\Catalog\Exceptions\OptionValue\OptionValueInUseException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -33,15 +33,15 @@ it('manages option values through service methods', function (): void {
     ]);
 
     $payload = $this->service
-        ->list($option, new OptionValueFilterDTO([]))
+        ->list($option, OptionValueFilterData::fromArray([]))
         ->response()
         ->getData(true);
 
     expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($optionValue->id);
 
-    $this->service->create($option, new OptionValueDTO([
+    $this->service->create($option, OptionValueData::fromArray([
         'option_id' => $option->id,
-        'values'    => ['Yellow'],
+        'values'    => ['yellow'],
     ]));
 
     $created = OptionValue::query()
@@ -49,10 +49,10 @@ it('manages option values through service methods', function (): void {
         ->where('value', 'yellow')
         ->firstOrFail();
 
-    $updated = $this->service->update($option, $optionValue, new OptionValueDTO([
+    $updated = $this->service->update($option, $optionValue, OptionValueData::fromArray([
         'option_id' => $option->id,
-        'value'     => 'Cyan',
-    ], $optionValue->id))->resource;
+        'value'     => 'cyan',
+    ]))->resource;
 
     expect($updated->value)->toBe('cyan');
 

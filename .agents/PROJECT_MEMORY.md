@@ -67,6 +67,16 @@ Use it together with `CODEBASE_RULES.md`:
 - UUID identifiers reduce trivial enumeration, but they are not an authorization boundary.
 - If the host application needs tenant-safe inventory endpoints, it must add an explicit business access boundary through host-level routes, Controllers, parent resources, or authorization rules.
 
+### 3.7 Form Request And Data Separation
+- `LahatreDTO` and validated DTOs are retired architecture. New code must not combine Laravel validation with service transport objects.
+- Form Requests own HTTP input validation and field-specific normalization.
+- Controllers retain Gate and Policy authorization. Because injected Form Requests validate before the Controller executes, an authenticated but unauthorized request may receive a validation response before the Controller Gate runs; this ordering is an accepted tradeoff and route rate limiting remains required.
+- Data classes are immutable typed transport objects created through `fromArray()` and contain no HTTP, Eloquent, Validator, authorization, or tenant-context knowledge.
+- The project favors one Request and one Data class per coherent shape, not one class per Controller action. Store/update classes are split only when conditional rules or missing-value semantics make the shared shape difficult to understand.
+- `MissingValue` represents an absent key and must remain distinct from explicit `null`, `false`, zero, an empty string, or an empty array.
+- `missingFields` passed to `fromArray()` uses source `snake_case` keys. Services consume `camelCase` Data properties.
+- Model updates should use an explicit field map filtered through the shared missing-value helper so absent attributes are not assigned.
+
 ## 4. Known Review Traps
 
 - A nested route can look correct while still missing scoped binding.
@@ -77,6 +87,9 @@ Use it together with `CODEBASE_RULES.md`:
 - A module exception can extend `Exception` instead of `AssertionException`, which bypasses the intended render contract.
 - User-facing text can drift into code instead of translations.
 - Test code often hides architecture mistakes because it bypasses the HTTP layer.
+- `nullable` does not mean that a key was present; use `array_key_exists()` while building Data objects.
+- Filtering Data values must remove only `MissingValue`; it must preserve `null`, `false`, zero, empty strings, and empty arrays.
+- A shared store/update Form Request should be split once conditional branches obscure its input contract.
 
 ## 5. Testing And Tooling Reality
 

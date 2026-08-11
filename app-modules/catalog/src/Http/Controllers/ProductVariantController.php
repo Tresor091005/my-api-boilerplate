@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Catalog\DTO\ProductVariantDTO;
-use Lahatre\Catalog\DTO\ProductVariantFilterDTO;
-use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
+use Lahatre\Catalog\Data\ProductVariantBatchData;
+use Lahatre\Catalog\Data\ProductVariantFilterData;
+use Lahatre\Catalog\Data\ProductVariantUpdateData;
+use Lahatre\Catalog\Http\Requests\ProductVariantFilterRequest;
+use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
+use Lahatre\Catalog\Http\Requests\UpdateProductVariantRequest;
 use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -21,12 +23,12 @@ class ProductVariantController
         protected ProductVariantService $productVariantService
     ) {}
 
-    public function index(Request $request, Product $product): ProductVariantCollection
+    public function index(ProductVariantFilterRequest $request, Product $product): ProductVariantCollection
     {
         Gate::authorize('retrieve', $product);
         Gate::authorize('list', ProductVariant::class);
 
-        $filters = ProductVariantFilterDTO::fromRequest($request);
+        $filters = ProductVariantFilterData::fromArray($request->validated());
 
         return $this->productVariantService->list($product, $filters);
     }
@@ -41,26 +43,29 @@ class ProductVariantController
         return response()->json($response);
     }
 
-    public function store(Request $request, Product $product): JsonResponse
+    public function store(StoreProductVariantRequest $request, Product $product): JsonResponse
     {
         Gate::authorize('update', $product);
         Gate::authorize('create', ProductVariant::class);
 
-        $dto = ProductVariantDTO::fromRequest($request);
+        $data = ProductVariantBatchData::fromArray($request->validated());
 
-        $response = $this->productVariantService->create($product, $dto);
+        $response = $this->productVariantService->create($product, $data);
 
         return response()->json($response, 201);
     }
 
-    public function update(Request $request, Product $product, ProductVariant $variant): JsonResponse
+    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResponse
     {
         Gate::authorize('update', $product);
         Gate::authorize('update', $variant);
 
-        $dto = ProductVariantUpdateDTO::fromRequest($request);
+        $data = ProductVariantUpdateData::fromArray(
+            $request->validated(),
+            missingFields: ['sku', 'should_manage_stock', 'is_active', 'options'],
+        );
 
-        $response = $this->productVariantService->update($product, $variant, $dto);
+        $response = $this->productVariantService->update($product, $variant, $data);
 
         return response()->json($response);
     }

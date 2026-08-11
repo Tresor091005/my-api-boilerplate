@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Lahatre\Catalog\DTO\OptionDTO;
-use Lahatre\Catalog\DTO\OptionFilterDTO;
+use Lahatre\Catalog\Data\OptionData;
+use Lahatre\Catalog\Data\OptionFilterData;
 use Lahatre\Catalog\Exceptions\Option\OptionInUseException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -32,24 +32,24 @@ it('manages options through service methods and scopes by tenant', function (): 
     ]);
 
     $payload = $this->service
-        ->list(new OptionFilterDTO(['per_page' => 50]))
+        ->list(OptionFilterData::fromArray(['per_page' => 50]))
         ->response()
         ->getData(true);
 
     expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($option->id);
 
-    $created = $this->service->create(new OptionDTO([
-        'name'   => 'Size',
-        'values' => ['Large', 'SMALL'],
+    $created = $this->service->create(OptionData::fromArray([
+        'name'   => 'size',
+        'values' => ['large', 'small'],
     ]))->resource;
 
     expect($created->organization_id)->toBe($this->organizationId)
         ->and($created->values()->count())->toBe(2);
 
-    $updated = $this->service->update($created, new OptionDTO([
-        'name'   => 'Material',
-        'values' => ['Cotton'],
-    ], $created->id))->resource;
+    $updated = $this->service->update($created, OptionData::fromArray([
+        'name'   => 'material',
+        'values' => ['cotton'],
+    ]))->resource;
 
     expect($updated->name)->toBe('material')
         ->and($updated->values()->where('value', 'cotton')->exists())->toBeTrue();

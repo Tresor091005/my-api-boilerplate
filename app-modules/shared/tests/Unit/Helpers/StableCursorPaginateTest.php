@@ -8,10 +8,10 @@ use Lahatre\Catalog\Models\Category;
 it('applies the standard cursor filter quartet with a deterministic id tie breaker', function (): void {
     $query = Category::query();
     $filters = (object) [
-        'sort_by'    => 'name',
-        'sort_order' => 'desc',
-        'per_page'   => 15,
-        'cursor'     => null,
+        'sortBy'    => 'name',
+        'sortOrder' => 'desc',
+        'perPage'   => 15,
+        'cursor'    => null,
     ];
 
     stableCursorPaginate($query, $filters);
@@ -25,10 +25,10 @@ it('applies the standard cursor filter quartet with a deterministic id tie break
 it('does not append the tie breaker twice when id is already ordered', function (): void {
     $query = Category::query();
     $filters = (object) [
-        'sort_by'    => 'id',
-        'sort_order' => 'asc',
-        'per_page'   => 15,
-        'cursor'     => null,
+        'sortBy'    => 'id',
+        'sortOrder' => 'asc',
+        'perPage'   => 15,
+        'cursor'    => null,
     ];
 
     stableCursorPaginate($query, $filters);
@@ -41,10 +41,10 @@ it('does not append the tie breaker twice when id is already ordered', function 
 it('supports explicit tie breaker columns on aliased queries', function (): void {
     $query = DB::table('inventory_stocks as stocks');
     $filters = (object) [
-        'sort_by'    => 'stocks.expiration_date',
-        'sort_order' => 'asc',
-        'per_page'   => 15,
-        'cursor'     => null,
+        'sortBy'    => 'stocks.expiration_date',
+        'sortOrder' => 'asc',
+        'perPage'   => 15,
+        'cursor'    => null,
     ];
 
     stableCursorPaginate($query, $filters, tieBreakerColumn: 'stocks.id');
@@ -57,7 +57,7 @@ it('supports explicit tie breaker columns on aliased queries', function (): void
 
 it('fails fast when the filter object does not expose the cursor quartet', function (): void {
     $query = Category::query();
-    $filters = (object) ['per_page' => 15];
+    $filters = (object) ['perPage' => 15];
 
     expect(fn () => stableCursorPaginate($query, $filters))
         ->toThrow(InvalidArgumentException::class);

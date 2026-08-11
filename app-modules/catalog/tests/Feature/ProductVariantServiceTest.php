@@ -6,10 +6,11 @@ namespace Lahatre\Catalog\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Catalog\DTO\ProductVariantDTO;
-use Lahatre\Catalog\DTO\ProductVariantFilterDTO;
-use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
+use Lahatre\Catalog\Data\ProductVariantBatchData;
+use Lahatre\Catalog\Data\ProductVariantFilterData;
+use Lahatre\Catalog\Data\ProductVariantUpdateData;
 use Lahatre\Catalog\Exceptions\ProductVariant\ProductVariantIsLastException;
+use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
@@ -65,7 +66,7 @@ it('manages product variants through service methods', function (): void {
     ]);
 
     $payload = $this->service
-        ->list($this->product, new ProductVariantFilterDTO(['per_page' => 50]))
+        ->list($this->product, ProductVariantFilterData::fromArray(['per_page' => 50]))
         ->response()
         ->getData(true);
 
@@ -74,7 +75,7 @@ it('manages product variants through service methods', function (): void {
     expect($variantIds)->toContain($variant->id);
     expect($variantIds->contains($otherVariant->id))->toBeFalse();
 
-    $this->service->create($this->product, new ProductVariantDTO([
+    $this->service->create($this->product, ProductVariantBatchData::fromArray([
         'variants' => [
             [
                 'sku'                 => 'NEW-VARIANT-SKU',
@@ -97,9 +98,10 @@ it('manages product variants through service methods', function (): void {
         ->where('variant_id', $createdVariant->id)
         ->count();
 
-    $updated = $this->service->update($this->product, $variant, new ProductVariantUpdateDTO([
-        'sku' => 'UPDATED-SKU',
-    ], $variant->id))->resource;
+    $updated = $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
+        ['sku' => 'UPDATED-SKU'],
+        missingFields: ['should_manage_stock', 'is_active', 'options'],
+    ))->resource;
 
     expect($updated->sku)->toBe('UPDATED-SKU');
 
@@ -112,7 +114,8 @@ it('manages product variants through service methods', function (): void {
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {
-    expect(fn (): ProductVariantDTO => new ProductVariantDTO([]))->toThrow(ValidationException::class);
+    expect(fn (): array => validator([], (new StoreProductVariantRequest())->rules())->validate())
+        ->toThrow(ValidationException::class);
 
     $singleVariant = ProductVariant::factory()->create([
         'organization_id' => $this->organizationId,

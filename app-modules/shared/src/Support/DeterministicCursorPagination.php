@@ -14,7 +14,7 @@ class DeterministicCursorPagination
 {
     /**
      * Apply the standard sortable cursor filter quartet:
-     * sort_by, sort_order, per_page, cursor.
+     * sortBy, sortOrder, perPage, cursor.
      *
      * @throws InvalidArgumentException
      */
@@ -27,13 +27,13 @@ class DeterministicCursorPagination
     ): CursorPaginator {
         self::assertFilterContract($filters);
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
+        $query->orderBy($filters->sortBy, $filters->sortOrder);
 
         if (!self::hasBasicOrderBy($query, $tieBreakerColumn)) {
-            $query->orderBy($tieBreakerColumn, self::lastDirection($query, $filters->sort_order));
+            $query->orderBy($tieBreakerColumn, self::lastDirection($query, $filters->sortOrder));
         }
 
-        return $query->cursorPaginate($filters->per_page, $columns, $cursorName, $filters->cursor);
+        return $query->cursorPaginate($filters->perPage, $columns, $cursorName, $filters->cursor);
     }
 
     /**
@@ -41,18 +41,18 @@ class DeterministicCursorPagination
      */
     protected static function assertFilterContract(object $filters): void
     {
-        foreach (['sort_by', 'sort_order', 'per_page', 'cursor'] as $property) {
+        foreach (['sortBy', 'sortOrder', 'perPage', 'cursor'] as $property) {
             if (!property_exists($filters, $property)) {
                 throw new InvalidArgumentException(sprintf(
                     'DeterministicCursorPagination expects a filter object with %s.',
-                    implode(', ', ['sort_by', 'sort_order', 'per_page', 'cursor'])
+                    implode(', ', ['sortBy', 'sortOrder', 'perPage', 'cursor'])
                 ));
             }
         }
 
-        if (!is_string($filters->sort_by) || !is_string($filters->sort_order) || !is_int($filters->per_page)) {
+        if (!is_string($filters->sortBy) || !is_string($filters->sortOrder) || !is_int($filters->perPage)) {
             throw new InvalidArgumentException(
-                'DeterministicCursorPagination expects sort_by:string, sort_order:string, and per_page:int.'
+                'DeterministicCursorPagination expects sortBy:string, sortOrder:string, and perPage:int.'
             );
         }
 

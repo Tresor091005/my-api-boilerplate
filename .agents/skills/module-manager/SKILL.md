@@ -22,7 +22,8 @@ Toutes les commandes `make` **doivent** inclure l'option `--module`.
 -   **Controller** : `php artisan make:controller MyController --module=<name>`
 -   **Model** : `php artisan make:model MyModel --module=<name>`
 -   **Migration** : `php artisan make:migration create_table_name --module=<name>`
--   **DTO** : `php artisan make:dto MyDTO --module=<name>`
+-   **Form Request** : `php artisan make:request MyRequest --module=<name>`
+-   **Data** : `php artisan make:class Data/MyData --module=<name>` puis implémenter systématiquement `::fromArray()`.
 
 ## 3. Base de Données & Seeders
 

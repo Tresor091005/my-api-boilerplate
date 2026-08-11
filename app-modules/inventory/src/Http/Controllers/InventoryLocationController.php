@@ -7,9 +7,12 @@ namespace Lahatre\Inventory\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Lahatre\Inventory\DTO\InventoryLocationFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLocationValueFilterDTO;
-use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
+use Lahatre\Inventory\Data\InventoryLocationFilterData;
+use Lahatre\Inventory\Data\InventoryLocationValueFilterData;
+use Lahatre\Inventory\Data\InventoryMovementFilterData;
+use Lahatre\Inventory\Http\Requests\InventoryLocationFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryLocationValueFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryLocationCollection;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -21,10 +24,10 @@ class InventoryLocationController
         protected InventoryQueryService $inventoryQueryService
     ) {}
 
-    public function index(Request $request): InventoryLocationCollection
+    public function index(InventoryLocationFilterRequest $request): InventoryLocationCollection
     {
         $includes = $this->includes($request);
-        $filters = InventoryLocationFilterDTO::fromRequest($request);
+        $filters = InventoryLocationFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listLocations(
             $filters,
@@ -49,16 +52,16 @@ class InventoryLocationController
         return response()->json($this->inventoryQueryService->getLocationStock($location));
     }
 
-    public function showValue(Request $request, InventoryLocation $location): JsonResponse
+    public function showValue(InventoryLocationValueFilterRequest $request, InventoryLocation $location): JsonResponse
     {
-        $filters = InventoryLocationValueFilterDTO::fromRequest($request);
+        $filters = InventoryLocationValueFilterData::fromArray($request->validated());
 
         return response()->json($this->inventoryQueryService->getLocationValue($location, $filters));
     }
 
-    public function indexMovements(Request $request, InventoryLocation $location): InventoryMovementCollection
+    public function indexMovements(InventoryMovementFilterRequest $request, InventoryLocation $location): InventoryMovementCollection
     {
-        $filters = InventoryMovementFilterDTO::fromRequest($request);
+        $filters = InventoryMovementFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listLocationMovements($location, $filters);
     }

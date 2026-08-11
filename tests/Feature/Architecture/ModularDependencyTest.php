@@ -41,13 +41,18 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
     $prohibitedNamespaces = array_map(fn ($m): string => 'Lahatre\\'.Str::studly($m), $prohibitedModules);
 
     $finder = new Finder();
-    $finder->files()->in($modulePath)->name('*.php');
+    $sourcePath = $modulePath.'/src';
+    if (!is_dir($sourcePath)) {
+        return [];
+    }
+
+    $finder->files()->in($sourcePath)->name('*.php');
 
     $failures = [];
 
     foreach ($finder as $file) {
         // GLOBAL EXCEPTION: The shared helpers file is allowed to touch everything for convenience
-        if ($module === 'shared' && Str::endsWith($file->getRelativePathname(), 'src/helpers.php')) {
+        if ($module === 'shared' && $file->getFilename() === 'helpers.php') {
             continue;
         }
 

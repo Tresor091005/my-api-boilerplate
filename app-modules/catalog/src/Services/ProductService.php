@@ -8,14 +8,19 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductAssertion;
-use Lahatre\Catalog\DTO\ProductDTO;
-use Lahatre\Catalog\DTO\ProductFilterDTO;
+use Lahatre\Catalog\Data\ProductData;
+use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\ProductVariantService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Shared\Data\MissingValue;
+
+use function Lahatre\Shared\Data\required;
+use function Lahatre\Shared\Data\withoutMissing;
+
 use Lahatre\Shared\Support\HandleGenerator;
 
 class ProductService implements StandaloneService
@@ -25,7 +30,7 @@ class ProductService implements StandaloneService
         protected ProductVariantService $productVariantService
     ) {}
 
-    public function list(ProductFilterDTO $filters): ProductCollection
+    public function list(ProductFilterData $filters): ProductCollection
     {
         $query = Product::query()->where('organization_id', getPermissionsTeamId())->with($this->relations());
 
@@ -40,8 +45,8 @@ class ProductService implements StandaloneService
         if ($filters->description) {
             $query->where('description', 'like', "$filters->description%");
         }
-        if ($filters->is_active !== null) {
-            $query->where('is_active', $filters->is_active);
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
         }
 
         $products = stableCursorPaginate($query, $filters);
@@ -56,46 +61,46 @@ class ProductService implements StandaloneService
         return ProductResource::make($product);
     }
 
-    public function create(ProductDTO $dto): ProductResource
+    public function create(ProductData $data): ProductResource
     {
         $product = new Product();
 
         $product->fill([
             'organization_id' => getPermissionsTeamId(),
-            'name'            => $dto->name,
-            'description'     => $dto->description,
-            'is_active'       => $dto->is_active,
+            'name'            => required($data->name),
+            'description'     => required($data->description),
+            'is_active'       => required($data->isActive),
         ]);
 
         $product->handle = HandleGenerator::generate(
-            $dto->name,
+            required($data->name),
             $product->getTable(),
             extra: ['organization_id' => $product->organization_id]
         );
 
-        DB::transaction(function () use ($product, $dto): void {
+        DB::transaction(function () use ($product, $data): void {
             $product->save();
 
-            $product->categories()->sync($dto->categories ?? []);
+            $product->categories()->sync(required($data->categories) ?? []);
 
-            $this->productVariantService->add($product, $dto->variants ?? collect());
+            $this->productVariantService->add($product, required($data->variants));
         });
 
         return ProductResource::make($product->load($this->relations()));
     }
 
-    public function update(Product $product, ProductDTO $dto): ProductResource
+    public function update(Product $product, ProductData $data): ProductResource
     {
-        $product->fill([
-            'name'        => $dto->name,
-            'description' => $dto->description,
-            'is_active'   => $dto->is_active,
-        ]);
+        $product->fill(withoutMissing([
+            'name'        => $data->name,
+            'description' => $data->description,
+            'is_active'   => $data->isActive,
+        ]));
 
-        DB::transaction(function () use ($product, $dto): void {
+        DB::transaction(function () use ($product, $data): void {
             $product->save();
-            if ($dto->categories !== null) {
-                $product->categories()->sync($dto->categories);
+            if (!$data->categories instanceof MissingValue) {
+                $product->categories()->sync($data->categories ?? []);
             }
         });
 

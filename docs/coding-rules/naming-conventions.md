@@ -28,18 +28,26 @@ class MaClasse
     public string $maPropriete;
 }
 ```
-**Exception :** Pour les objets qui sont une représentation directe de la base de données (modèles Eloquent) ou des DTOs mappant des payloads API, il est acceptable et même recommandé de conserver le `snake_case` pour éviter une conversion superflue.
+**Exception :** Les modèles Eloquent conservent les attributs de base en `snake_case`. Les classes `Data` utilisent toujours des propriétés PHP en `camelCase` et réalisent explicitement le mapping depuis les clés de payload en `snake_case` dans `::fromArray()`.
 ```php
 // Modèle Eloquent
 $user->is_active = true;
 
-// DTO
-class UserDTO
+// Data de transport
+final readonly class UserData
 {
-    public function __construct(
-        public readonly string $user_name,
-        public readonly string $email_address,
+    private function __construct(
+        public string $userName,
+        public string $emailAddress,
     ) {}
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            userName: $data['user_name'],
+            emailAddress: $data['email_address'],
+        );
+    }
 }
 ```
 

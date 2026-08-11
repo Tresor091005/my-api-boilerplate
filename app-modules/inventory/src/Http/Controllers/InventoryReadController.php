@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Lahatre\Inventory\DTO\InventoryStockExpiringFilterDTO;
-use Lahatre\Inventory\DTO\InventoryStockSummaryFilterDTO;
+use Lahatre\Inventory\Data\InventoryStockExpiringFilterData;
+use Lahatre\Inventory\Data\InventoryStockSummaryFilterData;
+use Lahatre\Inventory\Http\Requests\InventoryStockExpiringFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryStockSummaryFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryExpiringLotCollection;
 use Lahatre\Inventory\Http\Resources\InventorySummaryCollection;
 use Lahatre\Inventory\Services\InventoryQueryService;
@@ -17,16 +18,16 @@ class InventoryReadController
         protected InventoryQueryService $inventoryQueryService
     ) {}
 
-    public function indexSummary(Request $request): InventorySummaryCollection
+    public function indexSummary(InventoryStockSummaryFilterRequest $request): InventorySummaryCollection
     {
-        $filters = InventoryStockSummaryFilterDTO::fromRequest($request);
+        $filters = InventoryStockSummaryFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listSummary($filters);
     }
 
-    public function indexExpiring(Request $request): InventoryExpiringLotCollection
+    public function indexExpiring(InventoryStockExpiringFilterRequest $request): InventoryExpiringLotCollection
     {
-        $filters = InventoryStockExpiringFilterDTO::fromRequest($request);
+        $filters = InventoryStockExpiringFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listExpiring($filters);
     }

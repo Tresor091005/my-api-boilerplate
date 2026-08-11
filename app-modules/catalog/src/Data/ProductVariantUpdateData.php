@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Catalog\Data;
+
+use Lahatre\Shared\Data\MissingValue;
+use Lahatre\Shared\Data\MissingValueReader;
+
+final readonly class ProductVariantUpdateData
+{
+    /**
+     * @param  MissingValue|array<int, array{name: string, value: string}>  $options
+     */
+    private function __construct(
+        public MissingValue|string|null $sku,
+        public MissingValue|bool $shouldManageStock,
+        public MissingValue|bool $isActive,
+        public MissingValue|array $options,
+    ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  list<string>  $missingFields
+     */
+    public static function fromArray(array $data, array $missingFields = []): self
+    {
+        $read = MissingValueReader::fromArray($data, $missingFields);
+        $shouldManageStock = $read->get('should_manage_stock');
+        $isActive = $read->get('is_active');
+
+        return new self(
+            sku: $read->get('sku'),
+            shouldManageStock: $shouldManageStock instanceof MissingValue
+                ? $shouldManageStock
+                : (bool) $shouldManageStock,
+            isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
+            options: $read->get('options'),
+        );
+    }
+}

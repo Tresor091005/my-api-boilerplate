@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Lahatre\Iam\Auth\PersonalAccessToken;
-use Lahatre\Iam\DTO\LoginDTO;
-use Lahatre\Iam\DTO\ResetPasswordDTO;
+use Lahatre\Iam\Data\LoginData;
+use Lahatre\Iam\Data\ResetPasswordData;
 use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
 use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
 use Lahatre\Iam\Http\Resources\AuthResource;
@@ -29,14 +29,14 @@ class AuthService implements StandaloneService
      *
      * @throws InvalidLoginException
      */
-    public function login(LoginDTO $dto): AuthResource
+    public function login(LoginData $data): AuthResource
     {
         $user = User::query()
             ->with(['organizationMemberships.memberRoles.role'])
-            ->where('email', $dto->email)
+            ->where('email', $data->email)
             ->first();
 
-        if (!$user || !Hash::check($dto->password, $user->password)) {
+        if (!$user || !Hash::check($data->password, $user->password)) {
             throw new InvalidLoginException();
         }
 
@@ -137,13 +137,13 @@ class AuthService implements StandaloneService
     /**
      * Reset password
      */
-    public function resetPassword(ResetPasswordDTO $dto): void
+    public function resetPassword(ResetPasswordData $data): void
     {
         $status = DB::transaction(fn () => Password::broker('users')->reset(
             [
-                'email'    => $dto->email,
-                'password' => $dto->password,
-                'token'    => $dto->token,
+                'email'    => $data->email,
+                'password' => $data->password,
+                'token'    => $data->token,
             ],
             function (User $user, string $password): void {
                 $user->fill(['password' => $password]);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Services;
 
-use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -14,9 +13,9 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Inventory\DTO\MovementDataDTO;
-use Lahatre\Inventory\DTO\MovementExecutionContextDTO;
-use Lahatre\Inventory\DTO\TransactionDataDTO;
+use Lahatre\Inventory\Data\MovementData;
+use Lahatre\Inventory\Data\MovementExecutionContextData;
+use Lahatre\Inventory\Data\TransactionData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -253,20 +252,20 @@ class InventoryService implements InventoryInterface
 
         /** @var Collection<string, InventoryItem> $items */
         $items = $lookups['items'];
-        $transaction = TransactionDataDTO::fromArray($validatedData, $this->masterInterface, $costsInMinor);
+        $transaction = TransactionData::fromArray($validatedData, $this->masterInterface, $costsInMinor);
         $payloadHash = $this->transactionPayloadHasher->hash($transaction);
         $movementContexts = $this->buildMovementContexts($transaction, $items);
 
         $tx = InventoryTransaction::query()->firstOrCreate(
             [
                 'organization_id' => $organizationId,
-                'idempotency_key' => $transaction->idempotency_key,
+                'idempotency_key' => $transaction->idempotencyKey,
             ],
             [
                 'payload_hash'               => $payloadHash,
-                'reference_type'             => $transaction->reference_type,
-                'reference_id'               => $transaction->reference_id,
-                'transaction_type'           => $transaction->transaction_type,
+                'reference_type'             => $transaction->referenceType,
+                'reference_id'               => $transaction->referenceId,
+                'transaction_type'           => $transaction->transactionType,
                 'metadata'                   => $transaction->metadata,
                 'reversal_of_transaction_id' => $reversalOfTransactionId,
             ]
@@ -275,7 +274,7 @@ class InventoryService implements InventoryInterface
         if (!$tx->wasRecentlyCreated) {
             if ($tx->payload_hash !== $payloadHash) {
                 throw new IdempotencyKeyReuseException(
-                    $transaction->idempotency_key,
+                    $transaction->idempotencyKey,
                     $tx->payload_hash,
                     $payloadHash
                 );
@@ -284,7 +283,7 @@ class InventoryService implements InventoryInterface
             return $tx->load($with);
         }
 
-        match ($transaction->transaction_type) {
+        match ($transaction->transactionType) {
             TransactionType::In       => $this->processInMovements($tx, $movementContexts),
             TransactionType::Out      => $this->processOutMovements($tx, $movementContexts),
             TransactionType::Transfer => $transferReversalBatches === null
@@ -497,27 +496,27 @@ class InventoryService implements InventoryInterface
 
     /**
      * @param  Collection<string, InventoryItem>  $items
-     * @return Collection<int, MovementExecutionContextDTO>
+     * @return Collection<int, MovementExecutionContextData>
      */
-    protected function buildMovementContexts(TransactionDataDTO $transaction, Collection $items): Collection
+    protected function buildMovementContexts(TransactionData $transaction, Collection $items): Collection
     {
-        return $transaction->movements->map(function (MovementDataDTO $movement) use ($items): MovementExecutionContextDTO {
-            $item = $items->get($movement->item_id);
+        return $transaction->movements->map(function (MovementData $movement) use ($items): MovementExecutionContextData {
+            $item = $items->get($movement->itemId);
 
-            return new MovementExecutionContextDTO(
-                movement: $movement,
-                item: $item,
-                quantityInBase: $this->masterInterface->convertUnit(
+            return MovementExecutionContextData::fromArray([
+                'movement'         => $movement,
+                'item'             => $item,
+                'quantity_in_base' => $this->masterInterface->convertUnit(
                     $movement->quantity,
-                    $movement->unit_code,
+                    $movement->unitCode,
                     $item->base_unit_code
                 ),
-            );
+            ]);
         });
     }
 
     /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     * @param  Collection<int, MovementExecutionContextData>  $movementContexts
      */
     protected function processInMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
@@ -525,13 +524,13 @@ class InventoryService implements InventoryInterface
             $this->applyInbound(
                 tx: $tx,
                 context: $context,
-                stockMetadata: $context->movement->stock_metadata,
+                stockMetadata: $context->movement->stockMetadata,
             );
         }
     }
 
     /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     * @param  Collection<int, MovementExecutionContextData>  $movementContexts
      */
     protected function processOutMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
@@ -545,7 +544,7 @@ class InventoryService implements InventoryInterface
     }
 
     /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     * @param  Collection<int, MovementExecutionContextData>  $movementContexts
      */
     protected function processAdjustmentMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
@@ -560,39 +559,39 @@ class InventoryService implements InventoryInterface
             $cmp = bccomp($delta, '0', 10);
 
             if ($cmp > 0) {
-                if ($item->is_expirable && $movement->expiration_date === null) {
+                if ($item->is_expirable && $movement->expirationDate === null) {
                     throw ValidationException::withMessages([
                         "movements.{$index}.expiration_date" => __('inventory::validation.expiration_date_required_for_expirable_item'),
                     ]);
                 }
 
-                if (!$item->is_expirable && $movement->expiration_date !== null) {
+                if (!$item->is_expirable && $movement->expirationDate !== null) {
                     throw ValidationException::withMessages([
                         "movements.{$index}.expiration_date" => __('inventory::validation.expiration_date_prohibited_for_non_expirable_item'),
                     ]);
                 }
 
-                if ($movement->currency_code === null) {
+                if ($movement->currencyCode === null) {
                     throw AdjustmentAverageCostUnavailableException::currencyRequired(
-                        $movement->item_id,
-                        $movement->location_id
+                        $movement->itemId,
+                        $movement->locationId
                     );
                 }
 
                 $averageCost = $this->resolveAdjustmentAverageCost(
                     stocks: $currentStocks,
-                    currencyCode: $movement->currency_code,
+                    currencyCode: $movement->currencyCode,
                     quantityToAdd: $delta,
-                    itemId: $movement->item_id,
-                    locationId: $movement->location_id,
+                    itemId: $movement->itemId,
+                    locationId: $movement->locationId,
                 );
 
                 $this->applyInbound(
                     tx: $tx,
                     context: $context,
                     quantityOverrideInBase: $delta,
-                    currencyCode: $movement->currency_code,
-                    stockMetadata: $movement->stock_metadata,
+                    currencyCode: $movement->currencyCode,
+                    stockMetadata: $movement->stockMetadata,
                     totalCost: $averageCost,
                 );
             } elseif ($cmp < 0) {
@@ -604,13 +603,13 @@ class InventoryService implements InventoryInterface
                     stocks: $stocks,
                 );
             } else {
-                throw new AdjustmentNoOpException($movement->item_id, $movement->location_id);
+                throw new AdjustmentNoOpException($movement->itemId, $movement->locationId);
             }
         }
     }
 
     /**
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     * @param  Collection<int, MovementExecutionContextData>  $movementContexts
      */
     protected function processTransferMovements(InventoryTransaction $tx, Collection $movementContexts): void
     {
@@ -642,7 +641,7 @@ class InventoryService implements InventoryInterface
      * Replays persisted transfer allocations when reversing a transfer.
      *
      * @param  array<int, array{outbound: array<int, array<string, mixed>>, inbound: array<int, array<string, mixed>>}>  $batches
-     * @param  Collection<int, MovementExecutionContextDTO>  $movementContexts
+     * @param  Collection<int, MovementExecutionContextData>  $movementContexts
      */
     protected function processTransferReversalMovements(
         InventoryTransaction $tx,
@@ -654,8 +653,8 @@ class InventoryService implements InventoryInterface
 
             foreach ($batch['outbound'] as $movementData) {
                 $template = $movementContexts->first(
-                    fn (MovementExecutionContextDTO $context): bool => $context->movement->item_id === $movementData['item_id']
-                        && $context->movement->location_id === $movementData['location_id']
+                    fn (MovementExecutionContextData $context): bool => $context->movement->itemId === $movementData['item_id']
+                        && $context->movement->locationId === $movementData['location_id']
                 );
 
                 if (!$template) {
@@ -667,32 +666,29 @@ class InventoryService implements InventoryInterface
 
             foreach ($batch['inbound'] as $movementData) {
                 $template = $movementContexts->first(
-                    fn (MovementExecutionContextDTO $context): bool => $context->movement->item_id === $movementData['item_id']
+                    fn (MovementExecutionContextData $context): bool => $context->movement->itemId === $movementData['item_id']
                 );
 
                 if (!$template || $movementData['currency_code'] === null) {
                     throw ReversalException::inconsistentMovement((string) $movementData['movement_id']);
                 }
 
-                $context = new MovementExecutionContextDTO(
-                    movement: new MovementDataDTO(
-                        item_id: $movementData['item_id'],
-                        location_id: $movementData['location_id'],
-                        to_location_id: null,
-                        type: MovementType::In,
-                        quantity: (string) $movementData['quantity'],
-                        unit_code: $movementData['unit_code'],
-                        total_cost: (int) $movementData['total_cost'],
-                        currency_code: $movementData['currency_code'],
-                        expiration_date: $movementData['expiration_date']
-                            ? CarbonImmutable::parse($movementData['expiration_date'])
-                            : null,
-                        metadata: $movementData['metadata'],
-                        stock_metadata: $movementData['stock_metadata'],
-                    ),
-                    item: $template->item,
-                    quantityInBase: (string) $movementData['quantity'],
-                );
+                $context = MovementExecutionContextData::fromArray([
+                    'movement' => MovementData::fromArray([
+                        'item_id'         => $movementData['item_id'],
+                        'location_id'     => $movementData['location_id'],
+                        'type'            => MovementType::In,
+                        'quantity'        => (string) $movementData['quantity'],
+                        'unit_code'       => $movementData['unit_code'],
+                        'total_cost'      => (int) $movementData['total_cost'],
+                        'currency_code'   => $movementData['currency_code'],
+                        'expiration_date' => $movementData['expiration_date'],
+                        'metadata'        => $movementData['metadata'],
+                        'stock_metadata'  => $movementData['stock_metadata'],
+                    ], $this->masterInterface, costsInMinor: true),
+                    'item'             => $template->item,
+                    'quantity_in_base' => (string) $movementData['quantity'],
+                ]);
 
                 $this->applyInbound(
                     tx: $tx,
@@ -706,29 +702,28 @@ class InventoryService implements InventoryInterface
         }
     }
 
-    protected function buildTransferDestinationContext(MovementExecutionContextDTO $context): MovementExecutionContextDTO
+    protected function buildTransferDestinationContext(MovementExecutionContextData $context): MovementExecutionContextData
     {
         $movement = $context->movement;
-        $destinationMovement = new MovementDataDTO(
-            item_id: $movement->item_id,
-            location_id: $movement->to_location_id,
-            to_location_id: null,
-            type: MovementType::In,
-            quantity: $movement->quantity,
-            unit_code: $movement->unit_code,
-            metadata: $movement->metadata,
-        );
+        $destinationMovement = MovementData::fromArray([
+            'item_id'     => $movement->itemId,
+            'location_id' => $movement->toLocationId,
+            'type'        => MovementType::In,
+            'quantity'    => $movement->quantity,
+            'unit_code'   => $movement->unitCode,
+            'metadata'    => $movement->metadata,
+        ], $this->masterInterface);
 
-        return new MovementExecutionContextDTO(
-            movement: $destinationMovement,
-            item: $context->item,
-            quantityInBase: $context->quantityInBase,
-        );
+        return MovementExecutionContextData::fromArray([
+            'movement'         => $destinationMovement,
+            'item'             => $context->item,
+            'quantity_in_base' => $context->quantityInBase,
+        ]);
     }
 
     protected function applyInbound(
         InventoryTransaction $tx,
-        MovementExecutionContextDTO $context,
+        MovementExecutionContextData $context,
         ?string $quantityOverrideInBase = null,
         ?int $totalCost = null,
         ?string $currencyCode = null,
@@ -739,11 +734,11 @@ class InventoryService implements InventoryInterface
         $item = $context->item;
         $quantityInBase = $quantityOverrideInBase ?? $context->quantityInBase;
         $quantity = (int) $quantityInBase;
-        $resolvedCurrencyCode = $currencyCode ?? $movement->currency_code;
-        $resolvedTotalCost = $totalCost ?? $movement->total_cost;
+        $resolvedCurrencyCode = $currencyCode ?? $movement->currencyCode;
+        $resolvedTotalCost = $totalCost ?? $movement->totalCost;
 
         if ($resolvedTotalCost === null) {
-            throw new InboundCostRequiredException($movement->item_id, $movement->location_id);
+            throw new InboundCostRequiredException($movement->itemId, $movement->locationId);
         }
 
         $resolvedUnitCost = intdiv($resolvedTotalCost, $quantity);
@@ -751,15 +746,15 @@ class InventoryService implements InventoryInterface
 
         $stock = InventoryStock::create([
             'organization_id' => $this->organizationId(),
-            'item_id'         => $movement->item_id,
-            'location_id'     => $movement->location_id,
+            'item_id'         => $movement->itemId,
+            'location_id'     => $movement->locationId,
             'unit_cost'       => $resolvedUnitCost,
             'cost_remainder'  => $costRemainder,
             'currency_code'   => $resolvedCurrencyCode,
             'quantity'        => $quantity,
             'remaining'       => $quantity,
             'unit_code'       => $item->base_unit_code,
-            'expiration_date' => $movement->expiration_date,
+            'expiration_date' => $movement->expirationDate,
             'metadata'        => $stockMetadata,
         ]);
 
@@ -768,14 +763,14 @@ class InventoryService implements InventoryInterface
             'movement_type'   => MovementType::In,
             'transaction_id'  => $tx->id,
             'link_id'         => $linkId,
-            'item_id'         => $movement->item_id,
-            'location_id'     => $movement->location_id,
+            'item_id'         => $movement->itemId,
+            'location_id'     => $movement->locationId,
             'stock_id'        => $stock->id,
             'quantity'        => $quantity,
             'unit_code'       => $item->base_unit_code,
             'total_cost'      => $resolvedTotalCost,
             'currency_code'   => $resolvedCurrencyCode,
-            'expiration_date' => $movement->expiration_date,
+            'expiration_date' => $movement->expirationDate,
             'metadata'        => $movement->metadata,
         ]);
 
@@ -784,7 +779,7 @@ class InventoryService implements InventoryInterface
 
     protected function applyDeduction(
         InventoryTransaction $tx,
-        MovementExecutionContextDTO $context,
+        MovementExecutionContextData $context,
         string $quantityToDeduct,
         ?Collection $stocks = null,
         ?string $linkId = null
@@ -798,15 +793,15 @@ class InventoryService implements InventoryInterface
 
         if (bccomp($quantityToDeduct, $totalAvailable, 10) > 0) {
             throw new InsufficientStockException(
-                $movement->item_id,
-                $movement->location_id,
+                $movement->itemId,
+                $movement->locationId,
                 $this->masterInterface->convertUnit(
                     $quantityToDeduct,
                     $item->base_unit_code,
-                    $movement->unit_code
+                    $movement->unitCode
                 ),
-                $this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $movement->unit_code),
-                $movement->unit_code
+                $this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $movement->unitCode),
+                $movement->unitCode
             );
         }
 
@@ -840,8 +835,8 @@ class InventoryService implements InventoryInterface
                 'movement_type'           => MovementType::Out,
                 'transaction_id'          => $tx->id,
                 'link_id'                 => $linkId,
-                'item_id'                 => $movement->item_id,
-                'location_id'             => $movement->location_id,
+                'item_id'                 => $movement->itemId,
+                'location_id'             => $movement->locationId,
                 'stock_id'                => $stock->id,
                 'quantity'                => (int) $deduction,
                 'unit_code'               => $item->base_unit_code,
@@ -915,12 +910,12 @@ class InventoryService implements InventoryInterface
         $outMovement->setRelation('stock', $stock);
     }
 
-    protected function resolveStocksForAdjustment(MovementDataDTO $movement): Collection
+    protected function resolveStocksForAdjustment(MovementData $movement): Collection
     {
         return InventoryStock::query()
-            ->where('item_id', $movement->item_id)
+            ->where('item_id', $movement->itemId)
             ->where('organization_id', $this->organizationId())
-            ->where('location_id', $movement->location_id)
+            ->where('location_id', $movement->locationId)
             ->where('remaining', '>', 0)
             ->lockForUpdate()
             ->get();
@@ -958,7 +953,7 @@ class InventoryService implements InventoryInterface
         );
     }
 
-    protected function resolveStocksForDeduction(MovementDataDTO $movement, InventoryItem $item): Collection
+    protected function resolveStocksForDeduction(MovementData $movement, InventoryItem $item): Collection
     {
         $strategy = $this->resolveDeductionStrategy($movement, $item);
         $cacheKey = $this->buildStockSelectionCacheKey($movement, $strategy);
@@ -967,9 +962,9 @@ class InventoryService implements InventoryInterface
             return $this->stockSelectionCache[$cacheKey];
         }
 
-        $query = InventoryStock::where('item_id', $movement->item_id)
+        $query = InventoryStock::where('item_id', $movement->itemId)
             ->where('organization_id', $this->organizationId())
-            ->where('location_id', $movement->location_id)
+            ->where('location_id', $movement->locationId)
             ->where('remaining', '>', 0)
             ->lockForUpdate();
 
@@ -978,28 +973,28 @@ class InventoryService implements InventoryInterface
             DeductionStrategy::Fefo => $query->orderByRaw('expiration_date ASC NULLS LAST')
                 ->orderBy('created_at', 'asc')->get(),
             DeductionStrategy::Manual => $this->orderStocksManually(
-                $query->whereIn('id', $movement->stock_ids)->get(),
-                $movement->stock_ids ?? [],
+                $query->whereIn('id', $movement->stockIds)->get(),
+                $movement->stockIds ?? [],
             ),
         };
 
         return $this->stockSelectionCache[$cacheKey] = $stocks;
     }
 
-    protected function resolveDeductionStrategy(MovementDataDTO $movement, InventoryItem $item): DeductionStrategy
+    protected function resolveDeductionStrategy(MovementData $movement, InventoryItem $item): DeductionStrategy
     {
         return $movement->strategy
             ?? $item->deduction_strategy
             ?? ($item->is_expirable ? DeductionStrategy::Fefo : DeductionStrategy::Fifo);
     }
 
-    protected function buildStockSelectionCacheKey(MovementDataDTO $movement, DeductionStrategy $strategy): string
+    protected function buildStockSelectionCacheKey(MovementData $movement, DeductionStrategy $strategy): string
     {
         return implode('|', [
-            $movement->item_id,
-            $movement->location_id,
+            $movement->itemId,
+            $movement->locationId,
             $strategy->value,
-            implode(',', $movement->stock_ids ?? []),
+            implode(',', $movement->stockIds ?? []),
         ]);
     }
 

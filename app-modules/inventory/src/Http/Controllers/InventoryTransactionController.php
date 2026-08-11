@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Lahatre\Inventory\DTO\InventoryTransactionFilterDTO;
+use Lahatre\Inventory\Data\InventoryTransactionFilterData;
+use Lahatre\Inventory\Http\Requests\InventoryTransactionFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryTransactionCollection;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\InventoryQueryService;
@@ -17,9 +17,9 @@ class InventoryTransactionController
         protected InventoryQueryService $inventoryQueryService
     ) {}
 
-    public function index(Request $request): InventoryTransactionCollection
+    public function index(InventoryTransactionFilterRequest $request): InventoryTransactionCollection
     {
-        $filters = InventoryTransactionFilterDTO::fromRequest($request);
+        $filters = InventoryTransactionFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listTransactions($filters);
     }

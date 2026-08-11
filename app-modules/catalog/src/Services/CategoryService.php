@@ -6,12 +6,17 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\CategoryAssertion;
-use Lahatre\Catalog\DTO\CategoryDTO;
-use Lahatre\Catalog\DTO\CategoryFilterDTO;
+use Lahatre\Catalog\Data\CategoryData;
+use Lahatre\Catalog\Data\CategoryFilterData;
 use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Http\Resources\CategoryResource;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Shared\Data\MissingValue;
+
+use function Lahatre\Shared\Data\required;
+use function Lahatre\Shared\Data\withoutMissing;
+
 use Lahatre\Shared\Support\HandleGenerator;
 
 class CategoryService implements StandaloneService
@@ -20,7 +25,7 @@ class CategoryService implements StandaloneService
         protected CategoryAssertion $categoryAssertion
     ) {}
 
-    public function list(CategoryFilterDTO $filters): CategoryCollection
+    public function list(CategoryFilterData $filters): CategoryCollection
     {
         $query = Category::query()->where('organization_id', getPermissionsTeamId());
 
@@ -30,11 +35,11 @@ class CategoryService implements StandaloneService
         if ($filters->name) {
             $query->where('name', 'like', "$filters->name%");
         }
-        if ($filters->is_active !== null) {
-            $query->where('is_active', $filters->is_active);
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
         }
-        if ($filters->parent_id) {
-            $query->where('parent_id', $filters->parent_id);
+        if ($filters->parentId) {
+            $query->where('parent_id', $filters->parentId);
         }
 
         $categories = stableCursorPaginate($query, $filters);
@@ -49,19 +54,19 @@ class CategoryService implements StandaloneService
         return CategoryResource::make($category);
     }
 
-    public function create(CategoryDTO $dto): CategoryResource
+    public function create(CategoryData $data): CategoryResource
     {
         $category = new Category();
 
         $category->fill([
             'organization_id' => getPermissionsTeamId(),
-            'name'            => $dto->name,
-            'parent_id'       => $dto->parent_id,
-            'is_active'       => $dto->is_active,
+            'name'            => required($data->name),
+            'parent_id'       => required($data->parentId),
+            'is_active'       => required($data->isActive),
         ]);
 
         $category->handle = HandleGenerator::generate(
-            $dto->name,
+            required($data->name),
             $category->getTable(),
             extra: ['organization_id' => $category->organization_id]
         );
@@ -71,15 +76,17 @@ class CategoryService implements StandaloneService
         return CategoryResource::make($category->load(['bloodline']));
     }
 
-    public function update(Category $category, CategoryDTO $dto): CategoryResource
+    public function update(Category $category, CategoryData $data): CategoryResource
     {
-        $this->categoryAssertion->assertCanBeNewParent($category, $dto->parent_id);
+        if (!$data->parentId instanceof MissingValue) {
+            $this->categoryAssertion->assertCanBeNewParent($category, $data->parentId);
+        }
 
-        $category->fill([
-            'name'      => $dto->name,
-            'parent_id' => $dto->parent_id,
-            'is_active' => $dto->is_active,
-        ]);
+        $category->fill(withoutMissing([
+            'name'      => $data->name,
+            'parent_id' => $data->parentId,
+            'is_active' => $data->isActive,
+        ]));
 
         DB::transaction(fn () => $category->save());
 

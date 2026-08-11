@@ -16,26 +16,28 @@ sequenceDiagram
     participant Router
     participant Controller
     participant Policy
-    participant DTO
+    participant Request as CategoryRequest
+    participant Data as CategoryData
     participant Service
     participant Assertion
     participant Model
     participant Resource
 
     Client->>Router: 1. Sends HTTP Request (e.g., POST /v1/catalog/categories)
-    Router->>Controller: 2. Dispatches to CategoryController
-    Controller->>Policy: 3. Authorizes Action (Gate)
-    Policy-->>Controller: 4. Returns Authorization Result
-    Controller->>DTO: 5. Validates Request Data
-    DTO-->>Controller: 6. Returns Validated & Casted Data
-    Controller->>Service: 7. Calls Business Logic (e.g., create)
-    Service->>Assertion: 8. Asserts Business Rules
+    Router->>Request: 2. Validates and normalizes HTTP input
+    Request->>Controller: 3. Dispatches validated request
+    Controller->>Policy: 4. Authorizes Action (Gate)
+    Policy-->>Controller: 5. Returns Authorization Result
+    Controller->>Data: 6. fromArray(request.validated)
+    Data-->>Controller: 7. Returns typed transport data
+    Controller->>Service: 8. Calls Business Logic (e.g., create)
+    Service->>Assertion: 9. Asserts Business Rules
     Assertion-->>Service: (Throws Exception on failure)
-    Service->>Model: 9. Executes DB Operations
-    Model-->>Service: 10. Returns Model Instance
-    Service->>Resource: 11. Shapes the Output
-    Resource-->>Controller: 12. Returns Transformed Data
-    Controller-->>Client: 13. Sends Standardized API Response
+    Service->>Model: 10. Executes DB Operations
+    Model-->>Service: 11. Returns Model Instance
+    Service->>Resource: 12. Shapes the Output
+    Resource-->>Controller: 13. Returns Transformed Data
+    Controller-->>Client: 14. Sends Standardized API Response
 ```
 
 ## 2. Component Breakdown
@@ -68,18 +70,19 @@ This is a cornerstone of our error-handling strategy, as described in the [API R
     -   `assertCanBeNewParent(Category $category, ?string $newParentId)`: Prevents a category from being assigned to itself or one of its own descendants, throwing a `CategoryCannotBeDescendantParentException`.
 -   **Benefit:** This pattern keeps the service layer clean and focused on the "happy path", while centralizing business rule validation in dedicated, testable classes.
 
-### DTOs (`CategoryDTO`, `CategoryFilterDTO`): Data Contracts
+### Form Requests and Data (`CategoryRequest`, `CategoryData`, `CategoryFilterData`)
 
-We use DTOs to structure and validate all incoming data, as detailed in the [Creating DTOs documentation](./../dto/creating-dtos.md).
+The HTTP and service contracts are deliberately separated, as detailed in the [Form Requests and Data documentation](./../data/form-requests-and-data.md).
 
--   **`CategoryDTO`:** Used for `POST` and `PUT` requests. It validates the incoming `name`, `parent_id`, and `is_active` fields. It leverages the `forUpdate` method to handle unique validation rules in the context of an update.
--   **`CategoryFilterDTO`:** A powerful pattern for `GET` requests. It validates and structures all query parameters for filtering, sorting, and pagination (including cursor-based pagination). This keeps controller and service method signatures clean and provides default values for a better developer experience.
+-   **`CategoryRequest`:** Validates and normalizes the `POST` and `PUT/PATCH` HTTP payloads. Route-model context is used for update-specific rules.
+-   **`CategoryData`:** Maps validated `snake_case` keys to immutable `camelCase` properties. `MissingValue` distinguishes an absent update field from an explicit `null`.
+-   **`CategoryFilterRequest` and `CategoryFilterData`:** Validate query parameters, then transport typed filters and pagination defaults to the service.
 
 ### The Controller (`CategoryController.php`): The HTTP Layer
 
 The `Lahatre\Catalog\Http\Controllers\CategoryController` is intentionally "thin." Its sole responsibility is to handle the HTTP layer.
 
--   **Orchestration:** It parses the HTTP request, authorizes the action using the `CategoryPolicy`, validates the input using the appropriate DTO, calls the `CategoryService`, and formats the output using the `CategoryResource`.
+-   **Orchestration:** It receives the validated Form Request, authorizes the action using the `CategoryPolicy`, builds the appropriate Data object, calls the `CategoryService`, and formats the output using the `CategoryResource`.
 -   **Separation of Concerns:** It contains no business logic. All logic is delegated to other layers, making the controller easy to read and maintain.
 
 ### API Resource (`CategoryResource.php`): The Presentation Layer

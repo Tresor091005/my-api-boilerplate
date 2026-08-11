@@ -13,7 +13,8 @@
 			"Lahatre\\Shared\\Database\\Seeders\\": "database/seeders/"
 		},
 		"files": [
-            "src/helpers.php"
+            "src/helpers.php",
+            "src/Data/functions.php"
         ]
 	},
 	"minimum-stability": "stable",

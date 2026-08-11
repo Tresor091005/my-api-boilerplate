@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Catalog\DTO\CategoryDTO;
-use Lahatre\Catalog\DTO\CategoryFilterDTO;
+use Lahatre\Catalog\Data\CategoryData;
+use Lahatre\Catalog\Data\CategoryFilterData;
+use Lahatre\Catalog\Http\Requests\CategoryFilterRequest;
+use Lahatre\Catalog\Http\Requests\CategoryRequest;
 use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Services\CategoryService;
@@ -19,11 +20,11 @@ class CategoryController
         protected CategoryService $categoryService
     ) {}
 
-    public function index(Request $request): CategoryCollection
+    public function index(CategoryFilterRequest $request): CategoryCollection
     {
         Gate::authorize('list', Category::class);
 
-        $filters = CategoryFilterDTO::fromRequest($request);
+        $filters = CategoryFilterData::fromArray($request->validated());
 
         return $this->categoryService->list($filters);
     }
@@ -37,24 +38,27 @@ class CategoryController
         return response()->json($response);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CategoryRequest $request): JsonResponse
     {
         Gate::authorize('create', Category::class);
 
-        $dto = CategoryDTO::fromRequest($request);
+        $data = CategoryData::fromArray($request->validated());
 
-        $response = $this->categoryService->create($dto);
+        $response = $this->categoryService->create($data);
 
         return response()->json($response, 201);
     }
 
-    public function update(Request $request, Category $category): JsonResponse
+    public function update(CategoryRequest $request, Category $category): JsonResponse
     {
         Gate::authorize('update', $category);
 
-        $dto = CategoryDTO::forUpdate($request, $category);
+        $data = CategoryData::fromArray(
+            $request->validated(),
+            missingFields: ['name', 'parent_id', 'is_active'],
+        );
 
-        $response = $this->categoryService->update($category, $dto);
+        $response = $this->categoryService->update($category, $data);
 
         return response()->json($response);
     }

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Lahatre\Iam\DTO\ForgotPasswordDTO;
-use Lahatre\Iam\DTO\LoginDTO;
-use Lahatre\Iam\DTO\ResetPasswordDTO;
-use Lahatre\Iam\DTO\SwitchMemberRoleDTO;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Lahatre\Iam\Data\LoginData;
+use Lahatre\Iam\Data\ResetPasswordData;
+use Lahatre\Iam\Http\Requests\ForgotPasswordRequest;
+use Lahatre\Iam\Http\Requests\LoginRequest;
+use Lahatre\Iam\Http\Requests\ResetPasswordRequest;
+use Lahatre\Iam\Http\Requests\SwitchMemberRoleRequest;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Models\User;
@@ -24,11 +26,9 @@ class AuthController
     /**
      * Authenticate a user and return an AuthResource.
      */
-    public function login(Request $request): AuthResource
+    public function login(LoginRequest $request): AuthResource
     {
-        $dto = LoginDTO::fromRequest($request);
-
-        return $this->authService->login($dto);
+        return $this->authService->login(LoginData::fromArray($request->validated()));
     }
 
     /**
@@ -63,7 +63,7 @@ class AuthController
     /**
      * Switch the current user role.
      */
-    public function switchMemberRole(Request $request): UserResource
+    public function switchMemberRole(SwitchMemberRoleRequest $request): UserResource
     {
         $user = authContext()->user();
 
@@ -73,11 +73,11 @@ class AuthController
 
         return $this->authService->switchMemberRole(
             $user,
-            SwitchMemberRoleDTO::fromRequest($request)->member_role_id
+            $request->validated('member_role_id'),
         );
     }
 
-    public function currentPermissions(Request $request)
+    public function currentPermissions(): AnonymousResourceCollection|JsonResponse
     {
         if (!authContext()->memberRole()) {
             return response()->json([], 200);
@@ -88,20 +88,16 @@ class AuthController
         );
     }
 
-    public function forgotPassword(Request $request): JsonResponse
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $dto = ForgotPasswordDTO::fromRequest($request);
-
-        $token = $this->authService->forgotPassword($dto->email);
+        $token = $this->authService->forgotPassword($request->validated('email'));
 
         return response()->json(['token' => $token]);
     }
 
-    public function resetPassword(Request $request): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        $dto = ResetPasswordDTO::fromRequest($request);
-
-        $this->authService->resetPassword($dto);
+        $this->authService->resetPassword(ResetPasswordData::fromArray($request->validated()));
 
         return response()->json(['detail' => true]);
     }

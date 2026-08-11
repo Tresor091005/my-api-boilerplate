@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lahatre\Master\Assertions\UnitAssertion;
-use Lahatre\Master\DTO\UnitFilterDTO;
-use Lahatre\Master\DTO\UnitSyncDTO;
+use Lahatre\Master\Data\UnitData;
+use Lahatre\Master\Data\UnitFilterData;
+use Lahatre\Master\Data\UnitSyncData;
 use Lahatre\Master\Http\Resources\UnitCollection;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Master\Models\Unit;
@@ -26,7 +27,7 @@ class UnitService implements StandaloneService
         protected UnitCache $unitCache
     ) {}
 
-    public function list(UnitFilterDTO $filters): UnitCollection
+    public function list(UnitFilterData $filters): UnitCollection
     {
         $query = Unit::query()->with('group')->where(function (Builder $query): void {
             $query->whereNull('organization_id')
@@ -44,19 +45,19 @@ class UnitService implements StandaloneService
                 $q->where('name', 'like', "$filters->group%");
             });
         }
-        if ($filters->is_builtin !== null) {
+        if ($filters->isBuiltin !== null) {
             $query->whereHas('group', function ($q) use ($filters): void {
-                $q->where('is_builtin', $filters->is_builtin);
+                $q->where('is_builtin', $filters->isBuiltin);
             });
         }
 
-        if ($filters->sort_by === 'group') {
+        if ($filters->sortBy === 'group') {
             $query->join('master_unit_groups', 'master_units.group_id', '=', 'master_unit_groups.id')
                 ->select('master_units.*')
-                ->orderBy('master_unit_groups.name', $filters->sort_order)
-                ->orderBy('master_units.id', $filters->sort_order);
+                ->orderBy('master_unit_groups.name', $filters->sortOrder)
+                ->orderBy('master_units.id', $filters->sortOrder);
 
-            $units = $query->cursorPaginate($filters->per_page, ['master_units.*'], 'cursor', $filters->cursor);
+            $units = $query->cursorPaginate($filters->perPage, ['master_units.*'], 'cursor', $filters->cursor);
         } else {
             $units = stableCursorPaginate($query, $filters);
         }
@@ -64,21 +65,21 @@ class UnitService implements StandaloneService
         return UnitCollection::make($units);
     }
 
-    public function sync(UnitSyncDTO $dto): UnitGroupResource
+    public function sync(UnitSyncData $data): UnitGroupResource
     {
-        return DB::transaction(function () use ($dto): UnitGroupResource {
-            if ($dto->group_id) {
+        return DB::transaction(function () use ($data): UnitGroupResource {
+            if ($data->groupId) {
                 $group = UnitGroup::where('is_builtin', false)
                     ->whereNotNull('organization_id')
                     ->where('organization_id', getPermissionsTeamId())
-                    ->findOrFail($dto->group_id);
+                    ->findOrFail($data->groupId);
 
-                $group->name = $dto->group_name ?? $group->name;
+                $group->name = $data->groupName ?? $group->name;
                 $group->save();
             } else {
                 $group = UnitGroup::create([
                     'is_builtin'      => false,
-                    'name'            => $dto->group_name,
+                    'name'            => $data->groupName,
                     'organization_id' => getPermissionsTeamId(),
                 ]);
             }
@@ -86,22 +87,22 @@ class UnitService implements StandaloneService
             /** @var Collection<int, Unit> $existingUnits */
             $existingUnits = $group->units()->get();
 
-            if ($dto->units) {
-                $this->unitAssertion->assertCanSync($dto->group_id, $dto->units, $existingUnits, $group->is_builtin);
+            if ($data->units) {
+                $this->unitAssertion->assertCanSync($data->groupId, $data->units, $existingUnits, $group->is_builtin);
 
                 $now = now();
 
-                $upsertData = $dto->units->map(function ($unitDto) use ($group, $existingUnits, $now): array {
-                    if ($unitDto->id) {
+                $upsertData = $data->units->map(function (UnitData $unitData) use ($group, $existingUnits, $now): array {
+                    if ($unitData->id) {
                         /** @var Unit $unit */
-                        $unit = $existingUnits->firstWhere('id', $unitDto->id);
+                        $unit = $existingUnits->firstWhere('id', $unitData->id);
 
                         return [
                             'id'              => $unit->id,
                             'organization_id' => $unit->organization_id,
                             'code'            => $unit->code,
-                            'name'            => $unitDto->name,
-                            'symbol'          => $unitDto->symbol,
+                            'name'            => $unitData->name,
+                            'symbol'          => $unitData->symbol,
                             'ratio'           => $unit->ratio,
                             'group_id'        => $group->id,
                             'created_at'      => $unit->created_at,
@@ -112,10 +113,10 @@ class UnitService implements StandaloneService
                     return [
                         'id'              => (string) Str::uuid7(),
                         'organization_id' => getPermissionsTeamId(),
-                        'code'            => HandleGenerator::generate($unitDto->name, 'master_units', 'code'),
-                        'name'            => $unitDto->name,
-                        'symbol'          => $unitDto->symbol,
-                        'ratio'           => $unitDto->ratio,
+                        'code'            => HandleGenerator::generate($unitData->name, 'master_units', 'code'),
+                        'name'            => $unitData->name,
+                        'symbol'          => $unitData->symbol,
+                        'ratio'           => $unitData->ratio,
                         'group_id'        => $group->id,
                         'created_at'      => $now,
                         'updated_at'      => $now,

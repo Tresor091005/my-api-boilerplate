@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Catalog\DTO\ProductDTO;
-use Lahatre\Catalog\DTO\ProductFilterDTO;
+use Lahatre\Catalog\Data\ProductData;
+use Lahatre\Catalog\Data\ProductFilterData;
+use Lahatre\Catalog\Http\Requests\ProductRequest;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Services\ProductService;
@@ -42,7 +43,7 @@ it('manages products through service methods and scopes by tenant', function ():
     ]);
 
     $payload = $this->service
-        ->list(new ProductFilterDTO(['per_page' => 50]))
+        ->list(ProductFilterData::fromArray(['per_page' => 50]))
         ->response()
         ->getData(true);
 
@@ -51,7 +52,7 @@ it('manages products through service methods and scopes by tenant', function ():
     expect($productIds)->toContain($product->id);
     expect($productIds->contains($otherProduct->id))->toBeFalse();
 
-    $created = $this->service->create(new ProductDTO([
+    $created = $this->service->create(ProductData::fromArray([
         'name'      => 'Samsung Galaxy S24',
         'is_active' => true,
         'variants'  => [
@@ -70,10 +71,13 @@ it('manages products through service methods and scopes by tenant', function ():
     expect($created->organization_id)->toBe($this->organizationId)
         ->and($created->variants()->count())->toBe(1);
 
-    $updated = $this->service->update($product, new ProductDTO([
-        'name'      => 'iPhone 15 Pro Updated',
-        'is_active' => true,
-    ], $product->id))->resource;
+    $updated = $this->service->update($product, ProductData::fromArray(
+        [
+            'name'      => 'iPhone 15 Pro Updated',
+            'is_active' => true,
+        ],
+        missingFields: ['description', 'categories', 'variants'],
+    ))->resource;
 
     expect($updated->name)->toBe('iPhone 15 Pro Updated');
 
@@ -83,11 +87,12 @@ it('manages products through service methods and scopes by tenant', function ():
         ->and(Product::withTrashed()->findOrFail($created->id)->deleted_at)->not->toBeNull();
 });
 
-it('validates product payload via dto', function (): void {
-    expect(fn (): ProductDTO => new ProductDTO([]))->toThrow(ValidationException::class);
+it('validates product payload via request rules', function (): void {
+    expect(fn (): array => validator([], (new ProductRequest())->rules())->validate())
+        ->toThrow(ValidationException::class);
 });
 
-it('rejects soft-deleted category ids in product dto', function (): void {
+it('rejects soft-deleted category ids in product requests', function (): void {
     $activeCategory = Category::factory()->create([
         'organization_id' => $this->organizationId,
     ]);
@@ -96,7 +101,7 @@ it('rejects soft-deleted category ids in product dto', function (): void {
     ]);
     $deletedCategory->delete();
 
-    expect(fn (): ProductDTO => new ProductDTO([
+    expect(fn (): array => validator([
         'name'       => 'Product with deleted category',
         'is_active'  => true,
         'categories' => [$deletedCategory->id],
@@ -111,9 +116,9 @@ it('rejects soft-deleted category ids in product dto', function (): void {
                 ],
             ],
         ],
-    ]))->toThrow(ValidationException::class);
+    ], (new ProductRequest())->rules())->validate())->toThrow(ValidationException::class);
 
-    expect(fn (): ProductDTO => new ProductDTO([
+    expect(fn (): array => validator([
         'name'       => 'Product with active category',
         'is_active'  => true,
         'categories' => [$activeCategory->id],
@@ -128,5 +133,5 @@ it('rejects soft-deleted category ids in product dto', function (): void {
                 ],
             ],
         ],
-    ]))->not->toThrow(ValidationException::class);
+    ], (new ProductRequest())->rules())->validate())->not->toThrow(ValidationException::class);
 });

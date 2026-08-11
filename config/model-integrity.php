@@ -86,6 +86,10 @@ return [
     |
     */
     'custom_index_names' => [
+        'inventory_transactions' => [
+            'inventory_transactions_organization_id_idempotency_key_unique'            => 'inventory_transactions_org_idempotency_unique',
+            'inventory_transactions_organization_id_reversal_of_transaction_id_unique' => 'inventory_transactions_org_reversal_unique',
+        ],
         'catalog_prices' => [
             'catalog_prices_currency_code_min_quantity_organization_id_priceable_id_priceable_type_step_unique' => 'catalog_prices_unique_idx',
         ],

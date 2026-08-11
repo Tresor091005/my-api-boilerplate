@@ -7,8 +7,9 @@ namespace Lahatre\Master\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Master\DTO\UnitFilterDTO;
-use Lahatre\Master\DTO\UnitSyncDTO;
+use Lahatre\Master\Data\UnitFilterData;
+use Lahatre\Master\Data\UnitSyncData;
+use Lahatre\Master\Http\Requests\UnitSyncRequest;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Services\UnitService;
@@ -60,7 +61,7 @@ it('lists both system units and tenant units but excludes other tenant units', f
 
     app(UnitCache::class)->rewarmUnits();
 
-    $collection = $this->service->list(new UnitFilterDTO([
+    $collection = $this->service->list(UnitFilterData::fromArray([
         'per_page' => 50,
     ]));
     $payload = $collection->response()->getData(true);
@@ -73,7 +74,7 @@ it('lists both system units and tenant units but excludes other tenant units', f
 
 it('syncs unit groups and units strictly for the current tenant', function (): void {
     // 1. Create new group and units (should auto-assign organization_id)
-    $this->service->sync(new UnitSyncDTO([
+    $this->service->sync(UnitSyncData::fromArray([
         'group_name' => 'new-tenant-group',
         'units'      => [
             ['name' => 'Unit 1', 'symbol' => 'U1', 'ratio' => 1],
@@ -87,16 +88,16 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
     $unit = $group->units()->firstOrFail();
     expect($unit->organization_id)->toBe($this->organizationId);
 
-    // 2. Prevent syncing/updating a system group at DTO validation layer
+    // 2. Prevent syncing/updating a system group at request validation layer
     $systemGroup = UnitGroup::factory()->create([
         'name'            => 'system-group-test',
         'organization_id' => null,
     ]);
 
-    expect(fn (): UnitSyncDTO => new UnitSyncDTO([
+    expect(fn (): array => validator([
         'group_id'   => $systemGroup->id,
         'group_name' => 'hacked-name',
-    ]))->toThrow(ValidationException::class);
+    ], (new UnitSyncRequest())->rules())->validate())->toThrow(ValidationException::class);
 
     // 3. Prevent syncing/updating another tenant's group
     $otherOrganizationId = Str::uuid7()->toString();
@@ -105,10 +106,10 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
         'organization_id' => $otherOrganizationId,
     ]);
 
-    expect(fn (): UnitSyncDTO => new UnitSyncDTO([
+    expect(fn (): array => validator([
         'group_id'   => $otherGroup->id,
         'group_name' => 'hacked-other-name',
-    ]))->toThrow(ValidationException::class);
+    ], (new UnitSyncRequest())->rules())->validate())->toThrow(ValidationException::class);
 });
 
 it('verifies that unit codes are unique across the entire system', function (): void {
@@ -125,7 +126,7 @@ it('verifies that unit codes are unique across the entire system', function (): 
     // Try to create a unit in our organization with the same name
     // The handle generator should detect the code collision and append a suffix.
 
-    $this->service->sync(new UnitSyncDTO([
+    $this->service->sync(UnitSyncData::fromArray([
         'group_name' => 'our-group-unique',
         'units'      => [
             ['name' => 'unique-code', 'symbol' => 'U1', 'ratio' => 1],

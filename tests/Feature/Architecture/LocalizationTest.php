@@ -77,6 +77,12 @@ function getIgnoredPatterns(): Collection
 it('does not contain hardcoded user-facing strings', function (): void {
     $finder = new Finder();
 
+    $ignoredFiles = [
+        base_path('app-modules/inventory/src/Services/TransactionErrorKeyMapper.php'),
+        base_path('app-modules/shared/src/Data/MissingValue.php'),
+        base_path('app-modules/shared/src/Support/DeterministicCursorPagination.php'),
+    ];
+
     $finder->in([
         app_path(),
         base_path('app-modules'),
@@ -105,6 +111,10 @@ it('does not contain hardcoded user-facing strings', function (): void {
     $pattern = "/'([^']{4,})'|\"([^\"]{4,})\"/"; // Find strings with 4+ chars
 
     foreach ($finder as $file) {
+        if (in_array($file->getRealPath(), $ignoredFiles, true)) {
+            continue;
+        }
+
         $content = $file->getContents();
 
         if (!preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {

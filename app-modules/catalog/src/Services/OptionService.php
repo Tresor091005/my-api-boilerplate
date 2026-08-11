@@ -6,13 +6,17 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionAssertion;
-use Lahatre\Catalog\DTO\OptionDTO;
-use Lahatre\Catalog\DTO\OptionFilterDTO;
+use Lahatre\Catalog\Data\OptionData;
+use Lahatre\Catalog\Data\OptionFilterData;
 use Lahatre\Catalog\Http\Resources\OptionCollection;
 use Lahatre\Catalog\Http\Resources\OptionResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Shared\Data\MissingValue;
+
+use function Lahatre\Shared\Data\required;
+use function Lahatre\Shared\Data\withoutMissing;
 
 class OptionService implements StandaloneService
 {
@@ -21,7 +25,7 @@ class OptionService implements StandaloneService
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
-    public function list(OptionFilterDTO $filters): OptionCollection
+    public function list(OptionFilterData $filters): OptionCollection
     {
         $query = Option::query()->where('organization_id', getPermissionsTeamId());
 
@@ -39,34 +43,39 @@ class OptionService implements StandaloneService
         return OptionResource::make($option->load(['values']));
     }
 
-    public function create(OptionDTO $dto): OptionResource
+    public function create(OptionData $data): OptionResource
     {
         $option = new Option();
 
         $option->fill([
             'organization_id' => getPermissionsTeamId(),
-            'name'            => $dto->name,
+            'name'            => required($data->name),
         ]);
 
-        DB::transaction(function () use ($option, $dto): void {
+        DB::transaction(function () use ($option, $data): void {
             $option->save();
 
-            $this->transactionalOptionService->createMissingValues($option, $dto->values ?? []);
+            $this->transactionalOptionService->createMissingValues(
+                $option,
+                required($data->values) ?? [],
+            );
         });
 
         return OptionResource::make($option->load(['values']));
     }
 
-    public function update(Option $option, OptionDTO $dto): OptionResource
+    public function update(Option $option, OptionData $data): OptionResource
     {
-        $option->fill([
-            'name' => $dto->name,
-        ]);
+        $option->fill(withoutMissing([
+            'name' => $data->name,
+        ]));
 
-        DB::transaction(function () use ($option, $dto): void {
+        DB::transaction(function () use ($option, $data): void {
             $option->save();
 
-            $this->transactionalOptionService->createMissingValues($option, $dto->values ?? []);
+            if (!$data->values instanceof MissingValue) {
+                $this->transactionalOptionService->createMissingValues($option, $data->values ?? []);
+            }
         });
 
         return OptionResource::make($option->load(['values']));

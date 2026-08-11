@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\{{Module}}\Data;
+
+use Lahatre\Shared\Data\MissingValue;
+
+final readonly class {{ClassName}}
+{
+    private function __construct(
+        public MissingValue|string $name,
+    ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>  $missingFields
+     */
+    public static function fromArray(array $data, array $missingFields = []): self
+    {
+        return new self(
+            name: MissingValue::fromArray($data, 'name', $missingFields),
+        );
+    }
+}

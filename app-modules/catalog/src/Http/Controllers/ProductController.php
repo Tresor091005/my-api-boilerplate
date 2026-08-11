@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Catalog\DTO\ProductDTO;
-use Lahatre\Catalog\DTO\ProductFilterDTO;
+use Lahatre\Catalog\Data\ProductData;
+use Lahatre\Catalog\Data\ProductFilterData;
+use Lahatre\Catalog\Http\Requests\ProductFilterRequest;
+use Lahatre\Catalog\Http\Requests\ProductRequest;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Services\ProductService;
@@ -19,11 +20,11 @@ class ProductController
         protected ProductService $productService
     ) {}
 
-    public function index(Request $request): ProductCollection
+    public function index(ProductFilterRequest $request): ProductCollection
     {
         Gate::authorize('list', Product::class);
 
-        $filters = ProductFilterDTO::fromRequest($request);
+        $filters = ProductFilterData::fromArray($request->validated());
 
         return $this->productService->list($filters);
     }
@@ -37,24 +38,27 @@ class ProductController
         return response()->json($response);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(ProductRequest $request): JsonResponse
     {
         Gate::authorize('create', Product::class);
 
-        $dto = ProductDTO::fromRequest($request);
+        $data = ProductData::fromArray($request->validated());
 
-        $response = $this->productService->create($dto);
+        $response = $this->productService->create($data);
 
         return response()->json($response, 201);
     }
 
-    public function update(Request $request, Product $product): JsonResponse
+    public function update(ProductRequest $request, Product $product): JsonResponse
     {
         Gate::authorize('update', $product);
 
-        $dto = ProductDTO::forUpdate($request, $product);
+        $data = ProductData::fromArray(
+            $request->validated(),
+            missingFields: ['name', 'description', 'is_active', 'categories', 'variants'],
+        );
 
-        $response = $this->productService->update($product, $dto);
+        $response = $this->productService->update($product, $data);
 
         return response()->json($response);
     }

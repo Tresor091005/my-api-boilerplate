@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\{{Module}}\DTO\{{Entity}}DTO;
+use Lahatre\{{Module}}\Data\{{Entity}}Data;
+use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\{{Module}}\Services\{{Entity}}Service;
 
@@ -17,23 +17,23 @@ class {{ClassName}}
         protected {{Entity}}Service $service
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index({{Entity}}Request $request): JsonResponse
     {
         Gate::authorize('list', {{Entity}}::class);
 
-        // $filters = {{Entity}}FilterDTO::fromRequest($request);
+        // $filters = {{Entity}}FilterData::fromArray($request->validated());
         // return $this->service->list($filters);
         
         return response()->json([]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store({{Entity}}Request $request): JsonResponse
     {
         Gate::authorize('create', {{Entity}}::class);
 
-        $dto = {{Entity}}DTO::fromRequest($request);
+        $data = {{Entity}}Data::fromArray($request->validated());
 
-        $response = $this->service->create($dto);
+        $response = $this->service->create($data);
 
         return response()->json($response, 201);
     }
@@ -47,13 +47,13 @@ class {{ClassName}}
         return response()->json($response);
     }
 
-    public function update(Request $request, {{Entity}} $model): JsonResponse
+    public function update({{Entity}}Request $request, {{Entity}} $model): JsonResponse
     {
         Gate::authorize('update', $model);
 
-        $dto = {{Entity}}DTO::forUpdate($request, $model);
+        $data = {{Entity}}Data::fromArray($request->validated(), missingFields: ['name']);
 
-        $response = $this->service->update($model, $dto);
+        $response = $this->service->update($model, $data);
 
         return response()->json($response);
     }

@@ -6,9 +6,10 @@ namespace Lahatre\{{Module}}\Services;
 
 use Illuminate\Support\Facades\DB;
 use Lahatre\{{Module}}\Assertions\{{Entity}}Assertion;
-use Lahatre\{{Module}}\DTO\{{Entity}}DTO;
+use Lahatre\{{Module}}\Data\{{Entity}}Data;
 use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
 use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\Shared\Data\MissingValue;
 use Lahatre\Shared\Services\Contracts\StandaloneService;
 
 class {{ClassName}} implements StandaloneService
@@ -17,12 +18,12 @@ class {{ClassName}} implements StandaloneService
         protected {{Entity}}Assertion $assertion
     ) {}
 
-    public function create({{Entity}}DTO $dto): {{Entity}}Resource
+    public function create({{Entity}}Data $data): {{Entity}}Resource
     {
         $model = new {{Entity}}();
 
         $model->fill([
-            'name' => $dto->name,
+            'name' => MissingValue::required($data->name),
             // Explicit mapping
         ]);
 

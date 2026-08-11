@@ -7,7 +7,7 @@ namespace Lahatre\Catalog\Services\Variant;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Lahatre\Catalog\DTO\ProductVariantDataDTO;
+use Lahatre\Catalog\Data\ProductVariantData;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
@@ -24,7 +24,7 @@ class ProductVariantService implements TransactionalService
     ) {}
 
     /**
-     * @param  Collection<int, ProductVariantDataDTO>  $variantsData
+     * @param  Collection<int, ProductVariantData>  $variantsData
      * @return EloquentCollection<int, ProductVariant>
      */
     public function add(Product $product, Collection $variantsData): EloquentCollection
@@ -35,14 +35,14 @@ class ProductVariantService implements TransactionalService
 
         $now = now();
 
-        $variantRows = $variantsData->map(fn (ProductVariantDataDTO $variantDto): array => [
+        $variantRows = $variantsData->map(fn (ProductVariantData $variantData): array => [
             'id'                  => (string) Str::uuid7(),
             'organization_id'     => $product->organization_id,
             'product_id'          => $product->id,
-            'sku'                 => $variantDto->sku ?? SkuGenerator::generate($product->name),
-            'unit_group_id'       => $variantDto->unit_group_id,
-            'should_manage_stock' => $variantDto->should_manage_stock,
-            'is_active'           => $variantDto->is_active,
+            'sku'                 => $variantData->sku ?? SkuGenerator::generate($product->name),
+            'unit_group_id'       => $variantData->unitGroupId,
+            'should_manage_stock' => $variantData->shouldManageStock,
+            'is_active'           => $variantData->isActive,
             'created_at'          => $now,
             'updated_at'          => $now,
         ]);
@@ -56,7 +56,7 @@ class ProductVariantService implements TransactionalService
         $this->attachOptions(
             $product,
             $variantsData->mapWithKeys(
-                fn (ProductVariantDataDTO $variantDto, int $index): array => [$variantRows[$index]['id'] => $variantDto->options]
+                fn (ProductVariantData $variantData, int $index): array => [$variantRows[$index]['id'] => $variantData->options]
             )
         );
 

@@ -8,13 +8,16 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionValueAssertion;
-use Lahatre\Catalog\DTO\OptionValueDTO;
-use Lahatre\Catalog\DTO\OptionValueFilterDTO;
+use Lahatre\Catalog\Data\OptionValueData;
+use Lahatre\Catalog\Data\OptionValueFilterData;
 use Lahatre\Catalog\Http\Resources\OptionValueResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+
+use function Lahatre\Shared\Data\required;
+use function Lahatre\Shared\Data\withoutMissing;
 
 class OptionValueService implements StandaloneService
 {
@@ -23,7 +26,7 @@ class OptionValueService implements StandaloneService
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
-    public function list(Option $option, OptionValueFilterDTO $filters): AnonymousResourceCollection
+    public function list(Option $option, OptionValueFilterData $filters): AnonymousResourceCollection
     {
         $query = $option->values()->where('organization_id', getPermissionsTeamId());
 
@@ -31,7 +34,7 @@ class OptionValueService implements StandaloneService
             $query->where('value', 'like', "$filters->value%");
         }
 
-        $query->orderBy($filters->sort_by, $filters->sort_order);
+        $query->orderBy($filters->sortBy, $filters->sortOrder);
 
         return OptionValueResource::collection($query->get());
     }
@@ -41,20 +44,23 @@ class OptionValueService implements StandaloneService
         return OptionValueResource::make($optionValue);
     }
 
-    public function create(Option $option, OptionValueDTO $dto): AnonymousResourceCollection
+    public function create(Option $option, OptionValueData $data): AnonymousResourceCollection
     {
         $optionValues = DB::transaction(
-            fn (): Collection => $this->transactionalOptionService->createMissingValues($option, $dto->values ?? [])
+            fn (): Collection => $this->transactionalOptionService->createMissingValues(
+                $option,
+                required($data->values) ?? [],
+            )
         );
 
         return OptionValueResource::collection($optionValues);
     }
 
-    public function update(Option $option, OptionValue $optionValue, OptionValueDTO $dto): OptionValueResource
+    public function update(Option $option, OptionValue $optionValue, OptionValueData $data): OptionValueResource
     {
-        $optionValue->fill([
-            'value' => $dto->value,
-        ]);
+        $optionValue->fill(withoutMissing([
+            'value' => $data->value,
+        ]));
 
         DB::transaction(fn (): bool => $optionValue->save());
 

@@ -13,6 +13,7 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
+use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Organization\Models\Organization;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -85,13 +86,23 @@ it('enforces catalog permissions at http layer', function (): void {
         'organization_id' => $this->organization->id,
         'product_id'      => $product->id,
     ]);
+    $unitGroup = UnitGroup::factory()->create();
 
     $this->memberRole->revokePermissionTo(Permission::query()->pluck('name')->all());
 
     $this->getJson('/v1/catalog/categories')->assertForbidden();
-    $this->postJson('/v1/catalog/categories', ['name' => 'x'])->assertForbidden();
+    $this->postJson('/v1/catalog/categories', [
+        'name'      => 'x',
+        'is_active' => true,
+    ])->assertForbidden();
     $this->getJson("/v1/catalog/options/{$option->id}/values")->assertForbidden();
-    $this->postJson('/v1/catalog/products', ['name' => 'x'])->assertForbidden();
+    $this->postJson('/v1/catalog/products', [
+        'name'     => 'x',
+        'variants' => [[
+            'unit_group_id' => $unitGroup->id,
+            'options'       => [['name' => 'color', 'value' => 'blue']],
+        ]],
+    ])->assertForbidden();
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertForbidden();
     $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", ['sku' => 'ANY'])->assertForbidden();
     $this->deleteJson("/v1/catalog/options/{$option->id}/values/{$optionValue->id}")->assertForbidden();

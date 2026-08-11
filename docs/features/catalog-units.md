@@ -1,6 +1,6 @@
 # Feature Showcase: Unit Synchronization (Bulk & Sync)
 
-Ce document détaille l'implémentation de la gestion des unités dans le module `catalog`. C'est une fonctionnalité avancée qui démontre comment gérer des synchronisations de données complexes de manière performante (Bulk operations) et sécurisée (Business assertions).
+Ce document détaille l'implémentation de la gestion des unités dans le module `master`. C'est une fonctionnalité avancée qui démontre comment gérer des synchronisations de données complexes de manière performante (Bulk operations) et sécurisée (Business assertions).
 
 ## 1. Architecture du Flux "Sync"
 
@@ -10,15 +10,17 @@ Contrairement à un CRUD classique, les unités sont gérées par **groupes** (e
 sequenceDiagram
     participant Client
     participant Controller
-    participant DTO (UnitSyncDTO)
+    participant Request (UnitSyncRequest)
+    participant Data (UnitSyncData)
     participant Service (UnitService)
     participant Assertion (UnitAssertion)
     participant Database
 
     Client->>Controller: POST /v1/catalog/units/sync
-    Controller->>DTO: Validation Structurelle & Casts
-    DTO->>Controller: Collection de UnitDataDTO
-    Controller->>Service: sync(UnitSyncDTO)
+    Controller->>Request: Payload déjà validé et normalisé
+    Controller->>Data: UnitSyncData::fromArray(validated)
+    Data->>Controller: Collection de UnitData
+    Controller->>Service: sync(UnitSyncData)
     Service->>Database: Fetch existing units of group (1 query)
     Service->>Assertion: assertCanSync($existingUnits)
     Assertion-->>Service: OK (or throws SpecificException)
@@ -35,13 +37,14 @@ sequenceDiagram
   - Utilise le `UnitPolicy@sync` pour vérifier les permissions `units.create` ou `units.update`.
   - Délègue immédiatement au service.
 
-### B. DTOs et Validation Collective
-Nous utilisons deux DTOs pour une structure typée :
-- **`UnitSyncDTO`** : Reçoit le `unit_group` et une collection de `units`.
-- **`UnitDataDTO`** : Représente une unité individuelle (ID, nom, ratio, etc.).
+### B. Form Request et Data typées
+La validation HTTP et le transport vers le service sont séparés :
+- **`UnitSyncRequest`** : valide la structure complète, notamment `units.*`, et conserve les chemins d'erreur indexés.
+- **`UnitSyncData`** : construit le contrat typé du service via `::fromArray()`.
+- **`UnitData`** : représente une unité individuelle (ID, nom, symbole et ratio).
 
 **Optimisation :** 
-Le DTO utilise une règle personnalisée `BulkExists` (`app-modules/shared/src/Rules/BulkExists.php`). Au lieu de vérifier chaque ID un par un, elle valide l'existence de tous les IDs envoyés en **une seule requête SQL** `WHERE IN`.
+La Form Request effectue les validations collectives en une seule requête SQL lorsque c'est possible, au lieu de déclencher une validation ou une requête par élément imbriqué.
 
 ### C. Assertions Métier (`UnitAssertion`)
 Les règles métier ne sont pas dans le contrôleur, mais isolées dans des assertions documentées :

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
-use Lahatre\{{Module}}\DTO\{{Entity}}DTO;
+use Illuminate\Support\Facades\Validator;
+use Lahatre\{{Module}}\Data\{{Entity}}Data;
+use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\{{Module}}\Services\{{Entity}}Service;
 use Tests\TestCase;
@@ -18,16 +19,18 @@ it('can perform successful action', function (): void {
     // ${{EntityLower}} = {{Entity}}::factory()->create();
 
     // 2. Act
-    // $dto = new {{Entity}}DTO([...]);
-    // $result = app({{Entity}}Service::class)->create($dto);
+    // $data = {{Entity}}Data::fromArray(['name' => 'Example']);
+    // $result = app({{Entity}}Service::class)->create($data);
 
     // 3. Assert
     // expect($result)->toBeInstanceOf({{Entity}}Resource::class);
 });
 
 it('fails validation with invalid data', function (): void {
-    // $dto = new {{Entity}}DTO(['invalid' => 'data']);
-})->throws(ValidationException::class);
+    $request = new {{Entity}}Request();
+
+    expect(Validator::make(['invalid' => 'data'], $request->rules())->fails())->toBeTrue();
+});
 
 it('fails when business rule is violated', function (): void {
     // provocate AssertionException

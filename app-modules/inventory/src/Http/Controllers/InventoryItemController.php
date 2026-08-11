@@ -7,10 +7,14 @@ namespace Lahatre\Inventory\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Lahatre\Inventory\DTO\InventoryItemFilterDTO;
-use Lahatre\Inventory\DTO\InventoryItemValueFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLotFilterDTO;
-use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
+use Lahatre\Inventory\Data\InventoryItemFilterData;
+use Lahatre\Inventory\Data\InventoryItemValueFilterData;
+use Lahatre\Inventory\Data\InventoryLotFilterData;
+use Lahatre\Inventory\Data\InventoryMovementFilterData;
+use Lahatre\Inventory\Http\Requests\InventoryItemFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryItemValueFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryLotFilterRequest;
+use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -23,10 +27,10 @@ class InventoryItemController
         protected InventoryQueryService $inventoryQueryService
     ) {}
 
-    public function index(Request $request): InventoryItemCollection
+    public function index(InventoryItemFilterRequest $request): InventoryItemCollection
     {
         $includes = $this->includes($request);
-        $filters = InventoryItemFilterDTO::fromRequest($request);
+        $filters = InventoryItemFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listItems(
             $filters,
@@ -51,23 +55,23 @@ class InventoryItemController
         return response()->json($this->inventoryQueryService->getItemStock($item));
     }
 
-    public function showValue(Request $request, InventoryItem $item): JsonResponse
+    public function showValue(InventoryItemValueFilterRequest $request, InventoryItem $item): JsonResponse
     {
-        $filters = InventoryItemValueFilterDTO::fromRequest($request);
+        $filters = InventoryItemValueFilterData::fromArray($request->validated());
 
         return response()->json($this->inventoryQueryService->getItemValue($item, $filters));
     }
 
-    public function indexMovements(Request $request, InventoryItem $item): InventoryMovementCollection
+    public function indexMovements(InventoryMovementFilterRequest $request, InventoryItem $item): InventoryMovementCollection
     {
-        $filters = InventoryMovementFilterDTO::fromRequest($request);
+        $filters = InventoryMovementFilterData::fromArray($request->validated());
 
         return $this->inventoryQueryService->listItemMovements($item, $filters);
     }
 
-    public function indexLocationLots(Request $request, InventoryItem $item, InventoryLocation $location): JsonResponse
+    public function indexLocationLots(InventoryLotFilterRequest $request, InventoryItem $item, InventoryLocation $location): JsonResponse
     {
-        $filters = InventoryLotFilterDTO::fromRequest($request);
+        $filters = InventoryLotFilterData::fromArray($request->validated());
 
         return response()->json(
             $this->inventoryQueryService->getItemLocationLots($item, $location, $filters)

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Lahatre\Master\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Master\DTO\UnitFilterDTO;
-use Lahatre\Master\DTO\UnitSyncDTO;
+use Lahatre\Master\Data\UnitFilterData;
+use Lahatre\Master\Data\UnitSyncData;
+use Lahatre\Master\Http\Requests\UnitFilterRequest;
+use Lahatre\Master\Http\Requests\UnitSyncRequest;
 use Lahatre\Master\Http\Resources\UnitCollection;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Services\UnitService;
@@ -19,22 +20,22 @@ class UnitController
         protected UnitService $unitService
     ) {}
 
-    public function index(Request $request): UnitCollection
+    public function index(UnitFilterRequest $request): UnitCollection
     {
         Gate::authorize('list', Unit::class);
 
-        $filters = UnitFilterDTO::fromRequest($request);
+        $filters = UnitFilterData::fromArray($request->validated());
 
         return $this->unitService->list($filters);
     }
 
-    public function sync(Request $request): JsonResponse
+    public function sync(UnitSyncRequest $request): JsonResponse
     {
         Gate::authorize('sync', Unit::class);
 
-        $dto = UnitSyncDTO::fromRequest($request);
+        $data = UnitSyncData::fromArray($request->validated());
 
-        $response = $this->unitService->sync($dto);
+        $response = $this->unitService->sync($data);
 
         return response()->json($response);
     }

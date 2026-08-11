@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Master\Assertions;
 
 use Illuminate\Support\Collection;
-use Lahatre\Master\DTO\UnitDataDTO;
+use Lahatre\Master\Data\UnitData;
 use Lahatre\Master\Exceptions\Unit\UnitBaseRequiredException;
 use Lahatre\Master\Exceptions\Unit\UnitBuiltInUpdateException;
 use Lahatre\Master\Exceptions\Unit\UnitDuplicateRatioException;
@@ -21,7 +21,7 @@ class UnitAssertion
      * Asserts that the unit group can be synchronized.
      *
      * @param  string|null  $groupId  The ID of the unit group (null if creating).
-     * @param  Collection<int, UnitDataDTO>  $units  The collection of unit DTOs to validate.
+     * @param  Collection<int, UnitData>  $units  The collection of unit data to validate.
      * @param  Collection<int, Unit>  $existingUnits  The already loaded existing units.
      * @param  bool  $isGroupBuiltin  Whether the unit group is built-in.
      *
@@ -59,7 +59,7 @@ class UnitAssertion
     /**
      * Asserts that the payload does not contain duplicate ratios.
      *
-     * @param  Collection<int, UnitDataDTO>  $units
+     * @param  Collection<int, UnitData>  $units
      *
      * @throws UnitDuplicateRatioException
      */
@@ -74,7 +74,7 @@ class UnitAssertion
     /**
      * Asserts that the payload contains exactly one base unit (ratio 1).
      *
-     * @param  Collection<int, UnitDataDTO>  $units
+     * @param  Collection<int, UnitData>  $units
      *
      * @throws UnitBaseRequiredException
      */
@@ -94,7 +94,7 @@ class UnitAssertion
      * @throws UnitRatioImmutableException
      * @throws UnitGroupMismatchException
      */
-    protected function assertCanUpdateExistingUnit(Collection $existingUnits, UnitDataDTO $updateData, string $groupLabel): void
+    protected function assertCanUpdateExistingUnit(Collection $existingUnits, UnitData $updateData, string $groupLabel): void
     {
         $existingUnit = $existingUnits->firstWhere('id', $updateData->id);
 
@@ -113,7 +113,7 @@ class UnitAssertion
      * @throws UnitRatioConflictException
      * @throws UnitRatioRequiredException
      */
-    protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitDataDTO $newData, string $groupLabel): void
+    protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitData $newData, string $groupLabel): void
     {
         if ($newData->ratio === null) {
             throw new UnitRatioRequiredException();

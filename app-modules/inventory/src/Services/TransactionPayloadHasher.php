@@ -6,33 +6,33 @@ namespace Lahatre\Inventory\Services;
 
 use DateTimeInterface;
 use Illuminate\Support\Collection;
-use Lahatre\Inventory\DTO\MovementDataDTO;
-use Lahatre\Inventory\DTO\TransactionDataDTO;
+use Lahatre\Inventory\Data\MovementData;
+use Lahatre\Inventory\Data\TransactionData;
 
 final class TransactionPayloadHasher
 {
-    public function hash(TransactionDataDTO $transaction): string
+    public function hash(TransactionData $transaction): string
     {
         $payload = [
-            'reference_type'   => $transaction->reference_type,
-            'reference_id'     => $transaction->reference_id,
-            'transaction_type' => $transaction->transaction_type->value,
+            'reference_type'   => $transaction->referenceType,
+            'reference_id'     => $transaction->referenceId,
+            'transaction_type' => $transaction->transactionType->value,
             'metadata'         => $transaction->metadata,
             'movements'        => $transaction->movements
-                ->map(fn (MovementDataDTO $movement): array => [
-                    'item_id'         => $movement->item_id,
-                    'location_id'     => $movement->location_id,
-                    'to_location_id'  => $movement->to_location_id,
+                ->map(fn (MovementData $movement): array => [
+                    'item_id'         => $movement->itemId,
+                    'location_id'     => $movement->locationId,
+                    'to_location_id'  => $movement->toLocationId,
                     'type'            => $movement->type?->value,
                     'quantity'        => $movement->quantity,
-                    'unit_code'       => $movement->unit_code,
-                    'total_cost'      => $movement->total_cost,
-                    'currency_code'   => $movement->currency_code,
-                    'expiration_date' => $movement->expiration_date?->toISOString(),
+                    'unit_code'       => $movement->unitCode,
+                    'total_cost'      => $movement->totalCost,
+                    'currency_code'   => $movement->currencyCode,
+                    'expiration_date' => $movement->expirationDate?->toISOString(),
                     'strategy'        => $movement->strategy?->value,
-                    'stock_ids'       => $movement->stock_ids,
+                    'stock_ids'       => $movement->stockIds,
                     'metadata'        => $movement->metadata,
-                    'stock_metadata'  => $movement->stock_metadata,
+                    'stock_metadata'  => $movement->stockMetadata,
                 ])
                 ->values()
                 ->all(),

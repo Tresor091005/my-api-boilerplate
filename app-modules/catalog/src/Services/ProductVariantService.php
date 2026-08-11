@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
-use Lahatre\Catalog\DTO\ProductVariantDTO;
-use Lahatre\Catalog\DTO\ProductVariantFilterDTO;
-use Lahatre\Catalog\DTO\ProductVariantUpdateDTO;
+use Lahatre\Catalog\Data\ProductVariantBatchData;
+use Lahatre\Catalog\Data\ProductVariantFilterData;
+use Lahatre\Catalog\Data\ProductVariantUpdateData;
 use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
 use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
@@ -18,6 +18,9 @@ use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\ProductVariantService as TransactionalProductVariantService;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Shared\Data\MissingValue;
+
+use function Lahatre\Shared\Data\withoutMissing;
 
 class ProductVariantService implements StandaloneService
 {
@@ -27,16 +30,16 @@ class ProductVariantService implements StandaloneService
         protected TransactionalProductVariantService $transactionalProductVariantService,
     ) {}
 
-    public function list(Product $product, ProductVariantFilterDTO $filters): ProductVariantCollection
+    public function list(Product $product, ProductVariantFilterData $filters): ProductVariantCollection
     {
         $query = $product->variants()->where('organization_id', getPermissionsTeamId())->with($this->relations());
 
-        if ($filters->should_manage_stock !== null) {
-            $query->where('should_manage_stock', $filters->should_manage_stock);
+        if ($filters->shouldManageStock !== null) {
+            $query->where('should_manage_stock', $filters->shouldManageStock);
         }
 
-        if ($filters->is_active !== null) {
-            $query->where('is_active', $filters->is_active);
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
         }
 
         $variants = stableCursorPaginate($query, $filters);
@@ -49,11 +52,11 @@ class ProductVariantService implements StandaloneService
         return ProductVariantResource::make($variant->load($this->relations()));
     }
 
-    public function create(Product $product, ProductVariantDTO $dto): AnonymousResourceCollection
+    public function create(Product $product, ProductVariantBatchData $data): AnonymousResourceCollection
     {
         /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = DB::transaction(
-            fn (): EloquentCollection => $this->transactionalProductVariantService->add($product, $dto->variants)
+            fn (): EloquentCollection => $this->transactionalProductVariantService->add($product, $data->variants)
         );
 
         $variants->load($this->relations());
@@ -61,19 +64,23 @@ class ProductVariantService implements StandaloneService
         return ProductVariantResource::collection($variants);
     }
 
-    public function update(Product $product, ProductVariant $variant, ProductVariantUpdateDTO $dto): ProductVariantResource
+    public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariantResource
     {
-        DB::transaction(function () use ($product, $variant, $dto): void {
-            $variant->fill([
-                'sku'                 => $dto->sku ?? $variant->sku,
-                'should_manage_stock' => $dto->should_manage_stock ?? $variant->should_manage_stock,
-                'is_active'           => $dto->is_active ?? $variant->is_active,
-            ]);
+        DB::transaction(function () use ($product, $variant, $data): void {
+            $variant->fill(withoutMissing([
+                'sku'                 => $data->sku,
+                'should_manage_stock' => $data->shouldManageStock,
+                'is_active'           => $data->isActive,
+            ]));
 
             $variant->save();
 
-            if ($dto->options !== null) {
-                $this->transactionalProductVariantService->replaceOptions($product, $variant, $dto->options);
+            if (!$data->options instanceof MissingValue) {
+                $this->transactionalProductVariantService->replaceOptions(
+                    $product,
+                    $variant,
+                    $data->options,
+                );
             }
 
             $this->inventoryService->updateItem($variant, [

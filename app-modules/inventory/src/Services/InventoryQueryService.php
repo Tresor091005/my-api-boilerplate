@@ -8,15 +8,15 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lahatre\Inventory\DTO\InventoryItemFilterDTO;
-use Lahatre\Inventory\DTO\InventoryItemValueFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLocationFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLocationValueFilterDTO;
-use Lahatre\Inventory\DTO\InventoryLotFilterDTO;
-use Lahatre\Inventory\DTO\InventoryMovementFilterDTO;
-use Lahatre\Inventory\DTO\InventoryStockExpiringFilterDTO;
-use Lahatre\Inventory\DTO\InventoryStockSummaryFilterDTO;
-use Lahatre\Inventory\DTO\InventoryTransactionFilterDTO;
+use Lahatre\Inventory\Data\InventoryItemFilterData;
+use Lahatre\Inventory\Data\InventoryItemValueFilterData;
+use Lahatre\Inventory\Data\InventoryLocationFilterData;
+use Lahatre\Inventory\Data\InventoryLocationValueFilterData;
+use Lahatre\Inventory\Data\InventoryLotFilterData;
+use Lahatre\Inventory\Data\InventoryMovementFilterData;
+use Lahatre\Inventory\Data\InventoryStockExpiringFilterData;
+use Lahatre\Inventory\Data\InventoryStockSummaryFilterData;
+use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Http\Resources\InventoryExpiringLotCollection;
@@ -55,7 +55,7 @@ class InventoryQueryService
         protected MasterInterface $masterInterface
     ) {}
 
-    public function listItems(InventoryItemFilterDTO $filters, bool $includeItemable = false): InventoryItemCollection
+    public function listItems(InventoryItemFilterData $filters, bool $includeItemable = false): InventoryItemCollection
     {
         $query = InventoryItem::query()->where('organization_id', $this->organizationId());
 
@@ -63,21 +63,21 @@ class InventoryQueryService
             $query->whereIn('id', $filters->ids);
         }
 
-        if ($filters->itemable_type && $filters->itemable_id) {
-            $query->where('itemable_type', $filters->itemable_type)
-                ->whereIn('itemable_id', $filters->itemable_id);
+        if ($filters->itemableType && $filters->itemableId) {
+            $query->where('itemable_type', $filters->itemableType)
+                ->whereIn('itemable_id', $filters->itemableId);
         }
 
         if ($filters->sku) {
             $query->where('sku', 'like', "$filters->sku%");
         }
 
-        if ($filters->base_unit_code) {
-            $query->where('base_unit_code', $filters->base_unit_code);
+        if ($filters->baseUnitCode) {
+            $query->where('base_unit_code', $filters->baseUnitCode);
         }
 
-        if ($filters->is_active !== null) {
-            $query->where('is_active', $filters->is_active);
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
         }
 
         if ($includeItemable) {
@@ -100,7 +100,7 @@ class InventoryQueryService
         return InventoryItemResource::make($item);
     }
 
-    public function listLocations(InventoryLocationFilterDTO $filters, bool $includeExternal = false): InventoryLocationCollection
+    public function listLocations(InventoryLocationFilterData $filters, bool $includeExternal = false): InventoryLocationCollection
     {
         $query = InventoryLocation::query()->where('organization_id', $this->organizationId());
 
@@ -108,13 +108,13 @@ class InventoryQueryService
             $query->whereIn('id', $filters->ids);
         }
 
-        if ($filters->external_type && $filters->external_id) {
-            $query->where('external_type', $filters->external_type)
-                ->whereIn('external_id', $filters->external_id);
+        if ($filters->externalType && $filters->externalId) {
+            $query->where('external_type', $filters->externalType)
+                ->whereIn('external_id', $filters->externalId);
         }
 
-        if ($filters->is_active !== null) {
-            $query->where('is_active', $filters->is_active);
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
         }
 
         if ($includeExternal) {
@@ -164,7 +164,7 @@ class InventoryQueryService
         );
     }
 
-    public function getItemValue(InventoryItem $item, InventoryItemValueFilterDTO $filters): ItemValueViewData
+    public function getItemValue(InventoryItem $item, InventoryItemValueFilterData $filters): ItemValueViewData
     {
         $this->assertOrganization($item->organization_id);
 
@@ -179,12 +179,12 @@ class InventoryQueryService
             ->orderBy('location_id')
             ->orderBy('currency_code');
 
-        if ($filters->location_id) {
-            $query->whereIn('location_id', $filters->location_id);
+        if ($filters->locationId) {
+            $query->whereIn('location_id', $filters->locationId);
         }
 
-        if ($filters->currency_code) {
-            $query->whereIn('currency_code', $filters->currency_code);
+        if ($filters->currencyCode) {
+            $query->whereIn('currency_code', $filters->currencyCode);
         }
 
         $rows = $query->get();
@@ -283,7 +283,7 @@ class InventoryQueryService
         );
     }
 
-    public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterDTO $filters): LocationValueViewData
+    public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterData $filters): LocationValueViewData
     {
         $this->assertOrganization($location->organization_id);
 
@@ -298,12 +298,12 @@ class InventoryQueryService
             ->orderBy('item_id')
             ->orderBy('currency_code');
 
-        if ($filters->item_id) {
-            $query->whereIn('item_id', $filters->item_id);
+        if ($filters->itemId) {
+            $query->whereIn('item_id', $filters->itemId);
         }
 
-        if ($filters->currency_code) {
-            $query->whereIn('currency_code', $filters->currency_code);
+        if ($filters->currencyCode) {
+            $query->whereIn('currency_code', $filters->currencyCode);
         }
 
         $rows = $query->get();
@@ -367,7 +367,7 @@ class InventoryQueryService
     public function getItemLocationLots(
         InventoryItem $item,
         InventoryLocation $location,
-        InventoryLotFilterDTO $filters
+        InventoryLotFilterData $filters
     ): ItemLocationLotsViewData {
         $this->assertOrganization($item->organization_id);
         $this->assertOrganization($location->organization_id);
@@ -382,8 +382,8 @@ class InventoryQueryService
             ->where('organization_id', $this->organizationId())
             ->where('remaining', '>', 0);
 
-        if ($filters->expiring_before instanceof CarbonImmutable) {
-            $query->where('expiration_date', '<=', $filters->expiring_before->endOfDay());
+        if ($filters->expiringBefore instanceof CarbonImmutable) {
+            $query->where('expiration_date', '<=', $filters->expiringBefore->endOfDay());
         }
 
         /** @var \Illuminate\Database\Eloquent\Collection<int, InventoryStock> $lots */
@@ -409,7 +409,7 @@ class InventoryQueryService
         );
     }
 
-    public function listSummary(InventoryStockSummaryFilterDTO $filters): InventorySummaryCollection
+    public function listSummary(InventoryStockSummaryFilterData $filters): InventorySummaryCollection
     {
         $query = DB::table('inventory_stocks as stocks')
             ->join('inventory_items as items', 'items.id', '=', 'stocks.item_id')
@@ -430,8 +430,8 @@ class InventoryQueryService
             ->orderBy('stocks.item_id')
             ->orderBy('stocks.location_id');
 
-        $itemIds = collect($filters->item_id)->filter()->values();
-        $locationIds = collect($filters->location_id)->filter()->values();
+        $itemIds = collect($filters->itemId)->filter()->values();
+        $locationIds = collect($filters->locationId)->filter()->values();
 
         if ($itemIds->isNotEmpty()) {
             $query->whereIn('stocks.item_id', $itemIds->all());
@@ -441,12 +441,12 @@ class InventoryQueryService
             $query->whereIn('stocks.location_id', $locationIds->all());
         }
 
-        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
+        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
 
         return InventorySummaryCollection::make($paginator);
     }
 
-    public function listExpiring(InventoryStockExpiringFilterDTO $filters): InventoryExpiringLotCollection
+    public function listExpiring(InventoryStockExpiringFilterData $filters): InventoryExpiringLotCollection
     {
         $query = InventoryStock::query()
             ->join('inventory_items', 'inventory_items.id', '=', 'inventory_stocks.item_id')
@@ -461,22 +461,22 @@ class InventoryQueryService
             ->orderBy('inventory_stocks.expiration_date')
             ->orderBy('inventory_stocks.created_at');
 
-        if ($filters->location_id) {
-            $query->where('inventory_stocks.location_id', $filters->location_id);
+        if ($filters->locationId) {
+            $query->where('inventory_stocks.location_id', $filters->locationId);
         }
 
-        if ($filters->item_id) {
-            $query->where('inventory_stocks.item_id', $filters->item_id);
+        if ($filters->itemId) {
+            $query->where('inventory_stocks.item_id', $filters->itemId);
         }
 
         $query->orderBy('inventory_stocks.id');
 
-        $paginator = $query->cursorPaginate($filters->per_page, ['inventory_stocks.*'], 'cursor', $filters->cursor);
+        $paginator = $query->cursorPaginate($filters->perPage, ['inventory_stocks.*'], 'cursor', $filters->cursor);
 
         return InventoryExpiringLotCollection::make($paginator);
     }
 
-    public function listItemMovements(InventoryItem $item, InventoryMovementFilterDTO $filters): InventoryMovementCollection
+    public function listItemMovements(InventoryItem $item, InventoryMovementFilterData $filters): InventoryMovementCollection
     {
         $this->assertOrganization($item->organization_id);
 
@@ -491,12 +491,12 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
+        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
 
         return InventoryMovementCollection::make($paginator);
     }
 
-    public function listLocationMovements(InventoryLocation $location, InventoryMovementFilterDTO $filters): InventoryMovementCollection
+    public function listLocationMovements(InventoryLocation $location, InventoryMovementFilterData $filters): InventoryMovementCollection
     {
         $this->assertOrganization($location->organization_id);
 
@@ -511,7 +511,7 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $query->cursorPaginate($filters->per_page, ['*'], 'cursor', $filters->cursor);
+        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
 
         return InventoryMovementCollection::make($paginator);
     }
@@ -531,7 +531,7 @@ class InventoryQueryService
         return InventoryTransactionResource::make($transaction);
     }
 
-    public function listTransactions(InventoryTransactionFilterDTO $filters): InventoryTransactionCollection
+    public function listTransactions(InventoryTransactionFilterData $filters): InventoryTransactionCollection
     {
         $query = InventoryTransaction::query()->where('organization_id', $this->organizationId());
 
@@ -539,13 +539,13 @@ class InventoryQueryService
             $query->whereIn('id', $filters->ids);
         }
 
-        if ($filters->reference_type && $filters->reference_id) {
-            $query->where('reference_type', $filters->reference_type)
-                ->whereIn('reference_id', $filters->reference_id);
+        if ($filters->referenceType && $filters->referenceId) {
+            $query->where('reference_type', $filters->referenceType)
+                ->whereIn('reference_id', $filters->referenceId);
         }
 
-        if ($filters->transaction_type) {
-            $query->where('transaction_type', $filters->transaction_type);
+        if ($filters->transactionType) {
+            $query->where('transaction_type', $filters->transactionType);
         }
 
         $transactions = stableCursorPaginate($query, $filters);
@@ -564,7 +564,7 @@ class InventoryQueryService
         };
     }
 
-    protected function applyMovementFilters(Builder $query, InventoryMovementFilterDTO $filters): void
+    protected function applyMovementFilters(Builder $query, InventoryMovementFilterData $filters): void
     {
         if ($filters->from instanceof CarbonImmutable) {
             $query->where('created_at', '>=', $filters->from->startOfDay());
@@ -574,18 +574,18 @@ class InventoryQueryService
             $query->where('created_at', '<=', $filters->to->endOfDay());
         }
 
-        if ($filters->movement_type) {
-            $query->where('movement_type', $filters->movement_type);
+        if ($filters->movementType) {
+            $query->where('movement_type', $filters->movementType);
         }
 
-        if ($filters->reference_type || $filters->reference_id) {
+        if ($filters->referenceType || $filters->referenceId) {
             $query->whereHas('transaction', function (Builder $transactionQuery) use ($filters): void {
-                if ($filters->reference_type) {
-                    $transactionQuery->where('reference_type', $filters->reference_type);
+                if ($filters->referenceType) {
+                    $transactionQuery->where('reference_type', $filters->referenceType);
                 }
 
-                if ($filters->reference_id) {
-                    $transactionQuery->where('reference_id', $filters->reference_id);
+                if ($filters->referenceId) {
+                    $transactionQuery->where('reference_id', $filters->referenceId);
                 }
             });
         }

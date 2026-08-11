@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Catalog\DTO\OptionValueDTO;
-use Lahatre\Catalog\DTO\OptionValueFilterDTO;
+use Lahatre\Catalog\Data\OptionValueData;
+use Lahatre\Catalog\Data\OptionValueFilterData;
+use Lahatre\Catalog\Http\Requests\OptionValueFilterRequest;
+use Lahatre\Catalog\Http\Requests\StoreOptionValueRequest;
+use Lahatre\Catalog\Http\Requests\UpdateOptionValueRequest;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\OptionValueService;
@@ -20,12 +22,12 @@ class OptionValueController
         protected OptionValueService $optionValueService
     ) {}
 
-    public function index(Request $request, Option $option): AnonymousResourceCollection
+    public function index(OptionValueFilterRequest $request, Option $option): AnonymousResourceCollection
     {
         Gate::authorize('retrieve', $option);
         Gate::authorize('list', OptionValue::class);
 
-        $filters = OptionValueFilterDTO::fromRequest($request);
+        $filters = OptionValueFilterData::fromArray($request->validated());
 
         return $this->optionValueService->list($option, $filters);
     }
@@ -40,29 +42,35 @@ class OptionValueController
         return response()->json($response);
     }
 
-    public function store(Request $request, Option $option): JsonResponse
+    public function store(StoreOptionValueRequest $request, Option $option): JsonResponse
     {
         Gate::authorize('update', $option);
         Gate::authorize('create', OptionValue::class);
 
-        $dto = OptionValueDTO::fromArray([
-            ...$request->all(),
+        $data = OptionValueData::fromArray([
+            ...$request->validated(),
             'option_id' => $option->id,
         ]);
 
-        $response = $this->optionValueService->create($option, $dto);
+        $response = $this->optionValueService->create($option, $data);
 
         return response()->json($response, 201);
     }
 
-    public function update(Request $request, Option $option, OptionValue $value): JsonResponse
+    public function update(UpdateOptionValueRequest $request, Option $option, OptionValue $value): JsonResponse
     {
         Gate::authorize('update', $option);
         Gate::authorize('update', $value);
 
-        $dto = OptionValueDTO::forUpdate($request, $value);
+        $data = OptionValueData::fromArray(
+            [
+                ...$request->validated(),
+                'option_id' => $option->id,
+            ],
+            missingFields: ['value'],
+        );
 
-        $response = $this->optionValueService->update($option, $value, $dto);
+        $response = $this->optionValueService->update($option, $value, $data);
 
         return response()->json($response);
     }

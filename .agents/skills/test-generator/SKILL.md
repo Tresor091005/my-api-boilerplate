@@ -24,7 +24,7 @@ Before generating or reshaping tests, always read:
 To respect modular architecture constraints, keep test responsibilities separate:
 
 1. Module-local tests: `app-modules/<module>/tests`
-   - Target services, DTOs, business assertions, and persistence local to the module.
+   - Target services, Data mapping, business assertions, and persistence local to the module.
    - Use only dependencies allowed by the module dependency graph.
    - Avoid full IAM bootstrap when the module does not depend on IAM or Organization.
 
@@ -56,19 +56,23 @@ RateLimiter::for('api', fn () => Limit::none());
 
 ## Anatomy Of A Module-Local Test
 
-1. DTO validation
-   - Build the DTO with invalid payload.
-   - Expect `ValidationException`.
+1. Form Request validation
+   - Validate invalid payload against the Request rules.
+   - Assert the expected validation errors.
 
-2. Business assertions
+2. Data mapping
+   - Build the Data through `::fromArray()`.
+   - Assert snake_case input maps to camelCase properties and that `MissingValue` preserves absence.
+
+3. Business assertions
    - Reproduce invalid domain state.
    - Assert the expected business exception.
 
-3. Service logic and persistence
+4. Service logic and persistence
    - Call the service with valid payload.
    - Assert persistence and relations.
 
-4. Output contract
+5. Output contract
    - Assert the `resource` or `collection` payload with `->response()->getData(true)`.
    - Assert critical business keys.
 
@@ -100,12 +104,13 @@ expect($unit->code)->toBe('KG')
     ->and($unit->name)->toBe('Kilogram');
 ```
 
-## DTO Validation Datasets
+## Form Request Validation Datasets
 
 ```php
 it('fails validation', function (array $data): void {
-    expect(fn () => new UnitSyncDTO($data))
-        ->toThrow(ValidationException::class);
+    $request = new UnitSyncRequest();
+
+    expect(Validator::make($data, $request->rules())->fails())->toBeTrue();
 })->with([
     'missing code' => [['name' => 'Test']],
     'invalid type' => [['code' => 123]],

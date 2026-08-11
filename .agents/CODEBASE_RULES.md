@@ -71,7 +71,7 @@ This document is the single source of truth for the codebase rules.
 ### 2.2 `src/Http/Controllers/*Controller.php`
 - Single responsibility: HTTP orchestration.
 - No business logic.
-- No manual business validation outside DTOs.
+- No manual input validation inside Controllers.
 - The Controller authorizes access before calling the service.
 - If a module is package-oriented and tenant-agnostic, host-application Controllers or routes must add the missing business access boundary before exposing it.
 - For nested routes:
@@ -80,7 +80,7 @@ This document is the single source of truth for the codebase rules.
   - then authorize the child model or target class for the action itself
 - Standard flow:
   1. `Gate::authorize(...)`
-  2. `DTO::fromRequest(...)` or `DTO::forUpdate(...)`
+  2. build a Data object with `Data::fromArray($request->validated())`
   3. service call
   4. `JsonResponse`, `JsonResource`, or collection response
 - HTTP status codes:
@@ -91,7 +91,7 @@ This document is the single source of truth for the codebase rules.
 ### 2.3 `src/Services/*Service.php`
 - The service orchestrates business logic.
 - The service must not know the HTTP request.
-- The service works with DTOs, models, collections, and primitive values.
+- The service works with Data objects, models, collections, and primitive values.
 - `StandaloneService` implementations own transactions.
 - `TransactionalService` implementations must never start their own transaction.
 - No HTTP authorization logic inside services.
@@ -104,7 +104,7 @@ This document is the single source of truth for the codebase rules.
 - For soft-deletable tables, Eloquent model queries may rely on `SoftDeletes` by default, but `DB::table(...)`, joins, aggregates, and raw queries must make the `deleted_at` boundary explicit when it matters.
 - When a reviewer cannot locally prove the tenancy or soft-delete boundary of a new query, it is a warning that should be treated as an immediate fix unless the surrounding flow already constrains it in an obvious and documented way.
 - Cursor pagination must always use deterministic ordering.
-- Sort inputs must come from a DTO whitelist, not arbitrary request values.
+- Sort inputs must come from a Data whitelist, not arbitrary request values.
 - If the effective cursor order is not already unique, append a unique tie-breaker, usually `id`, using the same direction as the last explicit sort.
 - When the standard cursor filter quartet is used (`sort_by`, `sort_order`, `per_page`, `cursor`), prefer the shared `stableCursorPaginate()` helper.
 - If a query needs custom ordering logic beyond that quartet, write the `orderBy(...)` chain explicitly in the service and finish with `cursorPaginate(...)`.
@@ -127,27 +127,43 @@ This document is the single source of truth for the codebase rules.
 - `context` must be useful and stable.
 - No hardcoded user-facing text.
 
-### 2.6 `src/DTO/*.php`
-- Single responsibility: transport, type, validate, and normalize input data.
-- Must extend `Lahatre\Shared\DTO\LahatreDTO`.
-- `casts()` is required for anything that is not a simple string.
-- `defaults()` defines implicit values.
-- `beforeValidation()` cleans raw input.
-- `rules()` must be strict.
-- `after()` handles complex validation.
-- Use `str()` normalization macros when needed.
-- DTO categories:
-  - `[Entity]DTO`
-  - `[Entity]FilterDTO`
-  - `[Entity]DataDTO`
-  - `[Entity][Action]DTO`
+### 2.6 `src/Http/Requests/*Request.php`
+- Single responsibility: validate and normalize HTTP input.
+- HTTP authorization remains in Controllers and Policies; a Form Request must not contain policy or Gate logic.
+- A Form Request may be shared by multiple Controller actions while their input shape remains coherent.
+- Use action-specific Requests only when the shapes materially diverge.
+- `prepareForValidation()` only normalizes fields that explicitly require it; never apply recursive normalization to all input strings.
+- `rules()` must be strict and may use the route model to adapt rules such as `unique()->ignore(...)`.
+- Presence rules must be intentional:
+  - no implicit presence rule when absence is accepted
+  - `nullable` when `null` is accepted
+  - `present` when the key must exist but an empty value may be valid
+  - `required` when the key must exist and contain a non-empty value
+- `present|array` is sufficient to require an array key while allowing an empty array; `min:0` is redundant.
+- `after()` handles complex HTTP input validation.
+- Custom messages and attributes must use translations when they are user-facing.
 
-### 2.7 `src/Rules/*.php`
+### 2.7 `src/Data/*.php`
+- Single responsibility: immutable, typed transport for services.
+- Data classes must be independent from HTTP Requests, Eloquent Models, Laravel Validator, authorization, and ambient tenant context.
+- Prefer `final readonly class` with a private constructor.
+- `fromArray()` is the conventional construction entry point and must perform the `new self(...)` call.
+- `fromArray()` maps `snake_case` payload or persistence keys to `camelCase` PHP properties explicitly.
+- Data factories may convert already validated values into enums, dates, collections, and nested Data objects, but must not perform HTTP validation.
+- One Data class represents one coherent service shape. Do not create action-specific Data classes when the shape is effectively identical.
+- `MissingValue` is allowed only when absence has a different meaning from an explicit `null` value.
+- When a Data property accepts `MissingValue`, list it first in the union (`MissingValue|string|null`, `MissingValue|array|null`, `MissingValue|bool`) so absence is visible before value types.
+- A `missingFields` argument refers to source array keys and therefore uses `snake_case`.
+- Use `array_key_exists()` whenever explicit `null` must remain distinguishable from an absent key.
+- Services must map Data properties to models explicitly; passing a whole Data object as a model attribute array is forbidden.
+- Data categories should use intent-revealing names such as `[Entity]Data`, `[Entity]FilterData`, or `[Action]Data`.
+
+### 2.8 `src/Rules/*.php`
 - Use for reusable or SQL-heavy field validation.
 - Must implement `ValidationRule`.
 - Failure messages must be translated.
 
-### 2.8 `src/Policies/*.php`
+### 2.9 `src/Policies/*.php`
 - Policies must stay simple.
 - No SQL queries.
 - No heavy business logic.
@@ -160,7 +176,7 @@ This document is the single source of truth for the codebase rules.
 - `restore` and `forceDelete` must return `false` by default.
 - Tenancy checks should rely on `organization_id` when the model has it.
 
-### 2.9 `src/Http/Resources/*.php`
+### 2.10 `src/Http/Resources/*.php`
 - Single responsibility: transform output.
 - No business logic.
 - `@mixin` is required.
@@ -169,7 +185,7 @@ This document is the single source of truth for the codebase rules.
 - Collections must extend `App\Http\Resources\BaseCollection`.
 - Avoid infinite serialization loops.
 
-### 2.10 `src/Models/*.php`
+### 2.11 `src/Models/*.php`
 - An explicit `$table` is required.
 - `$fillable` must be limited to user/system writable fields.
 - `$casts` must be explicit for all meaningful business columns.
@@ -187,22 +203,22 @@ This document is the single source of truth for the codebase rules.
   7. relations
   8. scopes
 
-### 2.11 `src/Providers/*.php`
+### 2.12 `src/Providers/*.php`
 - One provider per module by default.
 - Use it for bindings, config merging, morph maps, and package registration.
 - No business logic.
 
-### 2.12 `src/Support/*.php`
+### 2.13 `src/Support/*.php`
 - Business-agnostic helpers only.
 - No implicit HTTP knowledge.
 - No permissions or business orchestration.
 
-### 2.13 `src/Integrations/*.php`
+### 2.14 `src/Integrations/*.php`
 - Encapsulate external dependencies.
 - No application business logic.
 - Translate business needs into technical calls.
 
-### 2.14 `database/migrations/*.php`
+### 2.15 `database/migrations/*.php`
 - Define the SQL schema.
 - May include mandatory production reference data.
 - Use `jsonb` for structured data.
@@ -213,28 +229,28 @@ This document is the single source of truth for the codebase rules.
 - Tables must be prefixed by module.
 - Production corrections should preferably be done through new migrations.
 
-### 2.15 `database/factories/*.php`
+### 2.16 `database/factories/*.php`
 - Dedicated to tests.
 - Must generate coherent states.
 - Must be correctly connected to models.
 
-### 2.16 `database/seeders/*.php`
+### 2.17 `database/seeders/*.php`
 - Reserved for development and demo data.
 - No production-critical data.
 - Prefer idempotence through `firstOrCreate()`.
 
-### 2.17 `resources/lang/en/*.php`
+### 2.18 `resources/lang/en/*.php`
 - Simple PHP files returning arrays.
 - Keys must use `snake_case`.
 - Dynamic placeholders must use `:placeholder`.
 - Messages must be stable and explicit.
 - English is the reference language.
 
-### 2.18 `tests/Feature/**/*.php`
+### 2.19 `tests/Feature/**/*.php`
 - Pest only.
 - A test must document a clear business intent.
 - Testing priorities:
-  1. DTO validation
+  1. Form Request validation and Data mapping
   2. business assertions
   3. service logic and persistence
   4. output contract
@@ -243,7 +259,7 @@ This document is the single source of truth for the codebase rules.
 - If the test answers “who is allowed?”, it is usually an integration HTTP test.
 - If the test answers “what does the business do?”, it is usually a module-local test.
 
-### 2.19 `tests/Feature/Architecture/**/*.php`
+### 2.20 `tests/Feature/Architecture/**/*.php`
 - Every important cross-cutting rule deserves an architecture or HTTP guard.
 - If a convention has already drifted once, it should ideally be protected by a test.
 

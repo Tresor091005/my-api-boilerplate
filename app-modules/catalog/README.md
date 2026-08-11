@@ -27,7 +27,7 @@ Dans les tests module-locaux:
 - Appeler directement les services:
   - `CategoryService`, `OptionService`, `OptionValueService`, `ProductService`, `ProductVariantService`
 - Valider les payloads via DTO:
-  - `expect(fn () => new XxxDTO(...))->toThrow(ValidationException::class)`
+  - valider les payloads avec les règles de la Form Request et tester séparément le mapping `XxxData::fromArray(...)`
 - Pour les collections/resources:
   - `->response()->getData(true)` puis assertions sur `data`
 
