@@ -19,10 +19,9 @@ use Lahatre\Iam\Http\Resources\PermissionResource;
 use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Models\Authenticatable;
 
-class AuthService implements StandaloneService
+class AuthService
 {
     /**
      * Authenticate a user and return an AuthResource.

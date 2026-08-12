@@ -7,9 +7,8 @@ namespace Lahatre\Master\Services;
 use Lahatre\Master\Data\CurrencyFilterData;
 use Lahatre\Master\Http\Resources\CurrencyCollection;
 use Lahatre\Master\Models\Currency;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 
-class CurrencyService implements StandaloneService
+class CurrencyService
 {
     public function list(CurrencyFilterData $filters): CurrencyCollection
     {

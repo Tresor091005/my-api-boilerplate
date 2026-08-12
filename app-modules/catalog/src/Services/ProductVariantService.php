@@ -15,14 +15,13 @@ use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
 use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Services\Variant\ProductVariantService as TransactionalProductVariantService;
+use Lahatre\Catalog\Services\Variant\TransactionalProductVariantService;
 use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\withoutMissing;
 
-class ProductVariantService implements StandaloneService
+class ProductVariantService
 {
     public function __construct(
         protected ProductVariantAssertion $productVariantAssertion,
@@ -56,7 +55,7 @@ class ProductVariantService implements StandaloneService
     {
         /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = DB::transaction(
-            fn (): EloquentCollection => $this->transactionalProductVariantService->add($product, $data->variants)
+            fn (): EloquentCollection => $this->transactionalProductVariantService->createMany($product, $data->variants)
         );
 
         $variants->load($this->relations());

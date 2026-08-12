@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\Data\OptionData;
 use Lahatre\Catalog\Data\OptionFilterData;
-use Lahatre\Catalog\Exceptions\Option\OptionInUseException;
+use Lahatre\Catalog\Exceptions\OptionException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
@@ -88,5 +88,5 @@ it('prevents deleting an option that is in use', function (): void {
         'option_value_id' => $optionValue->id,
     ]);
 
-    expect(fn () => $this->service->delete($option))->toThrow(OptionInUseException::class);
+    expect(fn () => $this->service->delete($option))->toThrow(OptionException::class);
 });

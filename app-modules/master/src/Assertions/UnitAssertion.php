@@ -6,13 +6,7 @@ namespace Lahatre\Master\Assertions;
 
 use Illuminate\Support\Collection;
 use Lahatre\Master\Data\UnitData;
-use Lahatre\Master\Exceptions\Unit\UnitBaseRequiredException;
-use Lahatre\Master\Exceptions\Unit\UnitBuiltInUpdateException;
-use Lahatre\Master\Exceptions\Unit\UnitDuplicateRatioException;
-use Lahatre\Master\Exceptions\Unit\UnitGroupMismatchException;
-use Lahatre\Master\Exceptions\Unit\UnitRatioConflictException;
-use Lahatre\Master\Exceptions\Unit\UnitRatioImmutableException;
-use Lahatre\Master\Exceptions\Unit\UnitRatioRequiredException;
+use Lahatre\Master\Exceptions\UnitException;
 use Lahatre\Master\Models\Unit;
 
 class UnitAssertion
@@ -25,17 +19,12 @@ class UnitAssertion
      * @param  Collection<int, Unit>  $existingUnits  The already loaded existing units.
      * @param  bool  $isGroupBuiltin  Whether the unit group is built-in.
      *
-     * @throws UnitDuplicateRatioException
-     * @throws UnitBaseRequiredException
-     * @throws UnitGroupMismatchException
-     * @throws UnitBuiltInUpdateException
-     * @throws UnitRatioImmutableException
-     * @throws UnitRatioConflictException
+     * @throws UnitException
      */
     public function assertCanSync(?string $groupId, Collection $units, Collection $existingUnits, bool $isGroupBuiltin): void
     {
         if ($isGroupBuiltin) {
-            throw new UnitBuiltInUpdateException();
+            throw UnitException::builtInUpdate();
         }
 
         $this->assertUniqueRatiosInPayload($units);
@@ -61,13 +50,13 @@ class UnitAssertion
      *
      * @param  Collection<int, UnitData>  $units
      *
-     * @throws UnitDuplicateRatioException
+     * @throws UnitException
      */
     protected function assertUniqueRatiosInPayload(Collection $units): void
     {
         $ratios = $units->pluck('ratio')->filter()->toArray();
         if (count($ratios) !== count(array_unique($ratios))) {
-            throw new UnitDuplicateRatioException();
+            throw UnitException::duplicateRatio();
         }
     }
 
@@ -76,51 +65,48 @@ class UnitAssertion
      *
      * @param  Collection<int, UnitData>  $units
      *
-     * @throws UnitBaseRequiredException
+     * @throws UnitException
      */
     protected function assertHasBaseUnit(Collection $units): void
     {
         $ratios = $units->pluck('ratio');
 
         if ($ratios->filter(fn ($r): bool => $r === 1)->count() !== 1) {
-            throw new UnitBaseRequiredException();
+            throw UnitException::baseRequired();
         }
     }
 
     /**
      * Asserts that an existing unit can be updated with the provided data.
      *
-     * @throws UnitBuiltInUpdateException
-     * @throws UnitRatioImmutableException
-     * @throws UnitGroupMismatchException
+     * @throws UnitException
      */
     protected function assertCanUpdateExistingUnit(Collection $existingUnits, UnitData $updateData, string $groupLabel): void
     {
         $existingUnit = $existingUnits->firstWhere('id', $updateData->id);
 
         if (!$existingUnit) {
-            throw new UnitGroupMismatchException($updateData->id, $groupLabel);
+            throw UnitException::groupMismatch($updateData->id, $groupLabel);
         }
 
         if ($updateData->ratio !== null && (int) $updateData->ratio !== (int) $existingUnit->ratio) {
-            throw new UnitRatioImmutableException();
+            throw UnitException::ratioImmutable();
         }
     }
 
     /**
      * Asserts that a new unit can be added to an existing group.
      *
-     * @throws UnitRatioConflictException
-     * @throws UnitRatioRequiredException
+     * @throws UnitException
      */
     protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitData $newData, string $groupLabel): void
     {
         if ($newData->ratio === null) {
-            throw new UnitRatioRequiredException();
+            throw UnitException::ratioRequired();
         }
 
         if ($existingUnits->contains('ratio', $newData->ratio)) {
-            throw new UnitRatioConflictException($newData->ratio, $groupLabel);
+            throw UnitException::ratioConflict($newData->ratio, $groupLabel);
         }
     }
 }

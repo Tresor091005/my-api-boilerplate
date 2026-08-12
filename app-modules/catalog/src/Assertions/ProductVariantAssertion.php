@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Assertions;
 
-use Lahatre\Catalog\Exceptions\ProductVariant\ProductVariantIsLastException;
+use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Models\ProductVariant;
 
 class ProductVariantAssertion
@@ -16,7 +16,7 @@ class ProductVariantAssertion
             ->exists();
 
         if (!$otherVariantsExist) {
-            throw new ProductVariantIsLastException($variant);
+            throw ProductVariantException::isLast($variant);
         }
     }
 }

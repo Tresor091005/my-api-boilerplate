@@ -11,23 +11,22 @@ use Lahatre\Catalog\Data\ProductVariantData;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
-use Lahatre\Catalog\Services\Option\OptionService;
+use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Shared\Contracts\Services\TransactionalService;
 use Lahatre\Shared\Support\SkuGenerator;
 
-class ProductVariantService implements TransactionalService
+class TransactionalProductVariantService
 {
     public function __construct(
         protected InventoryInterface $inventoryService,
-        protected OptionService $optionService
+        protected TransactionalOptionService $transactionalOptionService
     ) {}
 
     /**
      * @param  Collection<int, ProductVariantData>  $variantsData
      * @return EloquentCollection<int, ProductVariant>
      */
-    public function add(Product $product, Collection $variantsData): EloquentCollection
+    public function createMany(Product $product, Collection $variantsData): EloquentCollection
     {
         if ($variantsData->isEmpty()) {
             return new EloquentCollection();
@@ -101,7 +100,7 @@ class ProductVariantService implements TransactionalService
             return;
         }
 
-        $optionValuesMap = $this->optionService->getOrCreate($allOptions);
+        $optionValuesMap = $this->transactionalOptionService->resolveOrCreateValues($allOptions);
 
         $pivotRows = [];
         foreach ($variantOptions as $variantId => $optionsData) {

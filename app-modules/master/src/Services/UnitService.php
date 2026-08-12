@@ -17,10 +17,9 @@ use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Support\HandleGenerator;
 
-class UnitService implements StandaloneService
+class UnitService
 {
     public function __construct(
         protected UnitAssertion $unitAssertion,

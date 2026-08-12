@@ -12,13 +12,12 @@ use Lahatre\Catalog\Http\Resources\OptionCollection;
 use Lahatre\Catalog\Http\Resources\OptionResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\required;
 use function Lahatre\Shared\Data\withoutMissing;
 
-class OptionService implements StandaloneService
+class OptionService
 {
     public function __construct(
         protected OptionAssertion $optionAssertion,

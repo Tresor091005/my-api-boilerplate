@@ -11,7 +11,6 @@ use Lahatre\Catalog\Data\CategoryFilterData;
 use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Http\Resources\CategoryResource;
 use Lahatre\Catalog\Models\Category;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\required;
@@ -19,7 +18,7 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 use Lahatre\Shared\Support\HandleGenerator;
 
-class CategoryService implements StandaloneService
+class CategoryService
 {
     public function __construct(
         protected CategoryAssertion $categoryAssertion

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Assertions;
 
-use Lahatre\Catalog\Exceptions\Category\CategoryCannotBeDescendantParentException;
-use Lahatre\Catalog\Exceptions\Category\CategoryHasChildrenException;
+use Lahatre\Catalog\Exceptions\CategoryException;
 use Lahatre\Catalog\Models\Category;
 
 class CategoryAssertion
@@ -14,12 +13,12 @@ class CategoryAssertion
      * Asserts that a category can be deleted.
      * A category can only be deleted if it does not have any children.
      *
-     * @throws CategoryHasChildrenException If the category has children.
+     * @throws CategoryException If the category has children.
      */
     public function assertCanDelete(Category $category): void
     {
         if ($category->children()->whereNull('deleted_at')->exists()) {
-            throw new CategoryHasChildrenException($category);
+            throw CategoryException::hasChildren($category);
         }
     }
 
@@ -28,7 +27,7 @@ class CategoryAssertion
      * A new parent ID is valid if it is null (for a top-level category),
      * or if it refers to a category that is not itself or one of its descendants.
      *
-     * @throws CategoryCannotBeDescendantParentException If the new parent is the category itself or one of its descendants.
+     * @throws CategoryException If the new parent is the category itself or one of its descendants.
      */
     public function assertCanBeNewParent(Category $category, ?string $newParentId): void
     {
@@ -37,13 +36,13 @@ class CategoryAssertion
         }
 
         if ($newParentId === $category->id) {
-            throw new CategoryCannotBeDescendantParentException($category, $newParentId);
+            throw CategoryException::cannotBeDescendantParent($category, $newParentId);
         }
 
         $descendantIds = $category->descendants()->pluck('id')->toArray();
 
         if (in_array($newParentId, $descendantIds, true)) {
-            throw new CategoryCannotBeDescendantParentException($category, $newParentId);
+            throw CategoryException::cannotBeDescendantParent($category, $newParentId);
         }
     }
 }

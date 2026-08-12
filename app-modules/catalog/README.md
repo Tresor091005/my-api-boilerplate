@@ -1,5 +1,11 @@
 # Catalog Module
 
+## Exceptions métier
+
+Les invariants propres aux modèles sont regroupés par modèle : `CategoryException`, `OptionException`, `OptionValueException` et `ProductVariantException`. Utiliser leurs méthodes statiques nommées depuis les assertions.
+
+Voir la [convention générale des exceptions métier](../../docs/coding-rules/exceptions.md).
+
 ## Tests
 
 Cette section documente la strategie de test a suivre pour `catalog` (et reutilisable pour les autres modules).

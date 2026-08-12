@@ -29,9 +29,8 @@ use Lahatre\Pricing\Models\PriceableGroupMember;
 use Lahatre\Pricing\Models\PriceEntry;
 use Lahatre\Pricing\Support\PricingScopeData;
 use Lahatre\Pricing\ViewData\PriceValidationResult;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 
-class PricingService implements PricingInterface, StandaloneService
+class PricingService implements PricingInterface
 {
     private const UNIT_SCALE = 10;
 

@@ -14,12 +14,11 @@ use Lahatre\Catalog\Http\Resources\OptionValueResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
 
 use function Lahatre\Shared\Data\required;
 use function Lahatre\Shared\Data\withoutMissing;
 
-class OptionValueService implements StandaloneService
+class OptionValueService
 {
     public function __construct(
         protected OptionValueAssertion $optionValueAssertion,

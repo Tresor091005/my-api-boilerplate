@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
-use Lahatre\Catalog\Exceptions\ProductVariant\ProductVariantIsLastException;
+use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -124,5 +124,5 @@ it('validates variant payload and blocks deletion of the last variant', function
     ]);
 
     expect(fn () => $this->service->delete($this->product, $singleVariant))
-        ->toThrow(ProductVariantIsLastException::class);
+        ->toThrow(ProductVariantException::class);
 });

@@ -14,8 +14,7 @@ use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Catalog\Services\Variant\ProductVariantService;
-use Lahatre\Shared\Contracts\Services\StandaloneService;
+use Lahatre\Catalog\Services\Variant\TransactionalProductVariantService;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\required;
@@ -23,11 +22,11 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 use Lahatre\Shared\Support\HandleGenerator;
 
-class ProductService implements StandaloneService
+class ProductService
 {
     public function __construct(
         protected ProductAssertion $productAssertion,
-        protected ProductVariantService $productVariantService
+        protected TransactionalProductVariantService $transactionalProductVariantService
     ) {}
 
     public function list(ProductFilterData $filters): ProductCollection
@@ -83,7 +82,7 @@ class ProductService implements StandaloneService
 
             $product->categories()->sync(required($data->categories) ?? []);
 
-            $this->productVariantService->add($product, required($data->variants));
+            $this->transactionalProductVariantService->createMany($product, required($data->variants));
         });
 
         return ProductResource::make($product->load($this->relations()));
@@ -113,7 +112,7 @@ class ProductService implements StandaloneService
             /** @var Collection<int, ProductVariant> $variants */
             $variants = $product->variants()->get();
             foreach ($variants as $variant) {
-                $this->productVariantService->delete($variant);
+                $this->transactionalProductVariantService->delete($variant);
             }
 
             $product->delete();

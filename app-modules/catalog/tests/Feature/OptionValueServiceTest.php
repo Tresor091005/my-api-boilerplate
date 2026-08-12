@@ -5,12 +5,13 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\Data\OptionValueData;
 use Lahatre\Catalog\Data\OptionValueFilterData;
-use Lahatre\Catalog\Exceptions\OptionValue\OptionValueInUseException;
+use Lahatre\Catalog\Exceptions\OptionValueException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
+use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Catalog\Services\OptionValueService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 
@@ -88,5 +89,35 @@ it('prevents deleting an option value that is in use', function (): void {
     ]);
 
     expect(fn () => $this->service->delete($option, $optionValue))
-        ->toThrow(OptionValueInUseException::class);
+        ->toThrow(OptionValueException::class);
+});
+
+it('creates active option values idempotently and allows recreation after soft deletion', function (): void {
+    $option = Option::factory()->create([
+        'organization_id' => $this->organizationId,
+        'name'            => 'Color',
+    ]);
+    $transactionalOptionService = app(TransactionalOptionService::class);
+
+    $firstResult = $transactionalOptionService->createMissingValues($option, ['Blue', 'Blue']);
+    $secondResult = $transactionalOptionService->createMissingValues($option, ['Blue']);
+
+    $firstOptionValue = $firstResult->firstOrFail();
+
+    expect($firstResult)->toHaveCount(1)
+        ->and($secondResult)->toHaveCount(1)
+        ->and($secondResult->firstOrFail()->id)->toBe($firstOptionValue->id)
+        ->and($option->values()->where('value', 'Blue')->count())->toBe(1);
+
+    $firstOptionValue->delete();
+
+    $recreatedResult = $transactionalOptionService->createMissingValues($option, ['Blue']);
+
+    expect($recreatedResult)->toHaveCount(1)
+        ->and($recreatedResult->firstOrFail()->id)->not->toBe($firstOptionValue->id)
+        ->and($option->values()->where('value', 'Blue')->count())->toBe(1)
+        ->and(OptionValue::withTrashed()
+            ->where('option_id', $option->id)
+            ->where('value', 'Blue')
+            ->count())->toBe(2);
 });

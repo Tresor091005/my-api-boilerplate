@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Master\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Lahatre\Master\Exceptions\Tag\ModelMissingHasTagsTraitException;
-use Lahatre\Master\Exceptions\Tag\TagLinkNotFoundException;
-use Lahatre\Master\Exceptions\Tag\TagNotFoundException;
+use Lahatre\Master\Exceptions\TagException;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Models\Unit;
@@ -75,7 +73,7 @@ it('throws when detaching unknown tags or unknown links', function (): void {
 
     expect(fn () => $this->taggableUnit->detach([
         'status' => ['ghost'],
-    ]))->toThrow(TagNotFoundException::class);
+    ]))->toThrow(TagException::class);
 
     $otherUnit = Unit::factory()->create([
         'organization_id' => $this->organizationId,
@@ -85,7 +83,7 @@ it('throws when detaching unknown tags or unknown links', function (): void {
 
     expect(fn () => $otherTaggableUnit->detach([
         'status' => ['active'],
-    ]))->toThrow(TagLinkNotFoundException::class);
+    ]))->toThrow(TagException::class);
 });
 
 it('supports soft deleted duplicates in same tenant and keeps slug uniqueness in practice', function (): void {
@@ -164,5 +162,5 @@ it('rejects tag operations on models without has tags trait', function (): void 
 
     expect(fn () => app(TagService::class)->attach($tag, [
         'status' => ['active'],
-    ]))->toThrow(ModelMissingHasTagsTraitException::class);
+    ]))->toThrow(TagException::class);
 });

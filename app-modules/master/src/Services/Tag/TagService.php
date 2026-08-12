@@ -10,15 +10,12 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Lahatre\Master\Exceptions\Tag\ModelMissingHasTagsTraitException;
-use Lahatre\Master\Exceptions\Tag\TagLinkNotFoundException;
-use Lahatre\Master\Exceptions\Tag\TagNotFoundException;
+use Lahatre\Master\Exceptions\TagException;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Traits\HasTags;
-use Lahatre\Shared\Contracts\Services\TransactionalService;
 use Lahatre\Shared\Support\HandleGenerator;
 
-class TagService implements TransactionalService
+class TagService
 {
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
@@ -120,7 +117,7 @@ class TagService implements TransactionalService
 
             $missingNames = $names->reject(fn (string $name): bool => $tags->has($name))->values();
             if ($missingNames->isNotEmpty()) {
-                throw new TagNotFoundException($type, $missingNames->all());
+                throw TagException::notFound($type, $missingNames->all());
             }
 
             $tagIds = $tags->pluck('id');
@@ -135,7 +132,7 @@ class TagService implements TransactionalService
                 ->values();
 
             if ($missingLinkedNames->isNotEmpty()) {
-                throw new TagLinkNotFoundException($type, $missingLinkedNames->all());
+                throw TagException::linkNotFound($type, $missingLinkedNames->all());
             }
 
             $this->tagsRelation($model)->detach($tagIds->all());
@@ -220,7 +217,7 @@ class TagService implements TransactionalService
     protected function assertModelUsesTags(Model $model): void
     {
         if (!in_array(HasTags::class, class_uses_recursive($model::class), true)) {
-            throw new ModelMissingHasTagsTraitException($model::class);
+            throw TagException::modelMissingHasTagsTrait($model::class);
         }
     }
 
