@@ -49,7 +49,7 @@ trait InteractsWithInventoryLocation
      */
     public function inventoryLocationStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->stocks());
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), new InventoryLocation()->stocks());
     }
 
     /**
@@ -57,7 +57,7 @@ trait InteractsWithInventoryLocation
      */
     public function activeInventoryLocationStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->activeStocks());
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), new InventoryLocation()->activeStocks());
     }
 
     /**
@@ -65,7 +65,7 @@ trait InteractsWithInventoryLocation
      */
     public function inventoryLocationStockSummaries(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->stockSummaries());
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), new InventoryLocation()->stockSummaries());
     }
 
     /**
@@ -73,6 +73,6 @@ trait InteractsWithInventoryLocation
      */
     public function inventoryLocationMovements(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryLocation(), (new InventoryLocation())->movements());
+        return $this->hasManyDeepFromRelations($this->inventoryLocation(), new InventoryLocation()->movements());
     }
 }

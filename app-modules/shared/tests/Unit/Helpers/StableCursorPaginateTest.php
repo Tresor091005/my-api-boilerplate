@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Models\Category;
 
@@ -59,6 +60,6 @@ it('fails fast when the filter object does not expose the cursor quartet', funct
     $query = Category::query();
     $filters = (object) ['perPage' => 15];
 
-    expect(fn () => stableCursorPaginate($query, $filters))
+    expect(fn (): CursorPaginator => stableCursorPaginate($query, $filters))
         ->toThrow(InvalidArgumentException::class);
 });

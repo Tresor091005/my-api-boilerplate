@@ -31,15 +31,16 @@ it('reuses the active organization context', function (): void {
     $organizationId = Str::uuid7()->toString();
     setPermissionsTeamId($organizationId);
 
-    expect((new TestOrganizationFactory())->organizationId())->toBe($organizationId)
+    expect(new TestOrganizationFactory()->organizationId())->toBe($organizationId)
         ->and(DB::table('organization_organizations')->count())->toBe(0);
 });
 
 it('creates a fallback organization when no context exists', function (): void {
     setPermissionsTeamId(null);
 
-    $organizationId = (new TestOrganizationFactory())->organizationId();
+    $organizationId = new TestOrganizationFactory()->organizationId();
 
-    expect($organizationId)->toBeString()->not->toBeEmpty()
+    expect($organizationId)->toBeString()
+        ->and($organizationId !== '')->toBeTrue()
         ->and(DB::table('organization_organizations')->where('id', $organizationId)->exists())->toBeTrue();
 });

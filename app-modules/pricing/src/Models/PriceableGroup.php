@@ -76,6 +76,9 @@ class PriceableGroup extends Model
         'deleted_at'      => 'immutable_datetime',
     ];
 
+    /**
+     * @return HasMany<PriceableGroupMember, $this>
+     */
     public function members(): HasMany
     {
         return $this->hasMany(PriceableGroupMember::class, 'group_id', 'id');

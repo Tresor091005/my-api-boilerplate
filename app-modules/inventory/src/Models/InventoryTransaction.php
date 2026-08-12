@@ -46,6 +46,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryTransaction whereReferenceType($value)
  * @method static Builder<static>|InventoryTransaction whereUpdatedAt($value)
  * @method static InventoryTransactionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|InventoryTransaction whereIdempotencyKey($value)
+ * @method static Builder<static>|InventoryTransaction wherePayloadHash($value)
+ * @method static Builder<static>|InventoryTransaction whereReversalOfTransactionId($value)
  *
  * @mixin \Eloquent
  */

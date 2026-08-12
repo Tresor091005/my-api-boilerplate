@@ -12,7 +12,7 @@ use Lahatre\Master\Models\Unit;
 
 class UnitCache
 {
-    private const TTL = 86400; // 24 hours
+    private const int TTL = 86400; // 24 hours
 
     /** @var Collection<string, Unit>|null Local request cache keyed by code */
     private ?Collection $units = null;
@@ -39,18 +39,16 @@ class UnitCache
 
         $key = $this->unitsCacheKey();
 
-        return $this->units = Cache::remember($key, self::TTL, function (): Collection {
-            return Unit::query()
-                ->where(function ($query): void {
-                    $query->whereNull('organization_id');
+        return $this->units = Cache::remember($key, self::TTL, fn (): Collection => Unit::query()
+            ->where(function ($query): void {
+                $query->whereNull('organization_id');
 
-                    if (getPermissionsTeamId() !== null) {
-                        $query->orWhere('organization_id', getPermissionsTeamId());
-                    }
-                })
-                ->get()
-                ->keyBy('code');
-        });
+                if (getPermissionsTeamId() !== null) {
+                    $query->orWhere('organization_id', getPermissionsTeamId());
+                }
+            })
+            ->get()
+            ->keyBy('code'));
     }
 
     /**
@@ -128,7 +126,7 @@ class UnitCache
         $unit = $this->units()->get($code);
 
         if (!$unit) {
-            throw (new ModelNotFoundException())->setModel(Unit::class, [$code]);
+            throw new ModelNotFoundException()->setModel(Unit::class, [$code]);
         }
 
         return $unit;
@@ -142,7 +140,7 @@ class UnitCache
         $currency = $this->currencies()->get($code);
 
         if (!$currency) {
-            throw (new ModelNotFoundException())->setModel(Currency::class, [$code]);
+            throw new ModelNotFoundException()->setModel(Currency::class, [$code]);
         }
 
         return $currency;
@@ -166,7 +164,7 @@ class UnitCache
         $unit = $this->baseUnits()->get($groupId);
 
         if (!$unit) {
-            throw (new ModelNotFoundException())->setModel(Unit::class, ["base for group {$groupId}"]);
+            throw new ModelNotFoundException()->setModel(Unit::class, ["base for group {$groupId}"]);
         }
 
         return $unit;

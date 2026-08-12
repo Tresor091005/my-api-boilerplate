@@ -28,7 +28,6 @@ class MakeApiResource extends GeneratorCommand
         return dirname(__DIR__, 4).'/stubs/api-resource.stub';
     }
 
-    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {
@@ -38,7 +37,6 @@ class MakeApiResource extends GeneratorCommand
         return rtrim($rootNamespace, '\\').'\\Http\\Resources';
     }
 
-    #[\Override]
     protected function getOptions()
     {
         return [
@@ -54,7 +52,6 @@ class MakeApiResource extends GeneratorCommand
      *
      * @return bool|null
      */
-    #[\Override]
     public function handle()
     {
         // Generate the Resource
@@ -193,7 +190,6 @@ class MakeApiResource extends GeneratorCommand
         ];';
     }
 
-    #[\Override]
     protected function qualifyModel(string $model): string
     {
         $model = ltrim($model, '\\/');

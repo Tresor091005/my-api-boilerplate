@@ -67,7 +67,9 @@ class PricingAssertion
     }
 
     /**
-     * @param  Collection<int, HasPriceable>  $priceables
+     * @template TPriceable of HasPriceable
+     *
+     * @param  Collection<int, TPriceable>  $priceables
      *
      * @throws PriceableGroupUnitMismatchException
      */

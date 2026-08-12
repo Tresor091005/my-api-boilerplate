@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd0b301c43e1b3b6a2d277b10a305272",
+    "content-hash": "7a13ddbb05eaf26ec8df8e1147727d18",
     "packages": [
         {
             "name": "brick/math",
@@ -1462,12 +1462,12 @@
             "version": "13.0.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mikebronner/laravel-model-caching.git",
+                "url": "https://github.com/mike-bronner/laravel-model-caching.git",
                 "reference": "228f53c23363f37922de97fdb9b933e633a0a12b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mikebronner/laravel-model-caching/zipball/228f53c23363f37922de97fdb9b933e633a0a12b",
+                "url": "https://api.github.com/repos/mike-bronner/laravel-model-caching/zipball/228f53c23363f37922de97fdb9b933e633a0a12b",
                 "reference": "228f53c23363f37922de97fdb9b933e633a0a12b",
                 "shasum": ""
             },
@@ -13626,7 +13626,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3"
+        "php": "^8.4"
     },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"

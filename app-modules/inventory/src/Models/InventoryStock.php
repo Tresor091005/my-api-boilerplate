@@ -60,6 +60,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryStock withoutTrashed()
  * @method static InventoryStockFactory factory($count = null, $state = [])
+ * @method static Builder<static>|InventoryStock whereCostRemainder($value)
  *
  * @mixin \Eloquent
  */
@@ -122,6 +123,9 @@ class InventoryStock extends Model
         return $this->belongsTo(Currency::class, 'currency_code', 'code')->withTrashed();
     }
 
+    /**
+     * @return HasMany<InventoryMovement, $this>
+     */
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class, 'stock_id', 'id');

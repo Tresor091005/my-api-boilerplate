@@ -13,6 +13,6 @@ class TestTaggableCurrency extends Currency
 
     public function getMorphClass(): string
     {
-        return (new Currency())->getMorphClass();
+        return new Currency()->getMorphClass();
     }
 }

@@ -10,7 +10,7 @@ use InvalidArgumentException;
 final class TransactionErrorKeyMapper
 {
     /**
-     * @param  array<string, string>|null  $errorKeyMap
+     * @param  array<array-key, mixed>|null  $errorKeyMap
      */
     public function validate(?array $errorKeyMap): void
     {
@@ -30,7 +30,7 @@ final class TransactionErrorKeyMapper
     }
 
     /**
-     * @param  array<string, string>|null  $errorKeyMap
+     * @param  array<array-key, mixed>|null  $errorKeyMap
      */
     public function mapValidationException(ValidationException $exception, ?array $errorKeyMap): ValidationException
     {
@@ -40,6 +40,7 @@ final class TransactionErrorKeyMapper
 
         $this->validate($errorKeyMap);
 
+        /** @var array<string, string> $errorKeyMap */
         $mappedMessages = [];
         foreach ($exception->errors() as $path => $messages) {
             $mappedPath = $this->mapPath($path, $errorKeyMap);

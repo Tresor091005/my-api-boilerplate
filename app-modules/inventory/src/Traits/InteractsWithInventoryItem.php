@@ -49,7 +49,7 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->stocks());
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->stocks());
     }
 
     /**
@@ -57,7 +57,7 @@ trait InteractsWithInventoryItem
      */
     public function activeInventoryItemStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->activeStocks());
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->activeStocks());
     }
 
     /**
@@ -65,7 +65,7 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemStockSummaries(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->stockSummaries());
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->stockSummaries());
     }
 
     /**
@@ -73,6 +73,6 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemMovements(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), (new InventoryItem())->movements());
+        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->movements());
     }
 }

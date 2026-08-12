@@ -44,7 +44,6 @@ class MakePolicy extends GeneratorCommand
      *
      * @return string
      */
-    #[\Override]
     protected function buildClass($name)
     {
         $stub = $this->files->get($this->getStub());
@@ -106,7 +105,6 @@ class MakePolicy extends GeneratorCommand
      * @param  string  $rootNamespace
      * @return string
      */
-    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {
@@ -121,7 +119,6 @@ class MakePolicy extends GeneratorCommand
      *
      * @return array
      */
-    #[\Override]
     protected function getOptions()
     {
         return [

@@ -97,7 +97,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
     expect(fn (): array => validator([
         'group_id'   => $systemGroup->id,
         'group_name' => 'hacked-name',
-    ], (new UnitSyncRequest())->rules())->validate())->toThrow(ValidationException::class);
+    ], new UnitSyncRequest()->rules())->validate())->toThrow(ValidationException::class);
 
     // 3. Prevent syncing/updating another tenant's group
     $otherOrganizationId = Str::uuid7()->toString();
@@ -109,7 +109,7 @@ it('syncs unit groups and units strictly for the current tenant', function (): v
     expect(fn (): array => validator([
         'group_id'   => $otherGroup->id,
         'group_name' => 'hacked-other-name',
-    ], (new UnitSyncRequest())->rules())->validate())->toThrow(ValidationException::class);
+    ], new UnitSyncRequest()->rules())->validate())->toThrow(ValidationException::class);
 });
 
 it('verifies that unit codes are unique across the entire system', function (): void {

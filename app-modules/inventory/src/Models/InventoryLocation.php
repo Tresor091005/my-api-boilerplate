@@ -51,6 +51,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, InventoryStock> $activeStocks
  * @property-read int|null $active_stocks_count
  * @property-read Collection<int, InventoryStock> $stockSummaries
+ * @property-read int|null $stock_summaries_count
  *
  * @mixin \Eloquent
  */

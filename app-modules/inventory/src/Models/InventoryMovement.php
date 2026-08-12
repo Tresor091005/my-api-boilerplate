@@ -58,6 +58,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static InventoryMovementFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryMovement whereMetadata($value)
  * @method static Builder<static>|InventoryMovement whereExpirationDate($value)
+ * @method static Builder<static>|InventoryMovement whereLinkId($value)
+ * @method static Builder<static>|InventoryMovement whereStockMetadataSnapshot($value)
+ * @method static Builder<static>|InventoryMovement whereTotalCost($value)
  *
  * @mixin \Eloquent
  */

@@ -114,7 +114,7 @@ it('manages product variants through service methods', function (): void {
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {
-    expect(fn (): array => validator([], (new StoreProductVariantRequest())->rules())->validate())
+    expect(fn (): array => validator([], new StoreProductVariantRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
 
     $singleVariant = ProductVariant::factory()->create([

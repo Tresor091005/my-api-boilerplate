@@ -84,7 +84,7 @@ it('maps validation error keys when recording a transaction', function (): void 
 
     expect($exception)->toBeInstanceOf(ValidationException::class)
         ->and($exception->errors())->toHaveKey('lines.0.product_id')
-        ->not->toHaveKey('movements.0.item_id');
+        ->and(array_key_exists('movements.0.item_id', $exception->errors()))->toBeFalse();
 });
 
 it('does not allow a transaction to reference another organization item', function (): void {

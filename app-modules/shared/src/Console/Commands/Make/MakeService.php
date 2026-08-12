@@ -49,7 +49,6 @@ class MakeService extends GeneratorCommand
      * @param  string  $rootNamespace
      * @return string
      */
-    #[\Override]
     protected function getDefaultNamespace($rootNamespace)
     {
         if ($module = $this->module()) {

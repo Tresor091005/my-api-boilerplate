@@ -58,6 +58,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $active_stock_location_summaries_count
  * @property-read Collection<int, InventoryStock> $activeStocks
  * @property-read int|null $active_stocks_count
+ * @property-read int|null $stock_summaries_count
+ *
+ * @method static Builder<static>|InventoryItem whereIsExpirable($value)
  *
  * @mixin \Eloquent
  */

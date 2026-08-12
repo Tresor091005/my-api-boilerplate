@@ -74,16 +74,16 @@ it('rejects soft-deleted category ids in request relations', function (): void {
         'name'      => 'Child category',
         'parent_id' => $deletedCategory->id,
         'is_active' => true,
-    ], (new CategoryRequest())->rules())->validate())->toThrow(ValidationException::class);
+    ], new CategoryRequest()->rules())->validate())->toThrow(ValidationException::class);
 
     expect(fn () => validator([
         'name'      => 'Valid child',
         'parent_id' => $parent->id,
         'is_active' => true,
-    ], (new CategoryRequest())->rules())->validate())->not->toThrow(ValidationException::class);
+    ], new CategoryRequest()->rules())->validate())->not->toThrow(ValidationException::class);
 });
 
 it('validates category payload via request rules', function (): void {
-    expect(fn (): array => validator([], (new CategoryRequest())->rules())->validate())
+    expect(fn (): array => validator([], new CategoryRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
 });

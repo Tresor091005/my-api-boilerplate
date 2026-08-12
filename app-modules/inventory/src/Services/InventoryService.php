@@ -109,9 +109,7 @@ class InventoryService implements InventoryInterface
         $this->transactionErrorKeyMapper->validate($errorKeyMap);
 
         try {
-            return DB::transaction(function () use ($data, $with): InventoryTransaction {
-                return $this->recordTransactionInternal($data, $with);
-            });
+            return DB::transaction(fn (): InventoryTransaction => $this->recordTransactionInternal($data, $with));
         } catch (ValidationException $exception) {
             throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
         }
@@ -590,9 +588,9 @@ class InventoryService implements InventoryInterface
                     tx: $tx,
                     context: $context,
                     quantityOverrideInBase: $delta,
+                    totalCost: $averageCost,
                     currencyCode: $movement->currencyCode,
                     stockMetadata: $movement->stockMetadata,
-                    totalCost: $averageCost,
                 );
             } elseif ($cmp < 0) {
                 $stocks = $this->resolveStocksForDeduction($movement, $item);

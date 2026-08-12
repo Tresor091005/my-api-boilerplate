@@ -88,7 +88,7 @@ it('manages products through service methods and scopes by tenant', function ():
 });
 
 it('validates product payload via request rules', function (): void {
-    expect(fn (): array => validator([], (new ProductRequest())->rules())->validate())
+    expect(fn (): array => validator([], new ProductRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
 });
 
@@ -116,7 +116,7 @@ it('rejects soft-deleted category ids in product requests', function (): void {
                 ],
             ],
         ],
-    ], (new ProductRequest())->rules())->validate())->toThrow(ValidationException::class);
+    ], new ProductRequest()->rules())->validate())->toThrow(ValidationException::class);
 
     expect(fn (): array => validator([
         'name'       => 'Product with active category',
@@ -133,5 +133,5 @@ it('rejects soft-deleted category ids in product requests', function (): void {
                 ],
             ],
         ],
-    ], (new ProductRequest())->rules())->validate())->not->toThrow(ValidationException::class);
+    ], new ProductRequest()->rules())->validate())->not->toThrow(ValidationException::class);
 });

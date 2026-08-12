@@ -13,6 +13,6 @@ class TestTaggableUnit extends Unit
 
     public function getMorphClass(): string
     {
-        return (new Unit())->getMorphClass();
+        return new Unit()->getMorphClass();
     }
 }

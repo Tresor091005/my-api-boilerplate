@@ -41,7 +41,7 @@ class PreciseConversion
     // ========================================
 
     /** @var int Decimal precision for unit conversions */
-    private const UNIT_SCALE = 10;
+    private const int UNIT_SCALE = 10;
 
     /**
      * Converts an amount from one unit to another within the same group.

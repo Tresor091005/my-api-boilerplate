@@ -18,6 +18,7 @@ use Lahatre\Pricing\Contracts\HasPricingParty;
 use Lahatre\Pricing\Contracts\PricingInterface;
 use Lahatre\Pricing\Exceptions\Pricing\ChosenPriceAmountNotAllowedException;
 use Lahatre\Pricing\Exceptions\Pricing\InvalidPriceableTargetException;
+use Lahatre\Pricing\Exceptions\Pricing\InvalidPriceRangeException;
 use Lahatre\Pricing\Exceptions\Pricing\InvalidPricingPartyTargetException;
 use Lahatre\Pricing\Exceptions\Pricing\PriceEntryScopeConflictException;
 use Lahatre\Pricing\Exceptions\Pricing\PriceUnitMismatchException;
@@ -32,7 +33,7 @@ use Lahatre\Pricing\ViewData\PriceValidationResult;
 
 class PricingService implements PricingInterface
 {
-    private const UNIT_SCALE = 10;
+    private const int UNIT_SCALE = 10;
 
     public function __construct(
         protected PricingAssertion $pricingAssertion,
@@ -104,27 +105,25 @@ class PricingService implements PricingInterface
             throw new PriceEntryScopeConflictException($scope->toScopeContext());
         }
 
-        return DB::transaction(function () use ($scope): PriceEntry {
-            return PriceEntry::query()->create([
-                'organization_id' => $scope->organizationId,
-                'priceable_type'  => $scope->priceableType,
-                'priceable_id'    => $scope->priceableId,
-                'priceable_kind'  => $scope->priceableKind,
-                'party_type'      => $scope->partyType,
-                'party_id'        => $scope->partyId,
-                'party_kind'      => $scope->partyKind,
-                'context'         => $scope->context,
-                'currency_code'   => $scope->currencyCode,
-                'unit_code'       => $scope->unitCode,
-                'min_quantity'    => $scope->minQuantity,
-                'max_quantity'    => $scope->maxQuantity,
-                'unit_price'      => $scope->unitPrice,
-                'starts_at'       => $scope->startsAt,
-                'ends_at'         => $scope->endsAt,
-                'is_active'       => $scope->isActive,
-                'metadata'        => $scope->metadata,
-            ]);
-        });
+        return DB::transaction(fn (): PriceEntry => PriceEntry::query()->create([
+            'organization_id' => $scope->organizationId,
+            'priceable_type'  => $scope->priceableType,
+            'priceable_id'    => $scope->priceableId,
+            'priceable_kind'  => $scope->priceableKind,
+            'party_type'      => $scope->partyType,
+            'party_id'        => $scope->partyId,
+            'party_kind'      => $scope->partyKind,
+            'context'         => $scope->context,
+            'currency_code'   => $scope->currencyCode,
+            'unit_code'       => $scope->unitCode,
+            'min_quantity'    => $scope->minQuantity,
+            'max_quantity'    => $scope->maxQuantity,
+            'unit_price'      => $scope->unitPrice,
+            'starts_at'       => $scope->startsAt,
+            'ends_at'         => $scope->endsAt,
+            'is_active'       => $scope->isActive,
+            'metadata'        => $scope->metadata,
+        ]));
     }
 
     public function resolveApplicablePrices(
@@ -190,7 +189,7 @@ class PricingService implements PricingInterface
                 if ($priceableGroupIds->isNotEmpty()) {
                     $query->orWhere(function (Builder $query) use ($priceableGroupIds): void {
                         $query->where('priceable_kind', 'group')
-                            ->where('priceable_type', (new PriceableGroup())->getMorphClass())
+                            ->where('priceable_type', new PriceableGroup()->getMorphClass())
                             ->whereIn('priceable_id', $priceableGroupIds->all());
                     });
                 }
@@ -206,7 +205,7 @@ class PricingService implements PricingInterface
                     if ($partyGroupIds->isNotEmpty()) {
                         $query->orWhere(function (Builder $query) use ($partyGroupIds): void {
                             $query->where('party_kind', 'group')
-                                ->where('party_type', (new PartyGroup())->getMorphClass())
+                                ->where('party_type', new PartyGroup()->getMorphClass())
                                 ->whereIn('party_id', $partyGroupIds->all());
                         });
                     }
@@ -510,9 +509,10 @@ class PricingService implements PricingInterface
             ->where('organization_id', $target->organization_id)
             ->with('priceable')
             ->get()
-            ->map(fn (PriceableGroupMember $member): mixed => $member->priceable)
-            ->filter(fn (mixed $priceable): bool => $priceable instanceof HasPriceable)
-            ->values();
+            ->map(fn (PriceableGroupMember $member): ?HasPriceable => $member->priceable instanceof HasPriceable ? $member->priceable : null)
+            ->filter()
+            ->values()
+            ->toBase();
 
         if ($members->isEmpty()) {
             return;
