@@ -18,9 +18,7 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
-use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Pricing\Contracts\HasPriceable;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -75,7 +73,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem, HasPriceable
+class ProductVariant extends Model implements HasInventoryItem
 {
     use InteractsWithInventoryItem;
     use SharedTraits;
@@ -108,16 +106,6 @@ class ProductVariant extends Model implements HasInventoryItem, HasPriceable
     public function getUnitGroupId(): string
     {
         return $this->unit_group_id;
-    }
-
-    public function getPricingUnitGroupId(): string
-    {
-        return $this->unit_group_id;
-    }
-
-    public function getDefaultPricingUnitCode(): string
-    {
-        return app(MasterInterface::class)->baseUnit($this->unit_group_id)->code;
     }
 
     public function getSku(): string

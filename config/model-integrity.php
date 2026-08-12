@@ -90,9 +90,6 @@ return [
             'inventory_transactions_organization_id_idempotency_key_unique'            => 'inventory_transactions_org_idempotency_unique',
             'inventory_transactions_organization_id_reversal_of_transaction_id_unique' => 'inventory_transactions_org_reversal_unique',
         ],
-        'catalog_prices' => [
-            'catalog_prices_currency_code_min_quantity_organization_id_priceable_id_priceable_type_step_unique' => 'catalog_prices_unique_idx',
-        ],
         'inventory_stocks' => [
             'inventory_stocks_expiration_date_index'     => 'inventory_stocks_expiration_date_active_index',
             'inventory_stocks_item_id_location_id_index' => [
@@ -105,17 +102,6 @@ return [
         ],
         'inventory_items' => [
             'inventory_items_organization_id_itemable_id_itemable_type_unique' => 'inventory_items_org_itemable_unique',
-        ],
-        'pricing_price_entries' => [
-            'pricing_price_entries_organization_id_context_currency_code_is_active_index' => 'pricing_pe_org_ctx_currency_active_idx',
-            'pricing_price_entries_priceable_type_priceable_id_priceable_kind_index'      => 'pricing_pe_priceable_scope_idx',
-        ],
-        'pricing_priceable_group_members' => [
-            'pricing_priceable_group_members_organization_id_group_id_priceable_type_priceable_id_unique' => 'pricing_pgm_org_group_target_unique',
-            'pricing_priceable_group_members_priceable_type_priceable_id_index'                           => 'pricing_pgm_priceable_lookup_idx',
-        ],
-        'pricing_party_group_members' => [
-            'pricing_party_group_members_organization_id_group_id_party_type_party_id_unique' => 'pricing_pagm_org_group_target_unique',
         ],
     ],
 

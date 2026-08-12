@@ -35,7 +35,7 @@ parameters:
             message: '#Call to an undefined method (?:PHPUnit\\Framework\\TestCase|Pest\\PendingCalls\\TestCall)::(fail|assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|withoutMiddleware|initializeCatalogTenantContext|initializeMasterTenantContext|initializePricingTenantContext|ensureInventoryTestTables|ensurePricingTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse|createTestPriceable|createTestParty)\(\)#'
             path: 'app-modules/*/tests/**'
         -
-            message: '#Trait Lahatre\\(Catalog|Inventory|Master|Pricing)\\Tests\\Concerns\\.* is used zero times and is not analysed\.#'
+            message: '#Trait Lahatre\\(Catalog|Inventory|Master)\\Tests\\Concerns\\.* is used zero times and is not analysed\.#'
             path: 'app-modules/*/tests/Concerns/**'
 
     scanFiles:

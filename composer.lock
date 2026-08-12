@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3947edfbb878462dd1083f3927476d46",
+    "content-hash": "4ef271199aa3dc3868b6c0f085693aaf",
     "packages": [
         {
             "name": "brick/math",
@@ -880,16 +880,16 @@
         },
         {
             "name": "dedoc/scramble",
-            "version": "v0.13.22",
+            "version": "v0.13.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dedoc/scramble.git",
-                "reference": "b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96"
+                "reference": "8ef3770533b47d5b14e561c3b5e7ee0e886cc136"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dedoc/scramble/zipball/b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96",
-                "reference": "b54b0c43bdebaa01f66cc3dfdd8f91e19b12da96",
+                "url": "https://api.github.com/repos/dedoc/scramble/zipball/8ef3770533b47d5b14e561c3b5e7ee0e886cc136",
+                "reference": "8ef3770533b47d5b14e561c3b5e7ee0e886cc136",
                 "shasum": ""
             },
             "require": {
@@ -903,6 +903,7 @@
             "require-dev": {
                 "larastan/larastan": "^3.3",
                 "laravel/pint": "^v1.1.0",
+                "laravel/scout": "^10.0|^11.0",
                 "nunomaduro/collision": "^7.0|^8.0",
                 "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
                 "pestphp/pest": "^2.34|^3.7|^4.4",
@@ -948,7 +949,7 @@
             ],
             "support": {
                 "issues": "https://github.com/dedoc/scramble/issues",
-                "source": "https://github.com/dedoc/scramble/tree/v0.13.22"
+                "source": "https://github.com/dedoc/scramble/tree/v0.13.40"
             },
             "funding": [
                 {
@@ -956,7 +957,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-27T20:30:51+00:00"
+            "time": "2026-08-11T12:27:20+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -1451,16 +1452,16 @@
         },
         {
             "name": "genealabs/laravel-model-caching",
-            "version": "13.0.2",
+            "version": "13.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mike-bronner/laravel-model-caching.git",
-                "reference": "228f53c23363f37922de97fdb9b933e633a0a12b"
+                "reference": "a294cf7b66dbbac35dd6bc46f52628a86c0cb560"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mike-bronner/laravel-model-caching/zipball/228f53c23363f37922de97fdb9b933e633a0a12b",
-                "reference": "228f53c23363f37922de97fdb9b933e633a0a12b",
+                "url": "https://api.github.com/repos/mike-bronner/laravel-model-caching/zipball/a294cf7b66dbbac35dd6bc46f52628a86c0cb560",
+                "reference": "a294cf7b66dbbac35dd6bc46f52628a86c0cb560",
                 "shasum": ""
             },
             "require": {
@@ -1474,16 +1475,27 @@
                 "mikebronner/laravel-pivot-events": "*",
                 "php": ">=8.2"
             },
+            "replace": {
+                "mikebronner/laravel-model-caching": "self.version"
+            },
             "require-dev": {
+                "aws/aws-sdk-php": "^3.322.9",
                 "doctrine/dbal": "^3.3|^4.2",
                 "fakerphp/faker": "^1.11",
                 "larastan/larastan": "^2.0|^3.0",
+                "laravel/boost": "^2.0",
                 "laravel/pint": "^1.27",
                 "orchestra/testbench": "^9.0|^10.0|^11.0",
-                "phpunit/phpunit": "^10.5|^11.5.3|^12.5.12",
+                "pestphp/pest": "^3.0|^4.0",
+                "pestphp/pest-plugin-laravel": "^3.0|^4.0",
+                "phpunit/phpunit": "^10.5|^11.5|^12.5",
+                "predis/predis": "^2.0|^3.0",
                 "slevomat/coding-standard": "^7.0|^8.14",
                 "squizlabs/php_codesniffer": "^3.6|^4.0",
                 "symfony/thanks": "^1.2"
+            },
+            "suggest": {
+                "aws/aws-sdk-php": "Required for DynamoDB cache store support (^3.322)"
             },
             "type": "library",
             "extra": {
@@ -1510,10 +1522,11 @@
             ],
             "description": "Automatic caching for Eloquent models.",
             "support": {
-                "issues": "https://github.com/mikebronner/laravel-model-caching/issues",
-                "source": "https://github.com/mikebronner/laravel-model-caching/tree/13.0.2"
+                "issues": "https://github.com/mike-bronner/laravel-model-caching/issues",
+                "source": "https://github.com/mike-bronner/laravel-model-caching/tree/13.1.7"
             },
-            "time": "2026-03-02T15:50:14+00:00"
+            "abandoned": "mike-bronner/laravel-model-caching",
+            "time": "2026-08-01T15:56:33+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -2339,38 +2352,6 @@
                     "Lahatre\\Organization\\Tests\\": "tests/",
                     "Lahatre\\Organization\\Database\\Factories\\": "database/factories/",
                     "Lahatre\\Organization\\Database\\Seeders\\": "database/seeders/"
-                }
-            },
-            "license": [
-                "proprietary"
-            ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
-        },
-        {
-            "name": "lahatre/pricing",
-            "version": "1.0",
-            "dist": {
-                "type": "path",
-                "url": "app-modules/pricing",
-                "reference": "9dc6e3b71adc266de71da285b5c394f8a387af89"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Lahatre\\Pricing\\Providers\\PricingServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Lahatre\\Pricing\\": "src/",
-                    "Lahatre\\Pricing\\Tests\\": "tests/",
-                    "Lahatre\\Pricing\\Database\\Factories\\": "database/factories/",
-                    "Lahatre\\Pricing\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "license": [
@@ -4906,16 +4887,16 @@
         },
         {
             "name": "psy/psysh",
-            "version": "v0.12.22",
+            "version": "v0.12.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/psysh.git",
-                "reference": "3be75d5b9244936dd4ac62ade2bfb004d13acf0f"
+                "reference": "ca0fdcf8a7617afa3adfdf1b5fef573dffb69ca1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/3be75d5b9244936dd4ac62ade2bfb004d13acf0f",
-                "reference": "3be75d5b9244936dd4ac62ade2bfb004d13acf0f",
+                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/ca0fdcf8a7617afa3adfdf1b5fef573dffb69ca1",
+                "reference": "ca0fdcf8a7617afa3adfdf1b5fef573dffb69ca1",
                 "shasum": ""
             },
             "require": {
@@ -4979,9 +4960,9 @@
             ],
             "support": {
                 "issues": "https://github.com/bobthecow/psysh/issues",
-                "source": "https://github.com/bobthecow/psysh/tree/v0.12.22"
+                "source": "https://github.com/bobthecow/psysh/tree/v0.12.24"
             },
-            "time": "2026-03-22T23:03:24+00:00"
+            "time": "2026-06-29T15:41:09+00:00"
         },
         {
             "name": "pusher/pusher-php-server",
@@ -6008,16 +5989,16 @@
         },
         {
             "name": "spatie/laravel-package-tools",
-            "version": "1.93.0",
+            "version": "1.93.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7"
+                "reference": "d5552849801f2642aea710557463234b59ef65eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/d5552849801f2642aea710557463234b59ef65eb",
+                "reference": "d5552849801f2642aea710557463234b59ef65eb",
                 "shasum": ""
             },
             "require": {
@@ -6057,7 +6038,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.0"
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.1"
             },
             "funding": [
                 {
@@ -6065,20 +6046,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-21T12:49:54+00:00"
+            "time": "2026-05-19T14:06:37+00:00"
         },
         {
             "name": "spatie/laravel-permission",
-            "version": "7.2.3",
+            "version": "7.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-permission.git",
-                "reference": "062b0cd8e3a1753fa7a53e468b918710004aa06b"
+                "reference": "15a9daf02ba02d3ae77aaa6da582708231ef999b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/062b0cd8e3a1753fa7a53e468b918710004aa06b",
-                "reference": "062b0cd8e3a1753fa7a53e468b918710004aa06b",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/15a9daf02ba02d3ae77aaa6da582708231ef999b",
+                "reference": "15a9daf02ba02d3ae77aaa6da582708231ef999b",
                 "shasum": ""
             },
             "require": {
@@ -6086,7 +6067,7 @@
                 "illuminate/container": "^12.0|^13.0",
                 "illuminate/contracts": "^12.0|^13.0",
                 "illuminate/database": "^12.0|^13.0",
-                "php": "^8.4",
+                "php": "^8.3",
                 "spatie/laravel-package-tools": "^1.0"
             },
             "require-dev": {
@@ -6144,7 +6125,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-permission/issues",
-                "source": "https://github.com/spatie/laravel-permission/tree/7.2.3"
+                "source": "https://github.com/spatie/laravel-permission/tree/7.4.2"
             },
             "funding": [
                 {
@@ -6152,7 +6133,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-23T20:30:07+00:00"
+            "time": "2026-05-30T19:21:26+00:00"
         },
         {
             "name": "staudenmeir/eloquent-has-many-deep",
