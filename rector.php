@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
-use Rector\CodeQuality\Rector\If_\ExplicitBoolCompareRector;
 use Rector\Config\RectorConfig;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use Rector\Set\ValueObject\SetList;
 use RectorLaravel\Set\LaravelSetList;
 
@@ -22,12 +20,8 @@ return RectorConfig::configure()
         __DIR__.'/storage',
         __DIR__.'/vendor',
         __DIR__.'/node_modules',
-        // Skip redundant instanceof checks for strict return types.
-        ExplicitBoolCompareRector::class,
         // Skip instanceof transformations for nullable strict return types.
         FlipTypeControlToUseExclusiveTypeRector::class,
-        // Keep overridden methods free from non-essential attributes.
-        AddOverrideAttributeToOverriddenMethodsRector::class,
     ])
     ->withPhpSets(
         php84: true,

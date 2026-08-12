@@ -42,8 +42,8 @@ it('preserves array filters and converts enum and date values', function (): voi
 });
 
 it('keeps filter validation in form requests', function (): void {
-    $itemRequest = new InventoryItemFilterRequest();
-    $summaryRequest = new InventoryStockSummaryFilterRequest();
+    $itemRequest = new InventoryItemFilterRequest;
+    $summaryRequest = new InventoryStockSummaryFilterRequest;
 
     expect(Validator::make(['per_page' => 0], $itemRequest->rules())->fails())->toBeTrue()
         ->and(Validator::make(['item_id' => ['item-1']], $summaryRequest->rules())->passes())->toBeTrue();

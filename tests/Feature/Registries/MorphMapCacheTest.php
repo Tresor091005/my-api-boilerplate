@@ -32,7 +32,7 @@ it('registers models via auto-discovery when cache is missing', function (): voi
     Relation::morphMap([], false);
 
     // Instantiate registry (this should trigger auto-discovery)
-    new MorphMapRegistry();
+    new MorphMapRegistry;
 
     $map = Relation::morphMap();
 
@@ -51,7 +51,7 @@ it('loads from cache file when available and skips discovery', function (): void
     Relation::morphMap([], false);
 
     // This should load from our custom cache file
-    new MorphMapRegistry();
+    new MorphMapRegistry;
 
     $map = Relation::morphMap();
 
@@ -64,7 +64,7 @@ it('can clear the cache file', function (): void {
     $cachePath = App::bootstrapPath('cache/morph-map.php');
     File::put($cachePath, '<?php return [];');
 
-    $registry = new MorphMapRegistry();
+    $registry = new MorphMapRegistry;
     $registry->clear();
 
     expect(File::exists($cachePath))->toBeFalse();
@@ -73,7 +73,7 @@ it('can clear the cache file', function (): void {
 it('can create the cache file via the cache method', function (): void {
     $cachePath = App::bootstrapPath('cache/morph-map.php');
 
-    $registry = new MorphMapRegistry();
+    $registry = new MorphMapRegistry;
     $registry->cache();
 
     expect(File::exists($cachePath))->toBeTrue();

@@ -11,7 +11,7 @@ class OrganizationService implements OrganizationInterface
 {
     public function initializeOrganization(array $data): Organization
     {
-        return new Organization();
+        return new Organization;
     }
 
     public function findOrganizationById(string $organizationId): Organization

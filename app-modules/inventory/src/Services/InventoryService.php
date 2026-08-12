@@ -197,7 +197,7 @@ class InventoryService implements InventoryInterface
                 Model::withoutEvents(function () use ($operation): void {
                     $operation();
 
-                    throw new PreviewRollbackException();
+                    throw new PreviewRollbackException;
                 });
             });
         } catch (PreviewRollbackException) {
@@ -317,10 +317,6 @@ class InventoryService implements InventoryInterface
                     'stock_ids'   => [$movement->stock_id],
                     'metadata'    => $movement->metadata,
                 ];
-            }
-
-            if ($original->transaction_type !== TransactionType::Out) {
-                throw ReversalException::inconsistentMovement($movement->id);
             }
 
             if ($movement->currency_code === null) {

@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     setPermissionsTeamId(null);
 
-    $this->cache = new UnitCache();
+    $this->cache = new UnitCache;
     $this->group = UnitGroup::factory()->create([
         'name'            => 'Test Group',
         'organization_id' => null,
@@ -90,7 +90,7 @@ it('scopes cached units to system and the current organization', function (): vo
 
     setPermissionsTeamId($organizationId);
 
-    $tenantCache = new UnitCache();
+    $tenantCache = new UnitCache;
     $units = $tenantCache->units();
 
     expect(Cache::has("master:units:all:{$organizationId}"))->toBeTrue()

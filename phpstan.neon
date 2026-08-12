@@ -23,16 +23,16 @@ parameters:
 
     ignoreErrors:
         -
-            message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z0-9_]+#'
+            message: '#Access to an undefined property (?:PHPUnit\\Framework\\TestCase|Pest\\PendingCalls\\TestCall)::\$[a-zA-Z0-9_]+#'
             path: 'tests/**'
         -
-            message: '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z0-9_]+#'
+            message: '#Access to an undefined property (?:PHPUnit\\Framework\\TestCase|Pest\\PendingCalls\\TestCall)::\$[a-zA-Z0-9_]+#'
             path: 'app-modules/*/tests/**'
         -
-            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|withoutMiddleware|initializeCatalogTenantContext|initializeMasterTenantContext|initializePricingTenantContext|ensureInventoryTestTables|ensurePricingTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse|createTestPriceable|createTestParty)\(\)#'
+            message: '#Call to an undefined method (?:PHPUnit\\Framework\\TestCase|Pest\\PendingCalls\\TestCall)::(fail|assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|withoutMiddleware|initializeCatalogTenantContext|initializeMasterTenantContext|initializePricingTenantContext|ensureInventoryTestTables|ensurePricingTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse|createTestPriceable|createTestParty)\(\)#'
             path: 'tests/**'
         -
-            message: '#Call to an undefined method PHPUnit\\Framework\\TestCase::(assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|withoutMiddleware|initializeCatalogTenantContext|initializeMasterTenantContext|initializePricingTenantContext|ensureInventoryTestTables|ensurePricingTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse|createTestPriceable|createTestParty)\(\)#'
+            message: '#Call to an undefined method (?:PHPUnit\\Framework\\TestCase|Pest\\PendingCalls\\TestCall)::(fail|assertDatabaseCount|assertDatabaseHas|withToken|getJson|postJson|putJson|patchJson|deleteJson|withoutMiddleware|initializeCatalogTenantContext|initializeMasterTenantContext|initializePricingTenantContext|ensureInventoryTestTables|ensurePricingTestTables|createTestMaterial|createTestAltMaterial|createTestWarehouse|createTestPriceable|createTestParty)\(\)#'
             path: 'app-modules/*/tests/**'
         -
             message: '#Trait Lahatre\\(Catalog|Inventory|Master|Pricing)\\Tests\\Concerns\\.* is used zero times and is not analysed\.#'

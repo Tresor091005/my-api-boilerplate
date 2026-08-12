@@ -55,7 +55,7 @@ class CategoryService
 
     public function create(CategoryData $data): CategoryResource
     {
-        $category = new Category();
+        $category = new Category;
 
         $category->fill([
             'organization_id' => getPermissionsTeamId(),

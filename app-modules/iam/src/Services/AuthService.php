@@ -36,7 +36,7 @@ class AuthService
             ->first();
 
         if (!$user || !Hash::check($data->password, $user->password)) {
-            throw new InvalidLoginException();
+            throw new InvalidLoginException;
         }
 
         $token = $user->createToken('auth_token', ['*'], now()->addDay());
@@ -151,7 +151,7 @@ class AuthService
         ));
 
         if ($status !== Password::PASSWORD_RESET) {
-            throw new ResetPasswordFailedException();
+            throw new ResetPasswordFailedException;
         }
     }
 }

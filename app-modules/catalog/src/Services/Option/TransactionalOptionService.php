@@ -100,7 +100,7 @@ class TransactionalOptionService
             ->values();
 
         if ($normalizedValues->isEmpty()) {
-            return new EloquentCollection();
+            return new EloquentCollection;
         }
 
         $existingValues = $option->values()

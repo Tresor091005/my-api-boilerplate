@@ -28,7 +28,7 @@ class TagService
         $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
 
         if ($normalizedTagsByType->isEmpty()) {
-            return new EloquentCollection();
+            return new EloquentCollection;
         }
 
         /** @var Collection<int, Tag> $tags */

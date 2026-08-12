@@ -16,7 +16,7 @@ function getModuleNames(): array
     $modules = [];
 
     if (is_dir($modulesDir)) {
-        $finder = new Finder();
+        $finder = new Finder;
         $finder->directories()->in($modulesDir)->depth(0);
         foreach ($finder as $dir) {
             $modules[] = strtolower($dir->getBasename());
@@ -40,7 +40,7 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
     $prohibitedModules = array_diff($allModules, [$module], $allowedDependencies);
     $prohibitedNamespaces = array_map(fn ($m): string => 'Lahatre\\'.Str::studly($m), $prohibitedModules);
 
-    $finder = new Finder();
+    $finder = new Finder;
     $sourcePath = $modulePath.'/src';
     if (!is_dir($sourcePath)) {
         return [];
@@ -120,7 +120,7 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
             continue;
         }
 
-        $finder = new Finder();
+        $finder = new Finder;
         $finder->files()->in($modulePath)->name('*.php');
 
         foreach ($finder as $file) {

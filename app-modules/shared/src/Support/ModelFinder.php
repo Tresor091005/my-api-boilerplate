@@ -24,7 +24,7 @@ class ModelFinder
         $modulesNamespace = config('app-modules.modules_namespace', 'Lahatre');
 
         if (is_dir($modulesDir)) {
-            $finder = new Finder();
+            $finder = new Finder;
             $finder->directories()->in($modulesDir)->depth(0);
             foreach ($finder as $dir) {
                 $scanList[] = $modulesNamespace.'\\'.Str::studly($dir->getBasename()).'\\Models';
@@ -48,7 +48,7 @@ class ModelFinder
                 continue;
             }
 
-            $finder = new Finder();
+            $finder = new Finder;
             $finder->files()->in($path)->name('*.php');
             foreach ($finder as $file) {
                 $relativePath = $file->getRelativePathname();

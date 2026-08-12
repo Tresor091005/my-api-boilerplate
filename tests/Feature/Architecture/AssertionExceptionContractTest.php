@@ -25,7 +25,7 @@ function resolveFullyQualifiedClassName(SplFileInfo $file): ?string
 }
 
 it('ensures all concrete module exceptions extend AssertionException', function (): void {
-    $finder = new Finder();
+    $finder = new Finder;
     $finder
         ->files()
         ->in(base_path('app-modules'))

@@ -3,8 +3,10 @@ FROM serversideup/php:8.4-frankenphp
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
     libicu-dev \
     && docker-php-ext-install intl bcmath \
+    && install-php-extensions pcov \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

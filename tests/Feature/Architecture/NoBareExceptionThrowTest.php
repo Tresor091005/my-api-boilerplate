@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Symfony\Component\Finder\Finder;
 
 it('does not throw bare base exceptions in module source code', function (): void {
-    $finder = new Finder();
+    $finder = new Finder;
 
     $finder->in(base_path('app-modules'))
         ->path('#/src/#')

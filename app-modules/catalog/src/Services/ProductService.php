@@ -62,7 +62,7 @@ class ProductService
 
     public function create(ProductData $data): ProductResource
     {
-        $product = new Product();
+        $product = new Product;
 
         $product->fill([
             'organization_id' => getPermissionsTeamId(),

@@ -21,7 +21,7 @@ it('verifies that all Eloquent models have correct and explicit casts for all da
             continue;
         }
 
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
 
         if (!Schema::hasTable($table)) {
@@ -125,7 +125,7 @@ it('verifies SoftDeletes trait consistency with database columns', function (): 
             continue;
         }
 
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
 
         if (!Schema::hasTable($table)) {
@@ -162,7 +162,7 @@ it('verifies that all models with UUID primary keys use the HasUuids trait', fun
             continue;
         }
 
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
 
         if (!Schema::hasTable($table)) {

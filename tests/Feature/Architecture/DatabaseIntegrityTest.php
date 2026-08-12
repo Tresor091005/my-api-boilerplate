@@ -380,7 +380,7 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
 
         foreach ($boolColumns as $column) {
             $name = $column->column_name;
-            $hasValidPrefix = array_any($allowedPrefixes, fn ($prefix): bool => str_starts_with((string) $name, (string) $prefix));
+            $hasValidPrefix = array_any($allowedPrefixes, fn (string $prefix): bool => str_starts_with((string) $name, (string) $prefix));
 
             if (!$hasValidPrefix) {
                 $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: ".implode(', ', $allowedPrefixes);

@@ -29,7 +29,7 @@ class TransactionalProductVariantService
     public function createMany(Product $product, Collection $variantsData): EloquentCollection
     {
         if ($variantsData->isEmpty()) {
-            return new EloquentCollection();
+            return new EloquentCollection;
         }
 
         $now = now();

@@ -44,7 +44,7 @@ class OptionService
 
     public function create(OptionData $data): OptionResource
     {
-        $option = new Option();
+        $option = new Option;
 
         $option->fill([
             'organization_id' => getPermissionsTeamId(),
