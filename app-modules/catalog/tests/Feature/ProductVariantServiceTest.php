@@ -126,3 +126,14 @@ it('validates variant payload and blocks deletion of the last variant', function
     expect(fn () => $this->service->delete($this->product, $singleVariant))
         ->toThrow(ProductVariantException::class);
 });
+
+it('rejects a variant that does not belong to the selected product', function (): void {
+    $variant = ProductVariant::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'product_id'      => $this->otherProduct->id,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+
+    expect(fn () => $this->service->delete($this->product, $variant))
+        ->toThrow(ProductVariantException::class);
+});

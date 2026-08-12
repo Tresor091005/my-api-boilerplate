@@ -23,26 +23,26 @@ class CategoryAssertion
     }
 
     /**
-     * Asserts that a new parent ID is valid for the given category.
-     * A new parent ID is valid if it is null (for a top-level category),
+     * Asserts that a new parent is valid for the given category.
+     * A new parent is valid if it is null (for a top-level category),
      * or if it refers to a category that is not itself or one of its descendants.
      *
      * @throws CategoryException If the new parent is the category itself or one of its descendants.
      */
-    public function assertCanBeNewParent(Category $category, ?string $newParentId): void
+    public function assertCanBeNewParent(Category $category, ?Category $newParent): void
     {
-        if ($newParentId === null) {
+        if ($newParent === null) {
             return;
         }
 
-        if ($newParentId === $category->id) {
-            throw CategoryException::cannotBeDescendantParent($category, $newParentId);
+        if ((string) $newParent->getKey() === (string) $category->getKey()) {
+            throw CategoryException::cannotBeDescendantParent($category, (string) $newParent->getKey());
         }
 
         $descendantIds = $category->descendants()->pluck('id')->toArray();
 
-        if (in_array($newParentId, $descendantIds, true)) {
-            throw CategoryException::cannotBeDescendantParent($category, $newParentId);
+        if (in_array($newParent->getKey(), $descendantIds, true)) {
+            throw CategoryException::cannotBeDescendantParent($category, (string) $newParent->getKey());
         }
     }
 }

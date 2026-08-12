@@ -40,6 +40,8 @@ class OptionValueService
 
     public function retrieve(Option $option, OptionValue $optionValue): OptionValueResource
     {
+        $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
+
         return OptionValueResource::make($optionValue);
     }
 
@@ -57,6 +59,8 @@ class OptionValueService
 
     public function update(Option $option, OptionValue $optionValue, OptionValueData $data): OptionValueResource
     {
+        $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
+
         $optionValue->fill(withoutMissing([
             'value' => $data->value,
         ]));
@@ -68,6 +72,8 @@ class OptionValueService
 
     public function delete(Option $option, OptionValue $optionValue): void
     {
+        $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
+
         $this->optionValueAssertion->assertCanDelete($optionValue);
 
         DB::transaction(fn (): ?bool => $optionValue->delete());

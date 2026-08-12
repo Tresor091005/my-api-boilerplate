@@ -28,6 +28,14 @@ final class CategoryException extends AssertionException
         );
     }
 
+    public static function parentNotFound(string $parentId): self
+    {
+        return new self(
+            __('catalog::exceptions.category_parent_not_found'),
+            ['parent_id' => $parentId]
+        );
+    }
+
     private function __construct(string $message, array $context = [])
     {
         parent::__construct($message, $context);

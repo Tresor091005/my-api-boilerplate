@@ -92,6 +92,18 @@ it('prevents deleting an option value that is in use', function (): void {
         ->toThrow(OptionValueException::class);
 });
 
+it('rejects an option value that does not belong to the selected option', function (): void {
+    $option = Option::factory()->create(['organization_id' => $this->organizationId]);
+    $otherOption = Option::factory()->create(['organization_id' => $this->organizationId]);
+    $optionValue = OptionValue::factory()->create([
+        'organization_id' => $this->organizationId,
+        'option_id'       => $otherOption->id,
+    ]);
+
+    expect(fn () => $this->service->delete($option, $optionValue))
+        ->toThrow(OptionValueException::class);
+});
+
 it('creates active option values idempotently and allows recreation after soft deletion', function (): void {
     $option = Option::factory()->create([
         'organization_id' => $this->organizationId,

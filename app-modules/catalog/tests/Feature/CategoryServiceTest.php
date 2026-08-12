@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Data\CategoryData;
 use Lahatre\Catalog\Data\CategoryFilterData;
+use Lahatre\Catalog\Exceptions\CategoryException;
 use Lahatre\Catalog\Http\Requests\CategoryRequest;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Services\CategoryService;
@@ -86,4 +87,15 @@ it('rejects soft-deleted category ids in request relations', function (): void {
 it('validates category payload via request rules', function (): void {
     expect(fn (): array => validator([], new CategoryRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
+});
+
+it('rejects a missing organization-scoped parent in the service', function (): void {
+    $category = Category::factory()->create([
+        'organization_id' => $this->organizationId,
+    ]);
+
+    expect(fn () => $this->service->update($category, CategoryData::fromArray(
+        ['parent_id' => (string) str()->uuid()],
+        missingFields: ['name', 'is_active'],
+    )))->toThrow(CategoryException::class);
 });

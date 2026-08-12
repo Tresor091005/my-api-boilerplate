@@ -48,6 +48,8 @@ class ProductVariantService
 
     public function retrieve(Product $product, ProductVariant $variant): ProductVariantResource
     {
+        $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
+
         return ProductVariantResource::make($variant->load($this->relations()));
     }
 
@@ -65,6 +67,8 @@ class ProductVariantService
 
     public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariantResource
     {
+        $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
+
         DB::transaction(function () use ($product, $variant, $data): void {
             $variant->fill(withoutMissing([
                 'sku'                 => $data->sku,
@@ -94,6 +98,8 @@ class ProductVariantService
 
     public function delete(Product $product, ProductVariant $variant): void
     {
+        $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
+
         $this->productVariantAssertion->assertCanDelete($variant);
 
         DB::transaction(function () use ($variant): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Exceptions;
 
+use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Shared\Exceptions\AssertionException;
 
@@ -15,6 +16,17 @@ final class ProductVariantException extends AssertionException
             __('catalog::exceptions.product_variant_is_last'),
             [
                 'product_id' => $variant->product_id,
+                'variant_id' => $variant->id,
+            ]
+        );
+    }
+
+    public static function notAttachedToProduct(Product $product, ProductVariant $variant): self
+    {
+        return new self(
+            __('catalog::exceptions.product_variant_not_attached_to_product'),
+            [
+                'product_id' => $product->id,
                 'variant_id' => $variant->id,
             ]
         );

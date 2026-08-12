@@ -7,7 +7,6 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
-use Lahatre\Catalog\Assertions\ProductAssertion;
 use Lahatre\Catalog\Data\ProductData;
 use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Http\Resources\ProductCollection;
@@ -25,7 +24,6 @@ use Lahatre\Shared\Support\HandleGenerator;
 class ProductService
 {
     public function __construct(
-        protected ProductAssertion $productAssertion,
         protected TransactionalProductVariantService $transactionalProductVariantService
     ) {}
 

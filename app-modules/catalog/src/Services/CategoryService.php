@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\CategoryAssertion;
 use Lahatre\Catalog\Data\CategoryData;
 use Lahatre\Catalog\Data\CategoryFilterData;
+use Lahatre\Catalog\Exceptions\CategoryException;
 use Lahatre\Catalog\Http\Resources\CategoryCollection;
 use Lahatre\Catalog\Http\Resources\CategoryResource;
 use Lahatre\Catalog\Models\Category;
@@ -78,7 +79,18 @@ class CategoryService
     public function update(Category $category, CategoryData $data): CategoryResource
     {
         if (!$data->parentId instanceof MissingValue) {
-            $this->categoryAssertion->assertCanBeNewParent($category, $data->parentId);
+            $newParent = $data->parentId === null
+                ? null
+                : Category::query()
+                    ->where('organization_id', getPermissionsTeamId())
+                    ->whereNull('deleted_at')
+                    ->find($data->parentId);
+
+            if ($data->parentId !== null && $newParent === null) {
+                throw CategoryException::parentNotFound($data->parentId);
+            }
+
+            $this->categoryAssertion->assertCanBeNewParent($category, $newParent);
         }
 
         $category->fill(withoutMissing([
