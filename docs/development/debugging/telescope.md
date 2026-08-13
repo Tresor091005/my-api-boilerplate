@@ -13,7 +13,7 @@ L'activation de Telescope et son chemin d'accès sont gérés via votre fichier 
 -   **`TELESCOPE_ENABLED=true`**: Active ou désactive Telescope. **Il est fortement recommandé de le définir sur `false` en production.**
 -   **`TELESCOPE_PATH=debug`**: Définit le chemin d'accès à l'interface web de Telescope. Par défaut, il est configuré sur `/debug` dans notre `.env.example`.
 
-Pour accéder à Telescope, assurez-vous que `TELESCOPE_ENABLED` est à `true` dans votre fichier `.env` local, puis naviguez vers l'URL de votre application suivie de `/debug` (ou du chemin que vous avez configuré). Par exemple: `http://localhost:8000/debug`.
+Pour accéder à Telescope, assurez-vous que `TELESCOPE_ENABLED` est à `true` dans votre fichier `.env` local, puis naviguez vers l'URL de votre application suivie de `/debug` (ou du chemin que vous avez configuré). Par exemple: `http://localhost:28417/debug`.
 
 ### Fonctionnalités Clés
 

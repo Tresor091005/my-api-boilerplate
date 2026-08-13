@@ -17,6 +17,17 @@ This project documents a specific way of work, guided by the following principle
 
 Instead of cloning this repository to start a new project, consider it as a library of ideas. Browse the `app`, `database` and `tests` directories to see concrete implementations. Each feature or component is designed to be as self-contained as possible, so it can be easily understood and adapted.
 
+## Documentation
+
+The documentation index is available in [`docs/README.md`](docs/README.md).
+It covers the architecture, API contracts, development workflow, Docker
+environment, module documentation, decisions, and roadmap.
+
+The application is available at `http://localhost:28417` when the Docker
+environment is running. The setup commands, required environment values, and
+complete list of exposed services and ports are maintained in
+[`docs/infrastructure/docker.md`](docs/infrastructure/docker.md).
+
 ## Contributing
 
 While this is primarily a personal project, feedback and discussions are always welcome. If you have suggestions or questions, feel free to open an issue.

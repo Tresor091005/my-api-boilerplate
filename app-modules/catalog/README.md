@@ -4,7 +4,7 @@
 
 Les invariants propres aux modèles sont regroupés par modèle : `CategoryException`, `OptionException`, `OptionValueException` et `ProductVariantException`. Utiliser leurs méthodes statiques nommées depuis les assertions.
 
-Voir la [convention générale des exceptions métier](../../docs/coding-rules/exceptions.md).
+Voir la [convention générale des exceptions métier](../../docs/architecture/coding-rules/exceptions.md).
 
 ## Tests
 

@@ -15,16 +15,16 @@ Pour garantir un environnement de développement fidèle à la production et une
 
 ### Services Applicatifs (Partageant la même image)
 Tous ces services utilisent le même `Dockerfile` pour garantir la cohérence des dépendances et du code :
--   **`app` :** Le serveur web principal (FrankenPHP/Caddy) sur le port 8000.
--   **`reverb` :** Le serveur WebSocket (Laravel Reverb) tournant sur le port 6001.
+-   **`app` :** Le serveur web principal (FrankenPHP/Caddy), publié sur `http://localhost:28417`.
+-   **`reverb` :** Le serveur WebSocket Laravel Reverb, publié sur `ws://localhost:28418` et accessible aux conteneurs via `reverb:6001`.
 -   **`horizon` :** La gestion des files d'attente (Queues) via Laravel Horizon.
 -   **`scheduler` :** Le gestionnaire de tâches planifiées (`artisan schedule:work`).
 
 ### Services d'Infrastructure
--   **`db` :** Base de données **PostgreSQL 18** (Alpine).
+-   **`db` :** Base de données **PostgreSQL 18** (Alpine), publiée sur `localhost:28420` pour les outils de développement et accessible aux conteneurs via `db:5432`. Les tests utilisent directement sa base `my_api_boilerplate` et peuvent donc la réinitialiser.
 -   **`redis` :** Serveur **Redis 8** (Alpine) pour le cache, les queues et Reverb.
 -   **`redis_limiter` :** Instance **Redis 8** dédiée exclusivement au rate limiting avec une politique `noeviction` pour garantir la fiabilité des compteurs.
--   **`mailpit` :** Outil de capture d'emails pour le développement (Interface web sur le port 8025).
+-   **`mailpit` :** Outil de capture d'emails pour le développement, avec son interface web sur `http://localhost:28419` et son serveur SMTP interne sur `mailpit:1025`.
 
 ## 3. Optimisations de Développement
 ## 4. Commandes Utiles (via Makefile)

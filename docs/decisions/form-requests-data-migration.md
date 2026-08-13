@@ -16,4 +16,4 @@
 
 Les modules IAM, Catalog, Master et Inventory ont été migrés. La classe `LahatreDTO`, ses casts, ses concerns, sa commande Artisan, ses stubs et ses tests dédiés ont été supprimés.
 
-La convention complète est décrite dans [Form Requests et classes Data](docs/data/form-requests-and-data.md) et dans [les règles centrales](.agents/CODEBASE_RULES.md).
+La convention complète est décrite dans [Form Requests et classes Data](../architecture/data/form-requests-and-data.md) et dans [les règles centrales](../../.agents/CODEBASE_RULES.md).

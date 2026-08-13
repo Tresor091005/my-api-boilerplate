@@ -54,7 +54,7 @@ En cas d'erreur (validation, erreur métier, etc.), un champ `errors` contient l
 
 ## 2. Gestion des Erreurs Métier avec les Assertions
 
-Les règles d’organisation des exceptions sont documentées dans [Exceptions métier](../coding-rules/exceptions.md). Les règles d’un même modèle sont regroupées dans une exception par modèle et exposées par des méthodes statiques nommées.
+Les règles d’organisation des exceptions sont documentées dans [Exceptions métier](../architecture/coding-rules/exceptions.md). Les règles d’un même modèle sont regroupées dans une exception par modèle et exposées par des méthodes statiques nommées.
 
 La validation de base (types, champs requis) est gérée par les `Form Requests`. Les valeurs validées sont ensuite transportées vers les services par des classes `Data`. Pour la logique métier plus complexe, nous utilisons un système d' "Assertions" encapsulé dans des objets dédiés.
 

@@ -125,7 +125,7 @@ class AuthService
 
         $token = Password::broker('users')->createToken($user);
 
-        $link = 'http://localhost:8000/auth/reset-password?'.http_build_query([
+        $link = rtrim(config('app.url'), '/').'/auth/reset-password?'.http_build_query([
             'token' => $token,
             'email' => $email,
         ]);

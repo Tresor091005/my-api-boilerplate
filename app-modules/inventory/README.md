@@ -118,6 +118,8 @@ $inventory->recordTransaction([
 - [Validation error mapping](docs/error-mapping.md)
 - [Complete payload reference](docs/payloads.md)
 - [Models and resources](docs/models.md)
+- [Thresholds and alerts specification](docs/specs/thresholds-and-alerts.md)
+- [Events and follow-up notes](docs/plans/events-and-follow-ups.md)
 
 ## Package boundary
 

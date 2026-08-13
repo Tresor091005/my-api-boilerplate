@@ -49,7 +49,7 @@ Let's explore the role of each key component in the `app-modules/catalog` module
 The `Lahatre\Catalog\Models\Category` model is more than just a data container; it's the heart of our hierarchical data management.
 
 -   **Hierarchical Structure:** It uses the [`staudenmeir/laravel-adjacency-list`](https://github.com/staudenmeir/laravel-adjacency-list) package via the `HasRecursiveRelationships` trait. This powerful addition provides out-of-the-box methods for handling tree structures, such as `ancestors()`, `descendants()`, `siblings()`, and `bloodline()` (ancestors + descendants + self). This avoids complex recursive queries in the application code.
--   **Conventions:** It strictly follows the project's [model conventions](./../database/models.md), including the use of UUIDs (`SharedTraits`), explicit table name, `$fillable` attributes, and comprehensive property `$casts` (especially `immutable_datetime`).
+-   **Conventions:** It strictly follows the project's [model conventions](./../architecture/database/models.md), including the use of UUIDs (`SharedTraits`), explicit table name, `$fillable` attributes, and comprehensive property `$casts` (especially `immutable_datetime`).
 
 ### The Service (`CategoryService.php`): The Business Logic Orchestrator
 
@@ -72,7 +72,7 @@ This is a cornerstone of our error-handling strategy, as described in the [API R
 
 ### Form Requests and Data (`CategoryRequest`, `CategoryData`, `CategoryFilterData`)
 
-The HTTP and service contracts are deliberately separated, as detailed in the [Form Requests and Data documentation](./../data/form-requests-and-data.md).
+The HTTP and service contracts are deliberately separated, as detailed in the [Form Requests and Data documentation](./../architecture/data/form-requests-and-data.md).
 
 -   **`CategoryRequest`:** Validates and normalizes the `POST` and `PUT/PATCH` HTTP payloads. Route-model context is used for update-specific rules.
 -   **`CategoryData`:** Maps validated `snake_case` keys to immutable `camelCase` properties. `MissingValue` distinguishes an absent update field from an explicit `null`.

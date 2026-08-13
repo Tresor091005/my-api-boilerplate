@@ -22,3 +22,4 @@ When sources conflict, stop and reconcile the appropriate rule file before recor
 | app/**, app-modules/*/src/**, app-modules/*/database/**, database/** | .ai/rules/persistence-tenancy.md |
 | tests/**, app-modules/*/tests/** | .ai/rules/testing.md |
 | app-modules/*/src/Rules/**, app-modules/*/src/Validation/**, app-modules/*/src/Http/Requests/** | .ai/rules/validation.md |
+| ** | .ai/rules/documentation-and-language.md |
