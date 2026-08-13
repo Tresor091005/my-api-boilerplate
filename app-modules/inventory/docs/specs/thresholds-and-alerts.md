@@ -79,7 +79,8 @@ Champs proposes:
 - `scope` enum: `global`, `item`, `item_location`
 - `item_id` uuid nullable FK -> `inventory_items.id`
 - `location_id` uuid nullable FK -> `inventory_locations.id`
-- `is_active` boolean default true
+- `stock_tracking_enabled` boolean default true on inventory items; threshold
+  evaluation must ignore items that do not participate in stock tracking.
 - Quantite:
   - `min_remaining` bigint nullable
   - `max_remaining` bigint nullable
@@ -224,4 +225,3 @@ Alerts:
   - Recommandation: evaluation par item (moins de bruit, plus actionnable).
 - Movement thresholds: v1 uniquement `count`, ou v1.1 `quantity` en base unit (necessite conversion).
 - Valeur: impose-t-on une devise par regle, ou refuse-t-on le calcul si multi-currency dans le scope.
-

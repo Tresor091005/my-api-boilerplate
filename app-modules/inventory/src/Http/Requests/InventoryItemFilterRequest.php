@@ -18,18 +18,18 @@ class InventoryItemFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page'       => ['integer', 'min:1', 'max:100'],
-            'cursor'         => ['nullable', 'string'],
-            'sort_by'        => ['string', Rule::in(['id', 'sku', 'created_at', 'updated_at'])],
-            'sort_order'     => ['string', Rule::in(['asc', 'desc'])],
-            'ids'            => ['nullable', 'array', 'min:1'],
-            'ids.*'          => ['string'],
-            'itemable_type'  => ['required_with:itemable_id', 'string'],
-            'itemable_id'    => ['required_with:itemable_type', 'array', 'min:1'],
-            'itemable_id.*'  => ['string'],
-            'sku'            => ['nullable', 'string'],
-            'is_active'      => ['nullable', 'boolean'],
-            'base_unit_code' => ['nullable', 'string'],
+            'per_page'               => ['integer', 'min:1', 'max:100'],
+            'cursor'                 => ['nullable', 'string'],
+            'sort_by'                => ['string', Rule::in(['id', 'sku', 'created_at', 'updated_at'])],
+            'sort_order'             => ['string', Rule::in(['asc', 'desc'])],
+            'ids'                    => ['nullable', 'array', 'min:1'],
+            'ids.*'                  => ['string'],
+            'itemable_type'          => ['required_with:itemable_id', 'string'],
+            'itemable_id'            => ['required_with:itemable_type', 'array', 'min:1'],
+            'itemable_id.*'          => ['string'],
+            'sku'                    => ['nullable', 'string'],
+            'stock_tracking_enabled' => ['nullable', 'boolean'],
+            'base_unit_code'         => ['nullable', 'string'],
         ];
     }
 }

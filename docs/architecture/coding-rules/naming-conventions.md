@@ -69,6 +69,12 @@ Toutes les clés dans les requêtes et réponses JSON doivent être en `snake_ca
 }
 ```
 
+Boolean columns normally use the `is_`, `has_`, `can_`, or `should_` prefixes.
+Approved semantic names may be used when they express the capability more
+clearly; `stock_tracking_enabled` is the current example. Do not introduce
+another exception without updating the architecture test and documenting the
+domain meaning.
+
 ## 4. Routes
 
 ### Chemins (Paths)

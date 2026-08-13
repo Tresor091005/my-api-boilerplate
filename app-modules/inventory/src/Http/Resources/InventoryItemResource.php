@@ -20,17 +20,17 @@ class InventoryItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                 => $this->id,
-            'itemable_type'      => $this->itemable_type,
-            'itemable_id'        => $this->itemable_id,
-            'sku'                => $this->sku,
-            'base_unit_code'     => $this->base_unit_code,
-            'deduction_strategy' => $this->deduction_strategy,
-            'is_expirable'       => $this->is_expirable,
-            'is_active'          => $this->is_active,
-            'created_at'         => $this->created_at,
-            'updated_at'         => $this->updated_at,
-            'itemable'           => $this->whenLoaded('itemable', function (): ?array {
+            'id'                     => $this->id,
+            'itemable_type'          => $this->itemable_type,
+            'itemable_id'            => $this->itemable_id,
+            'sku'                    => $this->sku,
+            'base_unit_code'         => $this->base_unit_code,
+            'deduction_strategy'     => $this->deduction_strategy,
+            'is_expirable'           => $this->is_expirable,
+            'stock_tracking_enabled' => $this->stock_tracking_enabled,
+            'created_at'             => $this->created_at,
+            'updated_at'             => $this->updated_at,
+            'itemable'               => $this->whenLoaded('itemable', function (): ?array {
                 if ($this->itemable instanceof HasInventoryItem) {
                     return $this->itemable->toInventoryItemableSummary();
                 }

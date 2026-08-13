@@ -33,10 +33,6 @@ class ProductVariantService
     {
         $query = $product->variants()->where('organization_id', getPermissionsTeamId())->with($this->relations());
 
-        if ($filters->shouldManageStock !== null) {
-            $query->where('should_manage_stock', $filters->shouldManageStock);
-        }
-
         if ($filters->isActive !== null) {
             $query->where('is_active', $filters->isActive);
         }
@@ -71,9 +67,8 @@ class ProductVariantService
 
         DB::transaction(function () use ($product, $variant, $data): void {
             $variant->fill(withoutMissing([
-                'sku'                 => $data->sku,
-                'should_manage_stock' => $data->shouldManageStock,
-                'is_active'           => $data->isActive,
+                'sku'       => $data->sku,
+                'is_active' => $data->isActive,
             ]));
 
             $variant->save();
@@ -86,11 +81,7 @@ class ProductVariantService
                 );
             }
 
-            $this->inventoryService->updateItem($variant, [
-                'sku'       => $variant->sku,
-                'is_active' => $variant->should_manage_stock,
-                // TODO deduction strategy
-            ]);
+            $this->inventoryService->updateItem($variant, ['sku' => $variant->sku]);
         });
 
         return ProductVariantResource::make($variant->load($this->relations()));

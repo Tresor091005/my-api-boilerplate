@@ -30,6 +30,11 @@ paths:
 - Use `Contracts` only for a real module boundary, external integration, or
   intentionally replaceable capability. Do not create an interface solely to
   abstract one local implementation.
+- A module interface is the public inter-module API: expose only the methods
+  that other packages are expected and permitted to call. Keep HTTP-specific,
+  adapter-specific, and other module-internal operations on concrete services
+  or dedicated internal collaborators instead of adding them to the shared
+  contract.
 - Avoid `Registries` by default. They are a last resort for a genuinely dynamic
   mapping or discovery problem that cannot remain explicit. Each registry is a
   design family of its own: document its ownership, registration lifecycle,

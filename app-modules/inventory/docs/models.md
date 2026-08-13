@@ -10,7 +10,8 @@ The module stores inventory records separately from the application's business m
 - `base_unit_code`: unit used for internal quantities and costing;
 - `deduction_strategy`: default FIFO, FEFO, or manual strategy;
 - `is_expirable`: whether new inbound lots require an expiration date;
-- `is_active`: whether the item can be used in new operations.
+- `stock_tracking_enabled`: whether the item can participate in new stock
+  movements.
 
 When no item strategy is configured, expirable items default to FEFO and non-expirable items default to FIFO. FIFO is not valid for expirable items, and FEFO is not valid for non-expirable items. Changing `is_expirable` never rewrites existing stock dates.
 
@@ -20,7 +21,10 @@ The application model supplies `getSku()`, `getUnitGroupId()`, `getOrganizationI
 
 ## Inventory location
 
-`InventoryLocation` links to the application model through `external_type` and `external_id`. Important fields are `is_active`, the polymorphic link, and its related stocks and movements.
+`InventoryLocation` links to the application model through `external_type` and
+`external_id`. Important fields are `is_active`, the polymorphic link, and its
+related stocks and movements. An inactive location cannot participate in new
+movements, but its historical stock and movement records remain queryable.
 
 The application model supplies `getOrganizationId()` and `toInventoryLocationExternalSummary()`.
 

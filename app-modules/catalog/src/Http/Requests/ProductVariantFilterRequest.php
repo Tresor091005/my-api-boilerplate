@@ -16,12 +16,11 @@ class ProductVariantFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page'            => ['integer', 'min:1', 'max:100'],
-            'cursor'              => ['nullable', 'string'],
-            'sort_by'             => ['string', Rule::in(['sku', 'should_manage_stock', 'is_active', 'created_at', 'updated_at'])],
-            'sort_order'          => ['string', Rule::in(['asc', 'desc'])],
-            'should_manage_stock' => ['nullable', 'boolean'],
-            'is_active'           => ['nullable', 'boolean'],
+            'per_page'   => ['integer', 'min:1', 'max:100'],
+            'cursor'     => ['nullable', 'string'],
+            'sort_by'    => ['string', Rule::in(['sku', 'is_active', 'created_at', 'updated_at'])],
+            'sort_order' => ['string', Rule::in(['asc', 'desc'])],
+            'is_active'  => ['nullable', 'boolean'],
         ];
     }
 }

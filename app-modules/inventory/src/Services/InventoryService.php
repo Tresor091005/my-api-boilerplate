@@ -152,6 +152,8 @@ class InventoryService implements InventoryInterface
                     return $this->recordTransactionInternal($payload, $with, null, true, false, true);
                 }
 
+                $this->assertReversalItemsTrackStock($original);
+
                 return $this->recordTransactionInternal($payload, $with, $original->id, true, false, true);
             });
         } catch (ValidationException $exception) {
@@ -172,6 +174,8 @@ class InventoryService implements InventoryInterface
                 if ($original->reversal !== null) {
                     throw ReversalException::alreadyReversed($original->id);
                 }
+
+                $this->assertReversalItemsTrackStock($original);
 
                 $this->recordTransactionInternal(
                     data: $this->buildReversalPayload($original, $metadata),
@@ -228,6 +232,21 @@ class InventoryService implements InventoryInterface
         }
 
         return $original;
+    }
+
+    protected function assertReversalItemsTrackStock(InventoryTransaction $transaction): void
+    {
+        $itemIds = $transaction->movements->pluck('item_id')->unique()->values();
+
+        $disabledItemId = InventoryItem::query()
+            ->where('organization_id', $this->organizationId())
+            ->whereIn('id', $itemIds)
+            ->where('stock_tracking_enabled', false)
+            ->value('id');
+
+        if (is_string($disabledItemId)) {
+            throw ReversalException::itemTrackingDisabled($disabledItemId);
+        }
     }
 
     protected function recordTransactionInternal(

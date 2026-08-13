@@ -40,6 +40,14 @@ final class ReversalException extends AssertionException
         );
     }
 
+    public static function itemTrackingDisabled(string $itemId): self
+    {
+        return new self(
+            __('inventory::exceptions.reversal_item_tracking_disabled'),
+            ['item_id' => $itemId]
+        );
+    }
+
     public static function inconsistentMovement(string $movementId): self
     {
         return new self(

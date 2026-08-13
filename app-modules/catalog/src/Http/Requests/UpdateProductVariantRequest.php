@@ -54,12 +54,11 @@ class UpdateProductVariantRequest extends FormRequest
                     ->where('organization_id', getPermissionsTeamId())
                     ->ignore($variant instanceof ProductVariant ? $variant : null),
             ],
-            'unit_group_id'       => ['prohibited'],
-            'should_manage_stock' => ['boolean'],
-            'is_active'           => ['boolean'],
-            'options'             => ['array'],
-            'options.*.name'      => ['required', 'string', 'max:255'],
-            'options.*.value'     => ['required', 'string', 'max:255'],
+            'unit_group_id'   => ['prohibited'],
+            'is_active'       => ['boolean'],
+            'options'         => ['array'],
+            'options.*.name'  => ['required', 'string', 'max:255'],
+            'options.*.value' => ['required', 'string', 'max:255'],
         ];
     }
 

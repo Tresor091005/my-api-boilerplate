@@ -11,7 +11,6 @@ final readonly class ProductVariantFilterData
         public ?string $cursor,
         public string $sortBy,
         public string $sortOrder,
-        public ?bool $shouldManageStock,
         public ?bool $isActive,
     ) {}
 
@@ -25,9 +24,6 @@ final readonly class ProductVariantFilterData
             cursor: $data['cursor'] ?? null,
             sortBy: $data['sort_by'] ?? 'created_at',
             sortOrder: $data['sort_order'] ?? 'asc',
-            shouldManageStock: array_key_exists('should_manage_stock', $data) && $data['should_manage_stock'] !== null
-                ? (bool) $data['should_manage_stock']
-                : null,
             isActive: array_key_exists('is_active', $data) && $data['is_active'] !== null
                 ? (bool) $data['is_active']
                 : null,

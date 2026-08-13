@@ -12,7 +12,6 @@ final readonly class ProductVariantData
     private function __construct(
         public ?string $sku,
         public string $unitGroupId,
-        public bool $shouldManageStock,
         public bool $isActive,
         public array $options,
     ) {}
@@ -25,7 +24,6 @@ final readonly class ProductVariantData
         return new self(
             sku: $data['sku'] ?? null,
             unitGroupId: $data['unit_group_id'],
-            shouldManageStock: (bool) ($data['should_manage_stock'] ?? false),
             isActive: (bool) ($data['is_active'] ?? false),
             options: $data['options'],
         );

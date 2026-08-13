@@ -12,6 +12,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
+use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -93,6 +94,23 @@ it('updateItem validates the deduction_strategy enum', function (): void {
     expect($variant->inventoryItem->refresh()->deduction_strategy)->toBeNull();
 });
 
+it('only disables stock tracking when no active stock remains', function (): void {
+    $material = $this->createTestMaterial();
+    $item = $this->service->createItem($material);
+    $location = $this->service->createLocation($this->createTestWarehouse());
+    $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create([
+        'remaining' => 5,
+    ]);
+
+    expect(fn () => $this->service->updateItem($material, ['stock_tracking_enabled' => false]))
+        ->toThrow(InventoryItemException::class);
+
+    $stock->update(['remaining' => 0]);
+    $updated = $this->service->updateItem($material, ['stock_tracking_enabled' => false]);
+
+    expect($updated->stock_tracking_enabled)->toBeFalse();
+});
+
 it('deleteItem and deleteLocation perform a soft delete and preserve stock history', function (): void {
     $variant = $this->createTestMaterial();
     $locationModel = $this->createTestWarehouse();
@@ -101,6 +119,10 @@ it('deleteItem and deleteLocation perform a soft delete and preserve stock histo
     $location = $this->service->createLocation($locationModel);
     $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create();
 
+    expect(fn () => $this->service->deleteItem($variant))
+        ->toThrow(InventoryItemException::class);
+
+    $stock->update(['remaining' => 0]);
     $this->service->deleteItem($variant);
     $this->service->deleteLocation($locationModel);
 

@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryItemFilterData;
 use Lahatre\Inventory\Data\InventoryItemValueFilterData;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
@@ -15,16 +16,19 @@ use Lahatre\Inventory\Http\Requests\InventoryItemFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryItemValueFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryLotFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
+use Lahatre\Inventory\Http\Requests\UpdateInventoryItemRequest;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Services\InventoryQueryService;
+use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
 
 class InventoryItemController
 {
     public function __construct(
-        protected InventoryQueryService $inventoryQueryService
+        protected InventoryQueryService $inventoryQueryService,
+        protected ManageInventoryItemService $inventoryItemService,
     ) {}
 
     public function index(InventoryItemFilterRequest $request): InventoryItemCollection
@@ -48,6 +52,15 @@ class InventoryItemController
         );
 
         return response()->json($resource);
+    }
+
+    public function update(UpdateInventoryItemRequest $request, InventoryItem $item): JsonResponse
+    {
+        Gate::authorize('update', $item);
+
+        return response()->json(
+            $this->inventoryItemService->updateRecord($item, $request->validated())
+        );
     }
 
     public function showStock(InventoryItem $item): JsonResponse

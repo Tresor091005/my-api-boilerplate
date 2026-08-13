@@ -236,10 +236,11 @@ it('ensures all JSON columns use jsonb for better performance', function (): voi
     expect(true)->toBeTrue();
 });
 
-it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)', function (): void {
+it('ensures boolean columns follow naming conventions', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);
     $allowedPrefixes = ['is_', 'has_', 'can_', 'should_'];
+    $allowedSemanticNames = ['stock_tracking_enabled'];
 
     $failures = [];
 
@@ -257,10 +258,11 @@ it('ensures boolean columns follow naming conventions (is_, has_, can_, should_)
 
         foreach ($boolColumns as $column) {
             $name = $column->column_name;
-            $hasValidPrefix = array_any($allowedPrefixes, fn (string $prefix): bool => str_starts_with((string) $name, (string) $prefix));
+            $hasValidPrefix = in_array($name, $allowedSemanticNames, true)
+                || array_any($allowedPrefixes, fn (string $prefix): bool => str_starts_with((string) $name, (string) $prefix));
 
             if (!$hasValidPrefix) {
-                $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: ".implode(', ', $allowedPrefixes);
+                $failures[] = "Table [{$tableName}]: Boolean column [{$name}] does not follow naming convention. Expected prefix: ".implode(', ', $allowedPrefixes).' or an approved semantic name.';
             }
         }
     }

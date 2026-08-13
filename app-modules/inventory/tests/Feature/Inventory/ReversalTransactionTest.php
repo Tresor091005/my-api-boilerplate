@@ -67,6 +67,29 @@ it('reverses an IN by consuming the original stock', function (): void {
         ->and($movement->metadata)->toBe(['received_by' => 'user-1']);
 });
 
+it('rejects a reversal when stock tracking has been disabled for its item', function (): void {
+    $original = $this->service->recordTransaction([
+        'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'type'          => MovementType::In->value,
+            'quantity'      => 10,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => 125.00,
+            'currency_code' => $this->currency->code,
+        ]],
+    ]);
+
+    $this->item->update(['stock_tracking_enabled' => false]);
+
+    expect(fn () => $this->service->reverseTransaction($original->id))
+        ->toThrow(ReversalException::class, 'stock tracking disabled');
+});
+
 it('reverses an OUT by creating a new stock from the outbound snapshot', function (): void {
     $stock = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'       => 10,

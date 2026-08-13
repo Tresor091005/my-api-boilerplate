@@ -52,6 +52,8 @@ parent/child ownership.
 
 - `inventory_items` and `inventory_locations` are morph-linked adapters around
   host application models.
+- `inventory_items.stock_tracking_enabled` is the inventory-owned switch that
+  allows new movements. Catalog variants do not duplicate this setting.
 - `inventory_stocks` stores the current lot-level quantity, unit, currency,
   exact cost, expiration, and metadata snapshot.
 - `inventory_transactions` is the immutable operation header. It carries the

@@ -67,4 +67,10 @@ available; its threshold model is still a specification.
 - `GET /api/user` is the Laravel starter authenticated-user route.
 - `/debug` is Telescope when enabled.
 - `/queues` is Horizon when enabled and authorized.
+
+Inventory item configuration can be updated with `PATCH /v1/inventory/items/{item}`.
+The `stock_tracking_enabled` flag can be turned off only when the item has no
+active stock remaining; deletion is also rejected while active stock remains.
+SKU, expiration, and deduction strategy are owned by the inventory item rather
+than duplicated on catalog variants.
 - `/docs/api` is the Scramble OpenAPI UI when enabled by the package.

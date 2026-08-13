@@ -19,7 +19,7 @@ final readonly class InventoryItemFilterData
         public ?string $itemableType,
         public ?array $itemableId,
         public ?string $sku,
-        public ?bool $isActive,
+        public ?bool $stockTrackingEnabled,
         public ?string $baseUnitCode,
     ) {}
 
@@ -35,7 +35,7 @@ final readonly class InventoryItemFilterData
             itemableType: $data['itemable_type'] ?? null,
             itemableId: $data['itemable_id'] ?? null,
             sku: $data['sku'] ?? null,
-            isActive: array_key_exists('is_active', $data) ? (bool) $data['is_active'] : null,
+            stockTrackingEnabled: array_key_exists('stock_tracking_enabled', $data) ? (bool) $data['stock_tracking_enabled'] : null,
             baseUnitCode: $data['base_unit_code'] ?? null,
         );
     }

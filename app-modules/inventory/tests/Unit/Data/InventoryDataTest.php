@@ -12,9 +12,9 @@ use Lahatre\Inventory\Http\Requests\InventoryStockSummaryFilterRequest;
 
 it('maps snake case filters to camel case properties with defaults', function (): void {
     $filters = InventoryItemFilterData::fromArray([
-        'itemable_type' => 'product_variant',
-        'itemable_id'   => ['variant-1'],
-        'is_active'     => false,
+        'itemable_type'          => 'product_variant',
+        'itemable_id'            => ['variant-1'],
+        'stock_tracking_enabled' => false,
     ]);
 
     expect($filters->perPage)->toBe(15)
@@ -22,7 +22,7 @@ it('maps snake case filters to camel case properties with defaults', function ()
         ->and($filters->sortOrder)->toBe('asc')
         ->and($filters->itemableType)->toBe('product_variant')
         ->and($filters->itemableId)->toBe(['variant-1'])
-        ->and($filters->isActive)->toBeFalse();
+        ->and($filters->stockTrackingEnabled)->toBeFalse();
 });
 
 it('preserves array filters and converts enum and date values', function (): void {

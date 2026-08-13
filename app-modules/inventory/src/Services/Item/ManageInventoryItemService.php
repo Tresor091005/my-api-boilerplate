@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Enums\DeductionStrategy;
+use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
@@ -42,63 +43,99 @@ class ManageInventoryItemService
     }
 
     /**
-     * @param  array{sku?: string, is_active?: bool, is_expirable?: bool, deduction_strategy?: string}  $data
+     * @param  array{sku?: string, stock_tracking_enabled?: bool, is_expirable?: bool, deduction_strategy?: string}  $data
      */
     public function update(HasInventoryItem $model, array $data): InventoryItem
     {
+        return DB::transaction(fn (): InventoryItem => $this->persistUpdate($this->resolve($model), $data));
+    }
+
+    public function updateRecord(InventoryItem $item, array $data): InventoryItem
+    {
+        $organizationId = $this->organizationId();
+
+        if ($item->organization_id !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
+        }
+
+        return DB::transaction(function () use ($item, $data, $organizationId): InventoryItem {
+            $lockedItem = InventoryItem::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($item->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            return $this->persistUpdate($lockedItem, $data);
+        });
+    }
+
+    /**
+     * @param  array{sku?: string, stock_tracking_enabled?: bool, is_expirable?: bool, deduction_strategy?: string}  $data
+     */
+    protected function persistUpdate(InventoryItem $item, array $data): InventoryItem
+    {
         $validated = validator($data, [
-            'sku'                => ['string', 'max:255'],
-            'is_active'          => ['boolean'],
-            'is_expirable'       => ['boolean'],
-            'deduction_strategy' => ['nullable', Rule::enum(DeductionStrategy::class)],
+            'sku'                    => ['string', 'max:255'],
+            'stock_tracking_enabled' => ['boolean'],
+            'is_expirable'           => ['boolean'],
+            'deduction_strategy'     => ['nullable', Rule::enum(DeductionStrategy::class)],
         ])->validate();
 
-        return DB::transaction(function () use ($model, $validated): InventoryItem {
-            $item = $this->resolve($model);
-            $isExpirable = (bool) ($validated['is_expirable'] ?? $item->is_expirable);
-            $strategyWasProvided = array_key_exists('deduction_strategy', $validated);
-            $strategy = $strategyWasProvided
+        $stockTrackingEnabled = (bool) ($validated['stock_tracking_enabled'] ?? $item->stock_tracking_enabled);
+
+        if ($item->stock_tracking_enabled && !$stockTrackingEnabled && $item->stocks()->where('remaining', '>', 0)->exists()) {
+            throw InventoryItemException::hasActiveStock($item->id);
+        }
+
+        $isExpirable = (bool) ($validated['is_expirable'] ?? $item->is_expirable);
+        $strategyWasProvided = array_key_exists('deduction_strategy', $validated);
+        $strategy = $strategyWasProvided
                 ? $validated['deduction_strategy']
                 : $item->deduction_strategy;
-            if (is_string($strategy)) {
-                $strategy = DeductionStrategy::from($strategy);
+        if (is_string($strategy)) {
+            $strategy = DeductionStrategy::from($strategy);
+        }
+
+        if ($strategy === DeductionStrategy::Fifo && $isExpirable) {
+            if ($strategyWasProvided) {
+                throw ValidationException::withMessages([
+                    'deduction_strategy' => __('inventory::validation.fifo_expirable_prohibited'),
+                ]);
             }
 
-            if ($strategy === DeductionStrategy::Fifo && $isExpirable) {
-                if ($strategyWasProvided) {
-                    throw ValidationException::withMessages([
-                        'deduction_strategy' => __('inventory::validation.fifo_expirable_prohibited'),
-                    ]);
-                }
+            $strategy = null;
+        }
 
-                $strategy = null;
+        if ($strategy === DeductionStrategy::Fefo && !$isExpirable) {
+            if ($strategyWasProvided) {
+                throw ValidationException::withMessages([
+                    'deduction_strategy' => __('inventory::validation.fefo_non_expirable_prohibited'),
+                ]);
             }
 
-            if ($strategy === DeductionStrategy::Fefo && !$isExpirable) {
-                if ($strategyWasProvided) {
-                    throw ValidationException::withMessages([
-                        'deduction_strategy' => __('inventory::validation.fefo_non_expirable_prohibited'),
-                    ]);
-                }
+            $strategy = null;
+        }
 
-                $strategy = null;
-            }
+        $item->fill([
+            'sku'                    => $validated['sku'] ?? $item->sku,
+            'stock_tracking_enabled' => $stockTrackingEnabled,
+            'is_expirable'           => $isExpirable,
+            'deduction_strategy'     => $strategy,
+        ])->save();
 
-            $item->fill([
-                'sku'                => $validated['sku'] ?? $item->sku,
-                'is_active'          => $validated['is_active'] ?? $item->is_active,
-                'is_expirable'       => $isExpirable,
-                'deduction_strategy' => $strategy,
-            ])->save();
-
-            return $item;
-        });
+        return $item;
     }
 
     public function delete(HasInventoryItem $model): void
     {
         DB::transaction(function () use ($model): void {
-            $this->resolve($model)->delete();
+            $item = $this->resolve($model);
+
+            if ($item->stocks()->where('remaining', '>', 0)->exists()) {
+                throw InventoryItemException::cannotDeleteWithActiveStock($item->id);
+            }
+
+            $item->delete();
         });
     }
 
@@ -111,6 +148,7 @@ class ManageInventoryItemService
             ->where('organization_id', $organizationId)
             ->where('itemable_type', $model->getMorphClass())
             ->where('itemable_id', (string) $model->getKey())
+            ->lockForUpdate()
             ->firstOrFail();
     }
 
@@ -157,15 +195,15 @@ class ManageInventoryItemService
                 InventoryItem::query()->insert(
                     $missingModels
                         ->map(fn (HasInventoryItem $model): array => [
-                            'id'              => (string) Str::uuid7(),
-                            'organization_id' => $organizationId,
-                            'itemable_type'   => $model->getMorphClass(),
-                            'itemable_id'     => (string) $model->getKey(),
-                            'sku'             => $model->getSku(),
-                            'is_active'       => true,
-                            'base_unit_code'  => $this->masterInterface->baseUnit($model->getUnitGroupId())->code,
-                            'created_at'      => $now,
-                            'updated_at'      => $now,
+                            'id'                     => (string) Str::uuid7(),
+                            'organization_id'        => $organizationId,
+                            'itemable_type'          => $model->getMorphClass(),
+                            'itemable_id'            => (string) $model->getKey(),
+                            'sku'                    => $model->getSku(),
+                            'stock_tracking_enabled' => true,
+                            'base_unit_code'         => $this->masterInterface->baseUnit($model->getUnitGroupId())->code,
+                            'created_at'             => $now,
+                            'updated_at'             => $now,
                         ])
                         ->all()
                 );

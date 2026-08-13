@@ -21,18 +21,17 @@ class ProductVariantResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                  => $this->id,
-            'name'                => $this->name,
-            'product_id'          => $this->product_id,
-            'sku'                 => $this->sku,
-            'unit_group_id'       => $this->unit_group_id,
-            'should_manage_stock' => $this->should_manage_stock,
-            'is_active'           => $this->is_active,
-            'created_at'          => $this->created_at,
-            'updated_at'          => $this->updated_at,
-            'options'             => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
-            'unit_group'          => UnitGroupResource::make($this->whenLoaded('unitGroup')),
-            'inventory'           => $this->whenLoaded(
+            'id'            => $this->id,
+            'name'          => $this->name,
+            'product_id'    => $this->product_id,
+            'sku'           => $this->sku,
+            'unit_group_id' => $this->unit_group_id,
+            'is_active'     => $this->is_active,
+            'created_at'    => $this->created_at,
+            'updated_at'    => $this->updated_at,
+            'options'       => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
+            'unit_group'    => UnitGroupResource::make($this->whenLoaded('unitGroup')),
+            'inventory'     => $this->whenLoaded(
                 'inventoryItem',
                 fn (): array => InventoryItemSummaryResource::make($this->inventoryItem)->resolve($request)
             ),

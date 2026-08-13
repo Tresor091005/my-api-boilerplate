@@ -76,8 +76,8 @@ class InventoryQueryService
             $query->where('base_unit_code', $filters->baseUnitCode);
         }
 
-        if ($filters->isActive !== null) {
-            $query->where('is_active', $filters->isActive);
+        if ($filters->stockTrackingEnabled !== null) {
+            $query->where('stock_tracking_enabled', $filters->stockTrackingEnabled);
         }
 
         if ($includeItemable) {

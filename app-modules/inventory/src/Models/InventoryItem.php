@@ -25,7 +25,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $base_unit_code
  * @property DeductionStrategy|null $deduction_strategy
  * @property bool $is_expirable
- * @property bool $is_active
+ * @property bool $stock_tracking_enabled
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -79,22 +79,22 @@ class InventoryItem extends Model
         'base_unit_code',
         'deduction_strategy',
         'is_expirable',
-        'is_active',
+        'stock_tracking_enabled',
     ];
 
     protected $casts = [
-        'id'                 => 'string',
-        'organization_id'    => 'string',
-        'itemable_type'      => 'string',
-        'itemable_id'        => 'string',
-        'sku'                => 'string',
-        'base_unit_code'     => 'string',
-        'deduction_strategy' => DeductionStrategy::class,
-        'is_expirable'       => 'boolean',
-        'is_active'          => 'boolean',
-        'created_at'         => 'immutable_datetime',
-        'updated_at'         => 'immutable_datetime',
-        'deleted_at'         => 'immutable_datetime',
+        'id'                     => 'string',
+        'organization_id'        => 'string',
+        'itemable_type'          => 'string',
+        'itemable_id'            => 'string',
+        'sku'                    => 'string',
+        'base_unit_code'         => 'string',
+        'deduction_strategy'     => DeductionStrategy::class,
+        'is_expirable'           => 'boolean',
+        'stock_tracking_enabled' => 'boolean',
+        'created_at'             => 'immutable_datetime',
+        'updated_at'             => 'immutable_datetime',
+        'deleted_at'             => 'immutable_datetime',
     ];
 
     public function itemable(): MorphTo

@@ -27,7 +27,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $product_id
  * @property string $sku
  * @property string $unit_group_id
- * @property bool $should_manage_stock
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -86,21 +85,19 @@ class ProductVariant extends Model implements HasInventoryItem
         'product_id',
         'sku',
         'unit_group_id',
-        'should_manage_stock',
         'is_active',
     ];
 
     protected $casts = [
-        'id'                  => 'string',
-        'organization_id'     => 'string',
-        'product_id'          => 'string',
-        'sku'                 => 'string',
-        'unit_group_id'       => 'string',
-        'should_manage_stock' => 'boolean',
-        'is_active'           => 'boolean',
-        'created_at'          => 'immutable_datetime',
-        'updated_at'          => 'immutable_datetime',
-        'deleted_at'          => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'product_id'      => 'string',
+        'sku'             => 'string',
+        'unit_group_id'   => 'string',
+        'is_active'       => 'boolean',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function getUnitGroupId(): string

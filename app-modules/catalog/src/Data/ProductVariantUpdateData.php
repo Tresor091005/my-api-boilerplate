@@ -14,7 +14,6 @@ final readonly class ProductVariantUpdateData
      */
     private function __construct(
         public MissingValue|string|null $sku,
-        public MissingValue|bool $shouldManageStock,
         public MissingValue|bool $isActive,
         public MissingValue|array $options,
     ) {}
@@ -26,14 +25,10 @@ final readonly class ProductVariantUpdateData
     public static function fromArray(array $data, array $missingFields = []): self
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
-        $shouldManageStock = $read->get('should_manage_stock');
         $isActive = $read->get('is_active');
 
         return new self(
             sku: $read->get('sku'),
-            shouldManageStock: $shouldManageStock instanceof MissingValue
-                ? $shouldManageStock
-                : (bool) $shouldManageStock,
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             options: $read->get('options'),
         );

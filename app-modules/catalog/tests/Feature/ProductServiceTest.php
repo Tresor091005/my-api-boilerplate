@@ -57,11 +57,10 @@ it('manages products through service methods and scopes by tenant', function ():
         'is_active' => true,
         'variants'  => [
             [
-                'sku'                 => 'SGS24-123',
-                'unit_group_id'       => $this->unitGroup->id,
-                'should_manage_stock' => true,
-                'is_active'           => true,
-                'options'             => [
+                'sku'           => 'SGS24-123',
+                'unit_group_id' => $this->unitGroup->id,
+                'is_active'     => true,
+                'options'       => [
                     ['name' => 'Color', 'value' => 'Black'],
                 ],
             ],
@@ -107,11 +106,10 @@ it('rejects soft-deleted category ids in product requests', function (): void {
         'categories' => [$deletedCategory->id],
         'variants'   => [
             [
-                'sku'                 => 'PRD-DEL-CAT-01',
-                'unit_group_id'       => $this->unitGroup->id,
-                'should_manage_stock' => true,
-                'is_active'           => true,
-                'options'             => [
+                'sku'           => 'PRD-DEL-CAT-01',
+                'unit_group_id' => $this->unitGroup->id,
+                'is_active'     => true,
+                'options'       => [
                     ['name' => 'Color', 'value' => 'Blue'],
                 ],
             ],
@@ -124,11 +122,10 @@ it('rejects soft-deleted category ids in product requests', function (): void {
         'categories' => [$activeCategory->id],
         'variants'   => [
             [
-                'sku'                 => 'PRD-ACT-CAT-01',
-                'unit_group_id'       => $this->unitGroup->id,
-                'should_manage_stock' => true,
-                'is_active'           => true,
-                'options'             => [
+                'sku'           => 'PRD-ACT-CAT-01',
+                'unit_group_id' => $this->unitGroup->id,
+                'is_active'     => true,
+                'options'       => [
                     ['name' => 'Color', 'value' => 'Red'],
                 ],
             ],

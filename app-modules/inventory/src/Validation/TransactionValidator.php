@@ -33,8 +33,10 @@ class TransactionValidator
     {
         $this->lookups = [];
         $data = $this->normalizeIgnoredAdjustmentFields($data);
+        $data = $this->removeUntrackedMovements($data);
+        $allowEmptyMovements = ($data['movements'] ?? []) === [];
 
-        $validator = validator($data, $this->rules());
+        $validator = validator($data, $this->rules($allowEmptyMovements));
 
         $validator->after(function (Validator $validator) use ($data, $allowLegacyExpiration): void {
             // Stop if there are structural errors (movements required, items missing fields, etc.)
@@ -48,6 +50,46 @@ class TransactionValidator
         $validatedData = $validator->validate();
 
         return [$validatedData, $this->lookups];
+    }
+
+    /**
+     * Remove movements for inventory items that do not participate in stock tracking.
+     *
+     * Missing item IDs are intentionally preserved so that the normal existence
+     * validation can report them as invalid input.
+     */
+    protected function removeUntrackedMovements(array $data): array
+    {
+        $movements = collect($data['movements'] ?? []);
+        $itemIds = $movements
+            ->filter(fn (mixed $movement): bool => is_array($movement) && isset($movement['item_id']))
+            ->pluck('item_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($itemIds->isEmpty()) {
+            return $data;
+        }
+
+        $untrackedItemIds = InventoryItem::query()
+            ->where('organization_id', $this->organizationId())
+            ->whereIn('id', $itemIds)
+            ->where('stock_tracking_enabled', false)
+            ->pluck('id')
+            ->all();
+
+        if ($untrackedItemIds === []) {
+            return $data;
+        }
+
+        $data['movements'] = $movements
+            ->reject(fn (mixed $movement): bool => is_array($movement)
+                && in_array($movement['item_id'] ?? null, $untrackedItemIds, true))
+            ->values()
+            ->all();
+
+        return $data;
     }
 
     protected function normalizeIgnoredAdjustmentFields(array $data): array
@@ -70,7 +112,7 @@ class TransactionValidator
         return $data;
     }
 
-    protected function rules(): array
+    protected function rules(bool $allowEmptyMovements = false): array
     {
         return [
             'idempotency_key'  => ['required', 'string', 'min:3'],
@@ -79,7 +121,9 @@ class TransactionValidator
             'transaction_type' => ['required', Rule::enum(TransactionType::class)],
             'metadata'         => ['nullable', 'array'],
 
-            'movements' => ['required', 'array', 'min:1'],
+            'movements' => $allowEmptyMovements
+                ? ['present', 'array']
+                : ['required', 'array', 'min:1'],
 
             'movements.*.item_id'        => ['required', 'string'],
             'movements.*.location_id'    => ['required', 'string'],
@@ -219,7 +263,7 @@ class TransactionValidator
         $stockIds = $movements->pluck('stock_ids')->flatten()->filter()->unique();
         $items = InventoryItem::where('organization_id', $organizationId)
             ->whereIn('id', $itemIds)
-            ->where('is_active', true)
+            ->where('stock_tracking_enabled', true)
             ->get()
             ->keyBy('id');
         $unitCodes = $movements->pluck('unit_code')

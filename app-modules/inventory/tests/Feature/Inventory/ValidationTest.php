@@ -96,7 +96,7 @@ it('does not allow a transaction to reference another organization item', functi
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'test',
         'idempotency_key'  => fake()->uuid(),
-        'reference_id'     => '123',
+        'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
             'type'          => 'in',
@@ -226,23 +226,24 @@ it('fails if a provided stock_id does not belong to the correct item and locatio
         ->toThrow(ValidationException::class, "Stock ID {$stockForOtherItem->id} does not belong to the correct item and location.");
 });
 
-it('fails when a resolved inventory item is inactive', function (): void {
+it('ignores resolved inventory items with stock tracking disabled', function (): void {
     config()->set('inventory.enable_model_reference_preprocessing', true);
 
     $variant = $this->createTestMaterial();
+    $activeVariant = $this->createTestMaterial();
     $company = $this->createTestWarehouse();
 
     InventoryItem::factory()->create([
-        'itemable_type'  => $variant->getMorphClass(),
-        'itemable_id'    => $variant->getKey(),
-        'base_unit_code' => $this->unit->code,
-        'is_active'      => false,
+        'itemable_type'          => $variant->getMorphClass(),
+        'itemable_id'            => $variant->getKey(),
+        'base_unit_code'         => $this->unit->code,
+        'stock_tracking_enabled' => false,
     ]);
 
     $payload = [
         'reference_type'   => 'test',
         'idempotency_key'  => fake()->uuid(),
-        'reference_id'     => '123',
+        'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [
             [
@@ -254,11 +255,22 @@ it('fails when a resolved inventory item is inactive', function (): void {
                 'total_cost'    => 10.00,
                 'currency_code' => $this->currency->code,
             ],
+            [
+                'type'          => 'in',
+                'item'          => $activeVariant,
+                'location'      => $company,
+                'quantity'      => 10,
+                'unit_code'     => $this->unit->code,
+                'total_cost'    => 10.00,
+                'currency_code' => $this->currency->code,
+            ],
         ],
     ];
 
-    expect(fn () => $this->service->recordTransaction($payload))
-        ->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
+    $transaction = $this->service->recordTransaction($payload);
+
+    expect($transaction->movements)->toHaveCount(1)
+        ->and($transaction->movements->first()->item->itemable_id)->toBe($activeVariant->getKey());
 });
 
 it('fails when a resolved inventory location is inactive', function (): void {
@@ -365,13 +377,48 @@ it('fails validation if Manual item strategy is missing stock_ids after config r
     ]))->toThrow(ValidationException::class, 'Stock IDs are required when strategy is manual.');
 });
 
-it('fails transaction if the selected item is inactive', function (): void {
-    $this->item->update(['is_active' => false]);
+it('ignores movements for items with stock tracking disabled', function (): void {
+    $this->item->update(['stock_tracking_enabled' => false]);
+    $activeItem = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
 
-    expect(fn () => $this->service->recordTransaction([
+    $transaction = $this->service->recordTransaction([
         'reference_type'   => 'test',
         'idempotency_key'  => fake()->uuid(),
-        'reference_id'     => '123',
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [
+            [
+                'type'          => 'in',
+                'item_id'       => $this->item->id,
+                'location_id'   => $this->location->id,
+                'quantity'      => 10,
+                'unit_code'     => $this->unit->code,
+                'total_cost'    => 10.00,
+                'currency_code' => $this->currency->code,
+            ],
+            [
+                'type'          => 'in',
+                'item_id'       => $activeItem->id,
+                'location_id'   => $this->location->id,
+                'quantity'      => 10,
+                'unit_code'     => $this->unit->code,
+                'total_cost'    => 10.00,
+                'currency_code' => $this->currency->code,
+            ],
+        ],
+    ]);
+
+    expect($transaction->movements)->toHaveCount(1)
+        ->and($transaction->movements->first()->item_id)->toBe($activeItem->id);
+});
+
+it('silently creates no movements when all items have stock tracking disabled', function (): void {
+    $this->item->update(['stock_tracking_enabled' => false]);
+
+    $transaction = $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::In->value,
         'movements'        => [[
             'type'          => 'in',
@@ -382,7 +429,9 @@ it('fails transaction if the selected item is inactive', function (): void {
             'total_cost'    => 10.00,
             'currency_code' => $this->currency->code,
         ]],
-    ]))->toThrow(ValidationException::class, 'The selected item is invalid or inactive.');
+    ]);
+
+    expect($transaction->movements)->toBeEmpty();
 });
 
 it('fails transaction if the selected location is inactive', function (): void {

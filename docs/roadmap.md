@@ -7,7 +7,8 @@
 - [x] `product`
   CRUD exposé par API dans `catalog`, avec catégories, variantes et chargement des relations principales.
 - [x] `variant`
-  CRUD exposé par API sous `products.variants`, avec intégration inventaire pour la création et la suppression de `inventoryItem`.
+  CRUD exposed under `products.variants`; every variant has an inventory item,
+  while inventory-owned tracking configuration remains on that item.
 - [x] `option`
   CRUD exposé par API dans `catalog`, avec gestion des valeurs.
 - [x] `option value`
@@ -82,7 +83,16 @@
 ## Points déjà repérés dans le code
 
 - [ ] `product`: ajouter le filtre par catégorie.
-- [ ] `product variant`: finaliser la stratégie de déduction de stock.
+- [x] `product variant`: stock tracking and deduction configuration are owned by
+  `inventory_items`; disabling tracking is blocked while active stock remains.
+- [ ] `inventory`: review HTTP authorization coverage for every exposed route,
+  including read endpoints, nested resources, policies, permissions, and
+  organization boundaries.
+- [ ] `inventory`: define the update pattern for `InventoryItem` and
+  `InventoryLocation`, including parent-owned updates versus standalone
+  inventory endpoints.
+- [ ] `product variant`: define the sales/order integration that will trigger
+  inventory movements.
 - [ ] `unit`: couvrir la suppression sécurisée de groupes/unités déjà utilisés.
 - [ ] `inventory`: ajouter les événements métier prévus dans `plan.md`.
 - [ ] `inventory`: décider si la distribution d'un transfert doit être imposée par l'utilisateur.

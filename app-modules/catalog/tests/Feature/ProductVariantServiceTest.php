@@ -78,11 +78,10 @@ it('manages product variants through service methods', function (): void {
     $this->service->create($this->product, ProductVariantBatchData::fromArray([
         'variants' => [
             [
-                'sku'                 => 'NEW-VARIANT-SKU',
-                'unit_group_id'       => $this->unitGroup->id,
-                'should_manage_stock' => true,
-                'is_active'           => true,
-                'options'             => [
+                'sku'           => 'NEW-VARIANT-SKU',
+                'unit_group_id' => $this->unitGroup->id,
+                'is_active'     => true,
+                'options'       => [
                     ['name' => 'color', 'value' => 'white'],
                 ],
             ],
@@ -100,7 +99,7 @@ it('manages product variants through service methods', function (): void {
 
     $updated = $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['sku' => 'UPDATED-SKU'],
-        missingFields: ['should_manage_stock', 'is_active', 'options'],
+        missingFields: ['is_active', 'options'],
     ))->resource;
 
     expect($updated->sku)->toBe('UPDATED-SKU');

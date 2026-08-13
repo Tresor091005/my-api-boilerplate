@@ -17,7 +17,20 @@ The Inventory Module provides a reusable, location-aware inventory ledger for La
 
 The module does not force a product, warehouse, or catalog model. Any application model can become an inventory item or location by implementing the corresponding contract. A `Product`, `ProductVariant`, `Warehouse`, `Store`, or `ServiceVan` can therefore be used directly as the business object behind inventory records.
 
-Inventory items expose the important operational fields `sku`, `base_unit_code`, `deduction_strategy`, and `is_active`. Inventory locations expose their polymorphic `external_type`, `external_id`, and `is_active`. The persisted records keep the link to the application model while inventory stocks, movements, and transactions remain independent ledger data.
+Inventory items expose the important operational fields `sku`, `base_unit_code`,
+`stock_tracking_enabled`, `deduction_strategy`, and `is_expirable`. Inventory
+locations expose their polymorphic `external_type`, `external_id`, and
+`is_active`. The persisted records keep the link to the application model while
+inventory stocks, movements, and transactions remain independent ledger data.
+
+An inventory item may exist for any inventory-capable domain model while
+`stock_tracking_enabled` is false. Enabling tracking is allowed without
+existing stock; disabling it is rejected while any non-deleted stock lot has
+`remaining > 0`. Historical movements and depleted lots do not block the
+transition. The same active-stock rule blocks deletion of the inventory item,
+which consequently prevents deletion of its owning model until the stock is
+depleted. Transaction payloads that contain both tracked and untracked items
+ignore the movements for items whose stock tracking is disabled.
 
 Inventoryable domain models implement the relevant contract and use its trait:
 

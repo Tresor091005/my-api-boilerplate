@@ -166,11 +166,10 @@ it('enforces tenancy matrix for products and variants', function (): void {
         'name'      => 'Created Product',
         'is_active' => true,
         'variants'  => [[
-            'sku'                 => 'CREATED-001',
-            'unit_group_id'       => $unitGroup->id,
-            'should_manage_stock' => true,
-            'is_active'           => true,
-            'options'             => [['name' => 'color', 'value' => 'white']],
+            'sku'           => 'CREATED-001',
+            'unit_group_id' => $unitGroup->id,
+            'is_active'     => true,
+            'options'       => [['name' => 'color', 'value' => 'white']],
         ]],
     ])->assertCreated();
 
@@ -193,11 +192,10 @@ it('enforces tenancy matrix for products and variants', function (): void {
 
     $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants", [
         'variants' => [[
-            'sku'                 => 'CREATED-VAR-001',
-            'unit_group_id'       => $unitGroup->id,
-            'should_manage_stock' => true,
-            'is_active'           => true,
-            'options'             => [['name' => 'size', 'value' => 'm']],
+            'sku'           => 'CREATED-VAR-001',
+            'unit_group_id' => $unitGroup->id,
+            'is_active'     => true,
+            'options'       => [['name' => 'size', 'value' => 'm']],
         ]],
     ])->assertCreated();
 

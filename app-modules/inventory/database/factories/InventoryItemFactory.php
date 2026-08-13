@@ -21,14 +21,14 @@ class InventoryItemFactory extends Factory
         $organizationId = $this->resolveOrganizationId();
 
         return [
-            'organization_id'    => $organizationId,
-            'itemable_type'      => 'test_material',
-            'itemable_id'        => (string) Str::uuid7(),
-            'sku'                => fake()->unique()->bothify('SKU-####-????'),
-            'base_unit_code'     => 'unit',
-            'deduction_strategy' => null,
-            'is_expirable'       => false,
-            'is_active'          => true,
+            'organization_id'        => $organizationId,
+            'itemable_type'          => 'test_material',
+            'itemable_id'            => (string) Str::uuid7(),
+            'sku'                    => fake()->unique()->bothify('SKU-####-????'),
+            'base_unit_code'         => 'unit',
+            'deduction_strategy'     => null,
+            'is_expirable'           => false,
+            'stock_tracking_enabled' => true,
         ];
     }
 }

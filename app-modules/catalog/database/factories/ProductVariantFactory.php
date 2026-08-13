@@ -22,12 +22,11 @@ class ProductVariantFactory extends Factory
         $organizationId = $this->resolveOrganizationId();
 
         return [
-            'organization_id'     => $organizationId,
-            'product_id'          => Product::factory(['organization_id' => $organizationId]),
-            'sku'                 => fake()->unique()->bothify('SKU-####-????'),
-            'unit_group_id'       => UnitGroup::factory(),
-            'should_manage_stock' => true,
-            'is_active'           => true,
+            'organization_id' => $organizationId,
+            'product_id'      => Product::factory(['organization_id' => $organizationId]),
+            'sku'             => fake()->unique()->bothify('SKU-####-????'),
+            'unit_group_id'   => UnitGroup::factory(),
+            'is_active'       => true,
         ];
     }
 }

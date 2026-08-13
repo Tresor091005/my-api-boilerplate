@@ -35,15 +35,14 @@ class TransactionalProductVariantService
         $now = now();
 
         $variantRows = $variantsData->map(fn (ProductVariantData $variantData): array => [
-            'id'                  => (string) Str::uuid7(),
-            'organization_id'     => $product->organization_id,
-            'product_id'          => $product->id,
-            'sku'                 => $variantData->sku ?? SkuGenerator::generate($product->name),
-            'unit_group_id'       => $variantData->unitGroupId,
-            'should_manage_stock' => $variantData->shouldManageStock,
-            'is_active'           => $variantData->isActive,
-            'created_at'          => $now,
-            'updated_at'          => $now,
+            'id'              => (string) Str::uuid7(),
+            'organization_id' => $product->organization_id,
+            'product_id'      => $product->id,
+            'sku'             => $variantData->sku ?? SkuGenerator::generate($product->name),
+            'unit_group_id'   => $variantData->unitGroupId,
+            'is_active'       => $variantData->isActive,
+            'created_at'      => $now,
+            'updated_at'      => $now,
         ]);
 
         ProductVariant::insert($variantRows->all());

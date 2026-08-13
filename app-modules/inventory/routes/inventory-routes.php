@@ -17,6 +17,7 @@ Route::group([
     Route::group(['middleware' => 'auth.api'], function (): void {
         Route::get('items', [InventoryItemController::class, 'index'])->name('items.index');
         Route::get('items/{item}', [InventoryItemController::class, 'show'])->name('items.show');
+        Route::patch('items/{item}', [InventoryItemController::class, 'update'])->name('items.update');
         Route::get('items/{item}/stock', [InventoryItemController::class, 'showStock'])->name('items.stock.show');
         Route::get('items/{item}/value', [InventoryItemController::class, 'showValue'])->name('items.value.show');
         Route::get('items/{item}/locations/{location}/lots', [InventoryItemController::class, 'indexLocationLots'])->name('items.locations.lots.index');

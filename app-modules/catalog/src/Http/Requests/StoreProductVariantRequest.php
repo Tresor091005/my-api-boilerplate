@@ -55,11 +55,10 @@ class StoreProductVariantRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->where(fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId())),
             ],
-            'variants.*.should_manage_stock' => ['boolean'],
-            'variants.*.is_active'           => ['boolean'],
-            'variants.*.options'             => ['required', 'array', 'min:1'],
-            'variants.*.options.*.name'      => ['required', 'string', 'max:255'],
-            'variants.*.options.*.value'     => ['required', 'string', 'max:255'],
+            'variants.*.is_active'       => ['boolean'],
+            'variants.*.options'         => ['required', 'array', 'min:1'],
+            'variants.*.options.*.name'  => ['required', 'string', 'max:255'],
+            'variants.*.options.*.value' => ['required', 'string', 'max:255'],
         ];
     }
 
