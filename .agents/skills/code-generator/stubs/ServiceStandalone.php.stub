@@ -7,27 +7,42 @@ namespace Lahatre\{{Module}}\Services;
 use Illuminate\Support\Facades\DB;
 use Lahatre\{{Module}}\Assertions\{{Entity}}Assertion;
 use Lahatre\{{Module}}\Data\{{Entity}}Data;
+use Lahatre\{{Module}}\Exceptions\{{Entity}}Exception;
 use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
 use Lahatre\{{Module}}\Models\{{Entity}};
-use Lahatre\Shared\Data\MissingValue;
-use Lahatre\Shared\Services\Contracts\StandaloneService;
+use function Lahatre\Shared\Data\required;
 
-class {{ClassName}} implements StandaloneService
+final class {{ClassName}}
 {
     public function __construct(
         protected {{Entity}}Assertion $assertion
     ) {}
 
+    /**
+     * Create a {{Entity}} within the active tenant context.
+     *
+     * The caller authorizes the operation and establishes tenant context. This
+     * standalone method owns the complete transaction.
+     *
+     * @throws {{Entity}}Exception If the supplied state violates a persistent invariant.
+     */
     public function create({{Entity}}Data $data): {{Entity}}Resource
     {
-        $model = new {{Entity}}();
+        $model = DB::transaction(function () use ($data): {{Entity}} {
+            $model = new {{Entity}}();
 
-        $model->fill([
-            'name' => MissingValue::required($data->name),
-            // Explicit mapping
-        ]);
+            $model->fill([
+                // Add tenant assignment only when this model is tenant-owned.
+                'field_name' => required($data->propertyName),
+            ]);
 
-        DB::transaction(fn () => $model->save());
+            // Resolve evidence once and reject invalid state before persistence.
+            // $this->assertion->assertCanCreate($model, $evidence);
+
+            $model->save();
+
+            return $model;
+        });
 
         return {{Entity}}Resource::make($model);
     }

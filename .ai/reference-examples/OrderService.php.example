@@ -1,0 +1,105 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Services;
+
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Lahatre\Example\Assertions\OrderAssertion;
+use Lahatre\Example\Data\ReplaceOrderLinesData;
+use Lahatre\Example\Exceptions\OrderException;
+use Lahatre\Example\Http\Resources\OrderResource;
+use Lahatre\Example\Models\Order;
+use Lahatre\Example\Models\Product;
+use Lahatre\Example\ViewData\OrderLineSummaryViewData;
+use Lahatre\Example\ViewData\OrderSummaryViewData;
+
+final class OrderService
+{
+    public function __construct(
+        private readonly OrderAssertion $orderAssertion,
+    ) {}
+
+    /**
+     * Replace order lines atomically while loading product evidence exactly once.
+     *
+     * The caller must authorize the operation and supply an order already scoped
+     * to the active organization. This method owns the complete transaction.
+     *
+     * @throws OrderException If a requested product is unavailable to the order.
+     */
+    public function replaceLines(Order $order, ReplaceOrderLinesData $data): OrderResource
+    {
+        $updatedOrder = DB::transaction(function () use ($order, $data): Order {
+            $productIds = $data->lines->pluck('productId')->unique()->values();
+
+            /** @var EloquentCollection<string, Product> $productsById */
+            $productsById = Product::query()
+                ->where('organization_id', $order->organization_id)
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
+
+            $this->orderAssertion->assertCanReplaceLines($order, $data, $productsById);
+
+            $order->lines()->delete();
+            $order->lines()->createMany(
+                $data->lines
+                    ->map(fn (array $line): array => [
+                        'organization_id' => $order->organization_id,
+                        'product_id'      => $line['productId'],
+                        'quantity'        => $line['quantity'],
+                    ])
+                    ->all(),
+            );
+
+            return $order;
+        });
+
+        return OrderResource::make($updatedOrder->load('lines.product'));
+    }
+
+    /**
+     * Delete an order atomically when its persisted state allows deletion.
+     *
+     * The caller must authorize the operation and supply an order already scoped
+     * to the active organization. This method owns the complete transaction.
+     *
+     * @throws OrderException If the order still has persisted lines.
+     */
+    public function delete(Order $order): void
+    {
+        DB::transaction(function () use ($order): void {
+            $this->orderAssertion->assertCanDelete($order);
+            $order->delete();
+        });
+    }
+
+    /**
+     * Build a typed read projection after all queries and calculations finish.
+     *
+     * The caller supplies an order already scoped to the active organization.
+     */
+    public function summary(Order $order): OrderSummaryViewData
+    {
+        $order->load('lines.product');
+
+        /** @var Collection<int, OrderLineSummaryViewData> $lines */
+        $lines = $order->lines->map(
+            fn ($line): OrderLineSummaryViewData => new OrderLineSummaryViewData(
+                productId: $line->product_id,
+                productName: $line->product->name,
+                quantity: $line->quantity,
+                lineTotal: $line->formatted_total,
+            ),
+        );
+
+        return new OrderSummaryViewData(
+            orderId: $order->id,
+            grandTotal: $order->formatted_total,
+            lines: $lines,
+        );
+    }
+}

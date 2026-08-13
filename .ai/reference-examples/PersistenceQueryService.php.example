@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Services;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Lahatre\Example\Data\OrderFilterData;
+use Lahatre\Example\Http\Resources\OrderCollection;
+use Lahatre\Example\Models\Order;
+use Lahatre\Example\Models\Product;
+
+final class PersistenceQueryService
+{
+    /**
+     * List orders within the active organization using deterministic cursors.
+     *
+     * The filter Data whitelists sort_by and sort_order before this method is
+     * called. The shared helper applies the standard cursor contract.
+     */
+    public function listOrders(OrderFilterData $filters, string $organizationId): OrderCollection
+    {
+        $query = Order::query()
+            ->where('organization_id', $organizationId)
+            ->withCount('lines');
+
+        $query->orderBy($filters->sortBy, $filters->sortOrder)
+            ->orderBy('id', $filters->sortOrder);
+
+        return OrderCollection::make(cursorPaginate($query, $filters));
+    }
+
+    /**
+     * Resolve all products needed by a use case in one tenant-scoped query.
+     *
+     * The caller can pass the keyed evidence to an Assertion or mutation step
+     * without triggering a query in a loop.
+     *
+     * @param  Collection<int, string>  $productIds
+     * @return Collection<string, Product>
+     */
+    public function productsById(Collection $productIds, string $organizationId): Collection
+    {
+        return Product::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('id', $productIds->unique()->values())
+            ->get()
+            ->keyBy('id');
+    }
+
+    /**
+     * Read an aggregate through DB::table with explicit soft-delete boundaries.
+     *
+     * Raw queries do not inherit Eloquent's SoftDeletes scope, so every joined
+     * soft-deletable table is constrained explicitly.
+     *
+     * @return Collection<int, object>
+     */
+    public function orderTotals(string $organizationId): Collection
+    {
+        return DB::table('example_orders as orders')
+            ->join('example_order_lines as lines', 'lines.order_id', '=', 'orders.id')
+            ->where('orders.organization_id', $organizationId)
+            ->whereNull('orders.deleted_at')
+            ->whereNull('lines.deleted_at')
+            ->select('orders.id')
+            ->selectRaw('SUM(lines.quantity) as total_quantity')
+            ->groupBy('orders.id')
+            ->orderBy('orders.id')
+            ->get();
+    }
+
+    /**
+     * Protect a check-then-write operation inside one transaction.
+     *
+     * A unique database constraint remains the final protection against a
+     * concurrent writer; the lock keeps the application-level check coherent.
+     */
+    public function reserveOrder(Order $order, string $organizationId): void
+    {
+        DB::transaction(function () use ($order, $organizationId): void {
+            $lockedOrder = Order::query()
+                ->whereKey($order->id)
+                ->where('organization_id', $organizationId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedOrder->reserved_at !== null) {
+                return;
+            }
+
+            $lockedOrder->forceFill(['reserved_at' => now()])->save();
+        });
+    }
+
+    /**
+     * Apply a reusable filter without accepting arbitrary request sort input.
+     */
+    private function applyStatusFilter(Builder $query, OrderFilterData $filters): void
+    {
+        if ($filters->status !== null) {
+            $query->where('status', $filters->status);
+        }
+    }
+}

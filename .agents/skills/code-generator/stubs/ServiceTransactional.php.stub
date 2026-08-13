@@ -4,17 +4,38 @@ declare(strict_types=1);
 
 namespace Lahatre\{{Module}}\Services\{{ParentEntity}};
 
+use Lahatre\{{Module}}\Data\{{Entity}}Data;
+use Lahatre\{{Module}}\Exceptions\{{Entity}}Exception;
+use Lahatre\{{Module}}\Assertions\{{Entity}}Assertion;
 use Lahatre\{{Module}}\Models\{{Entity}};
-use Lahatre\Shared\Services\Contracts\TransactionalService;
+
+use function Lahatre\Shared\Data\withoutMissing;
 
 /**
- * Shared logic for {{Entity}}, designed to run within a parent transaction.
+ * Perform a reusable {{Entity}} mutation inside the caller's transaction.
  */
-class {{ClassName}} implements TransactionalService
+final class {{ClassName}}
 {
-    public function process({{Entity}} $model, array $data): void
+    public function __construct(
+        private {{Entity}}Assertion $assertion,
+    ) {}
+
+    /**
+     * Apply an already authorized and validated mutation.
+     *
+     * The caller supplies tenant-constrained models and owns the transaction.
+     * This method must not call DB::transaction().
+     *
+     * @throws {{Entity}}Exception If the mutation violates a persistent invariant.
+     */
+    public function process({{Entity}} $model, {{Entity}}Data $data): void
     {
-        // Logic without DB::transaction
-        $model->update($data);
+        // Reject invalid state before mutation.
+        // $this->assertion->assertCanProcess($model, $data);
+
+        $model->fill(withoutMissing([
+            'field_name' => $data->propertyName,
+        ]));
+        $model->save();
     }
 }

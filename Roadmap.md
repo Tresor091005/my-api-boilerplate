@@ -94,5 +94,4 @@
 
 # Points importants 
 
-- revue des skills et laravel boost
 - activity logging global

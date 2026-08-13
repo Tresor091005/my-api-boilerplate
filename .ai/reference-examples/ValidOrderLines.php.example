@@ -1,0 +1,134 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Rules;
+
+use Closure;
+use Illuminate\Contracts\Validation\DataAwareRule;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\ValidatorAwareRule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Translation\PotentiallyTranslatedString;
+use Illuminate\Validation\Validator;
+
+/**
+ * Validate an order-line selection with one bulk query.
+ *
+ * DataAwareRule is intentionally used here because the expected product type
+ * lives at the payload root while this Rule is attached to lines. If the type
+ * were a dependency of the rule itself, pass it through the constructor or use
+ * a Form Request after() hook instead.
+ *
+ * ValidatorAwareRule is intentionally used to attach failures to exact nested
+ * product_id paths. It is not used merely to access the payload.
+ */
+final class ValidOrderLines implements DataAwareRule, ValidationRule, ValidatorAwareRule
+{
+    /** @var array<string, mixed> */
+    private array $data = [];
+
+    private ?Validator $validator = null;
+
+    public function __construct(
+        private readonly string $organizationId,
+    ) {}
+
+    /** @param  array<string, mixed>  $data */
+    public function setData(array $data): static
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    public function setValidator(Validator $validator): static
+    {
+        $this->validator = $validator;
+
+        return $this;
+    }
+
+    /**
+     * Validate unique, authentic, tenant-owned products of the requested type.
+     *
+     * Basic array, UUID, and quantity errors remain owned by the Form Request.
+     *
+     * @param  Closure(string): PotentiallyTranslatedString  $fail
+     */
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (!is_array($value)) {
+            return;
+        }
+
+        $lines = collect($value)->filter(fn (mixed $line): bool => is_array($line));
+        $productIds = $lines
+            ->pluck('product_id')
+            ->filter(fn (mixed $id): bool => is_string($id) && Str::isUuid($id));
+
+        $this->validateDuplicateProducts($attribute, $lines->all(), $fail);
+
+        if ($productIds->isEmpty()) {
+            return;
+        }
+
+        $products = DB::table('example_products')
+            ->select(['id', 'product_type'])
+            ->where('organization_id', $this->organizationId)
+            ->whereNull('deleted_at')
+            ->whereIn('id', $productIds->unique()->values()->all())
+            ->get()
+            ->keyBy('id');
+
+        $expectedType = data_get($this->data, 'product_type');
+
+        foreach ($lines as $index => $line) {
+            $productId = data_get($line, 'product_id');
+
+            if (!is_string($productId) || !Str::isUuid($productId)) {
+                continue;
+            }
+
+            $product = $products->get($productId);
+
+            if ($product === null) {
+                $this->addError("{$attribute}.{$index}.product_id", __('example::validation.product_unavailable'), $fail);
+
+                continue;
+            }
+
+            if (is_string($expectedType) && $product->product_type !== $expectedType) {
+                $this->addError("{$attribute}.{$index}.product_id", __('example::validation.product_type_mismatch'), $fail);
+            }
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $lines
+     * @param  Closure(string): PotentiallyTranslatedString  $fail
+     */
+    private function validateDuplicateProducts(string $attribute, array $lines, Closure $fail): void
+    {
+        $indexesByProduct = collect($lines)
+            ->mapToGroups(fn (array $line, int $index): array => [(string) data_get($line, 'product_id', '') => $index])
+            ->filter(fn ($indexes, string $productId): bool => $productId !== '' && $indexes->count() > 1);
+
+        foreach ($indexesByProduct->flatten() as $index) {
+            $this->addError("{$attribute}.{$index}.product_id", __('example::validation.duplicate_product'), $fail);
+        }
+    }
+
+    /** @param  Closure(string): PotentiallyTranslatedString  $fail */
+    private function addError(string $path, string $message, Closure $fail): void
+    {
+        if ($this->validator instanceof Validator) {
+            $this->validator->errors()->add($path, $message);
+
+            return;
+        }
+
+        $fail($message);
+    }
+}

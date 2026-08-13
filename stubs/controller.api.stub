@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use IlluminateHttpJsonResponse;
+use IlluminateHttpRequest;
+
+final class {{ class }}
+{
+    public function index(Request $request): JsonResponse
+    {
+        // Delegate reads to the module service and return a resource/collection.
+        return response()->json([]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        // Validate through a Form Request and delegate writes to the module service.
+        return response()->json([]);
+    }
+
+    public function show(string $id): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function destroy(string $id): JsonResponse
+    {
+        return response()->json(null, 204);
+    }
+}

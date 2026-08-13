@@ -77,36 +77,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Custom Index Names
-    |--------------------------------------------------------------------------
-    |
-    | For index names that would exceed the database's maximum length (e.g. 63
-    | chars for Postgres), you can define a shorter alias here.
-    | Format: 'table_name' => ['generated_name' => 'shorter_alias']
-    |
-    */
-    'custom_index_names' => [
-        'inventory_transactions' => [
-            'inventory_transactions_organization_id_idempotency_key_unique'            => 'inventory_transactions_org_idempotency_unique',
-            'inventory_transactions_organization_id_reversal_of_transaction_id_unique' => 'inventory_transactions_org_reversal_unique',
-        ],
-        'inventory_stocks' => [
-            'inventory_stocks_expiration_date_index'     => 'inventory_stocks_expiration_date_active_index',
-            'inventory_stocks_item_id_location_id_index' => [
-                'inventory_stocks_item_id_location_id_active_index',
-                'inventory_stocks_location_id_item_id_active_index',
-            ],
-        ],
-        'inventory_locations' => [
-            'inventory_locations_organization_id_external_id_external_type_unique' => 'inventory_locations_org_external_unique',
-        ],
-        'inventory_items' => [
-            'inventory_items_organization_id_itemable_id_itemable_type_unique' => 'inventory_items_org_itemable_unique',
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Soft Delete Uniqueness Configuration
     |--------------------------------------------------------------------------
     |

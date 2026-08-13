@@ -6,32 +6,33 @@ namespace Lahatre\{{Module}}\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Lahatre\{{Module}}\Models\{{Entity}};
+use Lahatre\Shared\Policies\BasePolicy;
 
-class {{ClassName}}
+class {{ClassName}} extends BasePolicy
 {
     public function list(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.list');
+        return $this->can('{{PermissionPrefix}}.list');
     }
 
     public function retrieve(Authorizable $user, {{Entity}} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.retrieve');
+        return $this->canOnModel('{{PermissionPrefix}}.retrieve', $model);
     }
 
     public function create(Authorizable $user): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.create');
+        return $this->can('{{PermissionPrefix}}.create');
     }
 
     public function update(Authorizable $user, {{Entity}} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.update');
+        return $this->canOnModel('{{PermissionPrefix}}.update', $model);
     }
 
     public function delete(Authorizable $user, {{Entity}} $model): bool
     {
-        return authContext()->memberRole()->hasPermissionTo('{{PermissionPrefix}}.delete');
+        return $this->canOnModel('{{PermissionPrefix}}.delete', $model);
     }
 
     public function restore(Authorizable $user, {{Entity}} $model): bool

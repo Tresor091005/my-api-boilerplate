@@ -56,7 +56,7 @@ En cas d'erreur (validation, erreur métier, etc.), un champ `errors` contient l
 
 Les règles d’organisation des exceptions sont documentées dans [Exceptions métier](../coding-rules/exceptions.md). Les règles d’un même modèle sont regroupées dans une exception par modèle et exposées par des méthodes statiques nommées.
 
-La validation de base (types, champs requis) est gérée par les `DTOs` ou les `Form Requests`. Cependant, pour la logique métier plus complexe, nous utilisons un système d' "Assertions" encapsulé dans des objets dédiés.
+La validation de base (types, champs requis) est gérée par les `Form Requests`. Les valeurs validées sont ensuite transportées vers les services par des classes `Data`. Pour la logique métier plus complexe, nous utilisons un système d' "Assertions" encapsulé dans des objets dédiés.
 
 ### Le Problème
 La logique métier (par exemple, "un utilisateur ne peut pas postuler à une offre s'il a déjà une candidature en cours") peut rapidement surcharger les services ou les contrôleurs.

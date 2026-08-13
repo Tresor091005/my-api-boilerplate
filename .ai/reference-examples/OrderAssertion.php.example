@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Assertions;
+
+use Illuminate\Database\Eloquent\Collection;
+use Lahatre\Example\Data\ReplaceOrderLinesData;
+use Lahatre\Example\Exceptions\OrderException;
+use Lahatre\Example\Models\Order;
+use Lahatre\Example\Models\Product;
+
+final class OrderAssertion
+{
+    /**
+     * Assert that all products supplied for an order-line replacement are
+     * authentic, available, and already constrained to the order tenant.
+     *
+     * The service passes the products because it also needs them to persist the
+     * replacement. The Assertion must not reload those products.
+     *
+     * @param  Collection<string, Product>  $productsById
+     *
+     * @throws OrderException If any requested product was not resolved within the order tenant.
+     */
+    public function assertCanReplaceLines(
+        Order $order,
+        ReplaceOrderLinesData $data,
+        Collection $productsById,
+    ): void {
+        $requestedProductIds = $data->lines->pluck('productId')->unique()->values();
+        $missingProductIds = $requestedProductIds
+            ->reject(fn (string $productId): bool => $productsById->has($productId))
+            ->values()
+            ->all();
+
+        if ($missingProductIds !== []) {
+            throw OrderException::productsUnavailable($order, $missingProductIds);
+        }
+    }
+
+    /**
+     * Assert that an order can be deleted without orphaning business history.
+     *
+     * The service does not need the lines for deletion, so a focused existence
+     * query is preferable to loading the full relation.
+     *
+     * @throws OrderException If the order still has persisted lines.
+     */
+    public function assertCanDelete(Order $order): void
+    {
+        if ($order->lines()->exists()) {
+            throw OrderException::hasLines($order);
+        }
+    }
+}

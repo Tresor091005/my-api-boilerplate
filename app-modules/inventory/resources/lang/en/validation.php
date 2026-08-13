@@ -34,4 +34,5 @@ return [
     'stock_id_invalid'                                  => 'Stock ID :stock_id is invalid.',
     'stock_id_wrong_scope'                              => 'Stock ID :stock_id does not belong to the correct item and location.',
     'unit_group_mismatch'                               => 'Unit :unit_code belongs to a different group than item base unit :base_unit_code.',
+    'transfer_imbalance'                                => 'Transfer quantities are unbalanced for item :item_id. Total in: :total_in :base_unit_code, total out: :total_out :base_unit_code.',
 ];

@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\ViewData;
+
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+
+/**
+ * Represent one already-computed line in the order summary read projection.
+ */
+final readonly class OrderLineSummaryViewData implements Arrayable, JsonSerializable
+{
+    public function __construct(
+        public string $productId,
+        public string $productName,
+        public int $quantity,
+        public string $lineTotal,
+    ) {}
+
+    /** @return array{product_id: string, product_name: string, quantity: int, line_total: string} */
+    public function toArray(): array
+    {
+        return [
+            'product_id'   => $this->productId,
+            'product_name' => $this->productName,
+            'quantity'     => $this->quantity,
+            'line_total'   => $this->lineTotal,
+        ];
+    }
+
+    /** @return array{product_id: string, product_name: string, quantity: int, line_total: string} */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+}

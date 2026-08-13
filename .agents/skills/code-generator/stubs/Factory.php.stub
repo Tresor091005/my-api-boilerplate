@@ -12,11 +12,14 @@ use Lahatre\{{Module}}\Models\{{Entity}};
  */
 class {{ClassName}} extends Factory
 {
+    use ResolvesOrganizationId;
+
     public function definition(): array
     {
         return [
-            'name'      => $this->faker->word(),
-            'is_active' => true,
+            // Add only fields owned by this model.
+            // Tenant-owned factories should use ResolvesOrganizationId and
+            // assign organization_id explicitly.
         ];
     }
 }

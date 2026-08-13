@@ -7,7 +7,10 @@ namespace Lahatre\{{Module}}\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\{{Module}}\Data\{{Entity}}Data;
+use Lahatre\{{Module}}\Data\{{Entity}}FilterData;
 use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
+use Lahatre\{{Module}}\Http\Requests\{{Entity}}FilterRequest;
+use Lahatre\{{Module}}\Http\Resources\{{Entity}}Collection;
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\{{Module}}\Services\{{Entity}}Service;
 
@@ -17,14 +20,11 @@ class {{ClassName}}
         protected {{Entity}}Service $service
     ) {}
 
-    public function index({{Entity}}Request $request): JsonResponse
+    public function index({{Entity}}FilterRequest $request): {{Entity}}Collection
     {
         Gate::authorize('list', {{Entity}}::class);
 
-        // $filters = {{Entity}}FilterData::fromArray($request->validated());
-        // return $this->service->list($filters);
-        
-        return response()->json([]);
+        return $this->service->list({{Entity}}FilterData::fromArray($request->validated()));
     }
 
     public function store({{Entity}}Request $request): JsonResponse
@@ -38,31 +38,31 @@ class {{ClassName}}
         return response()->json($response, 201);
     }
 
-    public function show({{Entity}} $model): JsonResponse
+    public function show({{Entity}} ${{EntityLower}}): JsonResponse
     {
-        Gate::authorize('retrieve', $model);
+        Gate::authorize('retrieve', ${{EntityLower}});
 
-        $response = $this->service->retrieve($model);
+        $response = $this->service->retrieve(${{EntityLower}});
 
         return response()->json($response);
     }
 
-    public function update({{Entity}}Request $request, {{Entity}} $model): JsonResponse
+    public function update({{Entity}}Request $request, {{Entity}} ${{EntityLower}}): JsonResponse
     {
-        Gate::authorize('update', $model);
+        Gate::authorize('update', ${{EntityLower}});
 
-        $data = {{Entity}}Data::fromArray($request->validated(), missingFields: ['name']);
+        $data = {{Entity}}Data::fromArray($request->validated(), missingFields: []);
 
-        $response = $this->service->update($model, $data);
+        $response = $this->service->update(${{EntityLower}}, $data);
 
         return response()->json($response);
     }
 
-    public function destroy({{Entity}} $model): JsonResponse
+    public function destroy({{Entity}} ${{EntityLower}}): JsonResponse
     {
-        Gate::authorize('delete', $model);
+        Gate::authorize('delete', ${{EntityLower}});
 
-        $this->service->delete($model);
+        $this->service->delete(${{EntityLower}});
 
         return response()->json(null, 204);
     }

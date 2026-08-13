@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ factoryNamespace }};
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use {{ namespacedModel }};
+
+/**
+ * @extends Factory<{{ model }}>
+ */
+class {{ factory }}Factory extends Factory
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            // Add coherent values for the model and resolve tenant context explicitly when required.
+        ];
+    }
+}

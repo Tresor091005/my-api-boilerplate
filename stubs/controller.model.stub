@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use IlluminateHttpJsonResponse;
+use {{ namespacedModel }};
+use {{ namespacedRequests }}
+
+final class {{ class }}
+{
+    public function index(): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function create(): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function store({{ storeRequest }} $request): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function show({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function edit({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        return response()->json([]);
+    }
+
+    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        return response()->json(null, 204);
+    }
+}

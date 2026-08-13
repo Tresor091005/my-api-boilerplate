@@ -14,13 +14,6 @@ class {{ClassName}} extends Seeder
      */
     public function run(): void
     {
-        // Natural code with firstOrCreate for idempotency
-        {{Entity}}::firstOrCreate(
-            ['handle' => '{{Handle}}'],
-            [
-                'name' => '{{Name}}',
-                'is_active' => true,
-            ]
-        );
+        // Seed only development/demo data and make repeated execution idempotent.
     }
 }

@@ -6,10 +6,19 @@ namespace Lahatre\Shared\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
+/**
+ * Validate every unique identifier in an array with one constrained query.
+ *
+ * The Rule accepts either a flat identifier list or a list of objects from
+ * which one identifier key is extracted. It remains value-aware only; use
+ * DataAwareRule or ValidatorAwareRule in a dedicated Rule when validation
+ * genuinely needs sibling payload fields or precise multi-path failures.
+ */
 class BulkExists implements ValidationRule
 {
     /**
@@ -20,7 +29,7 @@ class BulkExists implements ValidationRule
      * @param  string  $keyInArray  The key to extract from the array of objects (if applicable).
      * @param  string  $type  The expected data type: 'uuid', 'string', 'int'.
      * @param  bool  $handleSoftDelete  Whether to filter out soft deleted records.
-     * @param  array  $extraConditions  Additional where conditions.
+     * @param  array<string, mixed>|array<int, Closure(Builder): void>  $extraConditions  Additional tenant, ownership, or authenticity constraints.
      */
     public function __construct(
         protected string $table,

@@ -41,10 +41,8 @@ class MakePolicy extends GeneratorCommand
      * @param  string  $name
      *
      * @throws FileNotFoundException
-     *
-     * @return string
      */
-    protected function buildClass($name)
+    protected function buildClass($name): string
     {
         $stub = $this->files->get($this->getStub());
 
@@ -73,6 +71,10 @@ class MakePolicy extends GeneratorCommand
     {
         $model = ltrim($model, '\\/');
         $model = str_replace('/', '\\', $model);
+
+        if (class_exists($model) || str_contains($model, '\\')) {
+            return $model;
+        }
 
         if ($module = $this->module()) {
             $moduleNamespace = rtrim((string) $module->namespaces->first(), '\\');
@@ -124,7 +126,6 @@ class MakePolicy extends GeneratorCommand
         return [
             ['force', null, InputOption::VALUE_NONE, 'Create the class even if the policy already exists.'],
             ['model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the policy applies to.'],
-            ['guard', 'g', InputOption::VALUE_OPTIONAL, 'The guard that the policy applies to.'],
         ];
     }
 }

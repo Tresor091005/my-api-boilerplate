@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Lahatre\{{Module}}\Http\Controllers\{{Entity}}Controller;
 
 /* -----------------------------------------------------------------
  | {{ModuleName}} endpoints
@@ -16,10 +17,6 @@ Route::group([
     Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
-        // Route::apiResources([
-        //     '{{ResourceLower}}' => {{ResourceClassName}}Controller::class,
-        // ]);
-
-        // Additional routes here
+        Route::apiResource('{{resourcePlural}}', {{Entity}}Controller::class);
     });
 });

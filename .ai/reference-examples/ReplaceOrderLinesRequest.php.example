@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Lahatre\Example\Rules\ValidOrderLines;
+
+final class ReplaceOrderLinesRequest extends FormRequest
+{
+    /**
+     * Describe the complete input schema while delegating the composite lookup.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'product_type' => ['required', 'string', Rule::in(['physical', 'digital'])],
+            'lines'        => [
+                'required',
+                'array',
+                'min:1',
+                new ValidOrderLines((string) getPermissionsTeamId()),
+            ],
+            'lines.*.product_id' => ['required', 'uuid'],
+            'lines.*.quantity'   => ['required', 'integer', 'min:1'],
+        ];
+    }
+}

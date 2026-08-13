@@ -2,36 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\{{Module}}\Tests\Feature;
-
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Validator;
-use Lahatre\{{Module}}\Data\{{Entity}}Data;
-use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
-use Lahatre\{{Module}}\Models\{{Entity}};
-use Lahatre\{{Module}}\Services\{{Entity}}Service;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
-it('can perform successful action', function (): void {
-    // 1. Arrange
-    // ${{EntityLower}} = {{Entity}}::factory()->create();
-
-    // 2. Act
-    // $data = {{Entity}}Data::fromArray(['name' => 'Example']);
-    // $result = app({{Entity}}Service::class)->create($data);
-
-    // 3. Assert
-    // expect($result)->toBeInstanceOf({{Entity}}Resource::class);
-});
-
-it('fails validation with invalid data', function (): void {
-    $request = new {{Entity}}Request();
-
-    expect(Validator::make(['invalid' => 'data'], $request->rules())->fails())->toBeTrue();
-});
-
-it('fails when business rule is violated', function (): void {
-    // provocate AssertionException
-})->throws(\Lahatre\Shared\Exceptions\AssertionException::class);
+/*
+ * Choose the correct test boundary before filling this template:
+ *
+ * - HTTP behavior belongs in a Feature test through the route.
+ * - Isolated Assertions, Data objects, and service contracts belong in Unit tests.
+ * - Cross-module authorization and tenancy belong in tests/Feature/Integration.
+ *
+ * Replace this comment with behavior-focused tests and real factories. Never
+ * leave an empty generated test in the suite.
+ */

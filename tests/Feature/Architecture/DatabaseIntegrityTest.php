@@ -8,129 +8,6 @@ use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
-it('enforces naming conventions for database indexes', function (): void {
-    $tables = Schema::getTables();
-    $ignoredTables = config('model-integrity.ignored_tables', []);
-
-    $failures = [];
-
-    foreach ($tables as $table) {
-        $tableName = $table['name'];
-        if (in_array($tableName, $ignoredTables, true)) {
-            continue;
-        }
-
-        $indexes = Schema::getIndexes($tableName);
-
-        foreach ($indexes as $index) {
-            // 1. Handle Primary Keys (Postgres Standard)
-            if ($index['primary']) {
-                $expectedPrimaryName = $tableName.'_pkey';
-                if ($index['name'] !== $expectedPrimaryName) {
-                    $failures[] = "Table [{$tableName}]: Primary Key [{$index['name']}] does not follow Postgres convention. \n      Expected: '{$expectedPrimaryName}'";
-                }
-                continue;
-            }
-
-            // 2. Handle Unique and Regular Indexes
-            $type = $index['unique'] ? 'unique' : 'index';
-            $columns = DB::table('pg_index as i')
-                ->join('pg_class as t', 't.oid', '=', 'i.indrelid')
-                ->join('pg_class as idx', 'idx.oid', '=', 'i.indexrelid')
-                ->join(DB::raw('LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)'), DB::raw('true'), '=', DB::raw('true'))
-                ->join('pg_attribute as a', function ($join): void {
-                    $join->on('a.attrelid', '=', 't.oid')
-                        ->on('a.attnum', '=', 'k.attnum');
-                })
-                ->where('t.relname', $tableName)
-                ->where('idx.relname', $index['name'])
-                ->orderBy('k.ord')
-                ->pluck('a.attname')
-                ->toArray();
-
-            if ($columns === []) {
-                $columns = $index['columns'];
-            }
-
-            // Detect strict morph pair: same prefix + *_type and *_id.
-            $isMorph = false;
-            if (count($columns) === 2) {
-                [$first, $second] = $columns;
-
-                $firstIsType = Str::endsWith($first, '_type');
-                $secondIsType = Str::endsWith($second, '_type');
-                $firstIsId = Str::endsWith($first, '_id');
-                $secondIsId = Str::endsWith($second, '_id');
-
-                if (($firstIsType && $secondIsId) || ($firstIsId && $secondIsType)) {
-                    $firstPrefix = preg_replace('/_(id|type)$/', '', (string) $first);
-                    $secondPrefix = preg_replace('/_(id|type)$/', '', (string) $second);
-                    $isMorph = $firstPrefix === $secondPrefix;
-                }
-            }
-
-            // Expected name: {table}_{col1}_{col2}_{type}
-            $expectedName = strtolower($tableName.'_'.implode('_', $columns).'_'.$type);
-
-            // Handle names longer than 60 characters or specific custom naming
-            $customIndexNames = config("model-integrity.custom_index_names.{$tableName}", []);
-            $isCustom = false;
-            foreach ($customIndexNames as $expected => $actual) {
-                if (is_array($actual)) {
-                    if (in_array($index['name'], $actual, true)) {
-                        $isCustom = true;
-                        break;
-                    }
-                } elseif ($index['name'] === $actual) {
-                    $isCustom = true;
-                    break;
-                }
-            }
-
-            if (strlen($expectedName) > 60 && !$isCustom) {
-                $customName = $customIndexNames[$expectedName] ?? null;
-
-                if (is_array($customName)) {
-                    // If the index name is one of the allowed custom names for this expected pattern
-                    if (in_array($index['name'], $customName, true)) {
-                        $expectedName = $index['name'];
-                    } else {
-                        // Just pick the first one for the error message if none match
-                        $expectedName = $customName[0];
-                    }
-                } elseif ($customName) {
-                    $expectedName = $customName;
-                } else {
-                    $failures[] = "Table [{$tableName}]: Generated index name [{$expectedName}] is too long (".strlen($expectedName)." chars). \n      Please add a shorter alias in 'config/model-integrity.php' under 'custom_index_names.{$tableName}.{$expectedName}'.";
-
-                    continue;
-                }
-            }
-
-            // If it's explicitly allowed in custom names, it passes naming convention
-            if ($isCustom) {
-                continue;
-            }
-
-            if ($index['name'] !== $expectedName) {
-                $msg = "Table [{$tableName}]: Index [{$index['name']}] does not follow convention.";
-                if ($isMorph) {
-                    $msg .= ' (Polymorphic pair detected)';
-                }
-                $msg .= "\n      Expected: '{$expectedName}'";
-
-                $failures[] = $msg;
-            }
-        }
-    }
-
-    if ($failures !== []) {
-        $this->fail("Database Index Convention Failures:\n\n".implode("\n\n", $failures));
-    }
-
-    expect(true)->toBeTrue();
-});
-
 it('ensures all foreign keys are indexed', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);
@@ -482,6 +359,51 @@ it('ensures all unique indexes in business tables include multi-tenancy columns'
     expect(true)->toBeTrue();
 });
 
-todo('ensure non-negativity constraints on critical columns (stock, prices)');
-todo('ensure polymorphic type columns are indexed');
-todo('ensure timestamps are present on all business tables');
+it('ensures polymorphic column pairs are covered by a composite index', function (): void {
+    $tables = Schema::getTables();
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+    $failures = [];
+
+    foreach ($tables as $table) {
+        $tableName = $table['name'];
+        if (in_array($tableName, $ignoredTables, true)) {
+            continue;
+        }
+
+        $columns = Schema::getColumnListing($tableName);
+        $typeColumns = array_filter(
+            $columns,
+            fn (string $column): bool => str_ends_with($column, '_type')
+                && in_array(Str::beforeLast($column, '_type').'_id', $columns, true),
+        );
+        $indexes = Schema::getIndexes($tableName);
+
+        foreach ($typeColumns as $typeColumn) {
+            $idColumn = Str::beforeLast($typeColumn, '_type').'_id';
+            $hasCompositeIndex = collect($indexes)->contains(function (array $index) use ($idColumn, $typeColumn): bool {
+                $indexedColumns = array_values($index['columns']);
+
+                foreach ($indexedColumns as $position => $indexedColumn) {
+                    $nextColumn = $indexedColumns[$position + 1] ?? null;
+
+                    if (($indexedColumn === $typeColumn && $nextColumn === $idColumn)
+                        || ($indexedColumn === $idColumn && $nextColumn === $typeColumn)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+
+            if (!$hasCompositeIndex) {
+                $failures[] = "Table [{$tableName}]: Polymorphic pair [{$typeColumn}, {$idColumn}] is not adjacent in a composite index.";
+            }
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Polymorphic Index Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});

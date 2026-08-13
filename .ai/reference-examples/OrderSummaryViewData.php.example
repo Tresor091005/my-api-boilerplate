@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\ViewData;
+
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
+use JsonSerializable;
+
+/**
+ * Represent the complete computed order summary returned by the query service.
+ */
+final readonly class OrderSummaryViewData implements Arrayable, JsonSerializable
+{
+    /** @param  Collection<int, OrderLineSummaryViewData>  $lines */
+    public function __construct(
+        public string $orderId,
+        public string $grandTotal,
+        public Collection $lines,
+    ) {}
+
+    /**
+     * @return array{
+     *   order_id: string,
+     *   grand_total: string,
+     *   lines: array<int, array{product_id: string, product_name: string, quantity: int, line_total: string}>
+     * }
+     */
+    public function toArray(): array
+    {
+        return [
+            'order_id'    => $this->orderId,
+            'grand_total' => $this->grandTotal,
+            'lines'       => $this->lines
+                ->map(fn (OrderLineSummaryViewData $line): array => $line->toArray())
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *   order_id: string,
+     *   grand_total: string,
+     *   lines: array<int, array{product_id: string, product_name: string, quantity: int, line_total: string}>
+     * }
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+}

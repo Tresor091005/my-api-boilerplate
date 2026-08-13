@@ -1,7 +1,7 @@
 {
     "agents": [
         "claude_code",
-        "gemini"
+        "antigravity"
     ],
-    "guidelines": []
+    "guidelines": true
 }

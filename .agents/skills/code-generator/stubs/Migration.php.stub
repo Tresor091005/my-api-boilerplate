@@ -15,11 +15,6 @@ return new class extends Migration
     {
         Schema::create('{{TableName}}', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            
-            // Core fields
-            $table->string('name');
-            $table->boolean('is_active')->default(true);
-
             $table->timestamps();
         });
     }

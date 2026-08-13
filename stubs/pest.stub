@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Replace this placeholder with one behavior-focused test. Use the HTTP
+ * boundary for Feature tests and real factories at persistence boundaries.
+ */

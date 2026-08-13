@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Lahatre\{{Module}}\Http\Resources;
 
-use App\Http\Resources\BaseCollection;
+use Lahatre\Shared\Http\Resources\BaseCollection;
+use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
 
-class {{ClassName}} extends BaseCollection
+final class {{ClassName}} extends BaseCollection
 {
-    // Uses standard BaseCollection logic for pagination
+    public $collects = {{Entity}}Resource::class;
 }

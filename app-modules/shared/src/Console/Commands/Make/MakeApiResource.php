@@ -8,7 +8,6 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
 use InterNACHI\Modularize\ModularizeGeneratorCommand;
-use Lahatre\Shared\Http\Resources\BaseCollection;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Console\Input\InputOption;
@@ -23,12 +22,12 @@ class MakeApiResource extends GeneratorCommand
 
     protected $type = 'API Resource';
 
-    protected function getStub()
+    protected function getStub(): string
     {
         return dirname(__DIR__, 4).'/stubs/api-resource.stub';
     }
 
-    protected function getDefaultNamespace($rootNamespace)
+    protected function getDefaultNamespace($rootNamespace): string
     {
         if ($module = $this->module()) {
             $rootNamespace = rtrim((string) $module->namespaces->first(), '\\');
@@ -37,7 +36,7 @@ class MakeApiResource extends GeneratorCommand
         return rtrim($rootNamespace, '\\').'\\Http\\Resources';
     }
 
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return [
             new InputOption('model', 'm', InputOption::VALUE_OPTIONAL, 'The model that the resource applies to.'),
@@ -49,58 +48,42 @@ class MakeApiResource extends GeneratorCommand
      * Execute the console command.
      *
      * @throws FileNotFoundException
-     *
-     * @return bool|null
      */
-    public function handle()
+    public function handle(): ?bool
     {
-        // Generate the Resource
         $resourceName = $this->getNameInput();
-        $this->type = 'API Resource'; // Ensure type is correct for resource generation
         $qualifiedResourceName = $this->qualifyClass($resourceName);
         $resourcePath = $this->getPath($qualifiedResourceName);
-
-        if (!$this->option('force') && $this->alreadyExists($qualifiedResourceName)) {
-            $this->error($this->type.' already exists!');
-
-            return false;
-        }
-
-        $this->makeDirectory($resourcePath);
-
-        $stub = $this->files->get($this->getStub());
-
-        $stub = $this->replaceNamespace($stub, $qualifiedResourceName)->replaceClass($stub, $resourceName);
-        $stub = $this->replaceResourceContent($stub, $resourceName);
-
-        $this->files->put($resourcePath, $stub);
-
-        $this->info($this->type.' created successfully.');
-
-        // Generate the Collection
         $collectionName = $this->getCollectionName($resourceName);
-        $this->type = 'API Collection'; // Ensure type is correct for collection generation
         $qualifiedCollectionName = $this->qualifyClass($collectionName);
         $collectionPath = $this->getPath($qualifiedCollectionName);
 
-        if (!$this->option('force') && $this->alreadyExists($qualifiedCollectionName)) {
-            $this->error($this->type.' already exists!');
+        if (!$this->option('force')) {
+            if ($this->alreadyExists($qualifiedResourceName)) {
+                $this->fail(__('shared::console.api_resource.already_exists', ['type' => 'API Resource']));
+            }
 
-            return false;
+            if ($this->alreadyExists($qualifiedCollectionName)) {
+                $this->fail(__('shared::console.api_resource.already_exists', ['type' => 'API Collection']));
+            }
         }
 
+        $stub = $this->files->get($this->getStub());
+        $stub = $this->replaceNamespace($stub, $qualifiedResourceName)->replaceClass($stub, $resourceName);
+        $stub = $this->replaceResourceContent($stub, $resourceName);
+
+        $this->makeDirectory($resourcePath);
+        $this->files->put($resourcePath, $stub);
         $this->makeDirectory($collectionPath);
-
         $collectionStub = $this->files->get($this->getCollectionStub());
-
         $collectionStub = $this->replaceNamespace($collectionStub, $qualifiedCollectionName)->replaceClass($collectionStub, $collectionName);
         $collectionStub = $this->replaceCollectionContent($collectionStub, $resourceName);
-
         $this->files->put($collectionPath, $collectionStub);
 
-        $this->info($this->type.' created successfully.');
+        $this->info(__('shared::console.api_resource.created_successfully', ['type' => 'API Resource']));
+        $this->info(__('shared::console.api_resource.created_successfully', ['type' => 'API Collection']));
 
-        return true;
+        return null;
     }
 
     protected function getCollectionStub(): string
@@ -126,10 +109,13 @@ class MakeApiResource extends GeneratorCommand
                 $casts = $this->getModelCasts($reflection);
                 $toArrayContent = $this->generateToArrayContent($casts);
             } catch (ReflectionException) {
-                $this->warn('Could not reflect model: '.$namespacedModel.'. Using parent::toArray() fallback.');
+                $this->warn(__('shared::console.api_resource.reflection_failed', ['model' => $namespacedModel]));
                 $toArrayContent = '            return parent::toArray($request);';
             } catch (\Throwable $e) {
-                $this->warn('An error occurred while processing model casts. Using parent::toArray() fallback. Error: '.$e->getMessage());
+                $this->warn(__('shared::console.api_resource.casts_failed', [
+                    'model' => $namespacedModel,
+                    'error' => $e->getMessage(),
+                ]));
                 $toArrayContent = '            return parent::toArray($request);';
             }
         } else {
@@ -147,9 +133,6 @@ class MakeApiResource extends GeneratorCommand
     {
         $resourceClass = class_basename($this->qualifyClass($resourceName));
         $stub = str_replace('{{ resourceClass }}', $resourceClass, $stub);
-        $stub = str_replace('{{ namespacedResourceClass }}', $this->qualifyClass($resourceName), $stub); // Needs full namespace for use statement
-
-        $stub = str_replace('{{ namespacedBaseCollection }}', BaseCollection::class, $stub);
 
         return $stub;
     }
@@ -161,10 +144,11 @@ class MakeApiResource extends GeneratorCommand
         if ($reflection->hasProperty('casts')) {
             $property = $reflection->getProperty('casts');
             // newInstanceWithoutConstructor is important to avoid running model's constructor logic
-            $casts = $property->getValue($reflection->newInstanceWithoutConstructor());
+            $value = $property->getValue($reflection->newInstanceWithoutConstructor());
+            $casts = is_array($value) ? $value : [];
         }
 
-        // If $casts property is empty, try to get from casts() method (Laravel 12+)
+        // If $casts property is empty, try to get from casts() method (Laravel 13+)
         // This is more complex as it involves calling a method that might have dependencies.
         // For simplicity and avoiding complex dependency resolution in a command,
         // we'll stick to the $casts property as the primary source for now.
@@ -180,7 +164,14 @@ class MakeApiResource extends GeneratorCommand
         }
 
         $content = [];
-        foreach (array_keys($casts) as $key) {
+        $excludedKeys = [
+            'deleted_at',
+            'organization_id',
+            'password',
+            'remember_token',
+        ];
+
+        foreach (array_diff(array_keys($casts), $excludedKeys) as $key) {
             $content[] = "            '{$key}' => \$this->{$key},";
         }
 
@@ -194,6 +185,10 @@ class MakeApiResource extends GeneratorCommand
     {
         $model = ltrim($model, '\\/');
         $model = str_replace('/', '\\', $model);
+
+        if (class_exists($model) || str_contains($model, '\\')) {
+            return $model;
+        }
 
         if ($module = $this->module()) {
             $moduleNamespace = rtrim((string) $module->namespaces->first(), '\\');

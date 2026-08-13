@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace {{ namespace }};
 
-class {{ class }}
+/**
+ * Orchestrate one or more application use cases for {{ class }}.
+ *
+ * Add typed Data, model, assertion, and Resource dependencies only when this
+ * service owns that boundary. Keep HTTP authorization in Controllers and
+ * Policies, and keep transaction ownership explicit for each public mutation.
+ */
+final class {{ class }}
 {
-    //
-    TODO: update all generation commands
 }

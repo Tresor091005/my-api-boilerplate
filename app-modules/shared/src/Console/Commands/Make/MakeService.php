@@ -6,12 +6,12 @@ namespace Lahatre\Shared\Console\Commands\Make;
 
 use Illuminate\Console\GeneratorCommand;
 use InterNACHI\Modularize\ModularizeGeneratorCommand;
+use Symfony\Component\Console\Input\InputOption;
 
 class MakeService extends GeneratorCommand
 {
     use ModularizeGeneratorCommand;
 
-    // TODO: overwrite make module to get what i want as default
     /**
      * The console command name.
      *
@@ -35,10 +35,8 @@ class MakeService extends GeneratorCommand
 
     /**
      * Get the stub file for the generator.
-     *
-     * @return string
      */
-    protected function getStub()
+    protected function getStub(): string
     {
         return dirname(__DIR__, 4).'/stubs/service.stub';
     }
@@ -47,14 +45,23 @@ class MakeService extends GeneratorCommand
      * Get the default namespace for the class.
      *
      * @param  string  $rootNamespace
-     * @return string
      */
-    protected function getDefaultNamespace($rootNamespace)
+    protected function getDefaultNamespace($rootNamespace): string
     {
         if ($module = $this->module()) {
             $rootNamespace = rtrim((string) $module->namespaces->first(), '\\');
         }
 
         return rtrim($rootNamespace, '\\').'\\Services';
+    }
+
+    /**
+     * @return array<int, array<int, mixed>>
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['force', null, InputOption::VALUE_NONE, 'Create the class even if the service already exists.'],
+        ];
     }
 }

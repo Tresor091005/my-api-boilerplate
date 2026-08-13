@@ -2,21 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\{{Module}}\Exceptions\{{Entity}};
+namespace Lahatre\{{Module}}\Exceptions;
 
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\Shared\Exceptions\AssertionException;
 
-class {{ClassName}} extends AssertionException
+final class {{ClassName}} extends AssertionException
 {
-    public function __construct({{Entity}} $entity)
+    public static function {{FailureFactory}}({{Entity}} $entity): self
     {
-        parent::__construct(
+        return new self(
             __('{{ModuleLower}}::exceptions.{{TranslationKey}}'),
             [
-                '{{EntityLower}}_id' => $entity->id,
-                // Add more context if needed
+                '{{EntityLower}}_id' => $entity->getKey(),
             ]
         );
+    }
+
+    private function __construct(string $message, array $context = [])
+    {
+        parent::__construct($message, $context);
     }
 }

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Data;
 
 use Lahatre\Shared\Data\MissingValue;
+use Lahatre\Shared\Data\MissingValueReader;
 
 final readonly class {{ClassName}}
 {
     private function __construct(
-        public MissingValue|string $name,
+        public MissingValue|{{PropertyType}} ${{propertyName}},
     ) {}
 
     /**
@@ -18,8 +19,10 @@ final readonly class {{ClassName}}
      */
     public static function fromArray(array $data, array $missingFields = []): self
     {
+        $read = MissingValueReader::fromArray($data, $missingFields);
+
         return new self(
-            name: MissingValue::fromArray($data, 'name', $missingFields),
+            {{propertyName}}: $read->get('{{sourceKey}}'),
         );
     }
 }

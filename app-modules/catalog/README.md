@@ -14,7 +14,7 @@ Cette section documente la strategie de test a suivre pour `catalog` (et reutili
 
 - `app-modules/catalog/tests/*`:
   - Tests **module-locaux** (metier)
-  - Ciblent `Service`, `DTO`, `Assertions`, persistance
+  - Ciblent `Service`, `Data`, `Assertions`, persistance
   - **Sans** bootstrap IAM complet (`User`, `Role`, `Permission`, `Organization`)
 - `tests/Feature/Integration/*`:
   - Tests **cross-module** (auth, policies, gates, middleware)
@@ -32,7 +32,7 @@ Dans les tests module-locaux:
   - [InteractsWithCatalogTenantContext.php](./tests/Concerns/InteractsWithCatalogTenantContext.php)
 - Appeler directement les services:
   - `CategoryService`, `OptionService`, `OptionValueService`, `ProductService`, `ProductVariantService`
-- Valider les payloads via DTO:
+- Valider les payloads via Form Request:
   - valider les payloads avec les règles de la Form Request et tester séparément le mapping `XxxData::fromArray(...)`
 - Pour les collections/resources:
   - `->response()->getData(true)` puis assertions sur `data`

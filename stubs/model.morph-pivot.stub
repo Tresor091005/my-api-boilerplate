@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Illuminate\Database\Eloquent\Relations\MorphPivot;
+use Lahatre\Shared\Traits\SharedTraits;
+
+class {{ class }} extends MorphPivot
+{
+    use SharedTraits;
+
+    protected $table = '{{ table }}';
+
+    public $incrementing = false;
+
+    public $timestamps = false;
+
+    protected $keyType = 'string';
+}

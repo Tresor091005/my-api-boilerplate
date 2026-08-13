@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Lahatre\Example\Exceptions;
+
+use Lahatre\Example\Models\Order;
+use Lahatre\Shared\Exceptions\AssertionException;
+
+final class OrderException extends AssertionException
+{
+    /** @param  list<string>  $productIds */
+    public static function productsUnavailable(Order $order, array $productIds): self
+    {
+        return new self(
+            __('example::exceptions.order_products_unavailable'),
+            ['order_id' => $order->id, 'product_ids' => $productIds],
+        );
+    }
+
+    public static function hasLines(Order $order): self
+    {
+        return new self(
+            __('example::exceptions.order_has_lines'),
+            ['order_id' => $order->id],
+        );
+    }
+
+    private function __construct(string $message, array $context = [])
+    {
+        parent::__construct($message, $context);
+    }
+}

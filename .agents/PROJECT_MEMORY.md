@@ -7,8 +7,9 @@ description: Living project context for agents and reviewers. Stores current arc
 
 This document stores living project context for agents working in this repository.
 
-Use it together with `CODEBASE_RULES.md`:
-- `CODEBASE_RULES.md` defines stable rules.
+Use it together with `.ai/rules/` and `CODEBASE_RULES.md`:
+- `.ai/rules/*.md` defines detailed, path-scoped normative rules.
+- `CODEBASE_RULES.md` defines only universal invariants and conflict resolution.
 - `PROJECT_MEMORY.md` captures current decisions, review traps, and local context that may evolve over time.
 
 ## 1. Purpose
@@ -29,9 +30,10 @@ Use it together with `CODEBASE_RULES.md`:
 ## 3. Current Architectural Decisions
 
 ### 3.1 Rules Vs Memory
-- Put durable normative rules in `CODEBASE_RULES.md`.
+- Put detailed durable normative rules in the appropriate `.ai/rules/*.md` file.
+- Put universal invariants and conflict resolution in `CODEBASE_RULES.md`.
 - Put current context, tradeoffs, exceptions, and review watchpoints in `PROJECT_MEMORY.md`.
-- If a point starts as memory and becomes stable, promote it into `CODEBASE_RULES.md`.
+- If a point starts as memory and becomes stable, promote it to the appropriate rule file rather than expanding a skill.
 
 ### 3.2 Nested Resources
 - Nested HTTP resources must rely on scoped routing for real parent/child binding.
@@ -58,14 +60,13 @@ Use it together with `CODEBASE_RULES.md`:
   - or an already authorized parent model that clearly constrains the child query.
 - If that proof is not locally visible, raise a warning and expect an immediate fix unless the surrounding flow makes the boundary obvious.
 
-### 3.6 Inventory Package Boundary
-- `inventory` is tenant-agnostic by design.
-- The module is closer to a reusable package contract than to a tenant-scoped application module.
-- `inventory` tables do not carry `organization_id`, and the module does not enforce host-application tenancy by itself.
-- The current `inventory` routes are package-generic routes.
-- In this repository, those routes must not be treated as safe final application routes for tenant-scoped exposure in their current form.
+### 3.6 Inventory Tenancy Boundary
+- `inventory` is tenant-scoped in the current architecture.
+- Inventory items, locations, stocks, transactions, and movements carry `organization_id`.
+- Inventory services resolve the active organization through `ResolvesInventoryOrganization`, constrain queries by that organization, and reject resolved models from another organization.
+- Inventory HTTP routes use `auth.api`, but authentication and organization scoping do not replace permission authorization in Controllers and Policies.
 - UUID identifiers reduce trivial enumeration, but they are not an authorization boundary.
-- If the host application needs tenant-safe inventory endpoints, it must add an explicit business access boundary through host-level routes, Controllers, parent resources, or authorization rules.
+- Any new inventory query, aggregate, mutation, index, or uniqueness rule must preserve the organization boundary explicitly.
 
 ### 3.7 Form Request And Data Separation
 - `LahatreDTO` and validated DTOs are retired architecture. New code must not combine Laravel validation with service transport objects.
@@ -77,19 +78,29 @@ Use it together with `CODEBASE_RULES.md`:
 - `missingFields` passed to `fromArray()` uses source `snake_case` keys. Services consume `camelCase` Data properties.
 - Model updates should use an explicit field map filtered through the shared missing-value helper so absent attributes are not assigned.
 
+### 3.8 Service Output Boundary
+- Services remain callable from HTTP, Console, Jobs, and Schedulers at the input and orchestration boundary.
+- For now, this project intentionally allows services to return API Resources and Resource Collections for model-backed results and cursor-paginated lists.
+- Computed and aggregated read projections return ViewData; operations without a representation may return `void`.
+- This accepted output coupling may later be replaced with models, model Collections, or application result objects so each caller controls presentation.
+- Do not perform that refactor opportunistically. Change the output boundary deliberately across the service, Controller, tests, and consumers.
+
 ## 4. Known Review Traps
 
 - A nested route can look correct while still missing scoped binding.
 - A controller can authorize the child but forget the parent on nested routes.
 - A service can quietly reintroduce tenancy or HTTP permission checks that should live in controllers and policies.
 - A query can look technically correct while silently missing its tenancy boundary or its soft-delete boundary.
-- A package-oriented module route can look acceptable while still being unsafe for direct exposure in a tenant-scoped host application.
+- An authenticated inventory route can look tenant-safe while still missing explicit permission authorization in its Controller or Policy.
 - A module exception can extend `Exception` instead of `AssertionException`, which bypasses the intended render contract.
 - User-facing text can drift into code instead of translations.
 - Test code often hides architecture mistakes because it bypasses the HTTP layer.
 - `nullable` does not mean that a key was present; use `array_key_exists()` while building Data objects.
 - Filtering Data values must remove only `MissingValue`; it must preserve `null`, `false`, zero, empty strings, and empty arrays.
 - A shared store/update Form Request should be split once conditional branches obscure its input contract.
+- A service intended for Jobs or Schedulers can silently assume tenant middleware ran; require the caller to establish context and make the service validate it before tenant-owned queries.
+- A precondition can pass and become false before persistence; protect race-sensitive invariants inside the transaction with a database constraint, atomic statement, or lock.
+- A Job, event, notification, cache invalidation, or external call can run before a transaction commits; defer commit-dependent effects until after commit.
 
 ## 5. Testing And Tooling Reality
 
@@ -121,4 +132,6 @@ Do not use this file for:
 - onboarding tutorials,
 - exhaustive architecture explanation,
 - module API reference,
-- permanent coding standards that should live in `CODEBASE_RULES.md`.
+- permanent detailed coding standards that should live in the appropriate
+  `.ai/rules/*.md` file, or universal invariants that belong in
+  `CODEBASE_RULES.md`.

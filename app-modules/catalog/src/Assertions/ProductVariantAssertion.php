@@ -23,6 +23,14 @@ class ProductVariantAssertion
         }
     }
 
+    /**
+     * Assert that deleting a variant would leave at least one variant on its product.
+     *
+     * A focused existence query is sufficient because the deleting service only
+     * needs to know whether another variant exists.
+     *
+     * @throws ProductVariantException If this is the product's last variant.
+     */
     public function assertCanDelete(ProductVariant $variant): void
     {
         $otherVariantsExist = ProductVariant::where('product_id', $variant->product_id)

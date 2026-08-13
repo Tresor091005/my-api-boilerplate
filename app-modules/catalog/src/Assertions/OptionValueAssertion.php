@@ -23,6 +23,14 @@ class OptionValueAssertion
         }
     }
 
+    /**
+     * Assert that an option value can be deleted without invalidating variants that use it.
+     *
+     * A focused existence query is sufficient because the deleting service does
+     * not otherwise need to load the related variants.
+     *
+     * @throws OptionValueException If at least one variant still uses the option value.
+     */
     public function assertCanDelete(OptionValue $optionValue): void
     {
         if ($optionValue->variants()->exists()) {

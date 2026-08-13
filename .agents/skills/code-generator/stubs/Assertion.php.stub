@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Assertions;
 
 use Illuminate\Support\Collection;
-use Lahatre\{{Module}}\Exceptions\{{Entity}}BusinessException;
+use Lahatre\{{Module}}\Exceptions\{{Entity}}Exception;
 use Lahatre\{{Module}}\Models\{{Entity}};
 
-class {{ClassName}}
+final class {{Entity}}Assertion
 {
     /**
-     * Asserts that {{Entity}} can perform action.
-     * [Describe business intention here]
+     * Assert that the supplied related models can participate in the requested
+     * operation without creating an invalid {{Entity}} state.
      *
-     * @param  {{Entity}}  $entity
-     * @param  Collection<int, mixed>  $data  [Example of complex type doc]
+     * The service supplies this Collection because it also needs the models for
+     * persistence. Do not query the same evidence again inside this Assertion.
      *
-     * @throws {{Entity}}BusinessException If business rule is violated.
+     * @param  Collection<string, object>  $relatedModelsById
+     *
+     * @throws {{Entity}}Exception If a supplied model is not authentic or cannot participate in the operation.
      */
-    public function assertCanPerformAction({{Entity}} $entity, Collection $data): void
+    public function assertCanPerformAction({{Entity}} $entity, Collection $relatedModelsById): void
     {
-        // if (violation) {
-        //     throw new {{Entity}}BusinessException($entity);
-        // }
+        // Compare the supplied evidence and throw a named exception factory on failure.
     }
 }
