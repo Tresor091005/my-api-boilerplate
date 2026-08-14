@@ -10,12 +10,9 @@ use Illuminate\Support\Str;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryLocation;
-use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 
 class ManageInventoryLocationService
 {
-    use ResolvesInventoryOrganization;
-
     public function create(HasInventoryLocation $model): InventoryLocation
     {
         return DB::transaction(
@@ -61,7 +58,7 @@ class ManageInventoryLocationService
 
     public function resolve(HasInventoryLocation $model): InventoryLocation
     {
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
         $this->assertOrganization($model, $organizationId);
 
         return InventoryLocation::query()
@@ -81,7 +78,7 @@ class ManageInventoryLocationService
             return collect();
         }
 
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
         $models->each(function (HasInventoryLocation $model) use ($organizationId): void {
             $this->assertOrganization($model, $organizationId);
         });

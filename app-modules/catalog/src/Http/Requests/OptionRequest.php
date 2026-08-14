@@ -46,7 +46,7 @@ class OptionRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('catalog_options', 'name')
-                    ->where('organization_id', getPermissionsTeamId())
+                    ->where('organization_id', currentOrganizationId())
                     ->whereNull('deleted_at')
                     ->ignore($isUpdate ? $option : null),
             ],

@@ -28,12 +28,14 @@ Cached data includes:
 - base units keyed by `group_id`;
 - currencies keyed by code.
 
-Unit cache keys include the current permissions team (`system` or the
-organization ID), so tenant-specific units do not leak between organizations.
-Currencies currently use the global key `master:currencies:all` because the
-currency model is not tenant-scoped.
+Unit cache keys include the current organization ID. The cached unit set
+contains system units (`organization_id IS NULL`) and units belonging to that
+organization, so tenant-specific units do not leak between organizations.
+Loading units without an active organization is rejected. Currencies currently
+use the global key `master:currencies:all` because the currency model is not
+tenant-scoped.
 
-After a successful unit sync, `UnitService` rewarms the relevant unit cache in
+After a successful unit upsert, `UnitService` rewarms the relevant unit cache in
 an `DB::afterCommit` callback. The cache is therefore not refreshed when the
 transaction rolls back. Use `rewarmUnits()` or `rewarmCurrencies()` after
 direct data maintenance.

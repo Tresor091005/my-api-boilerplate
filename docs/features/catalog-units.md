@@ -1,28 +1,28 @@
-# Feature Showcase: Unit Synchronization (Bulk & Sync)
+# Feature Showcase: Unit Upsert (Bulk & Upsert)
 
-Ce document détaille l'implémentation de la gestion des unités dans le module `master`. C'est une fonctionnalité avancée qui démontre comment gérer des synchronisations de données complexes de manière performante (Bulk operations) et sécurisée (Business assertions).
+Ce document détaille l'implémentation de la gestion des unités dans le module `master`. C'est une fonctionnalité avancée qui démontre comment gérer un upsert de données complexes de manière performante (Bulk operations) et sécurisée (Business assertions).
 
-## 1. Architecture du Flux "Sync"
+## 1. Architecture du Flux "Upsert"
 
-Contrairement à un CRUD classique, les unités sont gérées par **groupes** (ex: Masse, Volume) via un endpoint unique de synchronisation.
+Contrairement à un CRUD classique, les unités sont gérées par **groupes** (ex: Masse, Volume) via un endpoint unique d'upsert. Les éléments absents du payload ne sont pas supprimés.
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Controller
-    participant Request (UnitSyncRequest)
-    participant Data (UnitSyncData)
+    participant Request (UnitUpsertRequest)
+    participant Data (UnitUpsertData)
     participant Service (UnitService)
     participant Assertion (UnitAssertion)
     participant Database
 
-    Client->>Controller: POST /v1/catalog/units/sync
+    Client->>Controller: POST /v1/master/units/upsert
     Controller->>Request: Payload déjà validé et normalisé
-    Controller->>Data: UnitSyncData::fromArray(validated)
+    Controller->>Data: UnitUpsertData::fromArray(validated)
     Data->>Controller: Collection de UnitData
-    Controller->>Service: sync(UnitSyncData)
+    Controller->>Service: upsert(UnitUpsertData)
     Service->>Database: Fetch existing units of group (1 query)
-    Service->>Assertion: assertCanSync($existingUnits)
+    Service->>Assertion: assertCanUpsert($existingUnits)
     Assertion-->>Service: OK (or throws SpecificException)
     Service->>Database: Bulk UPSERT (1 query)
     Service->>Database: Final Fetch (1 query)
@@ -32,15 +32,15 @@ sequenceDiagram
 ## 2. Les Composants Clés
 
 ### A. La Route et le Controller
-- **Route :** `POST /v1/catalog/units/sync`
-- **Controller :** `UnitController@sync`
-  - Utilise le `UnitPolicy@sync` pour vérifier les permissions `units.create` ou `units.update`.
+- **Route :** `POST /v1/master/units/upsert`
+- **Controller :** `UnitController@upsert`
+  - Utilise le `UnitPolicy@upsert` pour vérifier les permissions `units.create` ou `units.update`.
   - Délègue immédiatement au service.
 
 ### B. Form Request et Data typées
 La validation HTTP et le transport vers le service sont séparés :
-- **`UnitSyncRequest`** : valide la structure complète, notamment `units.*`, et conserve les chemins d'erreur indexés.
-- **`UnitSyncData`** : construit le contrat typé du service via `::fromArray()`.
+- **`UnitUpsertRequest`** : valide la structure complète, notamment `units.*`, et conserve les chemins d'erreur indexés.
+- **`UnitUpsertData`** : construit le contrat typé du service via `::fromArray()`.
 - **`UnitData`** : représente une unité individuelle (ID, nom, symbole et ratio).
 
 **Optimisation :** 
@@ -64,7 +64,7 @@ Le service est conçu pour être "Database Friendly" :
 Chaque erreur métier possède sa propre classe d'exception dans `Lahatre\Catalog\Exceptions` et son message traduit dans `resources/lang/en/exceptions.php`, permettant un retour API clair et précis.
 
 ## 4. Tests Automatisés (Pest)
-La fonctionnalité est couverte par une suite de tests Pest (`app-modules/catalog/tests/Feature/UnitSyncTest.php`) qui valide :
+La fonctionnalité est couverte par une suite de tests Pest (`app-modules/master/tests/Feature/UnitServiceTest.php`) qui valide :
 - La création réussie d'un groupe.
 - L'échec si le ratio 1 est manquant.
 - Le blocage des doublons de ratio.

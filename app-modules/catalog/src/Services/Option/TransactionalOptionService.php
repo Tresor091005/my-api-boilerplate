@@ -24,7 +24,7 @@ class TransactionalOptionService
         }
 
         $now = now();
-        $organizationId = (string) getPermissionsTeamId();
+        $organizationId = currentOrganizationId();
 
         $uniqueOptions = $optionsData->map(fn (array $item): array => [
             'id'              => (string) Str::uuid7(),

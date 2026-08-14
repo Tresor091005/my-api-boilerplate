@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -56,6 +57,14 @@ it('rejects an itemable from another organization', function (): void {
 
     expect(fn () => $this->service->createItem($foreignMaterial))
         ->toThrow(OrganizationScopeException::class);
+});
+
+it('rejects inventory operations without an organization context', function (): void {
+    $material = $this->createTestMaterial();
+    setPermissionsTeamId(null);
+
+    expect(fn () => $this->service->createItem($material))
+        ->toThrow(AuthorizationException::class);
 });
 
 it('createManyLocations skips already existing external_id/type pairs without failing', function (): void {

@@ -15,14 +15,11 @@ use Lahatre\Inventory\Exceptions\BaseUnitRatioIntegrityException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
-use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
 
 class TransactionValidator
 {
-    use ResolvesInventoryOrganization;
-
     protected array $lookups = [];
 
     public function __construct(
@@ -73,7 +70,7 @@ class TransactionValidator
         }
 
         $untrackedItemIds = InventoryItem::query()
-            ->where('organization_id', $this->organizationId())
+            ->where('organization_id', currentOrganizationId())
             ->whereIn('id', $itemIds)
             ->where('stock_tracking_enabled', false)
             ->pluck('id')
@@ -253,7 +250,7 @@ class TransactionValidator
 
     protected function performBulkLookups(Collection $movements): array
     {
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
         $itemIds = $movements->pluck('item_id')->filter()->unique();
         $locationIds = $movements->pluck('location_id')
             ->merge($movements->pluck('to_location_id'))

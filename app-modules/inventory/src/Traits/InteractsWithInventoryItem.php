@@ -32,7 +32,7 @@ trait InteractsWithInventoryItem
         $organizationId = $this->getAttribute('organization_id');
 
         if ($organizationId === null && $this->getKey() === null) {
-            $organizationId = getPermissionsTeamId();
+            $organizationId = currentOrganizationId();
         } else {
             $organizationId = $this->getOrganizationId();
         }

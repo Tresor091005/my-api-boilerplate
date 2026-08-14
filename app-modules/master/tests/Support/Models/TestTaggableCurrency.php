@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Tests\Support\Models;
 
+use Lahatre\Master\Contracts\HasTags;
 use Lahatre\Master\Models\Currency;
-use Lahatre\Master\Traits\HasTags;
+use Lahatre\Master\Traits\InteractsWithTags;
 
-class TestTaggableCurrency extends Currency
+class TestTaggableCurrency extends Currency implements HasTags
 {
-    use HasTags;
+    use InteractsWithTags;
+
+    public function getOrganizationId(): string
+    {
+        return (string) $this->organization_id;
+    }
 
     public function getMorphClass(): string
     {

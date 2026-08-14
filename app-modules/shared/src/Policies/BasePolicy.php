@@ -16,7 +16,7 @@ abstract class BasePolicy
     protected function canOnModel(string $permission, Model $model): bool
     {
         return isset($model->organization_id)
-            && $model->organization_id === getPermissionsTeamId()
+            && $model->organization_id === currentOrganizationId()
             && $this->can($permission);
     }
 }

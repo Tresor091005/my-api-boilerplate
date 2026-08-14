@@ -90,7 +90,7 @@ class CategorySeeder extends Seeder
 
     private function seedCategories(array $categories, ?Category $parent = null): void
     {
-        $organizationId = getPermissionsTeamId();
+        $organizationId = currentOrganizationId();
 
         foreach ($categories as $categoryData) {
             $children = $categoryData['children'] ?? [];

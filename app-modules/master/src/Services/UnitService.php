@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Lahatre\Master\Assertions\UnitAssertion;
 use Lahatre\Master\Data\UnitData;
 use Lahatre\Master\Data\UnitFilterData;
-use Lahatre\Master\Data\UnitSyncData;
+use Lahatre\Master\Data\UnitUpsertData;
 use Lahatre\Master\Http\Resources\UnitCollection;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Master\Models\Unit;
@@ -30,7 +30,7 @@ class UnitService
     {
         $query = Unit::query()->with('group')->where(function (Builder $query): void {
             $query->whereNull('organization_id')
-                ->orWhere('organization_id', getPermissionsTeamId());
+                ->orWhere('organization_id', currentOrganizationId());
         });
 
         if ($filters->code) {
@@ -64,13 +64,14 @@ class UnitService
         return UnitCollection::make($units);
     }
 
-    public function sync(UnitSyncData $data): UnitGroupResource
+    public function upsert(UnitUpsertData $data): UnitGroupResource
     {
-        return DB::transaction(function () use ($data): UnitGroupResource {
+        $organizationId = currentOrganizationId();
+
+        return DB::transaction(function () use ($data, $organizationId): UnitGroupResource {
             if ($data->groupId) {
                 $group = UnitGroup::where('is_builtin', false)
-                    ->whereNotNull('organization_id')
-                    ->where('organization_id', getPermissionsTeamId())
+                    ->where('organization_id', $organizationId)
                     ->findOrFail($data->groupId);
 
                 $group->name = $data->groupName ?? $group->name;
@@ -79,7 +80,7 @@ class UnitService
                 $group = UnitGroup::create([
                     'is_builtin'      => false,
                     'name'            => $data->groupName,
-                    'organization_id' => getPermissionsTeamId(),
+                    'organization_id' => $organizationId,
                 ]);
             }
 
@@ -87,11 +88,11 @@ class UnitService
             $existingUnits = $group->units()->get();
 
             if ($data->units) {
-                $this->unitAssertion->assertCanSync($data->groupId, $data->units, $existingUnits, $group->is_builtin);
+                $this->unitAssertion->assertCanUpsert($data->groupId, $data->units, $existingUnits, $group->is_builtin);
 
                 $now = now();
 
-                $upsertData = $data->units->map(function (UnitData $unitData) use ($group, $existingUnits, $now): array {
+                $upsertData = $data->units->map(function (UnitData $unitData) use ($group, $existingUnits, $now, $organizationId): array {
                     if ($unitData->id) {
                         /** @var Unit $unit */
                         $unit = $existingUnits->firstWhere('id', $unitData->id);
@@ -111,7 +112,7 @@ class UnitService
 
                     return [
                         'id'              => (string) Str::uuid7(),
-                        'organization_id' => getPermissionsTeamId(),
+                        'organization_id' => $organizationId,
                         'code'            => HandleGenerator::generate($unitData->name, 'master_units', 'code'),
                         'name'            => $unitData->name,
                         'symbol'          => $unitData->symbol,

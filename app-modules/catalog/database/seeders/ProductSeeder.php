@@ -19,7 +19,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $organizationId = getPermissionsTeamId();
+        $organizationId = currentOrganizationId();
 
         // Fetch common unit groups needed for variants
         $massGroup = UnitGroup::where('name', 'mass')->first();

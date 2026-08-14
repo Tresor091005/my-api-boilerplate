@@ -20,7 +20,7 @@ class UnitPolicy extends BasePolicy
     /**
      * Determine whether the user can create|update models.
      */
-    public function sync(Authorizable $user): bool
+    public function upsert(Authorizable $user): bool
     {
         return $this->can('units.create') || $this->can('units.update');
     }

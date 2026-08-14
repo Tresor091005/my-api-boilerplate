@@ -17,6 +17,6 @@ Route::group([
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
 
         Route::get('units', [UnitController::class, 'index'])->name('units.index');
-        Route::post('units/sync', [UnitController::class, 'sync'])->name('units.sync');
+        Route::post('units/upsert', [UnitController::class, 'upsert'])->name('units.upsert');
     });
 });

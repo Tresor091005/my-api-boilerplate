@@ -34,7 +34,7 @@ The module policies use the shared `BasePolicy`. Collection actions check a
 permission globally; model actions additionally require the model's
 `organization_id` to match the current Spatie team ID. Restore and force-delete
 are explicitly denied by the catalog policies, while master currencies are
-read-only and units expose a dedicated `sync` permission rule. Inventory stock
+read-only and units expose a dedicated `upsert` policy operation. Inventory stock
 updates use the same organization-scoped model check.
 
 The root `DatabaseSeeder` is idempotent for the development administrator and

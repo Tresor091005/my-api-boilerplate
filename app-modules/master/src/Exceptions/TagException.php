@@ -21,9 +21,25 @@ final class TagException extends AssertionException
         return self::message(__('master::exceptions.tag_link_not_found', ['type' => $type, 'names' => implode(', ', $names)]));
     }
 
-    public static function modelMissingHasTagsTrait(string $model): self
+    public static function modelMissingInteractsWithTagsTrait(string $model): self
     {
-        return self::message(__('master::exceptions.model_missing_has_tags_trait', ['model' => $model]));
+        return self::message(__('master::exceptions.model_missing_interacts_with_tags_trait', ['model' => $model]));
+    }
+
+    public static function organizationResolutionFailed(): self
+    {
+        return self::message(__('master::exceptions.organization_resolution_failed'));
+    }
+
+    public static function organizationMismatch(string $expectedOrganizationId, string $actualOrganizationId): self
+    {
+        return self::message(
+            __('master::exceptions.organization_mismatch'),
+            [
+                'expected_organization_id' => $expectedOrganizationId,
+                'actual_organization_id'   => $actualOrganizationId,
+            ]
+        );
     }
 
     private static function message(string $message, array $context = []): self

@@ -8,14 +8,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use Lahatre\Master\Contracts\HasTags as HasTagsContract;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Services\Tag\TagService;
 
 /**
+ * @phpstan-require-implements HasTagsContract
+ *
  * @mixin Model
  */
-trait HasTags
+trait InteractsWithTags
 {
     /**
      * @param  array<int, string>  $tags
@@ -27,6 +29,8 @@ trait HasTags
         if ($normalizedTags->isEmpty()) {
             return $query;
         }
+
+        $query = $this->scopeToTagOrganization($query);
 
         return $query->whereHas('tags', function (Builder $tagQuery) use ($normalizedType, $normalizedTags): void {
             $tagQuery->where('master_tags.type', $normalizedType);
@@ -44,6 +48,8 @@ trait HasTags
         if ($normalizedTags->isEmpty()) {
             return $query;
         }
+
+        $query = $this->scopeToTagOrganization($query);
 
         return $query->whereHas(
             'tags',
@@ -67,6 +73,8 @@ trait HasTags
             return $query;
         }
 
+        $query = $this->scopeToTagOrganization($query);
+
         return $query->whereDoesntHave('tags', function (Builder $tagQuery) use ($normalizedType, $normalizedTags): void {
             $tagQuery->where('master_tags.type', $normalizedType);
             $tagQuery->whereIn('master_tags.name', $normalizedTags);
@@ -75,78 +83,61 @@ trait HasTags
 
     public function tags(): MorphToMany
     {
+        $organizationId = currentOrganizationId();
+
         return $this->morphToMany(Tag::class, 'taggable', 'master_taggables', 'taggable_id', 'tag_id')
+            ->wherePivot('organization_id', $organizationId)
+            ->where('master_tags.organization_id', $organizationId)
             ->orderBy('master_tags.type')
             ->orderBy('master_tags.order_col');
     }
 
-    public function tagsOfType(string $type): MorphToMany
-    {
-        return $this->tags()->where('master_tags.type', str($type)->normalize()->value());
-    }
-
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function attach(array $tagsByType): static
+    public function attach(array $tagsByType): void
     {
-        DB::transaction(function () use ($tagsByType): void {
-            app(TagService::class)->attach($this, $tagsByType);
-        });
-
-        return $this->load('tags');
+        app(TagService::class)->attach($this, $tagsByType);
     }
 
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function attachForType(string $type, Collection|array $tags): static
+    public function attachForType(string $type, Collection|array $tags): void
     {
-        return $this->attach([$type => $tags]);
+        $this->attach([$type => $tags]);
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function detach(array $tagsByType): static
+    public function detach(array $tagsByType): void
     {
-        DB::transaction(function () use ($tagsByType): void {
-            app(TagService::class)->detach($this, $tagsByType);
-        });
-
-        return $this->load('tags');
+        app(TagService::class)->detach($this, $tagsByType);
     }
 
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function detachForType(string $type, Collection|array $tags): static
+    public function detachForType(string $type, Collection|array $tags): void
     {
-        return $this->detach([$type => $tags]);
+        $this->detach([$type => $tags]);
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function sync(array $tagsByType): static
+    public function sync(array $tagsByType): void
     {
-        DB::transaction(function () use ($tagsByType): void {
-            app(TagService::class)->sync($this, $tagsByType);
-        });
-
-        return $this->load('tags');
+        app(TagService::class)->sync($this, $tagsByType);
     }
 
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function syncForType(string $type, Collection|array $tags): static
+    public function syncForType(string $type, Collection|array $tags): void
     {
-        DB::transaction(function () use ($type, $tags): void {
-            app(TagService::class)->syncForType($this, $type, $tags);
-        });
-
-        return $this->load('tags');
+        app(TagService::class)->syncForType($this, $type, $tags);
     }
 
     /**
@@ -168,5 +159,10 @@ trait HasTags
     protected function normalizeTagType(string $type): string
     {
         return str($type)->normalize()->value();
+    }
+
+    protected function scopeToTagOrganization(Builder $query): Builder
+    {
+        return $query->where($query->getModel()->qualifyColumn('organization_id'), currentOrganizationId());
     }
 }

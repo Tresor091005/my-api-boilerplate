@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Master\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Lahatre\Master\Exceptions\TagException;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Tag;
@@ -124,43 +126,94 @@ it('supports soft deleted duplicates in same tenant and keeps slug uniqueness in
         )->toBe(2);
 });
 
-it('scopes tags by tenancy for models without organization_id using current team context', function (): void {
-    $currencyOne = TestTaggableCurrency::query()->findOrFail(Currency::factory()->create()->id);
-    $currencyTwo = TestTaggableCurrency::query()->findOrFail(Currency::factory()->create()->id);
+it('rejects models without an organization_id column', function (): void {
+    $currency = TestTaggableCurrency::query()->findOrFail(
+        Currency::factory()->create()->id
+    );
 
-    setPermissionsTeamId($this->organizationId);
-    $currencyOne->attach([
-        'status' => ['shared'],
-    ]);
-
-    setPermissionsTeamId($this->otherOrganizationId);
-    $currencyTwo->attach([
-        'status' => ['shared'],
-    ]);
-
-    $firstTenantTag = Tag::query()
-        ->where('organization_id', $this->organizationId)
-        ->where('type', 'status')
-        ->where('name', 'shared')
-        ->first();
-
-    $otherTenantTag = Tag::query()
-        ->where('organization_id', $this->otherOrganizationId)
-        ->where('type', 'status')
-        ->where('name', 'shared')
-        ->first();
-
-    expect($firstTenantTag)->not->toBeNull()
-        ->and($otherTenantTag)->not->toBeNull()
-        ->and($firstTenantTag?->id)->not->toBe($otherTenantTag?->id);
+    expect(fn () => app(TagService::class)->attach($currency, [
+        'status' => ['global'],
+    ]))->toThrow(TagException::class);
 });
 
-it('rejects tag operations on models without has tags trait', function (): void {
+it('rejects a taggable model from another organization when called directly', function (): void {
+    $otherGroup = UnitGroup::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $otherUnit = TestTaggableUnit::query()->findOrFail(Unit::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'group_id'        => $otherGroup->id,
+    ])->id);
+
+    expect(fn () => app(TagService::class)->attach($otherUnit, [
+        'status' => ['foreign'],
+    ]))->toThrow(TagException::class);
+});
+
+it('uses persisted organization ownership for falsified and partially hydrated models', function (): void {
+    $this->taggableUnit->organization_id = $this->otherOrganizationId;
+
+    app(TagService::class)->attach($this->taggableUnit, [
+        'status' => ['persisted-owner'],
+    ]);
+
+    $partialUnit = TestTaggableUnit::query()
+        ->select(['id'])
+        ->findOrFail($this->unit->id);
+
+    app(TagService::class)->attach($partialUnit, [
+        'status' => ['partial-model'],
+    ]);
+
+    expect($this->taggableUnit->fresh()->tags->pluck('name')->all())
+        ->toEqualCanonicalizing(['persisted-owner', 'partial-model']);
+});
+
+it('rejects a model with a null organization_id', function (): void {
+    $systemGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    $systemUnit = TestTaggableUnit::query()->findOrFail(Unit::factory()->create([
+        'organization_id' => null,
+        'group_id'        => $systemGroup->id,
+    ])->id);
+
+    expect(fn () => app(TagService::class)->attach($systemUnit, [
+        'status' => ['global'],
+    ]))->toThrow(TagException::class);
+});
+
+it('rejects tag operations without an active organization context', function (): void {
+    setPermissionsTeamId(null);
+
+    expect(fn () => app(TagService::class)->attach($this->taggableUnit, [
+        'status' => ['without-context'],
+    ]))->toThrow(TagException::class);
+});
+
+it('does not expose a foreign pivot link through the scoped tags relation', function (): void {
+    $foreignTag = Tag::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'name'            => 'foreign-link',
+        'type'            => 'status',
+    ]);
+
+    DB::table('master_taggables')->insert([
+        'id'              => (string) Str::uuid7(),
+        'organization_id' => $this->otherOrganizationId,
+        'tag_id'          => $foreignTag->id,
+        'taggable_type'   => $this->taggableUnit->getMorphClass(),
+        'taggable_id'     => $this->taggableUnit->id,
+    ]);
+
+    expect($this->taggableUnit->fresh()->tags->pluck('name')->all())
+        ->not->toContain('foreign-link');
+});
+
+it('rejects tag operations on models without the has tags contract', function (): void {
     $tag = Tag::factory()->create([
         'organization_id' => $this->organizationId,
     ]);
 
     expect(fn () => app(TagService::class)->attach($tag, [
         'status' => ['active'],
-    ]))->toThrow(TagException::class);
+    ]))->toThrow(TypeError::class);
 });

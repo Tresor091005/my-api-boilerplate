@@ -14,6 +14,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $tag_id
  * @property string $taggable_type
  * @property string $taggable_id
@@ -42,16 +43,18 @@ class Taggable extends Pivot
     public $incrementing = false;
 
     protected $fillable = [
+        'organization_id',
         'tag_id',
         'taggable_type',
         'taggable_id',
     ];
 
     protected $casts = [
-        'id'            => 'string',
-        'tag_id'        => 'string',
-        'taggable_type' => 'string',
-        'taggable_id'   => 'string',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'tag_id'          => 'string',
+        'taggable_type'   => 'string',
+        'taggable_id'     => 'string',
     ];
 
     public function tag(): BelongsTo

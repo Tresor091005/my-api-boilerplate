@@ -4,172 +4,179 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services\Tag;
 
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
+use Lahatre\Master\Contracts\HasTags as HasTagsContract;
 use Lahatre\Master\Exceptions\TagException;
 use Lahatre\Master\Models\Tag;
-use Lahatre\Master\Traits\HasTags;
+use Lahatre\Master\Traits\InteractsWithTags;
 use Lahatre\Shared\Support\HandleGenerator;
 
 class TagService
 {
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
-     * @return EloquentCollection<int, Tag>
      */
-    public function attach(Model $model, array $tagsByType): EloquentCollection
+    public function attach(HasTagsContract $model, array $tagsByType): void
     {
-        $this->assertModelUsesTags($model);
-        $organizationId = $this->resolveOrganizationId($model);
-        $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
+        DB::transaction(function () use ($model, $tagsByType): void {
+            $this->assertModelUsesTags($model);
+            $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
 
-        if ($normalizedTagsByType->isEmpty()) {
-            return new EloquentCollection;
-        }
+            if ($normalizedTagsByType->isEmpty()) {
+                return;
+            }
 
-        /** @var Collection<int, Tag> $tags */
-        $tags = collect();
-        $now = now();
+            /** @var Collection<int, Tag> $tags */
+            $tags = collect();
+            $now = now();
 
-        foreach ($normalizedTagsByType as $type => $names) {
-            $existingTags = Tag::query()
-                ->where('organization_id', $organizationId)
-                ->where('type', $type)
-                ->whereIn('name', $names)
-                ->get()
-                ->keyBy('name');
-
-            $missingNames = $names->reject(fn (string $name): bool => $existingTags->has($name));
-            if ($missingNames->isNotEmpty()) {
-                $missingRows = $missingNames->map(fn (string $name): array => [
-                    'id'              => (string) Str::uuid7(),
-                    'organization_id' => $organizationId,
-                    'name'            => $name,
-                    'slug'            => HandleGenerator::generate(
-                        name: $name,
-                        table: 'master_tags',
-                        column: 'slug',
-                        extra: ['organization_id' => $organizationId],
-                    ),
-                    'type'       => $type,
-                    'order_col'  => 0,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ])->all();
-
-                Tag::query()->insert($missingRows);
-
-                $createdTags = Tag::query()
+            foreach ($normalizedTagsByType as $type => $names) {
+                $existingTags = Tag::query()
                     ->where('organization_id', $organizationId)
                     ->where('type', $type)
-                    ->whereIn('name', $missingNames)
-                    ->get();
+                    ->whereIn('name', $names)
+                    ->get()
+                    ->keyBy('name');
 
-                $tags = $tags->merge($createdTags);
+                $missingNames = $names->reject(fn (string $name): bool => $existingTags->has($name));
+                if ($missingNames->isNotEmpty()) {
+                    $missingRows = $missingNames->map(fn (string $name): array => [
+                        'id'              => (string) Str::uuid7(),
+                        'organization_id' => $organizationId,
+                        'name'            => $name,
+                        'slug'            => HandleGenerator::generate(
+                            name: $name,
+                            table: 'master_tags',
+                            column: 'slug',
+                            extra: ['organization_id' => $organizationId],
+                        ),
+                        'type'       => $type,
+                        'order_col'  => 0,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ])->all();
+
+                    Tag::query()->insertOrIgnore($missingRows);
+
+                    $createdTags = Tag::query()
+                        ->where('organization_id', $organizationId)
+                        ->where('type', $type)
+                        ->whereIn('name', $missingNames)
+                        ->get();
+
+                    $tags = $tags->merge($createdTags);
+                }
+
+                $tags = $tags->merge($existingTags->values());
             }
 
-            $tags = $tags->merge($existingTags->values());
-        }
+            $tagIds = $tags->pluck('id')->unique()->values()->all();
+            if ($tagIds !== []) {
+                $alreadyLinkedTagIds = $model->tags()
+                    ->whereIn('master_tags.id', $tagIds)
+                    ->pluck('master_tags.id')
+                    ->all();
 
-        $tagIds = $tags->pluck('id')->unique()->values()->all();
-        if ($tagIds !== []) {
-            $alreadyLinkedTagIds = $this->tagsRelation($model)
-                ->whereIn('master_tags.id', $tagIds)
-                ->pluck('master_tags.id')
-                ->all();
+                $tagIdsToAttach = array_values(array_diff($tagIds, $alreadyLinkedTagIds));
 
-            $tagIdsToAttach = array_values(array_diff($tagIds, $alreadyLinkedTagIds));
+                $syncPayload = collect($tagIdsToAttach)
+                    ->mapWithKeys(fn (string $tagId): array => [
+                        $tagId => [
+                            'id'              => (string) Str::uuid7(),
+                            'organization_id' => $organizationId,
+                        ],
+                    ])
+                    ->all();
 
-            $syncPayload = collect($tagIdsToAttach)
-                ->mapWithKeys(fn (string $tagId): array => [
-                    $tagId => ['id' => (string) Str::uuid7()],
-                ])
-                ->all();
-
-            if ($syncPayload !== []) {
-                $this->tagsRelation($model)->syncWithoutDetaching($syncPayload);
+                if ($syncPayload !== []) {
+                    $model->tags()->syncWithoutDetaching($syncPayload);
+                }
             }
-        }
-
-        return new EloquentCollection($tags->unique('id')->values()->all());
+        });
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function detach(Model $model, array $tagsByType): void
+    public function detach(HasTagsContract $model, array $tagsByType): void
     {
-        $this->assertModelUsesTags($model);
-        $organizationId = $this->resolveOrganizationId($model);
-        $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
+        DB::transaction(function () use ($model, $tagsByType): void {
+            $this->assertModelUsesTags($model);
+            $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
 
-        foreach ($normalizedTagsByType as $type => $names) {
-            $tags = Tag::query()
-                ->where('organization_id', $organizationId)
-                ->where('type', $type)
-                ->whereIn('name', $names)
-                ->get()
-                ->keyBy('name');
+            foreach ($normalizedTagsByType as $type => $names) {
+                $tags = Tag::query()
+                    ->where('organization_id', $organizationId)
+                    ->where('type', $type)
+                    ->whereIn('name', $names)
+                    ->get()
+                    ->keyBy('name');
 
-            $missingNames = $names->reject(fn (string $name): bool => $tags->has($name))->values();
-            if ($missingNames->isNotEmpty()) {
-                throw TagException::notFound($type, $missingNames->all());
+                $missingNames = $names->reject(fn (string $name): bool => $tags->has($name))->values();
+                if ($missingNames->isNotEmpty()) {
+                    throw TagException::notFound($type, $missingNames->all());
+                }
+
+                $tagIds = $tags->pluck('id');
+                $linkedTagIds = $model->tags()
+                    ->where('master_tags.type', $type)
+                    ->whereIn('master_tags.id', $tagIds)
+                    ->pluck('master_tags.id');
+
+                $missingLinkedNames = $tags
+                    ->reject(fn (Tag $tag): bool => $linkedTagIds->contains($tag->id))
+                    ->pluck('name')
+                    ->values();
+
+                if ($missingLinkedNames->isNotEmpty()) {
+                    throw TagException::linkNotFound($type, $missingLinkedNames->all());
+                }
+
+                $model->tags()->detach($tagIds->all());
             }
-
-            $tagIds = $tags->pluck('id');
-            $linkedTagIds = $this->tagsRelation($model)
-                ->where('master_tags.type', $type)
-                ->whereIn('master_tags.id', $tagIds)
-                ->pluck('master_tags.id');
-
-            $missingLinkedNames = $tags
-                ->reject(fn (Tag $tag): bool => $linkedTagIds->contains($tag->id))
-                ->pluck('name')
-                ->values();
-
-            if ($missingLinkedNames->isNotEmpty()) {
-                throw TagException::linkNotFound($type, $missingLinkedNames->all());
-            }
-
-            $this->tagsRelation($model)->detach($tagIds->all());
-        }
+        });
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
-     * @return EloquentCollection<int, Tag>
      */
-    public function sync(Model $model, array $tagsByType): EloquentCollection
+    public function sync(HasTagsContract $model, array $tagsByType): void
     {
         $this->assertModelUsesTags($model);
-        $this->tagsRelation($model)->detach();
+        $this->resolveAndValidateOrganizationId($model);
 
-        return $this->attach($model, $tagsByType);
+        DB::transaction(function () use ($model, $tagsByType): void {
+            $model->tags()->detach();
+            $this->attach($model, $tagsByType);
+        });
     }
 
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
-     * @return EloquentCollection<int, Tag>
      */
-    public function syncForType(Model $model, string $type, Collection|array $tags): EloquentCollection
+    public function syncForType(HasTagsContract $model, string $type, Collection|array $tags): void
     {
         $this->assertModelUsesTags($model);
+        $this->resolveAndValidateOrganizationId($model);
         $normalizedType = str($type)->normalize()->value();
 
-        $existingTagIds = $this->tagsRelation($model)
-            ->where('master_tags.type', $normalizedType)
-            ->pluck('master_tags.id')
-            ->all();
+        DB::transaction(function () use ($model, $tags, $normalizedType): void {
+            $existingTagIds = $model->tags()
+                ->where('master_tags.type', $normalizedType)
+                ->pluck('master_tags.id')
+                ->all();
 
-        if ($existingTagIds !== []) {
-            $this->tagsRelation($model)->detach($existingTagIds);
-        }
+            if ($existingTagIds !== []) {
+                $model->tags()->detach($existingTagIds);
+            }
 
-        return $this->attach($model, [$normalizedType => $tags]);
+            $this->attach($model, [$normalizedType => $tags]);
+        });
     }
 
     /**
@@ -197,36 +204,42 @@ class TagService
         return $normalized;
     }
 
-    protected function resolveOrganizationId(Model $model): string
+    protected function resolveAndValidateOrganizationId(HasTagsContract $model): string
     {
-        if ($model->hasAttribute('organization_id')) {
-            $modelOrganizationId = $model->getAttribute('organization_id');
-            if (is_string($modelOrganizationId) && $modelOrganizationId !== '') {
-                return $modelOrganizationId;
-            }
+        try {
+            $organizationId = currentOrganizationId();
+        } catch (AuthorizationException) {
+            throw TagException::organizationResolutionFailed();
         }
 
-        $organizationId = getPermissionsTeamId();
-        if (is_string($organizationId) && $organizationId !== '') {
-            return $organizationId;
+        if ($model->getKey() === null) {
+            throw TagException::organizationResolutionFailed();
         }
 
-        throw new InvalidArgumentException(__('master::exceptions.organization_resolution_failed'));
+        $persistedAttributes = $model->newQuery()
+            ->whereKey($model->getKey())
+            ->firstOrFail()
+            ->getAttributes();
+        /** Rehydrate a typed clone so the contract getter reads persisted attributes. */
+        $persistedModel = clone $model;
+        $persistedModel->setRawAttributes($persistedAttributes, true);
+        $persistedOrganizationId = $persistedModel->getOrganizationId();
+
+        if ($persistedOrganizationId === '') {
+            throw TagException::organizationResolutionFailed();
+        }
+
+        if ($persistedOrganizationId !== $organizationId) {
+            throw TagException::organizationMismatch($organizationId, $persistedOrganizationId);
+        }
+
+        return $organizationId;
     }
 
-    protected function assertModelUsesTags(Model $model): void
+    protected function assertModelUsesTags(HasTagsContract $model): void
     {
-        if (!in_array(HasTags::class, class_uses_recursive($model::class), true)) {
-            throw TagException::modelMissingHasTagsTrait($model::class);
+        if (!in_array(InteractsWithTags::class, class_uses_recursive($model::class), true)) {
+            throw TagException::modelMissingInteractsWithTagsTrait($model::class);
         }
-    }
-
-    /**
-     * @return MorphToMany<Tag, Model>
-     */
-    protected function tagsRelation(Model $model): MorphToMany
-    {
-        /** @phpstan-ignore-next-line */
-        return $model->tags();
     }
 }

@@ -51,7 +51,7 @@ class UpdateProductVariantRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('catalog_product_variants', 'sku')
-                    ->where('organization_id', getPermissionsTeamId())
+                    ->where('organization_id', currentOrganizationId())
                     ->ignore($variant instanceof ProductVariant ? $variant : null),
             ],
             'unit_group_id'   => ['prohibited'],

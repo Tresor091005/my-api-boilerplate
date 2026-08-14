@@ -6,7 +6,7 @@ namespace Lahatre\Master\Data;
 
 use Illuminate\Support\Collection;
 
-final readonly class UnitSyncData
+final readonly class UnitUpsertData
 {
     /** @param Collection<int, UnitData>|null $units */
     private function __construct(

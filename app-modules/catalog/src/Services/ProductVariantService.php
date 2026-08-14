@@ -31,7 +31,7 @@ class ProductVariantService
 
     public function list(Product $product, ProductVariantFilterData $filters): ProductVariantCollection
     {
-        $query = $product->variants()->where('organization_id', getPermissionsTeamId())->with($this->relations());
+        $query = $product->variants()->where('organization_id', currentOrganizationId())->with($this->relations());
 
         if ($filters->isActive !== null) {
             $query->where('is_active', $filters->isActive);

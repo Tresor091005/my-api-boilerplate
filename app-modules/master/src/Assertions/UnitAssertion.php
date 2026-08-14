@@ -21,7 +21,7 @@ class UnitAssertion
      *
      * @throws UnitException If the group is built in, a base unit is missing, ratios conflict, or supplied units do not belong to the group.
      */
-    public function assertCanSync(?string $groupId, Collection $units, Collection $existingUnits, bool $isGroupBuiltin): void
+    public function assertCanUpsert(?string $groupId, Collection $units, Collection $existingUnits, bool $isGroupBuiltin): void
     {
         if ($isGroupBuiltin) {
             throw UnitException::builtInUpdate();

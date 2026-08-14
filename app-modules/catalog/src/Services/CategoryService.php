@@ -27,7 +27,7 @@ class CategoryService
 
     public function list(CategoryFilterData $filters): CategoryCollection
     {
-        $query = Category::query()->where('organization_id', getPermissionsTeamId());
+        $query = Category::query()->where('organization_id', currentOrganizationId());
 
         if ($filters->handle) {
             $query->where('handle', 'like', "$filters->handle%");
@@ -59,7 +59,7 @@ class CategoryService
         $category = new Category;
 
         $category->fill([
-            'organization_id' => getPermissionsTeamId(),
+            'organization_id' => currentOrganizationId(),
             'name'            => required($data->name),
             'parent_id'       => required($data->parentId),
             'is_active'       => required($data->isActive),
@@ -82,7 +82,7 @@ class CategoryService
             $newParent = $data->parentId === null
                 ? null
                 : Category::query()
-                    ->where('organization_id', getPermissionsTeamId())
+                    ->where('organization_id', currentOrganizationId())
                     ->whereNull('deleted_at')
                     ->find($data->parentId);
 

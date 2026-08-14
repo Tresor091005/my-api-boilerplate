@@ -74,6 +74,11 @@ class Unit extends Model
         'deleted_at'      => 'immutable_datetime',
     ];
 
+    public function getOrganizationId(): string
+    {
+        return (string) $this->organization_id;
+    }
+
     public function group(): BelongsTo
     {
         return $this->belongsTo(UnitGroup::class, 'group_id');

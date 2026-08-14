@@ -94,36 +94,42 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerStrMacros(): void
     {
+        // sanitize: trims leading/trailing whitespace and squishes internal whitespace; "  Hello   WORLD  " => "Hello WORLD".
         Str::macro('sanitize', fn (string $value): string => (string) str($value)->trim()->squish());
         Stringable::macro('sanitize', function (): Stringable {
             /** @var Stringable $this */
             return $this->trim()->squish();
         });
 
+        // normalize: applies sanitize, then lowercases the value; "  Hello   WORLD  " => "hello world".
         Str::macro('normalize', fn (string $value): string => (string) str($value)->sanitize()->lower());
         Stringable::macro('normalize', function (): Stringable {
             /** @var Stringable $this */
             return $this->sanitize()->lower();
         });
 
+        // toUpper: applies normalize, then uppercases the value; "  hello   world  " => "HELLO WORLD".
         Str::macro('toUpper', fn (string $value): string => (string) str($value)->normalize()->upper());
         Stringable::macro('toUpper', function (): Stringable {
             /** @var Stringable $this */
             return $this->normalize()->upper();
         });
 
+        // toTitle: applies normalize, then converts each word to title case while preserving separators; "  hello_world  " => "Hello_world".
         Str::macro('toTitle', fn (string $value): string => (string) str($value)->normalize()->title());
         Stringable::macro('toTitle', function (): Stringable {
             /** @var Stringable $this */
             return $this->normalize()->title();
         });
 
+        // toHeadline: applies normalize, then converts separators such as '_' and '-' to spaces; "  hello_world  " => "Hello World".
         Str::macro('toHeadline', fn (string $value): string => (string) str($value)->normalize()->headline());
         Stringable::macro('toHeadline', function (): Stringable {
             /** @var Stringable $this */
             return $this->normalize()->headline();
         });
 
+        // toKebab: applies normalize, then converts the text to kebab-case; "  Hello   WORLD  " => "hello-world".
         Str::macro('toKebab', fn (string $value): string => (string) str($value)->normalize()->kebab());
         Stringable::macro('toKebab', function (): Stringable {
             /** @var Stringable $this */

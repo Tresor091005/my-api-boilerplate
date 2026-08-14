@@ -7,9 +7,9 @@ namespace Lahatre\Master\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Master\Data\UnitFilterData;
-use Lahatre\Master\Data\UnitSyncData;
+use Lahatre\Master\Data\UnitUpsertData;
 use Lahatre\Master\Http\Requests\UnitFilterRequest;
-use Lahatre\Master\Http\Requests\UnitSyncRequest;
+use Lahatre\Master\Http\Requests\UnitUpsertRequest;
 use Lahatre\Master\Http\Resources\UnitCollection;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Services\UnitService;
@@ -29,13 +29,13 @@ class UnitController
         return $this->unitService->list($filters);
     }
 
-    public function sync(UnitSyncRequest $request): JsonResponse
+    public function upsert(UnitUpsertRequest $request): JsonResponse
     {
-        Gate::authorize('sync', Unit::class);
+        Gate::authorize('upsert', Unit::class);
 
-        $data = UnitSyncData::fromArray($request->validated());
+        $data = UnitUpsertData::fromArray($request->validated());
 
-        $response = $this->unitService->sync($data);
+        $response = $this->unitService->upsert($data);
 
         return response()->json($response);
     }

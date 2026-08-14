@@ -16,7 +16,7 @@ class BundleSeeder extends Seeder
      */
     public function run(): void
     {
-        $organizationId = getPermissionsTeamId();
+        $organizationId = currentOrganizationId();
         $bundleUnit = Unit::where('code', 'bundle')->first();
 
         // Get some product variants to add to bundles

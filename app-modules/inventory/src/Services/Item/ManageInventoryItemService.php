@@ -14,13 +14,10 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Master\Contracts\MasterInterface;
 
 class ManageInventoryItemService
 {
-    use ResolvesInventoryOrganization;
-
     public function __construct(
         protected MasterInterface $masterInterface,
     ) {}
@@ -52,7 +49,7 @@ class ManageInventoryItemService
 
     public function updateRecord(InventoryItem $item, array $data): InventoryItem
     {
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
 
         if ($item->organization_id !== $organizationId) {
             throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
@@ -141,7 +138,7 @@ class ManageInventoryItemService
 
     public function resolve(HasInventoryItem $model): InventoryItem
     {
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
         $this->assertOrganization($model, $organizationId);
 
         return InventoryItem::query()
@@ -162,7 +159,7 @@ class ManageInventoryItemService
             return collect();
         }
 
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
         $models->each(function (HasInventoryItem $model) use ($organizationId): void {
             $this->assertOrganization($model, $organizationId);
         });

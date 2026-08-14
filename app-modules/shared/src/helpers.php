@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -12,6 +13,19 @@ if (!function_exists('authContext')) {
     function authContext(): AuthContext
     {
         return app(AuthContext::class);
+    }
+}
+
+if (!function_exists('currentOrganizationId')) {
+    function currentOrganizationId(): string
+    {
+        $organizationId = getPermissionsTeamId();
+
+        if (!is_string($organizationId) || $organizationId === '') {
+            throw new AuthorizationException(__('shared::exceptions.organization_context_required'));
+        }
+
+        return $organizationId;
     }
 }
 

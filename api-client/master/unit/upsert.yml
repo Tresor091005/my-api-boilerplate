@@ -1,11 +1,11 @@
 info:
-  name: sync
+  name: upsert
   type: http
   seq: 2
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/master/units/sync"
+  url: "{{baseUrl}}/v1/master/units/upsert"
   body:
     type: json
     data: |-
@@ -31,7 +31,7 @@ settings:
 examples:
   - name: success
     request:
-      url: "{{baseUrl}}/v1/master/units/sync"
+      url: "{{baseUrl}}/v1/master/units/upsert"
       method: POST
       body:
         type: json

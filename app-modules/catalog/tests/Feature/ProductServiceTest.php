@@ -9,6 +9,7 @@ use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Http\Requests\ProductRequest;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\ProductService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Master\Models\Unit;
@@ -131,4 +132,113 @@ it('rejects soft-deleted category ids in product requests', function (): void {
             ],
         ],
     ], new ProductRequest()->rules())->validate())->not->toThrow(ValidationException::class);
+});
+
+it('rejects duplicate variant skus in the same tenant', function (): void {
+    $payload = [
+        'name'      => 'Duplicate SKU product',
+        'is_active' => true,
+        'variants'  => [
+            [
+                'sku'           => 'DUPLICATE-SKU',
+                'unit_group_id' => $this->unitGroup->id,
+                'options'       => [['name' => 'Color', 'value' => 'Black']],
+            ],
+            [
+                'sku'           => 'DUPLICATE-SKU',
+                'unit_group_id' => $this->unitGroup->id,
+                'options'       => [['name' => 'Color', 'value' => 'White']],
+            ],
+        ],
+    ];
+
+    $request = ProductRequest::create('/', 'POST', $payload)
+        ->setContainer(app())
+        ->setRedirector(app('redirect'));
+
+    expect(fn () => $request->validateResolved())
+        ->toThrow(ValidationException::class);
+
+    ProductVariant::factory()->create([
+        'organization_id' => $this->organizationId,
+        'sku'             => 'EXISTING-SKU',
+    ]);
+
+    $request = ProductRequest::create('/', 'POST', [
+        ...$payload,
+        'variants' => [[
+            'sku'           => 'EXISTING-SKU',
+            'unit_group_id' => $this->unitGroup->id,
+            'options'       => [['name' => 'Color', 'value' => 'Black']],
+        ]],
+    ])
+        ->setContainer(app())
+        ->setRedirector(app('redirect'));
+
+    expect(fn () => $request->validateResolved())
+        ->toThrow(ValidationException::class);
+});
+
+it('reports bulk variant validation errors at each original index', function (): void {
+    $request = ProductRequest::create('/', 'POST', [
+        'name'       => 'Invalid variants product',
+        'is_active'  => true,
+        'categories' => [
+            '00000000-0000-0000-0000-000000000003',
+            '00000000-0000-0000-0000-000000000004',
+        ],
+        'variants' => [
+            [
+                'sku'           => 'DUPLICATE-SKU',
+                'unit_group_id' => '00000000-0000-0000-0000-000000000001',
+                'options'       => [['name' => 'Color', 'value' => 'Black']],
+            ],
+            [
+                'sku'           => 'DUPLICATE-SKU',
+                'unit_group_id' => '00000000-0000-0000-0000-000000000002',
+                'options'       => [['name' => 'Color', 'value' => 'White']],
+            ],
+        ],
+    ])
+        ->setContainer(app())
+        ->setRedirector(app('redirect'));
+
+    $exception = null;
+    try {
+        $request->validateResolved();
+    } catch (ValidationException $validationException) {
+        $exception = $validationException;
+    }
+
+    expect($exception)->not->toBeNull()
+        ->and($exception?->errors())->toHaveKeys([
+            'variants.0.unit_group_id',
+            'variants.1.unit_group_id',
+            'variants.0.sku',
+            'variants.1.sku',
+            'categories.0',
+            'categories.1',
+        ]);
+});
+
+it('keeps soft-deleted variant skus reserved', function (): void {
+    $variant = ProductVariant::factory()->create([
+        'organization_id' => $this->organizationId,
+        'sku'             => 'RESERVED-SKU',
+    ]);
+    $variant->delete();
+
+    $request = ProductRequest::create('/', 'POST', [
+        'name'     => 'Reserved SKU product',
+        'variants' => [[
+            'sku'           => 'RESERVED-SKU',
+            'unit_group_id' => $this->unitGroup->id,
+            'options'       => [['name' => 'Color', 'value' => 'Black']],
+        ]],
+    ])
+        ->setContainer(app())
+        ->setRedirector(app('redirect'));
+
+    expect(fn () => $request->validateResolved())
+        ->toThrow(ValidationException::class);
 });

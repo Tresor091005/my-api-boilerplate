@@ -35,7 +35,7 @@ class UpdateOptionValueRequest extends FormRequest
                 Rule::unique('catalog_option_values', 'value')
                     ->where(fn ($query) => $query
                         ->where('option_id', $option instanceof Option ? $option->id : null)
-                        ->where('organization_id', getPermissionsTeamId())
+                        ->where('organization_id', currentOrganizationId())
                         ->whereNull('deleted_at'))
                     ->ignore($value instanceof OptionValue ? $value : null),
             ],

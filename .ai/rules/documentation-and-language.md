@@ -20,6 +20,18 @@ paths:
   When editing such a document, prefer migrating the touched content to
   English when that can be done without losing information.
 
+## String transformations
+
+- Prefer the project's registered `Str` and `Stringable` macros for recurring
+  string transformations, especially `sanitize()` for trimming leading and
+  trailing whitespace and squishing repeated internal whitespace.
+- Do not repeatedly combine `trim()` and `squish()` when `sanitize()` expresses
+  the intended behavior. Use the more specific macro such as `normalize()`,
+  `toTitle()`, `toHeadline()`, `toUpper()`, or `toKebab()` when that complete
+  transformation is the intended contract.
+- Apply these helpers only to named fields or values whose contract requires
+  the transformation; do not recursively rewrite arbitrary input data.
+
 ## Documentation after generation or structural change
 
 - After generating or materially changing code, inspect the resulting behavior

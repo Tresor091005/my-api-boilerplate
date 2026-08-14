@@ -29,7 +29,7 @@ class ProductService
 
     public function list(ProductFilterData $filters): ProductCollection
     {
-        $query = Product::query()->where('organization_id', getPermissionsTeamId())->with($this->relations());
+        $query = Product::query()->where('organization_id', currentOrganizationId())->with($this->relations());
 
         // TODO category filter
 
@@ -63,7 +63,7 @@ class ProductService
         $product = new Product;
 
         $product->fill([
-            'organization_id' => getPermissionsTeamId(),
+            'organization_id' => currentOrganizationId(),
             'name'            => required($data->name),
             'description'     => required($data->description),
             'is_active'       => required($data->isActive),

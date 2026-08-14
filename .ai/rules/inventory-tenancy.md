@@ -11,10 +11,9 @@ soft-delete, indexing, batching, and persistence policy, read
 
 - Inventory is tenant-scoped. Items, locations, stocks, transactions, and
   movements carry `organization_id`.
-- Resolve the active organization through the established inventory context,
-  currently provided by `ResolvesInventoryOrganization`. Fail explicitly when
-  that context is absent; do not silently use a request value or a nullable
-  fallback.
+- Resolve the active organization through the shared `currentOrganizationId()`
+  helper. Fail explicitly when that context is absent; do not silently use a
+  request value or a nullable fallback.
 - When a service receives an already resolved inventory model, verify that its
   `organization_id` matches the active organization before reading related
   state or mutating it. A model identifier alone is not sufficient evidence of
@@ -33,7 +32,6 @@ soft-delete, indexing, batching, and persistence policy, read
 - `.ai/rules/persistence-tenancy.md` — shared query and persistence boundaries.
 - `.ai/rules/domain-services-data.md` — inventory service orchestration and
   typed service data.
-- `app-modules/inventory/src/Traits/ResolvesInventoryOrganization.php` — active
-  organization resolution.
+- `app-modules/shared/src/helpers.php` — shared active organization resolution.
 - `app-modules/inventory/src/Exceptions/OrganizationScopeException.php` —
   explicit organization mismatch failure.

@@ -6,21 +6,24 @@ namespace Lahatre\Shared\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\ValidatorAwareRule;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Translation\PotentiallyTranslatedString;
+use Illuminate\Validation\Validator;
 
 /**
- * Validate every unique identifier in an array with one constrained query.
+ * Validate every identifier in an array with one constrained query and
+ * preserve precise errors for invalid nested elements.
  *
  * The Rule accepts either a flat identifier list or a list of objects from
- * which one identifier key is extracted. It remains value-aware only; use
- * DataAwareRule or ValidatorAwareRule in a dedicated Rule when validation
- * genuinely needs sibling payload fields or precise multi-path failures.
+ * which one identifier key is extracted.
  */
-class BulkExists implements ValidationRule
+class BulkExists implements ValidationRule, ValidatorAwareRule
 {
+    protected Validator $validator;
+
     /**
      * Create a new rule instance.
      *
@@ -34,7 +37,7 @@ class BulkExists implements ValidationRule
     public function __construct(
         protected string $table,
         protected string $column = 'id',
-        protected ?string $keyInArray = null,
+        protected string $keyInArray = 'id',
         protected string $type = 'uuid',
         protected bool $handleSoftDelete = false,
         protected array $extraConditions = []
@@ -51,25 +54,31 @@ class BulkExists implements ValidationRule
             return;
         }
 
-        $rawIds = collect($value)
-            ->map(fn ($item): mixed => $this->keyInArray ? ($item[$this->keyInArray] ?? null) : $item)
-            ->filter()
-            ->unique();
+        $items = collect($value)
+            ->map(fn (mixed $item, int|string $index): array => [
+                'index'  => $index,
+                'nested' => is_array($item),
+                'value'  => is_array($item)
+                    ? ($item[$this->keyInArray] ?? null)
+                    : $item,
+            ])
+            ->filter(fn (array $item): bool => $item['value'] !== null && $item['value'] !== '');
+
+        $rawIds = $items->pluck('value')->unique();
 
         if ($rawIds->isEmpty()) {
             return;
         }
 
-        // Filter valid IDs based on type to prevent DB crashes (especially PostgreSQL UUIDs)
-        $validIds = $rawIds->filter(fn ($id): bool => match ($this->type) {
-            'uuid'  => is_string($id) && Str::isUuid($id),
-            'int'   => is_numeric($id),
-            default => is_string($id) || is_numeric($id),
-        });
+        $validIds = $rawIds->filter(fn (mixed $id): bool => $this->isValidType($id));
 
-        if ($validIds->count() !== $rawIds->count()) {
-            $fail(__('shared::validation.bulk_exists', ['attribute' => $attribute]));
+        foreach ($items as $item) {
+            if (!$this->isValidType($item['value'])) {
+                $this->addError($attribute, $item['index'], $item['nested'], __('shared::validation.bulk_exists', ['attribute' => $attribute]));
+            }
+        }
 
+        if ($validIds->isEmpty()) {
             return;
         }
 
@@ -88,10 +97,40 @@ class BulkExists implements ValidationRule
             $query->whereNull('deleted_at');
         }
 
-        $existingCount = $query->count();
+        $existingIds = $query->pluck($this->column)->all();
 
-        if ($existingCount !== $validIds->count()) {
-            $fail(__('shared::validation.bulk_exists', ['attribute' => $attribute]));
+        foreach ($items as $item) {
+            if ($this->isValidType($item['value']) && !in_array($item['value'], $existingIds, true)) {
+                $this->addError($attribute, $item['index'], $item['nested'], __('shared::validation.bulk_exists', ['attribute' => $attribute]));
+            }
         }
+    }
+
+    /**
+     * Receive the Laravel validator before validation starts.
+     */
+    public function setValidator(Validator $validator): static
+    {
+        $this->validator = $validator;
+
+        return $this;
+    }
+
+    protected function isValidType(mixed $value): bool
+    {
+        return match ($this->type) {
+            'uuid'  => is_string($value) && Str::isUuid($value),
+            'int'   => is_numeric($value),
+            default => is_string($value) || is_numeric($value),
+        };
+    }
+
+    protected function addError(string $attribute, int|string $index, bool $nested, string $message): void
+    {
+        $errorAttribute = $nested
+            ? "{$attribute}.{$index}.{$this->keyInArray}"
+            : "{$attribute}.{$index}";
+
+        $this->validator->errors()->add($errorAttribute, $message);
     }
 }

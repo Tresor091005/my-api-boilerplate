@@ -24,7 +24,7 @@ final class ReplaceOrderLinesRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
-                new ValidOrderLines((string) getPermissionsTeamId()),
+                new ValidOrderLines((string) currentOrganizationId()),
             ],
             'lines.*.product_id' => ['required', 'uuid'],
             'lines.*.quantity'   => ['required', 'integer', 'min:1'],

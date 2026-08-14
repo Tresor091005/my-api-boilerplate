@@ -63,7 +63,9 @@ Use it together with `.ai/rules/` and `CODEBASE_RULES.md`:
 ### 3.6 Inventory Tenancy Boundary
 - `inventory` is tenant-scoped in the current architecture.
 - Inventory items, locations, stocks, transactions, and movements carry `organization_id`.
-- Inventory services resolve the active organization through `ResolvesInventoryOrganization`, constrain queries by that organization, and reject resolved models from another organization.
+- Inventory services resolve the active organization through the shared
+  `currentOrganizationId()` helper, constrain queries by that organization, and
+  reject resolved models from another organization.
 - Inventory HTTP routes use `auth.api`, but authentication and organization scoping do not replace permission authorization in Controllers and Policies.
 - UUID identifiers reduce trivial enumeration, but they are not an authorization boundary.
 - Any new inventory query, aggregate, mutation, index, or uniqueness rule must preserve the organization boundary explicitly.

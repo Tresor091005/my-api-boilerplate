@@ -38,6 +38,11 @@ paths:
 - Tenant, soft-delete, active-state, status, and parent constraints must be explicit whenever the validation contract requires them. A bare `exists:table,id` is not sufficient when the model has additional authenticity boundaries.
 - Never put an `exists` or `unique` query inside a loop. That is an N+1 validation query pattern disguised as iteration. Collect unique identifiers, query once, key the result, and compare in memory.
 - Database-aware validation follows the global persistence rule: bulk queries, explicit tenant and soft-delete boundaries, and no avoidable query or lazy load in a loop.
+- SQL efficiency must not reduce validation error fidelity. A bulk Rule must
+  report every invalid input element at its original index, especially for
+  nested payloads, instead of failing once on the parent array. Use
+  `ValidatorAwareRule` when necessary to add errors such as
+  `variants.0.sku` and `variants.2.sku` while retaining the single bulk query.
 - A validation check answers whether input is acceptable now; persistent business invariants still belong to Assertions and must be rechecked by the service when needed.
 
 ## Conditional and Wildcard Fields
@@ -60,6 +65,10 @@ paths:
 - Collect unique identifiers and query them in bulk. Never issue one query per nested item or hide row-by-row `exists` checks inside a loop.
 - Inspect the target model before querying and constrain `organization_id`, soft deletes, active state, status, parent ownership, and any authenticity boundary required by the input contract.
 - Shared Rules must be module-agnostic and configurable. Business-specific Rules stay in their module.
+- Collection Rules that extract a field must make that field explicit in their
+  constructor, with `id` as the only permitted default when the collection is
+  conventionally a list of identifiers. Preserve flat-list and object-list
+  index semantics without inventing a parent-level error.
 - Use translated messages. Prefer the `$fail` callback for the current attribute; use the injected Validator only when exact or multiple nested paths materially improve the error contract.
 - Validation Rules report HTTP/input errors. They do not mutate data, start transactions, authorize, or throw business exceptions.
 
@@ -72,5 +81,8 @@ paths:
 
 - `.ai/reference-examples/ReplaceOrderLinesRequest.php.example` shows a Form Request that stays readable as an input schema.
 - `.ai/reference-examples/ValidOrderLines.php.example` shows one cohesive Rule implementing `ValidationRule`, `DataAwareRule`, and `ValidatorAwareRule`, with one tenant-scoped bulk lookup and precise nested errors.
-- `app-modules/shared/src/Rules/BulkExists.php` is the production reference for a configurable shared Rule that validates only the current value and therefore needs neither payload nor Validator awareness.
+- `app-modules/shared/src/Rules/BulkExists.php` and
+  `app-modules/shared/src/Rules/BulkUnique.php` are the production references
+  for configurable bulk Rules: they perform constrained lookups once and use
+  `ValidatorAwareRule` to preserve precise indexed errors.
 - `app-modules/*/src/Http/Requests/**` contains create/update Requests that merge rules from route-model context and normalize explicitly named fields.

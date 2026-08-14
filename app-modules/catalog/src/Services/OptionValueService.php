@@ -27,7 +27,7 @@ class OptionValueService
 
     public function list(Option $option, OptionValueFilterData $filters): AnonymousResourceCollection
     {
-        $query = $option->values()->where('organization_id', getPermissionsTeamId());
+        $query = $option->values()->where('organization_id', currentOrganizationId());
 
         if ($filters->value) {
             $query->where('value', 'like', "$filters->value%");

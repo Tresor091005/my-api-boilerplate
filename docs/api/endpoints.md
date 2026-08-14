@@ -33,7 +33,7 @@ from being addressed through a parent that does not own it.
 | --- | --- | --- |
 | GET | `/v1/master/currencies` | List currencies. |
 | GET | `/v1/master/units` | List units, optionally filtered. |
-| POST | `/v1/master/units/sync` | Synchronize unit groups and units. |
+| POST | `/v1/master/units/upsert` | Create or update unit groups and units. |
 
 ## Inventory reads and stock metadata
 

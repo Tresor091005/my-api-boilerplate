@@ -26,7 +26,7 @@ class OptionService
 
     public function list(OptionFilterData $filters): OptionCollection
     {
-        $query = Option::query()->where('organization_id', getPermissionsTeamId());
+        $query = Option::query()->where('organization_id', currentOrganizationId());
 
         if ($filters->name) {
             $query->where('name', 'like', "$filters->name%");
@@ -47,7 +47,7 @@ class OptionService
         $option = new Option;
 
         $option->fill([
-            'organization_id' => getPermissionsTeamId(),
+            'organization_id' => currentOrganizationId(),
             'name'            => required($data->name),
         ]);
 

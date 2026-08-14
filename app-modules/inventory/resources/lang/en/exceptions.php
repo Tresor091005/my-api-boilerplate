@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 return [
-    'organization_context_required'       => 'An organization context is required for Inventory operations.',
     'organization_mismatch'               => 'The referenced model does not belong to the current organization.',
     'idempotency_key_reused'              => 'The idempotency key has already been used with a different transaction payload.',
     'adjustment_no_op'                    => 'The target quantity is already the current stock. Item :item_id, location :location_id.',

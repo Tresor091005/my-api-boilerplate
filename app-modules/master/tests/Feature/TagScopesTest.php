@@ -95,3 +95,23 @@ it('does not mix tag names from another type', function (): void {
 
     expect($ids->all())->toBeEmpty();
 });
+
+it('does not return taggable models from another organization', function (): void {
+    $foreignGroup = UnitGroup::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignUnit = TestTaggableUnit::query()->findOrFail(Unit::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'group_id'        => $foreignGroup->id,
+    ])->id);
+
+    setPermissionsTeamId($this->otherOrganizationId);
+    $foreignUnit->attach(['status' => ['active']]);
+    setPermissionsTeamId($this->organizationId);
+
+    $ids = TestTaggableUnit::query()
+        ->withAnyTagsOfType('status', ['active'])
+        ->pluck('id');
+
+    expect($ids->all())->toEqual([$this->unitOne->id]);
+});

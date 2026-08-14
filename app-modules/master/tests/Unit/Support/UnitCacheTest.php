@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -14,7 +15,8 @@ use Lahatre\Master\Support\UnitCache;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    setPermissionsTeamId(null);
+    $this->organizationId = (string) str()->uuid();
+    setPermissionsTeamId($this->organizationId);
 
     $this->cache = new UnitCache;
     $this->group = UnitGroup::factory()->create([
@@ -38,7 +40,7 @@ beforeEach(function (): void {
 });
 
 it('uses a single cache key for all units', function (): void {
-    $key = 'master:units:all:system';
+    $key = "master:units:all:{$this->organizationId}";
     expect(Cache::has($key))->toBeFalse();
 
     $unit = $this->cache->getByCode('test-m');
@@ -46,7 +48,7 @@ it('uses a single cache key for all units', function (): void {
     expect(Cache::has($key))->toBeTrue();
 });
 
-it('scopes cached units to system and the current organization', function (): void {
+it('scopes cached units to system units and the current organization', function (): void {
     $organizationId = (string) str()->uuid();
     $otherOrganizationId = (string) str()->uuid();
     $now = now();
@@ -101,7 +103,7 @@ it('scopes cached units to system and the current organization', function (): vo
 });
 
 it('memoizes units collection in memory during the same request', function (): void {
-    $key = 'master:units:all:system';
+    $key = "master:units:all:{$this->organizationId}";
 
     // First call: loads from DB into Cache and then into local property
     $collection1 = $this->cache->units();
@@ -133,6 +135,12 @@ it('resets local memory when rewarming units', function (): void {
     expect($collection1)->not->toBe($collection2);
     expect($collection2->where('code', 'test-km'))->toHaveCount(1);
 });
+
+it('requires an active organization to load units', function (): void {
+    setPermissionsTeamId(null);
+
+    (new UnitCache)->units();
+})->throws(AuthorizationException::class);
 
 it('caches currencies and memoizes them', function (): void {
     $key = 'master:currencies:all';

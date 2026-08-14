@@ -16,8 +16,9 @@ return [
     'conversion_unit_group_mismatch' => 'Cannot convert :from to :to: different unit groups.',
 
     // Tags
-    'tag_not_found'                  => 'Some tags do not exist for type ":type": :names.',
-    'tag_link_not_found'             => 'Some tag links do not exist for type ":type": :names.',
-    'organization_resolution_failed' => 'Unable to resolve organization_id for tags operations.',
-    'model_missing_has_tags_trait'   => 'Model :model must use Lahatre\Master\Traits\HasTags to use tag operations.',
+    'tag_not_found'                           => 'Some tags do not exist for type ":type": :names.',
+    'tag_link_not_found'                      => 'Some tag links do not exist for type ":type": :names.',
+    'organization_resolution_failed'          => 'Unable to resolve organization_id for tags operations.',
+    'organization_mismatch'                   => 'The taggable model does not belong to the active organization.',
+    'model_missing_interacts_with_tags_trait' => 'Model :model must use Lahatre\Master\Traits\InteractsWithTags to use tag operations.',
 ];

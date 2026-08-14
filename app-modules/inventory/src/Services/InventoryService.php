@@ -33,14 +33,11 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
 use Lahatre\Inventory\Services\Location\ManageInventoryLocationService;
-use Lahatre\Inventory\Traits\ResolvesInventoryOrganization;
 use Lahatre\Inventory\Validation\TransactionValidator;
 use Lahatre\Master\Contracts\MasterInterface;
 
 class InventoryService implements InventoryInterface
 {
-    use ResolvesInventoryOrganization;
-
     /**
      * @var array<string, Collection<int, InventoryStock>>
      */
@@ -139,7 +136,7 @@ class InventoryService implements InventoryInterface
             return DB::transaction(function () use ($originalTransactionId, $metadata, $with): InventoryTransaction {
                 $original = $this->loadTransactionForReversal(
                     originalTransactionId: $originalTransactionId,
-                    organizationId: $this->organizationId(),
+                    organizationId: currentOrganizationId(),
                 );
 
                 $payload = $this->buildReversalPayload($original, $metadata);
@@ -168,7 +165,7 @@ class InventoryService implements InventoryInterface
             $this->runPreview(function () use ($originalTransactionId, $metadata): void {
                 $original = $this->loadTransactionForReversal(
                     originalTransactionId: $originalTransactionId,
-                    organizationId: $this->organizationId(),
+                    organizationId: currentOrganizationId(),
                 );
 
                 if ($original->reversal !== null) {
@@ -239,7 +236,7 @@ class InventoryService implements InventoryInterface
         $itemIds = $transaction->movements->pluck('item_id')->unique()->values();
 
         $disabledItemId = InventoryItem::query()
-            ->where('organization_id', $this->organizationId())
+            ->where('organization_id', currentOrganizationId())
             ->whereIn('id', $itemIds)
             ->where('stock_tracking_enabled', false)
             ->value('id');
@@ -257,7 +254,7 @@ class InventoryService implements InventoryInterface
         bool $preview = false,
         bool $allowLegacyExpiration = false,
     ): InventoryTransaction {
-        $organizationId = $this->organizationId();
+        $organizationId = currentOrganizationId();
 
         $this->stockSelectionCache = [];
         $transferReversalBatches = $data['_transfer_reversal_batches'] ?? null;
@@ -743,6 +740,7 @@ class InventoryService implements InventoryInterface
         ?array $stockMetadata = null,
         ?string $linkId = null,
     ): InventoryStock {
+        $organizationId = currentOrganizationId();
         $movement = $context->movement;
         $item = $context->item;
         $quantityInBase = $quantityOverrideInBase ?? $context->quantityInBase;
@@ -758,7 +756,7 @@ class InventoryService implements InventoryInterface
         $costRemainder = $resolvedTotalCost % $quantity;
 
         $stock = InventoryStock::create([
-            'organization_id' => $this->organizationId(),
+            'organization_id' => $organizationId,
             'item_id'         => $movement->itemId,
             'location_id'     => $movement->locationId,
             'unit_cost'       => $resolvedUnitCost,
@@ -772,7 +770,7 @@ class InventoryService implements InventoryInterface
         ]);
 
         InventoryMovement::create([
-            'organization_id' => $this->organizationId(),
+            'organization_id' => $organizationId,
             'movement_type'   => MovementType::In,
             'transaction_id'  => $tx->id,
             'link_id'         => $linkId,
@@ -844,7 +842,7 @@ class InventoryService implements InventoryInterface
             $stock->save();
 
             $outMovement = InventoryMovement::create([
-                'organization_id'         => $this->organizationId(),
+                'organization_id'         => currentOrganizationId(),
                 'movement_type'           => MovementType::Out,
                 'transaction_id'          => $tx->id,
                 'link_id'                 => $linkId,
@@ -881,7 +879,7 @@ class InventoryService implements InventoryInterface
         string $linkId,
     ): void {
         $stock = InventoryStock::query()
-            ->where('organization_id', $this->organizationId())
+            ->where('organization_id', currentOrganizationId())
             ->whereKey($movementData['stock_id'])
             ->lockForUpdate()
             ->first();
@@ -904,7 +902,7 @@ class InventoryService implements InventoryInterface
         $stock->save();
 
         $outMovement = InventoryMovement::create([
-            'organization_id'         => $this->organizationId(),
+            'organization_id'         => currentOrganizationId(),
             'movement_type'           => MovementType::Out,
             'transaction_id'          => $tx->id,
             'link_id'                 => $linkId,
@@ -927,7 +925,7 @@ class InventoryService implements InventoryInterface
     {
         return InventoryStock::query()
             ->where('item_id', $movement->itemId)
-            ->where('organization_id', $this->organizationId())
+            ->where('organization_id', currentOrganizationId())
             ->where('location_id', $movement->locationId)
             ->where('remaining', '>', 0)
             ->lockForUpdate()
@@ -976,7 +974,7 @@ class InventoryService implements InventoryInterface
         }
 
         $query = InventoryStock::where('item_id', $movement->itemId)
-            ->where('organization_id', $this->organizationId())
+            ->where('organization_id', currentOrganizationId())
             ->where('location_id', $movement->locationId)
             ->where('remaining', '>', 0)
             ->lockForUpdate();

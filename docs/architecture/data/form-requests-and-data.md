@@ -31,14 +31,14 @@ Les Form Requests gardent toujours le suffixe `Request` :
 
 - `CategoryRequest` si store et update partagent réellement le même contrat ;
 - `StoreOptionValueRequest` et `UpdateOptionValueRequest` lorsque les shapes divergent ;
-- `CategoryFilterRequest`, `LoginRequest`, `UnitSyncRequest` selon l'intention.
+- `CategoryFilterRequest`, `LoginRequest`, `UnitUpsertRequest` selon l'intention.
 
 Les objets de service utilisent le suffixe `Data` :
 
 - `CategoryData` ;
 - `CategoryFilterData` ;
 - `LoginData` ;
-- `UnitSyncData`.
+- `UnitUpsertData`.
 
 Il ne faut pas créer automatiquement une paire store/update. Une classe représente un shape cohérent ; elle est divisée lorsque les branches conditionnelles rendent le contrat difficile à lire.
 

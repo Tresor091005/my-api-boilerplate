@@ -55,7 +55,7 @@ Ils couvrent:
 Les factories `catalog` n'importent pas les modeles `organization`, mais respectent les FK:
 
 - elles inserent une ligne minimale dans `organization_organizations` si necessaire
-- elles reutilisent `getPermissionsTeamId()` quand disponible
+- elles reutilisent `currentOrganizationId()` quand disponible
 
 Objectif: rester conforme a `ModularDependencyTest` tout en gardant des tests stables.
 

@@ -7,9 +7,9 @@ namespace Lahatre\Catalog\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Shared\Rules\BulkExists;
+use Lahatre\Shared\Rules\BulkUnique;
 
 class StoreProductVariantRequest extends FormRequest
 {
@@ -32,29 +32,22 @@ class StoreProductVariantRequest extends FormRequest
      */
     public function rules(): array
     {
+        $organizationId = currentOrganizationId();
+
         return [
             'variants' => [
                 'required',
                 'array',
                 'min:1',
                 new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true, [
-                    fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId()),
+                    fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', $organizationId),
+                ]),
+                new BulkUnique('catalog_product_variants', 'sku', 'sku', false, [
+                    'organization_id' => $organizationId,
                 ]),
             ],
-            'variants.*.sku' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('catalog_product_variants', 'sku')
-                    ->where('organization_id', getPermissionsTeamId()),
-            ],
-            'variants.*.unit_group_id' => [
-                'required',
-                'uuid',
-                Rule::exists('master_unit_groups', 'id')
-                    ->whereNull('deleted_at')
-                    ->where(fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', getPermissionsTeamId())),
-            ],
+            'variants.*.sku'             => ['nullable', 'string', 'max:255'],
+            'variants.*.unit_group_id'   => ['required', 'uuid'],
             'variants.*.is_active'       => ['boolean'],
             'variants.*.options'         => ['required', 'array', 'min:1'],
             'variants.*.options.*.name'  => ['required', 'string', 'max:255'],

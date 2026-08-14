@@ -36,7 +36,7 @@ class CategoryRequest extends FormRequest
                 'nullable',
                 'string',
                 Rule::exists('catalog_categories', 'id')
-                    ->where('organization_id', getPermissionsTeamId())
+                    ->where('organization_id', currentOrganizationId())
                     ->whereNull('deleted_at'),
             ],
             'is_active' => [
