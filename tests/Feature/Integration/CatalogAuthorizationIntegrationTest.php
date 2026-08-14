@@ -46,11 +46,11 @@ beforeEach(function (): void {
     ]);
 
     $permissions = [
-        'categories.list', 'categories.retrieve', 'categories.create', 'categories.update', 'categories.delete',
-        'options.list', 'options.retrieve', 'options.create', 'options.update', 'options.delete',
-        'option_values.list', 'option_values.retrieve', 'option_values.create', 'option_values.update', 'option_values.delete',
-        'products.list', 'products.retrieve', 'products.create', 'products.update', 'products.delete',
-        'product_variants.list', 'product_variants.retrieve', 'product_variants.create', 'product_variants.update', 'product_variants.delete',
+        'catalog_category.list', 'catalog_category.retrieve', 'catalog_category.create', 'catalog_category.update', 'catalog_category.delete',
+        'catalog_option.list', 'catalog_option.retrieve', 'catalog_option.create', 'catalog_option.update', 'catalog_option.delete',
+        'catalog_option_value.list', 'catalog_option_value.retrieve', 'catalog_option_value.create', 'catalog_option_value.update', 'catalog_option_value.delete',
+        'catalog_product.list', 'catalog_product.retrieve', 'catalog_product.create', 'catalog_product.update', 'catalog_product.delete',
+        'catalog_product_variant.list', 'catalog_product_variant.retrieve', 'catalog_product_variant.create', 'catalog_product_variant.update', 'catalog_product_variant.delete',
     ];
 
     collect($permissions)->each(function (string $permissionName): void {

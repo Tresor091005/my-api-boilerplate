@@ -59,3 +59,20 @@ paths:
 - A module's `README.md` and `docs/` own module-specific behavior. Keep
   historical decisions in `docs/decisions/` and link them from the stable
   documentation when relevant.
+
+## Self-documenting change workflow
+
+- Every behavior change, addition, removal, public contract change, generator
+  change, or architectural refactor must leave a durable record in the same
+  change.
+- Update the nearest authoritative documentation, decision record, or module
+  documentation. If none exists, create a focused document under
+  `docs/decisions/` or update the applicable `.ai/rules/*.md` file and link it
+  from the relevant index.
+- Do not rely on a commit message, chat history, generated code, or tests alone
+  to explain non-obvious behavior. Record the resulting contract, rationale,
+  boundaries or failure modes, and required commands or migrations.
+- When a rule changes how agents or contributors work, update this rules tree
+  because `.ai/rules/index.md` is loaded before planning and edits. When a
+  stable runtime convention changes, update the relevant human documentation
+  as well instead of duplicating the full explanation in multiple locations.

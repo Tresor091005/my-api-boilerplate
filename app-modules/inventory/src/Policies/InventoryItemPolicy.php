@@ -12,6 +12,6 @@ class InventoryItemPolicy extends BasePolicy
 {
     public function update(Authorizable $user, InventoryItem $item): bool
     {
-        return $this->canOnModel('inventory_items.update', $item);
+        return $this->canOnModel('update', $item);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Shared\Registries;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
@@ -56,6 +57,30 @@ class MorphMapRegistry
     public function getMap(): array
     {
         return $this->map;
+    }
+
+    /**
+     * Resolve the registered morph alias for a model class or instance.
+     *
+     * @param  class-string<Model>|Model  $model
+     */
+    public function getAlias(string|Model $model): ?string
+    {
+        $class = $model instanceof Model ? $model::class : $model;
+
+        return array_search($class, $this->map, true) ?: null;
+    }
+
+    /**
+     * Resolve a model class from a registered morph alias.
+     *
+     * @return class-string<Model>|null
+     */
+    public function getModel(string $alias): ?string
+    {
+        $model = $this->map[$alias] ?? null;
+
+        return is_string($model) && is_subclass_of($model, Model::class) ? $model : null;
     }
 
     /**

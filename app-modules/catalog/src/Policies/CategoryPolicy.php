@@ -15,7 +15,7 @@ class CategoryPolicy extends BasePolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $this->can('categories.list');
+        return $this->canModel('list', Category::class);
     }
 
     /**
@@ -23,7 +23,7 @@ class CategoryPolicy extends BasePolicy
      */
     public function retrieve(Authorizable $user, Category $model): bool
     {
-        return $this->canOnModel('categories.retrieve', $model);
+        return $this->canOnModel('retrieve', $model);
     }
 
     /**
@@ -31,7 +31,7 @@ class CategoryPolicy extends BasePolicy
      */
     public function create(Authorizable $user): bool
     {
-        return $this->can('categories.create');
+        return $this->canModel('create', Category::class);
     }
 
     /**
@@ -39,7 +39,7 @@ class CategoryPolicy extends BasePolicy
      */
     public function update(Authorizable $user, Category $model): bool
     {
-        return $this->canOnModel('categories.update', $model);
+        return $this->canOnModel('update', $model);
     }
 
     /**
@@ -47,7 +47,7 @@ class CategoryPolicy extends BasePolicy
      */
     public function delete(Authorizable $user, Category $model): bool
     {
-        return $this->canOnModel('categories.delete', $model);
+        return $this->canOnModel('delete', $model);
     }
 
     /**

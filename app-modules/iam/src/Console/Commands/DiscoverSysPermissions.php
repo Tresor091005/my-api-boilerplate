@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
+use Lahatre\Shared\Registries\MorphMapRegistry;
+use Lahatre\Shared\Support\ModelFinder;
 use Spatie\Permission\PermissionRegistrar;
 
 class DiscoverSysPermissions extends Command
@@ -28,20 +27,18 @@ class DiscoverSysPermissions extends Command
 
         $guardName = config('auth.defaults.guard');
         $actions = ['list', 'retrieve', 'create', 'update', 'delete'];
-        $modulesPath = config('app-modules.modules_directory', 'app-modules');
+        $morphMapRegistry = app(MorphMapRegistry::class);
+        $skippedModels = [];
+        $this->info(__('iam::console.discovery.scanning', ['path' => 'configured model namespaces']));
 
-        $this->info(__('iam::console.discovery.scanning', ['path' => $modulesPath.'/*/src/Models']));
+        foreach (ModelFinder::getAllModels() as $class) {
+            $modelName = $morphMapRegistry->getAlias($class);
 
-        $modelFiles = File::glob(base_path($modulesPath).'/*/src/Models/*.php');
+            if ($modelName === null) {
+                $skippedModels[] = $class;
 
-        foreach ($modelFiles as $file) {
-            $class = $this->getClassFromFile($file);
-
-            if (!$class || !class_exists($class) || !is_subclass_of($class, Model::class)) {
                 continue;
             }
-
-            $modelName = Str::plural(Str::snake(class_basename($class)));
 
             $this->line(__('iam::console.discovery.discovered_model', ['class' => $class, 'model' => $modelName]));
 
@@ -59,6 +56,13 @@ class DiscoverSysPermissions extends Command
                 );
                 $this->line(__('iam::console.discovery.created_permission', ['name' => $permissionName]));
             }
+        }
+
+        if ($skippedModels !== []) {
+            $this->warn(__('iam::console.discovery.skipped_models_summary', [
+                'count'   => count($skippedModels),
+                'classes' => implode(', ', $skippedModels),
+            ]));
         }
 
         $this->info(__('iam::console.discovery.completed_syncing'));
@@ -103,29 +107,5 @@ class DiscoverSysPermissions extends Command
         $this->info(__('iam::console.discovery.success'));
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Get the full class name from a file path.
-     */
-    private function getClassFromFile(string $path): ?string
-    {
-        $content = file_get_contents($path);
-
-        $namespace = null;
-        if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
-            $namespace = $matches[1];
-        }
-
-        $class = null;
-        if (preg_match('/class\s+([^\s]+)/', $content, $matches)) {
-            $class = $matches[1];
-        }
-
-        if ($namespace && $class) {
-            return $namespace.'\\'.$class;
-        }
-
-        return null;
     }
 }

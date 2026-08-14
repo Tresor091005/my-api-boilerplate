@@ -12,27 +12,27 @@ class OptionPolicy extends BasePolicy
 {
     public function list(Authorizable $user): bool
     {
-        return $this->can('options.list');
+        return $this->canModel('list', Option::class);
     }
 
     public function retrieve(Authorizable $user, Option $model): bool
     {
-        return $this->canOnModel('options.retrieve', $model);
+        return $this->canOnModel('retrieve', $model);
     }
 
     public function create(Authorizable $user): bool
     {
-        return $this->can('options.create');
+        return $this->canModel('create', Option::class);
     }
 
     public function update(Authorizable $user, Option $model): bool
     {
-        return $this->canOnModel('options.update', $model);
+        return $this->canOnModel('update', $model);
     }
 
     public function delete(Authorizable $user, Option $model): bool
     {
-        return $this->canOnModel('options.delete', $model);
+        return $this->canOnModel('delete', $model);
     }
 
     public function restore(Authorizable $user, Option $model): bool

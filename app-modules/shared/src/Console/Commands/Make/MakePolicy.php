@@ -53,11 +53,10 @@ class MakePolicy extends GeneratorCommand
 
         $namespacedModel = $this->qualifyModelForPolicy($model);
         $modelName = class_basename($namespacedModel);
-        $modelPluralSnake = Str::plural(Str::snake($modelName));
 
         $stub = str_replace(
-            ['{{ namespacedModel }}', '{{ model }}', '{{ modelPluralSnake }}'],
-            [$namespacedModel, $modelName, $modelPluralSnake],
+            ['{{ namespacedModel }}', '{{ model }}'],
+            [$namespacedModel, $modelName],
             $stub
         );
 

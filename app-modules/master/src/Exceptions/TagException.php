@@ -42,6 +42,21 @@ final class TagException extends AssertionException
         );
     }
 
+    /** @param array<int, array{taggable_type: string, taggable_id: string}> $usages */
+    public static function inUse(array $usages): self
+    {
+        return self::message(__('master::exceptions.tag_in_use', ['count' => count($usages)]), ['usages' => $usages]);
+    }
+
+    /** @param array<int, string> $missingTagIds @param array<int, string> $unexpectedTagIds */
+    public static function reorderMismatch(array $missingTagIds, array $unexpectedTagIds): self
+    {
+        return self::message(__('master::exceptions.tag_reorder_mismatch'), [
+            'missing_tag_ids'    => $missingTagIds,
+            'unexpected_tag_ids' => $unexpectedTagIds,
+        ]);
+    }
+
     private static function message(string $message, array $context = []): self
     {
         return new self($message, $context);

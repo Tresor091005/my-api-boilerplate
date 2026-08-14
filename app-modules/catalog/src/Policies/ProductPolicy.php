@@ -15,7 +15,7 @@ class ProductPolicy extends BasePolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $this->can('products.list');
+        return $this->canModel('list', Product::class);
     }
 
     /**
@@ -23,7 +23,7 @@ class ProductPolicy extends BasePolicy
      */
     public function retrieve(Authorizable $user, Product $model): bool
     {
-        return $this->canOnModel('products.retrieve', $model);
+        return $this->canOnModel('retrieve', $model);
     }
 
     /**
@@ -31,7 +31,7 @@ class ProductPolicy extends BasePolicy
      */
     public function create(Authorizable $user): bool
     {
-        return $this->can('products.create');
+        return $this->canModel('create', Product::class);
     }
 
     /**
@@ -39,7 +39,7 @@ class ProductPolicy extends BasePolicy
      */
     public function update(Authorizable $user, Product $model): bool
     {
-        return $this->canOnModel('products.update', $model);
+        return $this->canOnModel('update', $model);
     }
 
     /**
@@ -47,7 +47,7 @@ class ProductPolicy extends BasePolicy
      */
     public function delete(Authorizable $user, Product $model): bool
     {
-        return $this->canOnModel('products.delete', $model);
+        return $this->canOnModel('delete', $model);
     }
 
     /**

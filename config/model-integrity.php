@@ -94,5 +94,6 @@ return [
         'catalog_categories'       => ['handle'],
         'catalog_products'         => ['handle'],
         'catalog_bundles'          => ['handle'],
+        'master_tags'              => ['organization_id'],
     ],
 ];

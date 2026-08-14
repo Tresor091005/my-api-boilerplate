@@ -15,7 +15,7 @@ class {{ class }} extends BasePolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $this->can('{{ modelPluralSnake }}.list');
+        return $this->canModel('list', {{ model }}::class);
     }
 
     /**
@@ -23,7 +23,7 @@ class {{ class }} extends BasePolicy
      */
     public function retrieve(Authorizable $user, {{ model }} $model): bool
     {
-        return $this->canOnModel('{{ modelPluralSnake }}.retrieve', $model);
+        return $this->canOnModel('retrieve', $model);
     }
 
     /**
@@ -31,7 +31,7 @@ class {{ class }} extends BasePolicy
      */
     public function create(Authorizable $user): bool
     {
-        return $this->can('{{ modelPluralSnake }}.create');
+        return $this->canModel('create', {{ model }}::class);
     }
 
     /**
@@ -39,7 +39,7 @@ class {{ class }} extends BasePolicy
      */
     public function update(Authorizable $user, {{ model }} $model): bool
     {
-        return $this->canOnModel('{{ modelPluralSnake }}.update', $model);
+        return $this->canOnModel('update', $model);
     }
 
     /**
@@ -47,7 +47,7 @@ class {{ class }} extends BasePolicy
      */
     public function delete(Authorizable $user, {{ model }} $model): bool
     {
-        return $this->canOnModel('{{ modelPluralSnake }}.delete', $model);
+        return $this->canOnModel('delete', $model);
     }
 
     /**

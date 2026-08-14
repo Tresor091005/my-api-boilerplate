@@ -1,6 +1,8 @@
-# Gestion des Rôles et Permissions avec Spatie
+# Roles and Permissions with Spatie
 
-Ce projet utilise le package `spatie/laravel-permission` comme base pour un système de rôles et permissions robuste et adapté aux équipes. Cette documentation explique les personnalisations et l'architecture mises en place.
+This project uses `spatie/laravel-permission` as the foundation for a
+team-aware role and permission system. This document describes the
+project-specific conventions and runtime behavior.
 
 ## 1. Philosophie et Objectifs
 
@@ -27,18 +29,42 @@ La migration `@app-modules/iam/database/migrations/..._create_permission_tables.
 -   **Table `iam_permissions` :** Ajout de colonnes `title` et `description` pour des permissions plus explicites dans une éventuelle interface de gestion.
 -   **Table `iam_roles` :** Ajout d'une colonne `is_builtin` (booléen) pour identifier les rôles système, et `description` pour plus de clarté.
 
-## 4. Découverte des Permissions Système
+## 4. System Permission Discovery
 
-Pour automatiser la création des permissions de base, la commande `permissions:discover` a été créée.
+The `permissions:discover` command creates the baseline permissions for all
+registered module models.
 
--   **Fichier :** `@app-modules/iam/src/Console/Commands/DiscoverSysPermissions.php`
--   **Fonctionnement :**
-    1.  Elle scanne les modèles Eloquent dans tous les modules de l'application (`app-modules/*/src/Models`).
-    2.  Pour chaque modèle, elle crée 5 permissions CRUD de base : `list`, `retrieve`, `create`, `update`, `delete`. Le nom est formaté en `[modèle_pluriel_snake_case].[action]`.
-    3.  Elle crée/met à jour deux rôles système (`SysRole` enum) :
-        -   `administrator` : Se voit attribuer toutes les permissions existantes.
-        -   `default` : Se voit attribuer uniquement les permissions de lecture (`list`, `retrieve`).
--   Cette commande garantit que l'ajout d'un nouveau modèle peut rapidement être intégré au système de permissions.
+-   **File:** `app-modules/iam/src/Console/Commands/DiscoverSysPermissions.php`
+-   **Process:**
+    1. It scans Eloquent models in `app-modules/*/src/Models`.
+    2. It resolves each model through `MorphMapRegistry` and creates five
+       permissions: `list`, `retrieve`, `create`, `update`, and `delete`.
+    3. Permission names use the registered morph alias, for example
+       `catalog_product.retrieve`, `inventory_item.update`, or
+       `master_tag.delete`.
+    4. Models without a registered morph alias are skipped and reported.
+    5. It creates or updates the built-in Administrator and Readonly roles;
+       Administrator receives all permissions and Readonly receives only
+       `list` and `retrieve` permissions.
+
+The morph namespace prevents collisions when two modules contain models with
+the same basename, such as `Catalog\\Models\\Product` and
+`Inventory\\Models\\Product`.
+
+Policies should call `BasePolicy::canModel()` or `canOnModel()` so permission
+names are resolved from the same morph registry. If a permission is missing,
+policy authorization denies access by returning `false`.
+
+After adding or renaming a model or morph alias, run:
+
+```bash
+docker compose exec -T app php artisan morph-map:cache --no-interaction
+docker compose exec -T app php artisan permissions:discover --no-interaction
+```
+
+The command synchronizes generated permissions and built-in roles. It does not
+remove permissions for models that no longer exist, so historical or custom
+permissions must be reviewed separately before cleanup.
 
 ## 5. Intégration dans le Modèle Utilisateur
 

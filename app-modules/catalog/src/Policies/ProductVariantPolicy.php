@@ -12,27 +12,27 @@ class ProductVariantPolicy extends BasePolicy
 {
     public function list(Authorizable $user): bool
     {
-        return $this->can('product_variants.list');
+        return $this->canModel('list', ProductVariant::class);
     }
 
     public function retrieve(Authorizable $user, ProductVariant $model): bool
     {
-        return $this->canOnModel('product_variants.retrieve', $model);
+        return $this->canOnModel('retrieve', $model);
     }
 
     public function create(Authorizable $user): bool
     {
-        return $this->can('product_variants.create');
+        return $this->canModel('create', ProductVariant::class);
     }
 
     public function update(Authorizable $user, ProductVariant $model): bool
     {
-        return $this->canOnModel('product_variants.update', $model);
+        return $this->canOnModel('update', $model);
     }
 
     public function delete(Authorizable $user, ProductVariant $model): bool
     {
-        return $this->canOnModel('product_variants.delete', $model);
+        return $this->canOnModel('delete', $model);
     }
 
     public function restore(Authorizable $user, ProductVariant $model): bool

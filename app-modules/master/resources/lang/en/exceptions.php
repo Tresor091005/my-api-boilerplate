@@ -20,5 +20,7 @@ return [
     'tag_link_not_found'                      => 'Some tag links do not exist for type ":type": :names.',
     'organization_resolution_failed'          => 'Unable to resolve organization_id for tags operations.',
     'organization_mismatch'                   => 'The taggable model does not belong to the active organization.',
+    'tag_in_use'                              => 'This tag is still attached to :count item(s).',
+    'tag_reorder_mismatch'                    => 'The reorder list must contain exactly the active organization tags for the selected type.',
     'model_missing_interacts_with_tags_trait' => 'Model :model must use Lahatre\Master\Traits\InteractsWithTags to use tag operations.',
 ];

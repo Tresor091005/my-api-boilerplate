@@ -57,7 +57,7 @@ it('generates module-aware service, policy, resource, and collection classes', f
         expect($policy)
             ->toContain('use Lahatre\\Catalog\\Models\\Product;')
             ->toContain("class {$policyName} extends BasePolicy")
-            ->toContain("return \$this->can('products.list');");
+            ->toContain("return \$this->canModel('list', Product::class);");
 
         expect($resource)
             ->toContain('@mixin \\Lahatre\\Catalog\\Models\\Product')

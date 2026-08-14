@@ -87,6 +87,19 @@ Use it together with `.ai/rules/` and `CODEBASE_RULES.md`:
 - This accepted output coupling may later be replaced with models, model Collections, or application result objects so each caller controls presentation.
 - Do not perform that refactor opportunistically. Change the output boundary deliberately across the service, Controller, tests, and consumers.
 
+### 3.9 Morph-Namespace Permissions
+- Model permissions are namespaced by the registered morph alias, not by the
+  model basename. For example, `catalog_product.retrieve` identifies the
+  catalog Product model and avoids collisions with a Product in another
+  module.
+- `Lahatre\Shared\Registries\MorphMapRegistry` is the source of truth for
+  model identity in permission discovery and dynamic polymorphic authorization.
+- Policies must use `BasePolicy::canModel()` or `canOnModel()` instead of
+  hardcoding permission prefixes. Missing permissions deny access and return
+  `false`.
+- When this convention changes, update both `docs/iam/permissions.md` and the
+  applicable `.ai/rules/` documentation in the same change.
+
 ## 4. Known Review Traps
 
 - A nested route can look correct while still missing scoped binding.

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Lahatre\Master\Contracts\HasTags as HasTagsContract;
 use Lahatre\Master\Models\Tag;
-use Lahatre\Master\Services\Tag\TagService;
+use Lahatre\Master\Services\TagService;
 
 /**
  * @phpstan-require-implements HasTagsContract

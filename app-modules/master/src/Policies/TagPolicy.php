@@ -5,25 +5,25 @@ declare(strict_types=1);
 namespace Lahatre\Master\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
-use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Models\Tag;
 use Lahatre\Shared\Policies\BasePolicy;
 
-class CurrencyPolicy extends BasePolicy
+class TagPolicy extends BasePolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function list(Authorizable $user): bool
     {
-        return $this->canModel('list', Currency::class);
+        return $this->canModel('list', Tag::class);
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function retrieve(Authorizable $user, Currency $model): bool
+    public function retrieve(Authorizable $user, Tag $model): bool
     {
-        return false;
+        return $this->canOnModel('retrieve', $model);
     }
 
     /**
@@ -31,29 +31,34 @@ class CurrencyPolicy extends BasePolicy
      */
     public function create(Authorizable $user): bool
     {
-        return false;
+        return $this->canModel('create', Tag::class);
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(Authorizable $user, Currency $model): bool
+    public function update(Authorizable $user, Tag $model): bool
     {
-        return false;
+        return $this->canOnModel('update', $model);
+    }
+
+    public function reorder(Authorizable $user): bool
+    {
+        return $this->canModel('update', Tag::class);
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(Authorizable $user, Currency $model): bool
+    public function delete(Authorizable $user, Tag $model): bool
     {
-        return false;
+        return $this->canOnModel('delete', $model);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(Authorizable $user, Currency $model): bool
+    public function restore(Authorizable $user, Tag $model): bool
     {
         return false;
     }
@@ -61,7 +66,7 @@ class CurrencyPolicy extends BasePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(Authorizable $user, Currency $model): bool
+    public function forceDelete(Authorizable $user, Tag $model): bool
     {
         return false;
     }

@@ -28,6 +28,45 @@ environment is running. The setup commands, required environment values, and
 complete list of exposed services and ports are maintained in
 [`docs/infrastructure/docker.md`](docs/infrastructure/docker.md).
 
+## Local setup
+
+Create the local environment file and generate an application key:
+
+```bash
+cp .env.example .env
+docker compose run --rm app php artisan key:generate
+```
+
+Before starting Docker, set the PostgreSQL values in `.env` to credentials of
+your choice. `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` must be identical
+for Laravel and the PostgreSQL service; `DB_USERNAME` and `DB_PASSWORD` must
+not be empty because Docker Compose requires them.
+
+The service hostnames are already configured for the Docker network:
+
+- PostgreSQL: `DB_HOST=db`, `DB_PORT=5432`
+- Redis: `REDIS_HOST=redis`
+- Redis limiter: `REDIS_LIMITER_HOST=redis_limiter`
+- Mailpit: `MAIL_HOST=mailpit`, `MAIL_PORT=1025`
+- Reverb: `REVERB_HOST=reverb`, `REVERB_PORT=6001`
+
+Start the environment and initialize the database:
+
+```bash
+docker compose up -d
+docker compose exec -T app php artisan migrate --seed --no-interaction
+```
+
+Run the test suite inside the application container:
+
+```bash
+docker compose exec -T app php artisan test --compact
+```
+
+`phpunit.xml` keeps the testing-specific drivers but inherits the PostgreSQL
+host, database name, username, and password from `.env`. Choose a database
+that can safely be reset by tests before running the suite.
+
 ## Contributing
 
 While this is primarily a personal project, feedback and discussions are always welcome. If you have suggestions or questions, feel free to open an issue.

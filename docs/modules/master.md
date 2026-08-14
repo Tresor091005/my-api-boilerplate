@@ -51,4 +51,8 @@ normalized, operations are transactional, and detaching a tag does not delete
 the tag itself. The tag write methods return `void`; reload the `tags` relation
 explicitly when the updated collection is needed.
 
-The tag repository currently has no standalone public CRUD routes.
+Tags expose organization-scoped list, name update, reorder, and safe-delete
+routes. `GET /v1/master/taggables/{taggable_type}/{taggable_id}/tags` reads the
+tags attached to a model that implements `HasTags`; it resolves the type from
+the registered morph map and requires the taggable model's `retrieve`
+permission. A tag cannot be deleted while pivot links still reference it.

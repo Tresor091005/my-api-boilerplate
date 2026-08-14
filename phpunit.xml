@@ -22,9 +22,7 @@
         <server name="CACHE_LIMITER_STORE" value="array"/>
 
         <server name="DB_CONNECTION" value="pgsql"/>
-        <server name="DB_HOST" value="db"/>
         <server name="DB_PORT" value="5432"/>
-        <server name="DB_DATABASE" value="my_api_boilerplate"/>
 
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="BROADCAST_CONNECTION" value="null"/>

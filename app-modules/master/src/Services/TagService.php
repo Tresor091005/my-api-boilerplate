@@ -2,20 +2,149 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\Master\Services\Tag;
+namespace Lahatre\Master\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Lahatre\Master\Contracts\HasTags as HasTagsContract;
+use Lahatre\Master\Data\TagFilterData;
+use Lahatre\Master\Data\TagReorderData;
+use Lahatre\Master\Data\TagUpdateData;
 use Lahatre\Master\Exceptions\TagException;
+use Lahatre\Master\Http\Resources\TagCollection;
+use Lahatre\Master\Http\Resources\TagResource;
 use Lahatre\Master\Models\Tag;
+use Lahatre\Master\Models\Taggable;
 use Lahatre\Master\Traits\InteractsWithTags;
 use Lahatre\Shared\Support\HandleGenerator;
 
 class TagService
 {
+    public function listForTaggable(HasTagsContract $model): TagCollection
+    {
+        $this->assertModelUsesTags($model);
+        $this->resolveAndValidateOrganizationId($model);
+
+        return TagCollection::make($model->tags()->get());
+    }
+
+    public function list(TagFilterData $filters): TagCollection
+    {
+        $query = Tag::query()->where('organization_id', currentOrganizationId());
+
+        if ($filters->name) {
+            $query->where('name', 'like', $filters->name.'%');
+        }
+
+        if ($filters->type) {
+            $query->where('type', $filters->type);
+        }
+
+        $sortColumn = match ($filters->sortBy) {
+            'name',
+            'type',
+            'order_col',
+            'created_at',
+            'updated_at' => $filters->sortBy,
+            default      => 'name',
+        };
+
+        $query->orderBy($sortColumn, $filters->sortOrder);
+
+        return TagCollection::make(stableCursorPaginate($query, $filters));
+    }
+
+    public function update(Tag $tag, TagUpdateData $data): TagResource
+    {
+        $organizationId = currentOrganizationId();
+
+        return DB::transaction(function () use ($tag, $data, $organizationId): TagResource {
+            $ownedTag = Tag::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($tag->getKey())
+                ->firstOrFail();
+
+            $ownedTag->name = $data->name;
+            $ownedTag->save();
+
+            return TagResource::make($ownedTag->fresh());
+        });
+    }
+
+    public function reorder(TagReorderData $data): void
+    {
+        $organizationId = currentOrganizationId();
+
+        DB::transaction(function () use ($data, $organizationId): void {
+            /** @var Collection<int, Tag> $tags */
+            $tags = Tag::query()
+                ->where('organization_id', $organizationId)
+                ->where('type', $data->type)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get(['id']);
+
+            $expectedTagIds = $tags->pluck('id')->all();
+            $missingTagIds = array_values(array_diff($expectedTagIds, $data->tagIds));
+            $unexpectedTagIds = array_values(array_diff($data->tagIds, $expectedTagIds));
+
+            if ($missingTagIds !== [] || $unexpectedTagIds !== []) {
+                throw TagException::reorderMismatch($missingTagIds, $unexpectedTagIds);
+            }
+
+            $case = collect($data->tagIds)
+                ->map(fn (string $tagId): string => 'WHEN ? THEN ?::integer')
+                ->implode(' ');
+            $placeholders = implode(',', array_fill(0, count($data->tagIds), '?'));
+            $bindings = [];
+
+            foreach ($data->tagIds as $order => $tagId) {
+                $bindings[] = $tagId;
+                $bindings[] = $order;
+            }
+
+            $bindings[] = now();
+            $bindings[] = $organizationId;
+            array_push($bindings, ...$data->tagIds);
+
+            DB::update(
+                "UPDATE master_tags SET order_col = CASE id {$case} END, updated_at = ? WHERE organization_id = ? AND deleted_at IS NULL AND id IN ({$placeholders})",
+                $bindings,
+            );
+        });
+    }
+
+    public function delete(Tag $tag): void
+    {
+        $organizationId = currentOrganizationId();
+
+        DB::transaction(function () use ($tag, $organizationId): void {
+            $ownedTag = Tag::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($tag->getKey())
+                ->firstOrFail();
+
+            $usages = Taggable::query()
+                ->where('organization_id', $organizationId)
+                ->where('tag_id', $ownedTag->getKey())
+                ->get(['taggable_type', 'taggable_id'])
+                ->map(fn (Taggable $taggable): array => [
+                    'taggable_type' => $taggable->taggable_type,
+                    'taggable_id'   => $taggable->taggable_id,
+                ])
+                ->all();
+
+            if ($usages !== []) {
+                throw TagException::inUse($usages);
+            }
+
+            $ownedTag->delete();
+        });
+    }
+
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
@@ -206,6 +335,10 @@ class TagService
 
     protected function resolveAndValidateOrganizationId(HasTagsContract $model): string
     {
+        if (!Schema::hasColumn($model->getTable(), 'organization_id')) {
+            throw TagException::organizationResolutionFailed();
+        }
+
         try {
             $organizationId = currentOrganizationId();
         } catch (AuthorizationException) {

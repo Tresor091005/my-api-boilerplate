@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Master\Policies;
 
 use Illuminate\Contracts\Auth\Access\Authorizable;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Policies\BasePolicy;
 
 class UnitPolicy extends BasePolicy
@@ -14,7 +15,7 @@ class UnitPolicy extends BasePolicy
      */
     public function list(Authorizable $user): bool
     {
-        return $this->can('units.list');
+        return $this->canModel('list', Unit::class);
     }
 
     /**
@@ -22,6 +23,6 @@ class UnitPolicy extends BasePolicy
      */
     public function upsert(Authorizable $user): bool
     {
-        return $this->can('units.create') || $this->can('units.update');
+        return $this->canModel('create', Unit::class) || $this->canModel('update', Unit::class);
     }
 }

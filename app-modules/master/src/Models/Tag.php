@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Master\Database\Factories\TagFactory;
-use Lahatre\Shared\Support\HandleGenerator;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -74,22 +73,6 @@ class Tag extends Model
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
     ];
-
-    protected static function booted(): void
-    {
-        static::creating(function (Tag $tag): void {
-            if (blank($tag->slug)) {
-                $tag->slug = HandleGenerator::generate(
-                    name: $tag->name,
-                    table: 'master_tags',
-                    column: 'slug',
-                    extra: [
-                        'organization_id' => $tag->organization_id,
-                    ],
-                );
-            }
-        });
-    }
 
     protected function name(): Attribute
     {

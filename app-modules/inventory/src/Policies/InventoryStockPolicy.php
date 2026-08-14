@@ -12,6 +12,6 @@ class InventoryStockPolicy extends BasePolicy
 {
     public function update(Authorizable $user, InventoryStock $stock): bool
     {
-        return $this->canOnModel('inventory_stocks.update', $stock);
+        return $this->canOnModel('update', $stock);
     }
 }
