@@ -7,8 +7,11 @@ business-error strategy based on assertion objects.
 
 Every API route has a contract declared in `config/response-contracts.php` or
 in the owning module's `app-modules/<module>/config/response-contracts.php`.
-The key is the complete route name. A contract may be empty when it has no
-shape or include to declare.
+The key is the complete route name. Resource-producing routes declare their
+default shape and relation contract. An empty definition is reserved for an
+endpoint with no response representation, such as a deletion; the owning
+module must explain that exception with an inline comment beside the route
+entry.
 
 The `ResponseContractRegistry`, discovered by `SharedServiceProvider`, loads
 these files after providers are registered. It rejects duplicate route keys and
@@ -37,6 +40,14 @@ a shape. Module contract files may declare reusable shapes under the
 reserved `_shapes` key and reference them from a route shape with `ref`.
 References are resolved before the production response-contract cache is
 written and are scoped to the configuration file that declares them.
+
+Every include name used by `includeWhenRequestedAndLoaded()` must also be an
+include key in at least one response-contract shape. An alias is allowed only
+when the same Resource is rendered at that nested path. Do not add an alias
+just because the corresponding Eloquent relation exists: the contract must
+explicitly allow the client include and define its load first. The architecture
+test `ensures resource include aliases are declared by response contracts`
+enforces this rule.
 
 ## 1. JSON response structure
 

@@ -6,23 +6,22 @@ namespace Lahatre\Inventory\Services\Stock;
 
 use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
-use Lahatre\Inventory\Http\Resources\InventoryStockResource;
 use Lahatre\Inventory\Models\InventoryStock;
 
 class ManageInventoryStockService
 {
-    public function updateMetadata(InventoryStock $stock, ?array $metadata): InventoryStockResource
+    public function updateMetadata(InventoryStock $stock, ?array $metadata): InventoryStock
     {
         $organizationId = currentOrganizationId();
         if ($stock->organization_id !== $organizationId) {
             throw OrganizationScopeException::mismatch($organizationId, $stock->organization_id);
         }
 
-        return DB::transaction(function () use ($stock, $metadata): InventoryStockResource {
+        return DB::transaction(function () use ($stock, $metadata): InventoryStock {
             $stock->metadata = $metadata;
             $stock->save();
 
-            return InventoryStockResource::make($stock->refresh());
+            return $stock->refresh()->load(responseRelationsToLoad());
         });
     }
 }

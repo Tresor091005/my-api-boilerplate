@@ -8,12 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin Product
  */
 class ProductResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * @return array<string, mixed>
      */
@@ -27,23 +30,35 @@ class ProductResource extends JsonResource
             'is_active'   => $this->is_active,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
-            'options'     => $this->whenLoaded('optionValues', function ($optionValues): mixed {
-                if ($optionValues->contains(
-                    fn ($optionValue): bool => !$optionValue->relationLoaded('option')
-                )) {
-                    return new MissingValue;
-                }
+            'options'     => $this->includeWhenRequestedAndLoaded(
+                include: 'options',
+                relation: 'optionValues',
+                resolver: function ($optionValues): mixed {
+                    if ($optionValues->contains(
+                        fn ($optionValue): bool => !$optionValue->relationLoaded('option')
+                    )) {
+                        return new MissingValue;
+                    }
 
-                return $optionValues
-                    ->groupBy('option_id')
-                    ->map(fn ($values): array => [
-                        'name'   => $values->first()->option->name,
-                        'values' => $values->pluck('value')->unique()->values()->all(),
-                    ])
-                    ->values();
-            }),
-            'variants'   => ProductVariantResource::collection($this->whenLoaded('variants')),
-            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+                    return $optionValues
+                        ->groupBy('option_id')
+                        ->map(fn ($values): array => [
+                            'name'   => $values->first()->option->name,
+                            'values' => $values->pluck('value')->unique()->values()->all(),
+                        ])
+                        ->values();
+                },
+            ),
+            'variants' => $this->includeWhenRequestedAndLoaded(
+                include: 'variants',
+                relation: 'variants',
+                resolver: fn ($variants): mixed => ProductVariantResource::collection($variants),
+            ),
+            'categories' => $this->includeWhenRequestedAndLoaded(
+                include: 'categories',
+                relation: 'categories',
+                resolver: fn ($categories): mixed => CategoryResource::collection($categories),
+            ),
         ];
     }
 }

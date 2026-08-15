@@ -5,41 +5,47 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\OptionData;
 use Lahatre\Catalog\Data\OptionFilterData;
 use Lahatre\Catalog\Http\Requests\OptionFilterRequest;
 use Lahatre\Catalog\Http\Requests\OptionRequest;
 use Lahatre\Catalog\Http\Resources\OptionCollection;
+use Lahatre\Catalog\Http\Resources\OptionResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Services\OptionService;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Symfony\Component\HttpFoundation\Response;
 
 class OptionController
 {
     public function __construct(
-        protected OptionService $optionService
+        protected OptionService $optionService,
+        protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index(OptionFilterRequest $request): OptionCollection
+    public function index(OptionFilterRequest $request): JsonResponse|Response
     {
         Gate::authorize('list', Option::class);
 
         $filters = OptionFilterData::fromArray($request->validated());
 
-        return $this->optionService->list($filters);
+        $response = $this->optionService->paginate($filters);
+
+        return $this->responseResponder->respond(fn (): JsonResource => OptionCollection::make($response));
     }
 
-    public function show(Option $option): JsonResponse
+    public function show(Option $option): JsonResponse|Response
     {
         Gate::authorize('retrieve', $option);
 
         $response = $this->optionService->retrieve($option);
 
-        return response()->json($response);
+        return $this->responseResponder->respond(fn (): JsonResource => OptionResource::make($response));
     }
 
-    public function store(OptionRequest $request): JsonResponse
+    public function store(OptionRequest $request): JsonResponse|Response
     {
         Gate::authorize('create', Option::class);
 
@@ -47,10 +53,13 @@ class OptionController
 
         $response = $this->optionService->create($data);
 
-        return response()->json($response, 201);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => OptionResource::make($response),
+            status: 201,
+        );
     }
 
-    public function update(OptionRequest $request, Option $option): JsonResponse
+    public function update(OptionRequest $request, Option $option): JsonResponse|Response
     {
         Gate::authorize('update', $option);
 
@@ -61,7 +70,7 @@ class OptionController
 
         $response = $this->optionService->update($option, $data);
 
-        return response()->json($response);
+        return $this->responseResponder->respond(fn (): JsonResource => OptionResource::make($response));
     }
 
     public function destroy(Option $option): Response

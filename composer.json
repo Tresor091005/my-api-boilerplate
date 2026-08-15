@@ -74,7 +74,7 @@
             "@php artisan test"
         ],
         "test:tia": [
-            "./vendor/bin/pest --tia"
+            "./vendor/bin/pest --parallel --tia"
         ],
         "quality": [
             "@composer run ide-helper",

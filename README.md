@@ -60,6 +60,12 @@ docker compose exec -T app php artisan migrate --seed --no-interaction
 Run the test suite inside the application container:
 
 ```bash
+docker compose exec -T app ./vendor/bin/pest --parallel --tia
+```
+
+If TIA fails or its dependency graph is unavailable, use the normal runner:
+
+```bash
 docker compose exec -T app php artisan test --compact
 ```
 

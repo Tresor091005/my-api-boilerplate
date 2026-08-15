@@ -61,11 +61,10 @@ it('lists both system units and tenant units but excludes other tenant units', f
 
     app(UnitCache::class)->rewarmUnits();
 
-    $collection = $this->service->list(UnitFilterData::fromArray([
+    $collection = $this->service->paginate(UnitFilterData::fromArray([
         'per_page' => 50,
     ]));
-    $payload = $collection->response()->getData(true);
-    $codes = collect($payload['data'] ?? [])->pluck('code');
+    $codes = collect($collection->items())->pluck('code');
 
     expect($codes)->toContain('a-kg-sys')
         ->toContain('a-our-kg');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,6 @@ use Lahatre\Master\Assertions\UnitAssertion;
 use Lahatre\Master\Data\UnitData;
 use Lahatre\Master\Data\UnitFilterData;
 use Lahatre\Master\Data\UnitUpsertData;
-use Lahatre\Master\Http\Resources\UnitCollection;
-use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
@@ -26,13 +25,24 @@ class UnitService
         protected UnitCache $unitCache
     ) {}
 
-    public function list(UnitFilterData $filters): UnitCollection
+    public function paginate(UnitFilterData $filters): CursorPaginator
     {
-        $query = Unit::query()->with('group')->where(function (Builder $query): void {
+        $query = $this->unitsQuery($filters);
+
+        if ($filters->sortBy === 'group') {
+            return $query->cursorPaginate($filters->perPage, ['master_units.*'], 'cursor', $filters->cursor);
+        }
+
+        return stableCursorPaginate($query, $filters);
+    }
+
+    /** @return Builder<Unit> */
+    private function unitsQuery(UnitFilterData $filters): Builder
+    {
+        $query = Unit::query()->where(function (Builder $query): void {
             $query->whereNull('organization_id')
                 ->orWhere('organization_id', currentOrganizationId());
         });
-
         if ($filters->code) {
             $query->where('code', 'like', "$filters->code%");
         }
@@ -55,20 +65,16 @@ class UnitService
                 ->select('master_units.*')
                 ->orderBy('master_unit_groups.name', $filters->sortOrder)
                 ->orderBy('master_units.id', $filters->sortOrder);
-
-            $units = $query->cursorPaginate($filters->perPage, ['master_units.*'], 'cursor', $filters->cursor);
-        } else {
-            $units = stableCursorPaginate($query, $filters);
         }
 
-        return UnitCollection::make($units);
+        return $query;
     }
 
-    public function upsert(UnitUpsertData $data): UnitGroupResource
+    public function upsert(UnitUpsertData $data): UnitGroup
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($data, $organizationId): UnitGroupResource {
+        return DB::transaction(function () use ($data, $organizationId): UnitGroup {
             if ($data->groupId) {
                 $group = UnitGroup::where('is_builtin', false)
                     ->where('organization_id', $organizationId)
@@ -132,7 +138,7 @@ class UnitService
                 DB::afterCommit(fn () => $this->unitCache->rewarmUnits());
             }
 
-            return UnitGroupResource::make($group->load('units'));
+            return $group->load(responseRelationsToLoad());
         });
     }
 

@@ -52,24 +52,19 @@ if (!function_exists('stableCursorPaginate')) {
 }
 
 if (!function_exists('applyResponseContextToQuery')) {
-    /**
-     * @param  list<string>  $defaultLoads
-     */
-    function applyResponseContextToQuery(Builder $query, array $defaultLoads = []): Builder
+    /** Apply response-context relation loads to an Eloquent query. */
+    function applyResponseContextToQuery(Builder $query): Builder
     {
-        return app(ResponseContext::class)->applyToQuery($query, $defaultLoads);
+        return app(ResponseContext::class)->applyToQuery($query);
     }
 }
 
 if (!function_exists('responseRelationsToLoad')) {
     /**
-     * Resolve relations required by the scoped response context or defaults.
-     *
-     * @param  list<string>  $defaultLoads
-     * @return list<string>
+     * Resolve response relations declared by the active response shape.
      */
-    function responseRelationsToLoad(array $defaultLoads = []): array
+    function responseRelationsToLoad(): array
     {
-        return app(ResponseContext::class)->relationsToLoad($defaultLoads);
+        return app(ResponseContext::class)->relationsToLoad();
     }
 }

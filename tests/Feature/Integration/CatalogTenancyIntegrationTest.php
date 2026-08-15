@@ -96,15 +96,15 @@ it('enforces tenancy matrix for categories', function (): void {
     $this->getJson("/v1/catalog/categories/{$category->id}")->assertOk();
     $this->getJson("/v1/catalog/categories/{$otherCategory->id}")->assertForbidden();
 
-    $created = $this->postJson('/v1/catalog/categories', [
+    $created = $this->postJson('/v1/catalog/categories?response=resource', [
         'name'      => 'Smartphones',
         'is_active' => true,
     ])->assertCreated();
 
-    $createdId = (string) $created->json('id');
+    $createdId = (string) $created->json('data.id');
     expect(Category::query()->findOrFail($createdId)->organization_id)->toBe($this->organization->id);
 
-    $this->putJson("/v1/catalog/categories/{$category->id}", [
+    $this->putJson("/v1/catalog/categories/{$category->id}?response=resource", [
         'name'      => 'Gadgets',
         'is_active' => true,
     ])->assertOk();
@@ -143,6 +143,10 @@ it('enforces tenancy matrix for products and variants', function (): void {
         'unit_group_id'   => $unitGroup->id,
     ]);
     app(InventoryInterface::class)->createItem($variant);
+    $productCategory = Category::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    $product->categories()->attach($productCategory);
     ProductVariant::factory()->create([
         'organization_id' => $this->organization->id,
         'product_id'      => $product->id,
@@ -159,10 +163,24 @@ it('enforces tenancy matrix for products and variants', function (): void {
         ->assertJsonFragment(['id' => $product->id])
         ->assertJsonMissing(['id' => $otherProduct->id]);
 
-    $this->getJson("/v1/catalog/products/{$product->id}")->assertOk();
+    $this->getJson("/v1/catalog/products/{$product->id}")
+        ->assertOk()
+        ->assertJsonMissingPath('data.categories')
+        ->assertJsonMissingPath('data.options')
+        ->assertJsonMissingPath('data.variants');
+    $this->getJson("/v1/catalog/products/{$product->id}?include=categories")
+        ->assertOk()
+        ->assertJsonPath('data.categories.0.id', $productCategory->id)
+        ->assertJsonMissingPath('data.options')
+        ->assertJsonMissingPath('data.variants');
+    $this->getJson("/v1/catalog/products/{$product->id}?include=variants")
+        ->assertOk()
+        ->assertJsonPath('data.variants.0.id', $variant->id)
+        ->assertJsonMissingPath('data.categories')
+        ->assertJsonMissingPath('data.options');
     $this->getJson("/v1/catalog/products/{$otherProduct->id}")->assertForbidden();
 
-    $createdProduct = $this->postJson('/v1/catalog/products', [
+    $createdProduct = $this->postJson('/v1/catalog/products?response=resource', [
         'name'      => 'Created Product',
         'is_active' => true,
         'variants'  => [[
@@ -173,10 +191,15 @@ it('enforces tenancy matrix for products and variants', function (): void {
         ]],
     ])->assertCreated();
 
-    $createdProductId = (string) $createdProduct->json('id');
+    $createdProductId = (string) $createdProduct->json('data.id');
     expect(Product::query()->findOrFail($createdProductId)->organization_id)->toBe($this->organization->id);
+    $this->getJson("/v1/catalog/products/{$createdProductId}?include=options")
+        ->assertOk()
+        ->assertJsonPath('data.options.0.name', 'color')
+        ->assertJsonMissingPath('data.categories')
+        ->assertJsonMissingPath('data.variants');
 
-    $this->putJson("/v1/catalog/products/{$product->id}", [
+    $this->putJson("/v1/catalog/products/{$product->id}?response=resource", [
         'name'      => 'Updated Product',
         'is_active' => true,
     ])->assertOk();
@@ -254,14 +277,14 @@ it('enforces tenancy matrix for options and option values', function (): void {
 
     $this->getJson("/v1/catalog/options/{$option->id}")->assertOk();
 
-    $createdOption = $this->postJson('/v1/catalog/options', [
+    $createdOption = $this->postJson('/v1/catalog/options?response=resource', [
         'name'   => 'Size',
         'values' => ['Large'],
     ])->assertCreated();
-    $createdOptionId = (string) $createdOption->json('id');
+    $createdOptionId = (string) $createdOption->json('data.id');
     expect(Option::query()->findOrFail($createdOptionId)->organization_id)->toBe($this->organization->id);
 
-    $this->putJson("/v1/catalog/options/{$createdOptionId}", [
+    $this->putJson("/v1/catalog/options/{$createdOptionId}?response=resource", [
         'name'   => 'Material',
         'values' => ['Cotton'],
     ])->assertOk();
@@ -274,13 +297,13 @@ it('enforces tenancy matrix for options and option values', function (): void {
     $this->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertOk();
     $this->getJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
 
-    $createdValue = $this->postJson("/v1/catalog/options/{$option->id}/values", [
+    $createdValue = $this->postJson("/v1/catalog/options/{$option->id}/values?response=resource", [
         'values' => ['Yellow'],
     ])->assertCreated();
-    $createdValueId = (string) $createdValue->json('0.id');
+    $createdValueId = (string) $createdValue->json('data.0.id');
     expect(OptionValue::query()->findOrFail($createdValueId)->organization_id)->toBe($this->organization->id);
 
-    $this->putJson("/v1/catalog/options/{$option->id}/values/{$value->id}", [
+    $this->putJson("/v1/catalog/options/{$option->id}/values/{$value->id}?response=resource", [
         'value' => 'Cyan',
     ])->assertOk();
     $this->putJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}", [

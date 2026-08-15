@@ -33,7 +33,7 @@ ps: ## Liste les conteneurs en cours d'exécution
 # Commandes Application (Exécutées dans Docker)
 # -------------------------------------------------
 
-.PHONY: artisan a composer c test pint rector phpstan tsc
+.PHONY: artisan a composer c test test-fast pint rector phpstan tsc
 
 sh: ## Ouvre le terminal du conteneur app
 	@docker compose exec app bash
@@ -46,6 +46,9 @@ composer c: ## Exécute composer dans le conteneur (ex: make c install)
 
 test: ## Exécute les tests Pest
 	@docker compose exec app php artisan test $(filter-out $@,$(MAKECMDGOALS))
+
+test-fast: ## Exécute les tests affectés avec Pest TIA en parallèle
+	@docker compose exec -T app ./vendor/bin/pest --parallel --tia $(filter-out $@,$(MAKECMDGOALS))
 
 pint: ## Exécute Laravel Pint
 	@docker compose exec app ./vendor/bin/pint $(filter-out $@,$(MAKECMDGOALS))

@@ -7,12 +7,15 @@ namespace Lahatre\Catalog\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Catalog\Models\Option;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin Option
  */
 class OptionResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * Transform the resource into an array.
      *
@@ -25,7 +28,11 @@ class OptionResource extends JsonResource
             'name'       => $this->name,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'values'     => OptionValueResource::collection($this->whenLoaded('values')),
+            'values'     => $this->includeWhenRequestedAndLoaded(
+                include: 'values',
+                relation: 'values',
+                resolver: fn ($values): mixed => OptionValueResource::collection($values),
+            ),
         ];
     }
 }

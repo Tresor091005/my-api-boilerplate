@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -14,9 +14,6 @@ use Lahatre\Iam\Data\LoginData;
 use Lahatre\Iam\Data\ResetPasswordData;
 use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
 use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
-use Lahatre\Iam\Http\Resources\AuthResource;
-use Lahatre\Iam\Http\Resources\PermissionResource;
-use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
 use Lahatre\Shared\Models\Authenticatable;
@@ -24,14 +21,16 @@ use Lahatre\Shared\Models\Authenticatable;
 class AuthService
 {
     /**
-     * Authenticate a user and return an AuthResource.
+     * Authenticate a user and return the user with its plain-text token.
      *
      * @throws InvalidLoginException
+     *
+     * @return array{user: User, token: string}
      */
-    public function login(LoginData $data): AuthResource
+    public function login(LoginData $data): array
     {
         $user = User::query()
-            ->with(['organizationMemberships.memberRoles.role'])
+            ->with(responseRelationsToLoad())
             ->where('email', $data->email)
             ->first();
 
@@ -49,17 +48,17 @@ class AuthService
             ],
         ]);
 
-        return AuthResource::make($user)->withToken($token->plainTextToken);
+        return ['user' => $user, 'token' => $token->plainTextToken];
     }
 
     /**
-     * Return a UserResource.
+     * Return the authenticated user.
      */
-    public function me(User $user, ?string $currentMemberRoleId): UserResource
+    public function me(User $user): User
     {
-        $user->load(['organizationMemberships.memberRoles.role']);
+        $user->load(responseRelationsToLoad());
 
-        return UserResource::make($user)->withCurrentMemberRoleId($currentMemberRoleId);
+        return $user;
     }
 
     /**
@@ -74,9 +73,9 @@ class AuthService
     }
 
     /**
-     * Switch the current user role and return the updated UserResource.
+     * Switch the current user role and return the updated user.
      */
-    public function switchMemberRole(User $user, string $memberRoleId): UserResource
+    public function switchMemberRole(User $user, string $memberRoleId): User
     {
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
@@ -102,14 +101,14 @@ class AuthService
             ],
         ]);
 
-        $user->load(['organizationMemberships.memberRoles.role']);
+        $user->load(responseRelationsToLoad());
 
-        return UserResource::make($user)->withCurrentMemberRoleId($memberRole->id);
+        return $user;
     }
 
-    public function currentPermissions(MemberRole $memberRole): AnonymousResourceCollection
+    public function currentPermissions(MemberRole $memberRole): Collection
     {
-        return PermissionResource::collection($memberRole->getPermissionsViaRoles());
+        return $memberRole->getPermissionsViaRoles();
     }
 
     /**

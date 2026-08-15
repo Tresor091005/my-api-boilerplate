@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Master\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,8 +17,6 @@ use Lahatre\Master\Data\TagFilterData;
 use Lahatre\Master\Data\TagReorderData;
 use Lahatre\Master\Data\TagUpdateData;
 use Lahatre\Master\Exceptions\TagException;
-use Lahatre\Master\Http\Resources\TagCollection;
-use Lahatre\Master\Http\Resources\TagResource;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Models\Taggable;
 use Lahatre\Master\Traits\InteractsWithTags;
@@ -24,16 +24,13 @@ use Lahatre\Shared\Support\HandleGenerator;
 
 class TagService
 {
-    public function listForTaggable(HasTagsContract $model): TagCollection
+    public function paginate(TagFilterData $filters): CursorPaginator
     {
-        // TODO replace with relation include system for list and retrieve
-        $this->assertModelUsesTags($model);
-        $this->resolveAndValidateOrganizationId($model);
-
-        return TagCollection::make($model->tags()->get());
+        return stableCursorPaginate($this->tagsQuery($filters), $filters);
     }
 
-    public function list(TagFilterData $filters): TagCollection
+    /** @return Builder<Tag> */
+    private function tagsQuery(TagFilterData $filters): Builder
     {
         $query = Tag::query()->where('organization_id', currentOrganizationId());
 
@@ -56,25 +53,23 @@ class TagService
 
         $query->orderBy($sortColumn, $filters->sortOrder);
 
-        return TagCollection::make(stableCursorPaginate($query, $filters));
+        return $query;
     }
 
-    public function create(TagCreateData $data): TagCollection
+    public function create(TagCreateData $data): Collection
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($data, $organizationId): TagCollection {
-            $tags = $this->ensureTagsExist($organizationId, $this->normalizeTagsByType($data->tagsByType));
-
-            return TagCollection::make($tags);
+        return DB::transaction(function () use ($data, $organizationId): Collection {
+            return $this->ensureTagsExist($organizationId, $this->normalizeTagsByType($data->tagsByType));
         });
     }
 
-    public function update(Tag $tag, TagUpdateData $data): TagResource
+    public function update(Tag $tag, TagUpdateData $data): Tag
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($tag, $data, $organizationId): TagResource {
+        return DB::transaction(function () use ($tag, $data, $organizationId): Tag {
             $ownedTag = Tag::query()
                 ->where('organization_id', $organizationId)
                 ->whereKey($tag->getKey())
@@ -84,7 +79,7 @@ class TagService
             $ownedTag->name = $data->name;
             $ownedTag->save();
 
-            return TagResource::make($ownedTag->fresh());
+            return $ownedTag->fresh();
         });
     }
 

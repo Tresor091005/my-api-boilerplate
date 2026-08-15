@@ -82,7 +82,12 @@ Before relying on a package's API, confirm its installed version:
 # Test Enforcement
 
 - Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+- Run the minimum affected test scope with Pest 5 TIA in parallel by default:
+  docker compose exec -T app ./vendor/bin/pest --parallel --tia <path-or-filter>
+  (or make test-fast). If TIA fails, its dependency graph is unavailable, or
+  parallel workers cannot start, fall back immediately to
+  docker compose exec -T app php artisan test --compact <path-or-filter>.
+  Use the normal command without a path when a complete suite run is required.
 
 === laravel/core rules ===
 
@@ -127,7 +132,10 @@ Before relying on a package's API, confirm its installed version:
 
 - This project uses Pest for testing. Create tests: `php artisan make:test --pest {name}`.
 - The `{name}` argument should not include the test suite directory. Use `php artisan make:test --pest SomeFeatureTest` instead of `php artisan make:test --pest Feature/SomeFeatureTest`.
-- Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
+- Run affected tests by default with Pest 5 TIA in parallel:
+  docker compose exec -T app ./vendor/bin/pest --parallel --tia.
+- If TIA cannot run reliably, use php artisan test --compact or
+  php artisan test --compact --filter=testName.
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>

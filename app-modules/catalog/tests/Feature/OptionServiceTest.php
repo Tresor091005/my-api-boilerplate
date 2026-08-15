@@ -31,17 +31,14 @@ it('manages options through service methods and scopes by tenant', function (): 
         'name'            => 'Other Color',
     ]);
 
-    $payload = $this->service
-        ->list(OptionFilterData::fromArray(['per_page' => 50]))
-        ->response()
-        ->getData(true);
-
-    expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($option->id);
+    expect(collect($this->service
+        ->paginate(OptionFilterData::fromArray(['per_page' => 50]))
+        ->items())->pluck('id'))->toContain($option->id);
 
     $created = $this->service->create(OptionData::fromArray([
         'name'   => 'size',
         'values' => ['large', 'small'],
-    ]))->resource;
+    ]));
 
     expect($created->organization_id)->toBe($this->organizationId)
         ->and($created->values()->count())->toBe(2);
@@ -49,7 +46,7 @@ it('manages options through service methods and scopes by tenant', function (): 
     $updated = $this->service->update($created, OptionData::fromArray([
         'name'   => 'material',
         'values' => ['cotton'],
-    ]))->resource;
+    ]));
 
     expect($updated->name)->toBe('material')
         ->and($updated->values()->where('value', 'cotton')->exists())->toBeTrue();

@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionValueAssertion;
 use Lahatre\Catalog\Data\OptionValueData;
 use Lahatre\Catalog\Data\OptionValueFilterData;
-use Lahatre\Catalog\Http\Resources\OptionValueResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
@@ -25,7 +23,7 @@ class OptionValueService
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
-    public function list(Option $option, OptionValueFilterData $filters): AnonymousResourceCollection
+    public function list(Option $option, OptionValueFilterData $filters): EloquentCollection
     {
         $query = $option->values()->where('organization_id', currentOrganizationId());
 
@@ -35,29 +33,33 @@ class OptionValueService
 
         $query->orderBy($filters->sortBy, $filters->sortOrder);
 
-        return OptionValueResource::collection($query->get());
+        $query->with(responseRelationsToLoad());
+
+        return $query->get();
     }
 
-    public function retrieve(Option $option, OptionValue $optionValue): OptionValueResource
+    public function retrieve(Option $option, OptionValue $optionValue): OptionValue
     {
         $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
 
-        return OptionValueResource::make($optionValue);
+        return $optionValue->load(responseRelationsToLoad());
     }
 
-    public function create(Option $option, OptionValueData $data): AnonymousResourceCollection
+    public function create(Option $option, OptionValueData $data): EloquentCollection
     {
         $optionValues = DB::transaction(
-            fn (): Collection => $this->transactionalOptionService->createMissingValues(
+            fn (): EloquentCollection => $this->transactionalOptionService->createMissingValues(
                 $option,
                 required($data->values) ?? [],
             )
         );
 
-        return OptionValueResource::collection($optionValues);
+        $optionValues->load(responseRelationsToLoad());
+
+        return $optionValues;
     }
 
-    public function update(Option $option, OptionValue $optionValue, OptionValueData $data): OptionValueResource
+    public function update(Option $option, OptionValue $optionValue, OptionValueData $data): OptionValue
     {
         $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
 
@@ -67,7 +69,7 @@ class OptionValueService
 
         DB::transaction(fn (): bool => $optionValue->save());
 
-        return OptionValueResource::make($optionValue);
+        return $optionValue->load(responseRelationsToLoad());
     }
 
     public function delete(Option $option, OptionValue $optionValue): void

@@ -6,11 +6,10 @@ use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Http\Responses\ResponseMode;
 use Lahatre\Shared\Http\Responses\ResponseShape;
 
-it('uses default relation loads when no response shape is configured', function (): void {
+it('loads no relations when no response shape is configured', function (): void {
     $context = new ResponseContext;
 
-    expect($context->relationsToLoad(['product', 'unitGroup']))
-        ->toBe(['product', 'unitGroup']);
+    expect($context->relationsToLoad())->toBe([]);
 });
 
 it('uses the configured shape and ignores defaults when available', function (): void {
@@ -23,10 +22,10 @@ it('uses the configured shape and ignores defaults when available', function ():
         [],
     );
 
-    expect($context->relationsToLoad(['product', 'unitGroup']))
+    expect($context->relationsToLoad())
         ->toBe(['unitGroup']);
 
     $context->configure(ResponseMode::None, null, []);
 
-    expect($context->relationsToLoad(['product', 'unitGroup']))->toBe([]);
+    expect($context->relationsToLoad())->toBe([]);
 });

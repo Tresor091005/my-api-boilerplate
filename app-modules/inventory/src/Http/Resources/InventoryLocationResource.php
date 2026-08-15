@@ -8,12 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin InventoryLocation
  */
 class InventoryLocationResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * @return array<string, mixed>
      */
@@ -26,15 +29,27 @@ class InventoryLocationResource extends JsonResource
             'is_active'     => $this->is_active,
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
-            'external'      => $this->whenLoaded('external', function (): ?array {
-                if ($this->external instanceof HasInventoryLocation) {
-                    return $this->external->toInventoryLocationExternalSummary();
-                }
+            'external'      => $this->includeWhenRequestedAndLoaded(
+                include: 'external',
+                relation: 'external',
+                resolver: function (): ?array {
+                    if ($this->external instanceof HasInventoryLocation) {
+                        return $this->external->toInventoryLocationExternalSummary();
+                    }
 
-                return null;
-            }),
-            'stocks'    => InventoryStockResource::collection($this->whenLoaded('stocks')),
-            'movements' => InventoryMovementResource::collection($this->whenLoaded('movements')),
+                    return null;
+                },
+            ),
+            'stocks' => $this->includeWhenRequestedAndLoaded(
+                include: 'stocks',
+                relation: 'stocks',
+                resolver: fn ($stocks): mixed => InventoryStockResource::collection($stocks),
+            ),
+            'movements' => $this->includeWhenRequestedAndLoaded(
+                include: 'movements',
+                relation: 'movements',
+                resolver: fn ($movements): mixed => InventoryMovementResource::collection($movements),
+            ),
         ];
     }
 }

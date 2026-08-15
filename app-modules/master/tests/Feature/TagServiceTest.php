@@ -78,8 +78,8 @@ it('creates tags in batches by type and ignores unique conflicts', function (): 
     $firstResult = app(TagService::class)->create($data);
     $secondResult = app(TagService::class)->create($data);
 
-    expect($firstResult->collection)->toHaveCount(3)
-        ->and($secondResult->collection)->toHaveCount(3)
+    expect($firstResult)->toHaveCount(3)
+        ->and($secondResult)->toHaveCount(3)
         ->and(Tag::query()->where('organization_id', $this->organizationId)->count())->toBe(3);
 });
 
@@ -312,23 +312,11 @@ it('lists only current organization tags with filters', function (): void {
         'type'            => 'status',
     ]);
 
-    $collection = app(TagService::class)->list(TagFilterData::fromArray([
+    $collection = app(TagService::class)->paginate(TagFilterData::fromArray([
         'name' => 'al',
     ]));
 
-    expect($collection->collection->pluck('name')->all())->toBe(['alpha']);
-});
-
-it('lists tags attached to a taggable model', function (): void {
-    $this->taggableUnit->attachTags([
-        'status' => ['active'],
-        'color'  => ['blue'],
-    ]);
-
-    $collection = app(TagService::class)->listForTaggable($this->taggableUnit);
-
-    expect($collection->collection->pluck('name')->all())
-        ->toEqualCanonicalizing(['active', 'blue']);
+    expect(collect($collection->items())->pluck('name')->all())->toBe(['alpha']);
 });
 
 it('reorders all tags of one type and rejects incomplete lists', function (): void {

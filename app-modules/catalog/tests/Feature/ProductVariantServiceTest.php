@@ -120,7 +120,7 @@ it('manages product variants through service methods', function (): void {
         ->and(VariantOptionValue::query()->where('variant_id', $createdVariant->id)->exists())->toBeFalse();
 });
 
-it('loads the default required relations without an HTTP response context', function (): void {
+it('does not load response relations without an active response shape', function (): void {
     $variant = ProductVariant::factory()->create([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
@@ -129,9 +129,9 @@ it('loads the default required relations without an HTTP response context', func
 
     $retrievedVariant = $this->service->retrieve($this->product, $variant);
 
-    expect($retrievedVariant->relationLoaded('product'))->toBeTrue()
-        ->and($retrievedVariant->relationLoaded('optionValues'))->toBeTrue()
-        ->and($retrievedVariant->relationLoaded('unitGroup'))->toBeTrue()
+    expect($retrievedVariant->relationLoaded('product'))->toBeFalse()
+        ->and($retrievedVariant->relationLoaded('optionValues'))->toBeFalse()
+        ->and($retrievedVariant->relationLoaded('unitGroup'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('tags'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
 });

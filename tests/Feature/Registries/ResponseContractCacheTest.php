@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Lahatre\Shared\Http\Responses\ResponseMode;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 function responseContractCachePath(): string
@@ -34,7 +35,7 @@ it('discovers response contracts from the application and module config files', 
     expect($registry->forRoute('lahatre.catalog.products.variants.show'))->not->toBeNull();
 });
 
-it('resolves reusable shapes for catalog variant contracts', function (): void {
+it('applies the same default shape to catalog variant contracts', function (): void {
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
@@ -46,12 +47,84 @@ it('resolves reusable shapes for catalog variant contracts', function (): void {
         ->and($store)->not->toBeNull()
         ->and($update)->not->toBeNull();
 
-    $showShape = $show->shapes['detail'];
+    $showShape = $show->shapes['default'];
 
-    expect($showShape->requiredLoads)->toBe(['product', 'optionValues.option', 'unitGroup'])
-        ->and(array_keys($showShape->includes))->toBe(['tags', 'inventory'])
-        ->and($store->shapes['detail']->requiredLoads)->toBe($showShape->requiredLoads)
-        ->and($update->shapes['detail']->includes)->toEqual($showShape->includes);
+    expect($showShape->requiredLoads)->toBe(['product', 'optionValues.option'])
+        ->and(array_keys($showShape->includes))->toBe(['unit_group', 'units', 'tags', 'inventory'])
+        ->and($store->shapes['default']->requiredLoads)->toBe($showShape->requiredLoads)
+        ->and($store->shapes['default']->includes)->toEqual($showShape->includes)
+        ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
+});
+
+it('applies the same default shape to IAM auth and user contracts', function (): void {
+    $registry = new ResponseContractRegistry;
+    $registry->discover();
+
+    $login = $registry->forRoute('lahatre.iam.auth.login');
+    $register = $registry->forRoute('lahatre.iam.auth.register');
+    $me = $registry->forRoute('lahatre.iam.auth.me');
+    $switchMemberRole = $registry->forRoute('lahatre.iam.auth.switch-member-role');
+
+    expect($login)->not->toBeNull()
+        ->and($register)->not->toBeNull()
+        ->and($me)->not->toBeNull()
+        ->and($switchMemberRole)->not->toBeNull()
+        ->and($login->defaultMode)->toBe(ResponseMode::Resource)
+        ->and($login->shapes['default']->requiredLoads)
+        ->toBe(['organizationMemberships.memberRoles.role'])
+        ->and($me->defaultMode)->toBe(ResponseMode::Resource)
+        ->and($switchMemberRole->defaultMode)->toBe(ResponseMode::Resource)
+        ->and($register->shapes['default']->requiredLoads)
+        ->toBe($login->shapes['default']->requiredLoads)
+        ->and($me->shapes['default']->requiredLoads)
+        ->toBe($login->shapes['default']->requiredLoads)
+        ->and($switchMemberRole->shapes['default']->requiredLoads)
+        ->toBe($login->shapes['default']->requiredLoads);
+});
+
+it('maps every relation-backed resource operation to required loads or includes', function (): void {
+    $registry = new ResponseContractRegistry;
+    $registry->discover();
+
+    $expectations = [
+        'lahatre.catalog.categories.show'         => ['bloodline' => ['bloodline']],
+        'lahatre.catalog.options.show'            => ['values' => ['values']],
+        'lahatre.catalog.options.values.show'     => ['option' => ['option']],
+        'lahatre.catalog.products.variants.show'  => ['unit_group' => ['unitGroup']],
+        'lahatre.inventory.items.show'            => ['stocks.location' => ['stocks.location']],
+        'lahatre.inventory.locations.show'        => ['stocks.currency' => ['stocks.currency']],
+        'lahatre.inventory.items.movements.index' => ['location' => ['location']],
+        'lahatre.inventory.transactions.show'     => ['movements' => ['movements']],
+        'lahatre.inventory.stocks.update'         => ['unit' => ['unit']],
+        'lahatre.master.units.index'              => ['group' => ['group']],
+        'lahatre.master.units.upsert'             => ['units' => ['units']],
+    ];
+
+    foreach ($expectations as $routeName => $includes) {
+        $contract = $registry->forRoute($routeName);
+        $shape = $contract?->resolveShape(null);
+
+        expect($shape)->not->toBeNull();
+
+        foreach ($includes as $include => $loads) {
+            expect($shape->relationsToLoad([$include]))->toContain(...$loads);
+        }
+    }
+
+    expect($registry->forRoute('lahatre.iam.auth.login')?->resolveShape(null)->requiredLoads)
+        ->toContain('organizationMemberships.memberRoles.role');
+});
+
+it('does not expose variant tags as a product-level include', function (): void {
+    $registry = new ResponseContractRegistry;
+    $registry->discover();
+
+    $productShape = $registry
+        ->forRoute('lahatre.catalog.products.show')
+        ?->resolveShape(null);
+
+    expect($productShape)->not->toBeNull()
+        ->and($productShape->includes)->not->toHaveKey('tags');
 });
 
 it('ignores a response contract cache outside production and discovers definitions', function (): void {
@@ -95,7 +168,13 @@ it('caches response contracts from discovered definitions when no cache exists',
     expect($cachedDefinitions)
         ->toHaveKey('lahatre.catalog.products.variants.show')
         ->not->toHaveKey('_shapes')
-        ->and($cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['detail'])
+        ->and($cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default'])
+        ->not->toHaveKey('ref')
+        ->and($cachedDefinitions['lahatre.inventory.stock.expiring.index'])
+        ->toBe([])
+        ->and($cachedDefinitions['lahatre.inventory.stock.summary.index'])
+        ->toBe([])
+        ->and($cachedDefinitions['lahatre.inventory.stocks.update']['shapes']['projection'])
         ->not->toHaveKey('ref');
 });
 

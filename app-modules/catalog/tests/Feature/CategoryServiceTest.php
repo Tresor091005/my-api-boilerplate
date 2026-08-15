@@ -29,12 +29,9 @@ it('manages categories through service methods and scopes by tenant', function (
         'name'            => 'Other Org Category',
     ]);
 
-    $payload = $this->service
-        ->list(CategoryFilterData::fromArray(['per_page' => 50]))
-        ->response()
-        ->getData(true);
-
-    $categoryIds = collect($payload['data'] ?? [])->pluck('id');
+    $categoryIds = collect($this->service
+        ->paginate(CategoryFilterData::fromArray(['per_page' => 50]))
+        ->items())->pluck('id');
 
     expect($categoryIds)->toContain($category->id);
     expect($categoryIds->contains($otherCategory->id))->toBeFalse();
@@ -42,7 +39,7 @@ it('manages categories through service methods and scopes by tenant', function (
     $created = $this->service->create(CategoryData::fromArray([
         'name'      => 'Smartphones',
         'is_active' => true,
-    ]))->resource;
+    ]));
 
     expect($created->organization_id)->toBe($this->organizationId);
 
@@ -52,7 +49,7 @@ it('manages categories through service methods and scopes by tenant', function (
             'is_active' => true,
         ],
         missingFields: ['parent_id'],
-    ))->resource;
+    ));
 
     expect($updated->name)->toBe('Gadgets');
 

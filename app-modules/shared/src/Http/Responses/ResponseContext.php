@@ -46,11 +46,8 @@ final class ResponseContext
         return in_array($include, $this->requestedIncludes, true);
     }
 
-    /**
-     * @param  list<string>  $defaultLoads
-     * @return list<string>
-     */
-    public function relationsToLoad(array $defaultLoads = []): array
+    /** @return list<string> */
+    public function relationsToLoad(): array
     {
         if ($this->mode === ResponseMode::None) {
             return [];
@@ -60,15 +57,12 @@ final class ResponseContext
             return $this->shape->relationsToLoad($this->requestedIncludes);
         }
 
-        return array_values(array_unique($defaultLoads));
+        return [];
     }
 
-    /**
-     * @param  list<string>  $defaultLoads
-     */
-    public function applyToQuery(Builder $query, array $defaultLoads = []): Builder
+    public function applyToQuery(Builder $query): Builder
     {
-        $relationsToLoad = $this->relationsToLoad($defaultLoads);
+        $relationsToLoad = $this->relationsToLoad();
 
         if ($relationsToLoad !== []) {
             $query->with($relationsToLoad);

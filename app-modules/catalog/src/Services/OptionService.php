@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionAssertion;
 use Lahatre\Catalog\Data\OptionData;
 use Lahatre\Catalog\Data\OptionFilterData;
-use Lahatre\Catalog\Http\Resources\OptionCollection;
-use Lahatre\Catalog\Http\Resources\OptionResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Shared\Data\MissingValue;
@@ -24,7 +24,16 @@ class OptionService
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
-    public function list(OptionFilterData $filters): OptionCollection
+    public function paginate(OptionFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate(
+            applyResponseContextToQuery($this->optionsQuery($filters)),
+            $filters,
+        );
+    }
+
+    /** @return Builder<Option> */
+    private function optionsQuery(OptionFilterData $filters): Builder
     {
         $query = Option::query()->where('organization_id', currentOrganizationId());
 
@@ -32,17 +41,15 @@ class OptionService
             $query->where('name', 'like', "$filters->name%");
         }
 
-        $options = stableCursorPaginate($query, $filters);
-
-        return OptionCollection::make($options);
+        return $query;
     }
 
-    public function retrieve(Option $option): OptionResource
+    public function retrieve(Option $option): Option
     {
-        return OptionResource::make($option->load(['values']));
+        return $option->load(responseRelationsToLoad());
     }
 
-    public function create(OptionData $data): OptionResource
+    public function create(OptionData $data): Option
     {
         $option = new Option;
 
@@ -60,10 +67,10 @@ class OptionService
             );
         });
 
-        return OptionResource::make($option->load(['values']));
+        return $option->load(responseRelationsToLoad());
     }
 
-    public function update(Option $option, OptionData $data): OptionResource
+    public function update(Option $option, OptionData $data): Option
     {
         $option->fill(withoutMissing([
             'name' => $data->name,
@@ -77,7 +84,7 @@ class OptionService
             }
         });
 
-        return OptionResource::make($option->load(['values']));
+        return $option->load(responseRelationsToLoad());
     }
 
     public function delete(Option $option): void

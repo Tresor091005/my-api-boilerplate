@@ -19,7 +19,6 @@ Route::group([
 
         Route::get('tags', [TagController::class, 'index'])->name('tags.index');
         Route::post('tags', [TagController::class, 'store'])->name('tags.store');
-        Route::get('taggables/{taggable_type}/{taggable_id}/tags', [TagController::class, 'taggableTags'])->name('taggables.tags.index');
         Route::put('tags/reorder', [TagController::class, 'reorder'])->name('tags.reorder');
         Route::patch('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');

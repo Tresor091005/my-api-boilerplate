@@ -22,9 +22,6 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 class ProductVariantService
 {
-    /** @var list<string> */
-    private const DEFAULT_REQUIRED_RELATIONS = ['product', 'optionValues.option', 'unitGroup'];
-
     public function __construct(
         protected InventoryInterface $inventoryService,
         protected ProductVariantAssertion $productVariantAssertion,
@@ -34,10 +31,7 @@ class ProductVariantService
     public function paginate(Product $product, ProductVariantFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery(
-                $this->variantsQuery($product, $filters),
-                self::DEFAULT_REQUIRED_RELATIONS,
-            ),
+            applyResponseContextToQuery($this->variantsQuery($product, $filters)),
             $filters,
         );
     }
@@ -46,7 +40,7 @@ class ProductVariantService
     {
         $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
 
-        return $variant->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
+        return $variant->load(responseRelationsToLoad());
     }
 
     public function create(Product $product, ProductVariantBatchData $data): EloquentCollection
@@ -56,7 +50,7 @@ class ProductVariantService
             fn (): EloquentCollection => $this->transactionalProductVariantService->createMany($product, $data->variants)
         );
 
-        return $variants->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
+        return $variants->load(responseRelationsToLoad());
     }
 
     public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariant
@@ -88,7 +82,7 @@ class ProductVariantService
             $this->inventoryService->updateItem($variant, ['sku' => $variant->sku]);
         });
 
-        return $variant->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
+        return $variant->load(responseRelationsToLoad());
     }
 
     public function delete(Product $product, ProductVariant $variant): void
@@ -107,6 +101,7 @@ class ProductVariantService
      */
     private function variantsQuery(Product $product, ProductVariantFilterData $filters): Builder
     {
+        /** @var Builder<ProductVariant> $query */
         $query = $product->variants()->getQuery()->where('organization_id', currentOrganizationId());
 
         if ($filters->isActive !== null) {

@@ -40,3 +40,14 @@ it('returns no content without executing the resource factory', function (): voi
     expect($response->getStatusCode())->toBe(204)
         ->and($factoryCalled)->toBeFalse();
 });
+
+it('serializes non-resource payloads through the same response mode', function (): void {
+    $responder = new ResponseResponder(new ResponseContext);
+
+    $response = $responder->respond(
+        fn (): array => ['detail' => true],
+    );
+
+    expect($response)->toBeInstanceOf(JsonResponse::class)
+        ->and($response->getData(true))->toBe(['detail' => true]);
+});

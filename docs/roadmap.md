@@ -181,13 +181,12 @@ After every API module has declared its response contracts:
 - [ ] Make `ResolveResponseContext` fail fast when an API route has no
   registered response contract.
 - [ ] Keep an explicitly empty contract valid for routes that intentionally use
-  only the method-derived response policy and the service's minimal fallback
-  loads.
+  only the method-derived response policy and no response relation loads.
 - [ ] Reject missing contracts before the controller or service executes, so a
   misconfigured HTTP route cannot silently fall back to an incomplete response.
 - [ ] Add an integration test proving that a missing HTTP contract is rejected,
   while console, job, scheduler, and direct service callers retain their
-  non-HTTP fallback behavior.
+  scalar-only response behavior without an active shape.
 
 ## TODO: response shape field selection
 

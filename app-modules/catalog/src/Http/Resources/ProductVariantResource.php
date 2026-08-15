@@ -45,8 +45,12 @@ class ProductVariantResource extends JsonResource
                     fn ($optionValue): array => [$optionValue->option->name => $optionValue->value]
                 );
             }),
-            'unit_group' => UnitGroupResource::make($this->whenLoaded('unitGroup')),
-            'tags'       => $this->includeWhenRequestedAndLoaded(
+            'unit_group' => $this->includeWhenRequestedAndLoaded(
+                include: 'unit_group',
+                relation: 'unitGroup',
+                resolver: fn ($unitGroup): mixed => UnitGroupResource::make($unitGroup),
+            ),
+            'tags' => $this->includeWhenRequestedAndLoaded(
                 include: 'tags',
                 relation: 'tags',
                 resolver: fn ($tags) => TagResource::collection($tags),

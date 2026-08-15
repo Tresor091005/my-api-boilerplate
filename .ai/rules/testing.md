@@ -41,7 +41,17 @@ paths:
 
 ## Execution
 
-- Run the smallest affected test file or filter first with `php artisan test --compact`.
+- By default, run the smallest affected test scope through Pest 5 Test Impact
+  Analysis in parallel:
+  docker compose exec -T app ./vendor/bin/pest --parallel --tia <path-or-filter>
+  or make test-fast.
+- If TIA fails, reports an unusable dependency graph, or cannot start parallel
+  workers, immediately fall back to
+  php artisan test --compact <path-or-filter> (Docker:
+  docker compose exec -T app php artisan test --compact <path-or-filter>).
+- Run the smallest affected test file or filter first. Use the normal
+  php artisan test --compact path when a complete suite run is intentionally
+  required.
 - Use `composer quality:check` as the non-mutating complete quality gate: Rector dry-run, Pint check, and PHPStan. Use `composer quality` only when the requested workflow allows automated Rector/Pint changes.
 - Run the affected Pest tests before the complete quality gate. A green static-analysis check does not replace behavioral tests, and a green Feature test does not replace architecture or code-quality checks.
 

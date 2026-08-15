@@ -7,12 +7,15 @@ namespace Lahatre\Master\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Master\Models\Unit;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin Unit
  */
 class UnitResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * @return array<string, mixed>
      */
@@ -24,7 +27,11 @@ class UnitResource extends JsonResource
             'name'   => $this->name,
             'ratio'  => $this->ratio,
             'symbol' => $this->symbol,
-            'group'  => UnitGroupResource::make($this->whenLoaded('group')),
+            'group'  => $this->includeWhenRequestedAndLoaded(
+                include: ['group', 'units.group'],
+                relation: 'group',
+                resolver: fn ($group): mixed => UnitGroupResource::make($group),
+            ),
         ];
     }
 }

@@ -33,12 +33,9 @@ it('manages option values through service methods', function (): void {
         'value'           => 'Blue',
     ]);
 
-    $payload = $this->service
+    expect($this->service
         ->list($option, OptionValueFilterData::fromArray([]))
-        ->response()
-        ->getData(true);
-
-    expect(collect($payload['data'] ?? [])->pluck('id'))->toContain($optionValue->id);
+        ->pluck('id'))->toContain($optionValue->id);
 
     $this->service->create($option, OptionValueData::fromArray([
         'option_id' => $option->id,
@@ -53,7 +50,7 @@ it('manages option values through service methods', function (): void {
     $updated = $this->service->update($option, $optionValue, OptionValueData::fromArray([
         'option_id' => $option->id,
         'value'     => 'cyan',
-    ]))->resource;
+    ]));
 
     expect($updated->value)->toBe('cyan');
 

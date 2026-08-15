@@ -8,12 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin Category
  */
 class CategoryResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * @return array<string, mixed>
      */
@@ -27,8 +30,10 @@ class CategoryResource extends JsonResource
             'parent_id'  => $this->parent_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'bloodline'  => $this->whenLoaded('bloodline',
-                fn (): array => $this->formatTree($this->bloodline->toTree())
+            'bloodline'  => $this->includeWhenRequestedAndLoaded(
+                include: 'bloodline',
+                relation: 'bloodline',
+                resolver: fn (): array => $this->formatTree($this->bloodline->toTree()),
             ),
         ];
     }

@@ -6,8 +6,9 @@ namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
+use JsonSerializable;
 use Lahatre\Inventory\Data\InventoryItemFilterData;
 use Lahatre\Inventory\Data\InventoryItemValueFilterData;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
@@ -18,90 +19,81 @@ use Lahatre\Inventory\Http\Requests\InventoryLotFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
 use Lahatre\Inventory\Http\Requests\UpdateInventoryItemRequest;
 use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
+use Lahatre\Inventory\Http\Resources\InventoryItemResource;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Symfony\Component\HttpFoundation\Response;
 
 class InventoryItemController
 {
     public function __construct(
         protected InventoryQueryService $inventoryQueryService,
         protected ManageInventoryItemService $inventoryItemService,
+        protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index(InventoryItemFilterRequest $request): InventoryItemCollection
+    public function index(InventoryItemFilterRequest $request): JsonResponse|Response
     {
-        $includes = $this->includes($request);
         $filters = InventoryItemFilterData::fromArray($request->validated());
 
-        return $this->inventoryQueryService->listItems(
-            $filters,
-            includeItemable: $includes->contains('itemable')
-        );
+        $response = $this->inventoryQueryService->paginateItems($filters);
+
+        return $this->responseResponder->respond(fn (): JsonResource => InventoryItemCollection::make($response));
     }
 
-    public function show(Request $request, InventoryItem $item): JsonResponse
+    public function show(Request $request, InventoryItem $item): JsonResponse|Response
     {
-        $includes = $this->includes($request);
+        $item = $this->inventoryQueryService->retrieveItem($item);
 
-        $resource = $this->inventoryQueryService->retrieveItem(
-            $item,
-            includeItemable: $includes->contains('itemable')
-        );
-
-        return response()->json($resource);
+        return $this->responseResponder->respond(fn (): JsonResource => InventoryItemResource::make($item));
     }
 
-    public function update(UpdateInventoryItemRequest $request, InventoryItem $item): JsonResponse
+    public function update(UpdateInventoryItemRequest $request, InventoryItem $item): JsonResponse|Response
     {
         Gate::authorize('update', $item);
 
-        return response()->json(
-            $this->inventoryItemService->updateRecord($item, $request->validated())
+        $response = $this->inventoryItemService->updateRecord($item, $request->validated());
+
+        return $this->responseResponder->respond(
+            fn (): JsonResource => InventoryItemResource::make($response),
         );
     }
 
-    public function showStock(InventoryItem $item): JsonResponse
+    public function showStock(InventoryItem $item): JsonResponse|Response
     {
-        return response()->json($this->inventoryQueryService->getItemStock($item));
+        $response = $this->inventoryQueryService->getItemStock($item);
+
+        return $this->responseResponder->respond(fn (): JsonSerializable => $response);
     }
 
-    public function showValue(InventoryItemValueFilterRequest $request, InventoryItem $item): JsonResponse
+    public function showValue(InventoryItemValueFilterRequest $request, InventoryItem $item): JsonResponse|Response
     {
         $filters = InventoryItemValueFilterData::fromArray($request->validated());
 
-        return response()->json($this->inventoryQueryService->getItemValue($item, $filters));
+        $response = $this->inventoryQueryService->getItemValue($item, $filters);
+
+        return $this->responseResponder->respond(fn (): JsonSerializable => $response);
     }
 
-    public function indexMovements(InventoryMovementFilterRequest $request, InventoryItem $item): InventoryMovementCollection
+    public function indexMovements(InventoryMovementFilterRequest $request, InventoryItem $item): JsonResponse|Response
     {
         $filters = InventoryMovementFilterData::fromArray($request->validated());
 
-        return $this->inventoryQueryService->listItemMovements($item, $filters);
+        $response = $this->inventoryQueryService->paginateItemMovements($item, $filters);
+
+        return $this->responseResponder->respond(fn (): JsonResource => InventoryMovementCollection::make($response));
     }
 
-    public function indexLocationLots(InventoryLotFilterRequest $request, InventoryItem $item, InventoryLocation $location): JsonResponse
+    public function indexLocationLots(InventoryLotFilterRequest $request, InventoryItem $item, InventoryLocation $location): JsonResponse|Response
     {
         $filters = InventoryLotFilterData::fromArray($request->validated());
 
-        return response()->json(
-            $this->inventoryQueryService->getItemLocationLots($item, $location, $filters)
-        );
-    }
+        $response = $this->inventoryQueryService->getItemLocationLots($item, $location, $filters);
 
-    /**
-     * @return Collection<int, string>
-     */
-    private function includes(Request $request): Collection
-    {
-        /** @var Collection<int, string> $includes */
-        $includes = collect(explode(',', (string) $request->query('include', '')))
-            ->map(fn (string $include): string => trim($include))
-            ->filter()
-            ->values();
-
-        return $includes;
+        return $this->responseResponder->respond(fn (): JsonSerializable => $response);
     }
 }

@@ -43,12 +43,9 @@ it('manages products through service methods and scopes by tenant', function ():
         'name'            => 'Other Org Product',
     ]);
 
-    $payload = $this->service
-        ->list(ProductFilterData::fromArray(['per_page' => 50]))
-        ->response()
-        ->getData(true);
-
-    $productIds = collect($payload['data'] ?? [])->pluck('id');
+    $productIds = collect($this->service
+        ->paginate(ProductFilterData::fromArray(['per_page' => 50]))
+        ->items())->pluck('id');
 
     expect($productIds)->toContain($product->id);
     expect($productIds->contains($otherProduct->id))->toBeFalse();
@@ -66,7 +63,7 @@ it('manages products through service methods and scopes by tenant', function ():
                 ],
             ],
         ],
-    ]))->resource;
+    ]));
 
     expect($created->organization_id)->toBe($this->organizationId)
         ->and($created->variants()->count())->toBe(1);
@@ -77,7 +74,7 @@ it('manages products through service methods and scopes by tenant', function ():
             'is_active' => true,
         ],
         missingFields: ['description', 'categories', 'variants'],
-    ))->resource;
+    ));
 
     expect($updated->name)->toBe('iPhone 15 Pro Updated');
 

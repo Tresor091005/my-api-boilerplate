@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\CategoryAssertion;
 use Lahatre\Catalog\Data\CategoryData;
 use Lahatre\Catalog\Data\CategoryFilterData;
 use Lahatre\Catalog\Exceptions\CategoryException;
-use Lahatre\Catalog\Http\Resources\CategoryCollection;
-use Lahatre\Catalog\Http\Resources\CategoryResource;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Shared\Data\MissingValue;
 
@@ -25,7 +25,16 @@ class CategoryService
         protected CategoryAssertion $categoryAssertion
     ) {}
 
-    public function list(CategoryFilterData $filters): CategoryCollection
+    public function paginate(CategoryFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate(
+            applyResponseContextToQuery($this->categoriesQuery($filters)),
+            $filters,
+        );
+    }
+
+    /** @return Builder<Category> */
+    private function categoriesQuery(CategoryFilterData $filters): Builder
     {
         $query = Category::query()->where('organization_id', currentOrganizationId());
 
@@ -42,19 +51,17 @@ class CategoryService
             $query->where('parent_id', $filters->parentId);
         }
 
-        $categories = stableCursorPaginate($query, $filters);
-
-        return CategoryCollection::make($categories);
+        return $query;
     }
 
-    public function retrieve(Category $category): CategoryResource
+    public function retrieve(Category $category): Category
     {
-        $category->load(['bloodline']);
+        $category->load(responseRelationsToLoad());
 
-        return CategoryResource::make($category);
+        return $category;
     }
 
-    public function create(CategoryData $data): CategoryResource
+    public function create(CategoryData $data): Category
     {
         $category = new Category;
 
@@ -73,10 +80,10 @@ class CategoryService
 
         DB::transaction(fn () => $category->save());
 
-        return CategoryResource::make($category->load(['bloodline']));
+        return $category->load(responseRelationsToLoad());
     }
 
-    public function update(Category $category, CategoryData $data): CategoryResource
+    public function update(Category $category, CategoryData $data): Category
     {
         if (!$data->parentId instanceof MissingValue) {
             $newParent = $data->parentId === null
@@ -101,7 +108,7 @@ class CategoryService
 
         DB::transaction(fn () => $category->save());
 
-        return CategoryResource::make($category->load(['bloodline']));
+        return $category->load(responseRelationsToLoad());
     }
 
     public function delete(Category $category): void

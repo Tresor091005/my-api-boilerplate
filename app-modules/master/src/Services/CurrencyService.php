@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Lahatre\Master\Data\CurrencyFilterData;
-use Lahatre\Master\Http\Resources\CurrencyCollection;
 use Lahatre\Master\Models\Currency;
 
 class CurrencyService
 {
-    public function list(CurrencyFilterData $filters): CurrencyCollection
+    public function paginate(CurrencyFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate($this->currenciesQuery($filters), $filters);
+    }
+
+    /** @return Builder<Currency> */
+    private function currenciesQuery(CurrencyFilterData $filters): Builder
     {
         $query = Currency::query();
 
@@ -21,8 +28,6 @@ class CurrencyService
             $query->where('name', 'like', "$filters->name%");
         }
 
-        $currencies = stableCursorPaginate($query, $filters);
-
-        return CurrencyCollection::make($currencies);
+        return $query;
     }
 }

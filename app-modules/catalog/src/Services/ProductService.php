@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Data\ProductData;
 use Lahatre\Catalog\Data\ProductFilterData;
-use Lahatre\Catalog\Http\Resources\ProductCollection;
-use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\TransactionalProductVariantService;
@@ -27,11 +26,18 @@ class ProductService
         protected TransactionalProductVariantService $transactionalProductVariantService
     ) {}
 
-    public function list(ProductFilterData $filters): ProductCollection
+    public function paginate(ProductFilterData $filters): CursorPaginator
     {
-        $query = Product::query()->where('organization_id', currentOrganizationId())->with($this->relations());
+        return stableCursorPaginate(
+            applyResponseContextToQuery($this->productsQuery($filters)),
+            $filters,
+        );
+    }
 
-        // TODO category filter
+    /** @return Builder<Product> */
+    private function productsQuery(ProductFilterData $filters): Builder
+    {
+        $query = Product::query()->where('organization_id', currentOrganizationId());
 
         if ($filters->handle) {
             $query->where('handle', 'like', "$filters->handle%");
@@ -46,19 +52,17 @@ class ProductService
             $query->where('is_active', $filters->isActive);
         }
 
-        $products = stableCursorPaginate($query, $filters);
-
-        return ProductCollection::make($products);
+        return $query;
     }
 
-    public function retrieve(Product $product): ProductResource
+    public function retrieve(Product $product): Product
     {
-        $product->load($this->relations());
+        $product->load(responseRelationsToLoad());
 
-        return ProductResource::make($product);
+        return $product;
     }
 
-    public function create(ProductData $data): ProductResource
+    public function create(ProductData $data): Product
     {
         $product = new Product;
 
@@ -83,10 +87,10 @@ class ProductService
             $this->transactionalProductVariantService->createMany($product, required($data->variants));
         });
 
-        return ProductResource::make($product->load($this->relations()));
+        return $product->load(responseRelationsToLoad());
     }
 
-    public function update(Product $product, ProductData $data): ProductResource
+    public function update(Product $product, ProductData $data): Product
     {
         $product->fill(withoutMissing([
             'name'        => $data->name,
@@ -101,7 +105,7 @@ class ProductService
             }
         });
 
-        return ProductResource::make($product->load(['categories']));
+        return $product->load(responseRelationsToLoad());
     }
 
     public function delete(Product $product): void
@@ -115,24 +119,5 @@ class ProductService
 
             $product->delete();
         });
-    }
-
-    /**
-     * @return array<int|string, mixed>
-     */
-    protected function relations(): array
-    {
-        return [
-            'categories',
-            'optionValues.option',
-            'variants' => function (HasMany $query): void {
-                $query->with([
-                    'product',
-                    'optionValues.option',
-                    'unitGroup',
-                    'inventoryItem.stockSummaries',
-                ]);
-            },
-        ];
     }
 }

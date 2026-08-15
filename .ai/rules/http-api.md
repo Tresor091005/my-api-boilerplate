@@ -71,12 +71,11 @@ paths:
   to make it available; response shapes and the response context own relation
   loading. Keep every relation guarded by `whenLoaded()` so a loading mistake
   omits the relation instead of causing a lazy-loading query or exception.
-- The response context is lifecycle-scoped but not HTTP-only. Middleware may
-  configure it from query parameters, while services must provide a minimal
-  default list of required loads for console, job, scheduler, and direct
-  service callers. An active shape replaces that fallback; optional includes
-  are added only when explicitly requested, and `none` loads no response
-  relations.
+- The response context is lifecycle-scoped but not HTTP-only. Middleware
+  configures it from query parameters, and the active response shape is the
+  only source of required and optional response relation loads. Without an
+  active shape, no response relations are loaded; optional includes are added
+  only when explicitly requested, and `none` loads no response relations.
 - Resource collections extend `Lahatre\Shared\Http\Resources\BaseCollection` and preserve the shared cursor metadata contract.
 - Avoid relationship serialization that can recurse indefinitely.
 

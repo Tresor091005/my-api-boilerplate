@@ -28,7 +28,7 @@ class ProductVariantController
         protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index(ProductVariantFilterRequest $request, Product $product): JsonResource|JsonResponse|Response
+    public function index(ProductVariantFilterRequest $request, Product $product): JsonResponse|Response
     {
         Gate::authorize('retrieve', $product);
         Gate::authorize('list', ProductVariant::class);
@@ -42,7 +42,7 @@ class ProductVariantController
         );
     }
 
-    public function show(Product $product, ProductVariant $variant): JsonResource|JsonResponse|Response
+    public function show(Product $product, ProductVariant $variant): JsonResponse|Response
     {
         Gate::authorize('retrieve', $product);
         Gate::authorize('retrieve', $variant);
@@ -54,7 +54,7 @@ class ProductVariantController
         );
     }
 
-    public function store(StoreProductVariantRequest $request, Product $product): JsonResource|JsonResponse|Response
+    public function store(StoreProductVariantRequest $request, Product $product): JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('create', ProductVariant::class);
@@ -69,7 +69,7 @@ class ProductVariantController
         );
     }
 
-    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResource|JsonResponse|Response
+    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('update', $variant);

@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Master\Contracts\HasTags as HasTagsContract;
 use Lahatre\Master\Data\TagCreateData;
 use Lahatre\Master\Data\TagFilterData;
 use Lahatre\Master\Data\TagReorderData;
@@ -19,44 +16,48 @@ use Lahatre\Master\Http\Requests\TagFilterRequest;
 use Lahatre\Master\Http\Requests\TagReorderRequest;
 use Lahatre\Master\Http\Requests\TagUpdateRequest;
 use Lahatre\Master\Http\Resources\TagCollection;
+use Lahatre\Master\Http\Resources\TagResource;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Services\TagService;
-use Lahatre\Shared\Registries\MorphMapRegistry;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Symfony\Component\HttpFoundation\Response;
 
 final class TagController
 {
-    public function __construct(protected TagService $tagService) {}
+    public function __construct(
+        protected TagService $tagService,
+        protected ResponseResponder $responseResponder,
+    ) {}
 
-    public function index(TagFilterRequest $request): TagCollection
+    public function index(TagFilterRequest $request): JsonResponse|Response
     {
         Gate::authorize('list', Tag::class);
 
-        return $this->tagService->list(TagFilterData::fromArray($request->validated()));
+        $filters = TagFilterData::fromArray($request->validated());
+        $response = $this->tagService->paginate($filters);
+
+        return $this->responseResponder->respond(fn (): JsonResource => TagCollection::make($response));
     }
 
-    public function store(TagCreateRequest $request): JsonResponse
+    public function store(TagCreateRequest $request): JsonResponse|Response
     {
         Gate::authorize('create', Tag::class);
 
-        return response()->json(
-            $this->tagService->create(TagCreateData::fromArray($request->validated())),
-            201,
+        $response = $this->tagService->create(TagCreateData::fromArray($request->validated()));
+
+        return $this->responseResponder->respond(
+            fn (): JsonResource => TagCollection::make($response),
+            status: 201,
         );
     }
 
-    public function taggableTags(string $taggableType, string $taggableId): TagCollection
-    {
-        $taggable = $this->resolveTaggable($taggableType, $taggableId);
-        Gate::authorize('retrieve', $taggable);
-
-        return $this->tagService->listForTaggable($taggable);
-    }
-
-    public function update(TagUpdateRequest $request, Tag $tag): JsonResponse
+    public function update(TagUpdateRequest $request, Tag $tag): JsonResponse|Response
     {
         Gate::authorize('update', $tag);
 
-        return response()->json($this->tagService->update($tag, TagUpdateData::fromArray($request->validated())));
+        $response = $this->tagService->update($tag, TagUpdateData::fromArray($request->validated()));
+
+        return $this->responseResponder->respond(fn (): JsonResource => TagResource::make($response));
     }
 
     public function reorder(TagReorderRequest $request): Response
@@ -73,23 +74,5 @@ final class TagController
         $this->tagService->delete($tag);
 
         return response()->noContent();
-    }
-
-    private function resolveTaggable(string $taggableType, string $taggableId): HasTagsContract
-    {
-        $modelClass = app(MorphMapRegistry::class)->getModel($taggableType);
-
-        if ($modelClass === null) {
-            throw (new ModelNotFoundException)->setModel(Model::class, [$taggableId]);
-        }
-
-        if (!is_a($modelClass, HasTagsContract::class, true)) {
-            throw (new ModelNotFoundException)->setModel($modelClass, [$taggableId]);
-        }
-
-        /** @var Model&HasTagsContract $taggable */
-        $taggable = $modelClass::query()->findOrFail($taggableId);
-
-        return $taggable;
     }
 }

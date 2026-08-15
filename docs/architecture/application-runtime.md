@@ -99,20 +99,22 @@ php artisan response-contracts:clear
 php artisan response-contracts:cache
 ```
 
-Every application API route must have a contract, even when the definition is
-empty. An empty contract still supplies the method-derived response policy:
-`GET` returns a resource, `POST`/`PUT`/`PATCH` return no content by default,
-and `DELETE` is always no content. The architecture test reports both missing
-route contracts and stale contract keys. Shapes and includes are optional;
-response mode overrides are exceptional and must be documented with the route.
+Every application API route must have a contract. Resource-producing routes
+declare their shape, required loads, and allowed includes. An empty definition
+is reserved for an endpoint with no response representation, such as a
+deletion, and must have an inline explanation in the owning module config. An
+empty contract still supplies the method-derived response policy:
+GET returns a resource, POST/PUT/PATCH return no content by default, and DELETE
+is always no content. The architecture test reports both missing route
+contracts and stale contract keys. Response mode overrides are exceptional and
+must be documented with the route.
 
 `ResponseContext` is scoped to the application lifecycle, not exclusively to
 HTTP requests. `ResolveResponseContext` is the HTTP adapter that configures it
-from query parameters. Services still provide a minimal fallback for their
-required relation loads when no shape is active, so console commands, jobs,
-schedulers, and direct service callers do not silently lose required resource
-data. An active shape replaces that fallback; optional includes are loaded only
-when requested, and `response=none` loads no response relations.
+from query parameters. The active response shape is the only source of
+required and optional response relation loads; without an active shape, no
+response relations are loaded. Optional includes are loaded only when
+requested, and `response=none` loads no response relations.
 
 ## Service lifetime
 

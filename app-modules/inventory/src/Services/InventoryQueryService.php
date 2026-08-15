@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Services;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Data\InventoryItemFilterData;
@@ -19,15 +21,6 @@ use Lahatre\Inventory\Data\InventoryStockSummaryFilterData;
 use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
-use Lahatre\Inventory\Http\Resources\InventoryExpiringLotCollection;
-use Lahatre\Inventory\Http\Resources\InventoryItemCollection;
-use Lahatre\Inventory\Http\Resources\InventoryItemResource;
-use Lahatre\Inventory\Http\Resources\InventoryLocationCollection;
-use Lahatre\Inventory\Http\Resources\InventoryLocationResource;
-use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
-use Lahatre\Inventory\Http\Resources\InventorySummaryCollection;
-use Lahatre\Inventory\Http\Resources\InventoryTransactionCollection;
-use Lahatre\Inventory\Http\Resources\InventoryTransactionResource;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
@@ -52,7 +45,13 @@ class InventoryQueryService
         protected MasterInterface $masterInterface
     ) {}
 
-    public function listItems(InventoryItemFilterData $filters, bool $includeItemable = false): InventoryItemCollection
+    public function paginateItems(InventoryItemFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate($this->itemsQuery($filters), $filters);
+    }
+
+    /** @return Builder<InventoryItem> */
+    private function itemsQuery(InventoryItemFilterData $filters): Builder
     {
         $query = InventoryItem::query()->where('organization_id', currentOrganizationId());
 
@@ -77,27 +76,25 @@ class InventoryQueryService
             $query->where('stock_tracking_enabled', $filters->stockTrackingEnabled);
         }
 
-        if ($includeItemable) {
-            $query->with('itemable');
-        }
+        applyResponseContextToQuery($query);
 
-        $items = stableCursorPaginate($query, $filters);
-
-        return InventoryItemCollection::make($items);
+        return $query;
     }
 
-    public function retrieveItem(InventoryItem $item, bool $includeItemable = false): InventoryItemResource
+    public function retrieveItem(InventoryItem $item): InventoryItem
     {
         $this->assertOrganization($item->organization_id);
 
-        if ($includeItemable) {
-            $item->load('itemable');
-        }
-
-        return InventoryItemResource::make($item);
+        return $item->load(responseRelationsToLoad());
     }
 
-    public function listLocations(InventoryLocationFilterData $filters, bool $includeExternal = false): InventoryLocationCollection
+    public function paginateLocations(InventoryLocationFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate($this->locationsQuery($filters), $filters);
+    }
+
+    /** @return Builder<InventoryLocation> */
+    private function locationsQuery(InventoryLocationFilterData $filters): Builder
     {
         $query = InventoryLocation::query()->where('organization_id', currentOrganizationId());
 
@@ -114,24 +111,16 @@ class InventoryQueryService
             $query->where('is_active', $filters->isActive);
         }
 
-        if ($includeExternal) {
-            $query->with('external');
-        }
+        applyResponseContextToQuery($query);
 
-        $locations = stableCursorPaginate($query, $filters);
-
-        return InventoryLocationCollection::make($locations);
+        return $query;
     }
 
-    public function retrieveLocation(InventoryLocation $location, bool $includeExternal = false): InventoryLocationResource
+    public function retrieveLocation(InventoryLocation $location): InventoryLocation
     {
         $this->assertOrganization($location->organization_id);
 
-        if ($includeExternal) {
-            $location->load('external');
-        }
-
-        return InventoryLocationResource::make($location);
+        return $location->load(responseRelationsToLoad());
     }
 
     public function getItemStock(InventoryItem $item): ItemStockViewData
@@ -407,7 +396,12 @@ class InventoryQueryService
         );
     }
 
-    public function listSummary(InventoryStockSummaryFilterData $filters): InventorySummaryCollection
+    public function paginateSummary(InventoryStockSummaryFilterData $filters): CursorPaginator
+    {
+        return $this->summaryQuery($filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+    }
+
+    private function summaryQuery(InventoryStockSummaryFilterData $filters): QueryBuilder
     {
         $query = DB::table('inventory_stocks as stocks')
             ->join('inventory_items as items', 'items.id', '=', 'stocks.item_id')
@@ -439,12 +433,16 @@ class InventoryQueryService
             $query->whereIn('stocks.location_id', $locationIds->all());
         }
 
-        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
-
-        return InventorySummaryCollection::make($paginator);
+        return $query;
     }
 
-    public function listExpiring(InventoryStockExpiringFilterData $filters): InventoryExpiringLotCollection
+    public function paginateExpiring(InventoryStockExpiringFilterData $filters): CursorPaginator
+    {
+        return $this->expiringQuery($filters)->cursorPaginate($filters->perPage, ['inventory_stocks.*'], 'cursor', $filters->cursor);
+    }
+
+    /** @return Builder<InventoryStock> */
+    private function expiringQuery(InventoryStockExpiringFilterData $filters): Builder
     {
         $query = InventoryStock::query()
             ->join('inventory_items', 'inventory_items.id', '=', 'inventory_stocks.item_id')
@@ -469,19 +467,23 @@ class InventoryQueryService
 
         $query->orderBy('inventory_stocks.id');
 
-        $paginator = $query->cursorPaginate($filters->perPage, ['inventory_stocks.*'], 'cursor', $filters->cursor);
-
-        return InventoryExpiringLotCollection::make($paginator);
+        return $query;
     }
 
-    public function listItemMovements(InventoryItem $item, InventoryMovementFilterData $filters): InventoryMovementCollection
+    public function paginateItemMovements(InventoryItem $item, InventoryMovementFilterData $filters): CursorPaginator
+    {
+        return $this->itemMovementsQuery($item, $filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+    }
+
+    /** @return Builder<InventoryMovement> */
+    private function itemMovementsQuery(InventoryItem $item, InventoryMovementFilterData $filters): Builder
     {
         $this->assertOrganization($item->organization_id);
 
         $query = InventoryMovement::query()
-            ->with(['stock', 'location', 'unit', 'currency'])
             ->where('item_id', $item->id)
             ->where('organization_id', currentOrganizationId());
+        applyResponseContextToQuery($query);
 
         $this->applyMovementFilters($query, $filters);
 
@@ -489,19 +491,23 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
-
-        return InventoryMovementCollection::make($paginator);
+        return $query;
     }
 
-    public function listLocationMovements(InventoryLocation $location, InventoryMovementFilterData $filters): InventoryMovementCollection
+    public function paginateLocationMovements(InventoryLocation $location, InventoryMovementFilterData $filters): CursorPaginator
+    {
+        return $this->locationMovementsQuery($location, $filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+    }
+
+    /** @return Builder<InventoryMovement> */
+    private function locationMovementsQuery(InventoryLocation $location, InventoryMovementFilterData $filters): Builder
     {
         $this->assertOrganization($location->organization_id);
 
         $query = InventoryMovement::query()
-            ->with(['stock', 'location', 'unit', 'currency'])
             ->where('location_id', $location->id)
             ->where('organization_id', currentOrganizationId());
+        applyResponseContextToQuery($query);
 
         $this->applyMovementFilters($query, $filters);
 
@@ -509,29 +515,28 @@ class InventoryQueryService
             ->orderByDesc('created_at')
             ->orderByDesc('id');
 
-        $paginator = $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
-
-        return InventoryMovementCollection::make($paginator);
+        return $query;
     }
 
-    public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransactionResource
+    public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransaction
     {
         $this->assertOrganization($transaction->organization_id);
 
-        $transaction->load([
-            'movements.stock.unit',
-            'movements.stock.currency',
-            'movements.location',
-            'movements.unit',
-            'movements.currency',
-        ]);
+        $transaction->load(responseRelationsToLoad());
 
-        return InventoryTransactionResource::make($transaction);
+        return $transaction;
     }
 
-    public function listTransactions(InventoryTransactionFilterData $filters): InventoryTransactionCollection
+    public function paginateTransactions(InventoryTransactionFilterData $filters): CursorPaginator
+    {
+        return stableCursorPaginate($this->transactionsQuery($filters), $filters);
+    }
+
+    /** @return Builder<InventoryTransaction> */
+    private function transactionsQuery(InventoryTransactionFilterData $filters): Builder
     {
         $query = InventoryTransaction::query()->where('organization_id', currentOrganizationId());
+        applyResponseContextToQuery($query);
 
         if ($filters->ids) {
             $query->whereIn('id', $filters->ids);
@@ -546,9 +551,7 @@ class InventoryQueryService
             $query->where('transaction_type', $filters->transactionType);
         }
 
-        $transactions = stableCursorPaginate($query, $filters);
-
-        return InventoryTransactionCollection::make($transactions);
+        return $query;
     }
 
     protected function applyLotOrdering(Builder $query, DeductionStrategy $strategy): Builder

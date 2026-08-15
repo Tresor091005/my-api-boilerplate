@@ -55,7 +55,7 @@ class ManageInventoryItemService
             throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
         }
 
-        return DB::transaction(function () use ($item, $data, $organizationId): InventoryItem {
+        $updatedItem = DB::transaction(function () use ($item, $data, $organizationId): InventoryItem {
             $lockedItem = InventoryItem::query()
                 ->where('organization_id', $organizationId)
                 ->whereKey($item->id)
@@ -64,6 +64,8 @@ class ManageInventoryItemService
 
             return $this->persistUpdate($lockedItem, $data);
         });
+
+        return $updatedItem->load(responseRelationsToLoad());
     }
 
     /**

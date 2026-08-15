@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 
@@ -47,4 +48,51 @@ it('ensures response contracts point to existing application api routes', functi
     );
 
     expect($staleContracts)->toBe([]);
+});
+
+it('ensures resource include aliases are declared by response contracts', function (): void {
+    $registry = app(ResponseContractRegistry::class);
+    $declaredIncludes = [];
+
+    foreach ($registry->routeNames() as $routeName) {
+        foreach ($registry->forRoute($routeName)?->shapes ?? [] as $shape) {
+            $declaredIncludes = array_merge($declaredIncludes, array_keys($shape->includes));
+        }
+    }
+
+    $declaredIncludes = array_unique($declaredIncludes);
+    $failures = [];
+
+    foreach (File::allFiles(base_path('app-modules')) as $resourceFile) {
+        if (!str_ends_with($resourceFile->getFilename(), 'Resource.php')) {
+            continue;
+        }
+
+        preg_match_all(
+            "/include:\s*(?:'([^']+)'|\[([^\]]*)\])/",
+            $resourceFile->getContents(),
+            $matches,
+            PREG_SET_ORDER,
+        );
+
+        foreach ($matches as $match) {
+            $includes = $match[1] !== ''
+                ? [$match[1]]
+                : (preg_match_all("/'([^']+)'/", $match[2], $arrayMatches)
+                    ? $arrayMatches[1]
+                    : []);
+
+            foreach ($includes as $include) {
+                if (!in_array($include, $declaredIncludes, true)) {
+                    $failures[] = sprintf(
+                        '%s declares include [%s], but no response contract declares that include.',
+                        $resourceFile->getRelativePathname(),
+                        $include,
+                    );
+                }
+            }
+        }
+    }
+
+    expect($failures)->toBe([]);
 });
