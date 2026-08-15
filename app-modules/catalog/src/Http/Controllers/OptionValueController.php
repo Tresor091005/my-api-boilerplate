@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\OptionValueData;
 use Lahatre\Catalog\Data\OptionValueFilterData;
@@ -75,13 +76,13 @@ class OptionValueController
         return response()->json($response);
     }
 
-    public function destroy(Option $option, OptionValue $value): JsonResponse
+    public function destroy(Option $option, OptionValue $value): Response
     {
         Gate::authorize('update', $option);
         Gate::authorize('delete', $value);
 
         $this->optionValueService->delete($option, $value);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

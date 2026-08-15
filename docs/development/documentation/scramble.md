@@ -1,9 +1,14 @@
-# Documentation d'API avec Dedoc Scramble
+# API documentation with Dedoc Scramble
 
-**Problème :** Maintenir une documentation d'API (OpenAPI/Swagger) à jour manuellement est fastidieux, source d'erreurs et souvent négligé.
+**Problem:** Maintaining OpenAPI/Swagger documentation manually is tedious,
+error-prone, and often neglected.
 
-**Solution :** Utiliser Dedoc Scramble pour générer automatiquement la documentation en analysant le code de l'API Laravel. La documentation reste toujours synchronisée avec le code source.
+**Solution:** Use Dedoc Scramble to generate documentation automatically by
+analyzing the Laravel API. The documentation stays synchronized with the
+source code.
 
-**Fonctionnement simple :** Scramble inspecte les routes, les contrôleurs, les classes de requête (Form Requests) et les PHPDoc pour construire la spécification OpenAPI. Il fournit une interface web (par défaut `/docs/api`) pour explorer et tester les endpoints.
+**How it works:** Scramble inspects routes, controllers, Form Request classes,
+and PHPDoc blocks to build the OpenAPI specification. It provides a web
+interface, `/docs/api` by default, for exploring and testing endpoints.
 
-**Documentation officielle :** [Dedoc Scramble Docs](https://scramble.dedoc.co/)
+**Official documentation:** [Dedoc Scramble Docs](https://scramble.dedoc.co/)

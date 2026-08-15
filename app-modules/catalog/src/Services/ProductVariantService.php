@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
-use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
-use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\TransactionalProductVariantService;
@@ -23,45 +22,44 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 class ProductVariantService
 {
+    /** @var list<string> */
+    private const DEFAULT_REQUIRED_RELATIONS = ['product', 'optionValues.option', 'unitGroup'];
+
     public function __construct(
-        protected ProductVariantAssertion $productVariantAssertion,
         protected InventoryInterface $inventoryService,
+        protected ProductVariantAssertion $productVariantAssertion,
         protected TransactionalProductVariantService $transactionalProductVariantService,
     ) {}
 
-    public function list(Product $product, ProductVariantFilterData $filters): ProductVariantCollection
+    public function paginate(Product $product, ProductVariantFilterData $filters): CursorPaginator
     {
-        $query = $product->variants()->where('organization_id', currentOrganizationId())->with($this->relations());
-
-        if ($filters->isActive !== null) {
-            $query->where('is_active', $filters->isActive);
-        }
-
-        $variants = stableCursorPaginate($query, $filters);
-
-        return ProductVariantCollection::make($variants);
+        return stableCursorPaginate(
+            applyResponseContextToQuery(
+                $this->variantsQuery($product, $filters),
+                self::DEFAULT_REQUIRED_RELATIONS,
+            ),
+            $filters,
+        );
     }
 
-    public function retrieve(Product $product, ProductVariant $variant): ProductVariantResource
+    public function retrieve(Product $product, ProductVariant $variant): ProductVariant
     {
         $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
 
-        return ProductVariantResource::make($variant->load($this->relations()));
+        return $variant->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
     }
 
-    public function create(Product $product, ProductVariantBatchData $data): AnonymousResourceCollection
+    public function create(Product $product, ProductVariantBatchData $data): EloquentCollection
     {
         /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = DB::transaction(
             fn (): EloquentCollection => $this->transactionalProductVariantService->createMany($product, $data->variants)
         );
 
-        $variants->load($this->relations());
-
-        return ProductVariantResource::collection($variants);
+        return $variants->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
     }
 
-    public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariantResource
+    public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariant
     {
         $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
 
@@ -90,7 +88,7 @@ class ProductVariantService
             $this->inventoryService->updateItem($variant, ['sku' => $variant->sku]);
         });
 
-        return ProductVariantResource::make($variant->load($this->relations()));
+        return $variant->load(responseRelationsToLoad(self::DEFAULT_REQUIRED_RELATIONS));
     }
 
     public function delete(Product $product, ProductVariant $variant): void
@@ -105,15 +103,16 @@ class ProductVariantService
     }
 
     /**
-     * @return array<int|string, mixed>
+     * @return Builder<ProductVariant>
      */
-    protected function relations(): array
+    private function variantsQuery(Product $product, ProductVariantFilterData $filters): Builder
     {
-        return [
-            'product',
-            'optionValues.option',
-            'unitGroup',
-            'inventoryItem.stockSummaries',
-        ];
+        $query = $product->variants()->getQuery()->where('organization_id', currentOrganizationId());
+
+        if ($filters->isActive !== null) {
+            $query->where('is_active', $filters->isActive);
+        }
+
+        return $query;
     }
 }

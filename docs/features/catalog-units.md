@@ -1,10 +1,14 @@
-# Feature Showcase: Unit Upsert (Bulk & Upsert)
+# Feature Showcase: Unit Upsert (Bulk and Upsert)
 
-Ce document détaille l'implémentation de la gestion des unités dans le module `master`. C'est une fonctionnalité avancée qui démontre comment gérer un upsert de données complexes de manière performante (Bulk operations) et sécurisée (Business assertions).
+This document describes unit management in the `master` module. It demonstrates
+how to handle complex data upserts efficiently through bulk operations and
+safely through business assertions.
 
-## 1. Architecture du Flux "Upsert"
+## 1. Upsert flow architecture
 
-Contrairement à un CRUD classique, les unités sont gérées par **groupes** (ex: Masse, Volume) via un endpoint unique d'upsert. Les éléments absents du payload ne sont pas supprimés.
+Unlike a classic CRUD operation, units are managed by **groups** such as Mass
+and Volume through one upsert endpoint. Items absent from the payload are not
+deleted.
 
 ```mermaid
 sequenceDiagram
@@ -17,67 +21,92 @@ sequenceDiagram
     participant Database
 
     Client->>Controller: POST /v1/master/units/upsert
-    Controller->>Request: Payload déjà validé et normalisé
+    Controller->>Request: Validated and normalized payload
     Controller->>Data: UnitUpsertData::fromArray(validated)
-    Data->>Controller: Collection de UnitData
+    Data->>Controller: Collection of UnitData
     Controller->>Service: upsert(UnitUpsertData)
     Service->>Database: Fetch existing units of group (1 query)
     Service->>Assertion: assertCanUpsert($existingUnits)
     Assertion-->>Service: OK (or throws SpecificException)
     Service->>Database: Bulk UPSERT (1 query)
-    Service->>Database: Final Fetch (1 query)
+    Service->>Database: Final fetch (1 query)
     Service-->>Client: UnitCollection (JSON)
 ```
 
-## 2. Les Composants Clés
+## 2. Key components
 
-### A. La Route et le Controller
-- **Route :** `POST /v1/master/units/upsert`
-- **Controller :** `UnitController@upsert`
-  - Utilise le `UnitPolicy@upsert` pour vérifier les permissions `units.create` ou `units.update`.
-  - Délègue immédiatement au service.
+### A. Route and controller
 
-### B. Form Request et Data typées
-La validation HTTP et le transport vers le service sont séparés :
-- **`UnitUpsertRequest`** : valide la structure complète, notamment `units.*`, et conserve les chemins d'erreur indexés.
-- **`UnitUpsertData`** : construit le contrat typé du service via `::fromArray()`.
-- **`UnitData`** : représente une unité individuelle (ID, nom, symbole et ratio).
+- **Route:** `POST /v1/master/units/upsert`
+- **Controller:** `UnitController@upsert`
+  - Uses `UnitPolicy@upsert` to check `units.create` or `units.update`.
+  - Delegates immediately to the service.
 
-**Optimisation :** 
-La Form Request effectue les validations collectives en une seule requête SQL lorsque c'est possible, au lieu de déclencher une validation ou une requête par élément imbriqué.
+### B. Form Request and typed Data classes
 
-### C. Assertions Métier (`UnitAssertion`)
-Les règles métier ne sont pas dans le contrôleur, mais isolées dans des assertions documentées :
-- **Limite d'activité :** Un groupe ne peut pas avoir plus de **10 unités actives** simultanément (`UnitActiveLimitException`).
-- **Unicité du Ratio :** Un seul ratio de chaque valeur par groupe (`UnitRatioConflictException`).
-- **Unicité de la Base :** Forcer exactement une unité avec `ratio = 1` lors de la création (`UnitBaseRequiredException`).
-- **Immuabilité :** Interdiction de modifier le `ratio` ou le `code` d'une unité existante pour préserver l'historique (`UnitRatioImmutableException`).
-- **Protection Système :** Impossible de modifier les unités `is_builtin` (`UnitBuiltInUpdateException`).
+HTTP validation and transport to the service are separate:
 
-### D. Optimisation de la Persistance (`UnitService`)
-Le service est conçu pour être "Database Friendly" :
-- **Un seul SELECT** pour charger tout le groupe en mémoire au début.
-- **Bulk UPSERT** : Utilisation de `Unit::upsert()`. Cela permet d'insérer les nouvelles unités et de mettre à jour les existantes en **une seule requête SQL atomique**.
-- **Calculs en mémoire** : Les comparaisons pour les assertions se font sur la collection chargée, évitant des requêtes N+1.
+- **`UnitUpsertRequest`:** Validates the complete structure, including
+  `units.*`, and preserves indexed error paths.
+- **`UnitUpsertData`:** Builds the service's typed contract through
+  `::fromArray()`.
+- **`UnitData`:** Represents one unit with its ID, name, symbol, and ratio.
 
-## 3. Exceptions Spécifiques
-Chaque erreur métier possède sa propre classe d'exception dans `Lahatre\Catalog\Exceptions` et son message traduit dans `resources/lang/en/exceptions.php`, permettant un retour API clair et précis.
+**Optimization:** The Form Request performs collection-level validation in one
+SQL query when possible instead of triggering validation or a query for every
+nested item.
 
-## 4. Tests Automatisés (Pest)
-La fonctionnalité est couverte par une suite de tests Pest (`app-modules/master/tests/Feature/UnitServiceTest.php`) qui valide :
-- La création réussie d'un groupe.
-- L'échec si le ratio 1 est manquant.
-- Le blocage des doublons de ratio.
-- La protection des unités de base (interdiction de désactivation).
-- Le respect de la limite des 10 unités actives.
+### C. Business assertions (`UnitAssertion`)
 
-## 5. Exemple de Payload
+Business rules do not live in the controller; they are isolated in documented
+assertions:
+
+- **Activity limit:** A group may not have more than **10 active units** at
+  once (`UnitActiveLimitException`).
+- **Ratio uniqueness:** A group may have only one unit for each ratio value
+  (`UnitRatioConflictException`).
+- **Base uniqueness:** Creation must contain exactly one unit with `ratio = 1`
+  (`UnitBaseRequiredException`).
+- **Immutability:** The `ratio` and `code` of an existing unit cannot change,
+  preserving history (`UnitRatioImmutableException`).
+- **System protection:** Units with `is_builtin` cannot be modified
+  (`UnitBuiltInUpdateException`).
+
+### D. Persistence optimization (`UnitService`)
+
+The service is designed to be database-friendly:
+
+- One `SELECT` loads the entire group into memory at the start.
+- **Bulk UPSERT:** `Unit::upsert()` inserts new units and updates existing ones
+  in one atomic SQL query.
+- **In-memory calculations:** Assertion comparisons use the loaded collection,
+  avoiding N+1 queries.
+
+## 3. Specific exceptions
+
+Each business error has its own exception class in
+`Lahatre\Catalog\Exceptions` and a translated message in
+`resources/lang/en/exceptions.php`, providing a clear API response.
+
+## 4. Automated tests (Pest)
+
+The feature is covered by Pest tests in
+`app-modules/master/tests/Feature/UnitServiceTest.php`, including:
+
+- Successful group creation.
+- Failure when ratio 1 is missing.
+- Duplicate-ratio rejection.
+- Protection of base units, including deactivation prevention.
+- Enforcement of the ten-active-unit limit.
+
+## 5. Payload example
+
 ```json
 {
     "unit_group": "Mass",
     "units": [
-        { "id": "uuid-existant", "name": "Gramme (Modified)", "is_active": true },
-        { "name": "Milligramme", "symbol": "mg", "ratio": 1000, "is_active": true }
+        { "id": "existing-uuid", "name": "Gram (Modified)", "is_active": true },
+        { "name": "Milligram", "symbol": "mg", "ratio": 1000, "is_active": true }
     ]
 }
 ```

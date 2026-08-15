@@ -1,31 +1,41 @@
 # Laravel Telescope
 
-**Laravel Telescope** est un outil de débogage élégant qui fournit une vue d'ensemble perspicace des requêtes entrantes, des exceptions, des entrées de log, des requêtes de base de données, des tâches mises en file d'attente, des e-mails, des notifications, des caches, et bien plus encore, pour votre application Laravel. Il est conçu pour être utilisé principalement en **environnement de développement local**.
+**Laravel Telescope** is a debugging tool that provides an overview of
+incoming requests, exceptions, log entries, database queries, queued jobs,
+emails, notifications, caches, and more in a Laravel application. It is
+intended primarily for **local development environments**.
 
-## Utilisation
+## Usage
 
-Telescope est inclus dans le projet en tant que dépendance de développement (`require-dev` dans `composer.json`), ce qui signifie qu'il n'est pas déployé en production par défaut.
+Telescope is included as a development dependency (`require-dev` in
+`composer.json`), so it is not deployed to production by default.
 
-### Activation et Accès
+### Enable and access Telescope
 
-L'activation de Telescope et son chemin d'accès sont gérés via votre fichier `.env` :
+Telescope's enabled state and path are configured through `.env`:
 
--   **`TELESCOPE_ENABLED=true`**: Active ou désactive Telescope. **Il est fortement recommandé de le définir sur `false` en production.**
--   **`TELESCOPE_PATH=debug`**: Définit le chemin d'accès à l'interface web de Telescope. Par défaut, il est configuré sur `/debug` dans notre `.env.example`.
+- **`TELESCOPE_ENABLED=true`:** Enables Telescope. Set it to `false` in
+  production.
+- **`TELESCOPE_PATH=debug`:** Sets the web interface path. The example
+  environment uses `/debug`.
 
-Pour accéder à Telescope, assurez-vous que `TELESCOPE_ENABLED` est à `true` dans votre fichier `.env` local, puis naviguez vers l'URL de votre application suivie de `/debug` (ou du chemin que vous avez configuré). Par exemple: `http://localhost:28417/debug`.
+To access Telescope, set `TELESCOPE_ENABLED=true` in the local `.env` and open
+the application URL followed by `/debug`, or the configured path. For example:
+`http://localhost:28417/debug`.
 
-### Fonctionnalités Clés
+### Key features
 
--   **Requêtes :** Inspectez les données de requête, les en-têtes, les sessions et les réponses.
--   **Exceptions :** Visualisez toutes les exceptions lancées par votre application.
--   **Logs :** Accédez facilement à toutes les entrées de log.
--   **Base de Données :** Examinez les requêtes SQL exécutées, y compris les temps d'exécution et les bindings.
--   **Jobs :** Surveillez l'exécution des tâches en file d'attente, y compris les données, les connexions et les temps d'exécution.
--   **Cache, Mail, Notifications :** Suivez toutes les interactions avec ces services.
+- **Requests:** Inspect request data, headers, sessions, and responses.
+- **Exceptions:** View exceptions thrown by the application.
+- **Logs:** Access log entries.
+- **Database:** Inspect executed SQL, execution times, and bindings.
+- **Jobs:** Monitor queued job execution, data, connections, and timings.
+- **Cache, mail, notifications:** Track interactions with these services.
 
 ## Important
 
-Telescope collecte un grand nombre de données. Il est essentiel de ne l'activer que dans des environnements contrôlés (développement, staging) et de s'assurer qu'il est désactivé en production pour des raisons de performance et de sécurité.
+Telescope collects a large amount of data. Enable it only in controlled
+environments, such as development or staging, and disable it in production for
+performance and security reasons.
 
-Pour plus de détails sur la configuration avancée et les filtres, consultez la [documentation officielle de Laravel Telescope](https://laravel.com/docs/12.x/telescope).
+See the [official Laravel Telescope documentation](https://laravel.com/docs/12.x/telescope) for advanced configuration and filters.

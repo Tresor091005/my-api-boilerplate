@@ -18,6 +18,7 @@ use Illuminate\Foundation\Console\TraitMakeCommand;
 use Illuminate\Foundation\Console\ViewMakeCommand;
 use Illuminate\Routing\Console\ControllerMakeCommand;
 use Illuminate\Support\ServiceProvider;
+use Lahatre\Shared\Console\Commands\HelpersListCommand;
 use Lahatre\Shared\Console\Commands\Make\MakeClass;
 use Lahatre\Shared\Console\Commands\Make\MakeController;
 use Lahatre\Shared\Console\Commands\Make\MakeEnum;
@@ -30,22 +31,38 @@ use Lahatre\Shared\Console\Commands\Make\MakeTrait;
 use Lahatre\Shared\Console\Commands\Make\MakeView;
 use Lahatre\Shared\Console\Commands\MorphMapCacheCommand;
 use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
+use Lahatre\Shared\Console\Commands\ResponseContractCacheCommand;
+use Lahatre\Shared\Console\Commands\ResponseContractClearCommand;
+use Lahatre\Shared\Http\Responses\ResponseContext;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Lahatre\Shared\Registries\MorphMapRegistry;
+use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 class SharedServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->scoped(MorphMapRegistry::class);
+        $this->app->scoped(ResponseContext::class);
+        $this->app->scoped(ResponseContractRegistry::class);
+        $this->app->scoped(ResponseResponder::class);
 
         $this->commands([
+            HelpersListCommand::class,
             MorphMapCacheCommand::class,
             MorphMapClearCommand::class,
+            ResponseContractCacheCommand::class,
+            ResponseContractClearCommand::class,
         ]);
     }
 
-    public function boot(MorphMapRegistry $morphMapRegistry): void
-    {
+    public function boot(
+        MorphMapRegistry $morphMapRegistry,
+        ResponseContractRegistry $responseContractRegistry,
+    ): void {
+        $morphMapRegistry->discover();
+        $responseContractRegistry->discover();
+
         $this->extendNativeGeneratorCommands();
         Artisan::starting(function (Artisan $artisan): void {
             $artisan->add($this->app->make(MakeTest::class));
@@ -54,6 +71,12 @@ class SharedServiceProvider extends ServiceProvider
         $this->optimizes(
             optimize: 'morph-map:cache',
             clear: 'morph-map:clear',
+            key: 'morph-map',
+        );
+        $this->optimizes(
+            optimize: 'response-contracts:cache',
+            clear: 'response-contracts:clear',
+            key: 'response-contracts',
         );
     }
 

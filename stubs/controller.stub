@@ -6,6 +6,7 @@ namespace {{ namespace }};
 
 use IlluminateHttpJsonResponse;
 use IlluminateHttpRequest;
+use IlluminateHttpResponse;
 
 final class {{ class }}
 {
@@ -39,8 +40,8 @@ final class {{ class }}
         return response()->json([]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id): Response
     {
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

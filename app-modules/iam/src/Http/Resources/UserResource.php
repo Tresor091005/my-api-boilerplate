@@ -52,10 +52,10 @@ class UserResource extends JsonResource
                         'description' => $memberRole->role->description,
                         'is_builtin'  => $memberRole->role->is_builtin,
                     ],
-                    'organization' => $organization ? [
+                    'organization' => [
                         'id'   => $organization->id,
                         'name' => $organization->name,
-                    ] : null,
+                    ],
                 ];
             }
         }

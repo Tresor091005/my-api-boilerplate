@@ -18,9 +18,9 @@ class MorphMapRegistry
     protected array $map = [];
 
     /**
-     * MorphMapRegistry constructor.
+     * Load the cached morph map or discover and register all models.
      */
-    public function __construct()
+    public function discover(): void
     {
         if (!$this->loadFromCache()) {
             $this->discoverAndRegister();
@@ -165,6 +165,10 @@ class MorphMapRegistry
      */
     protected function loadFromCache(): bool
     {
+        if (config('app.env') !== 'production') {
+            return false;
+        }
+
         $cachePath = App::bootstrapPath('cache/morph-map.php');
 
         if (File::exists($cachePath)) {

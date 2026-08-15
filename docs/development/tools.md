@@ -1,36 +1,51 @@
-# Outils Clés du Projet
+# Key project tools
 
-Ce document référence les outils majeurs intégrés à ce projet, chacun accompagné d'une brève description et d'un lien vers sa documentation détaillée.
+This document lists the main tools integrated into the project, with a short
+description and a link to detailed documentation for each one.
 
-## Application & API
+## Application and API
 
--   **Laravel Reverb :** Un serveur WebSocket propriétaire pour des communications temps réel efficaces et sans dépendance tierce. [En savoir plus](../broadcasting/reverb.md)
--   **Laravel Sanctum :** Notre approche pour une authentification par token, sécurisée et extensible. [En savoir plus](../authentication/sanctum.md)
--   **Spatie Permissions :** Notre système de rôles et permissions, contextualisé par équipe et avec des permissions auto-découvertes. [En savoir plus](../iam/permissions.md)
--   **API Responses & Error Handling :** Description de notre approche standardisée pour les réponses d'API et la gestion des erreurs métier. [En savoir plus](../api/responses-and-errors.md)
--   **Dedoc Scramble :** Un générateur de documentation OpenAPI qui maintient votre documentation API à jour automatiquement. [En savoir plus](documentation/scramble.md)
+- **Laravel Reverb:** A first-party WebSocket server for efficient real-time
+  communication without a third-party dependency. [Read more](../broadcasting/reverb.md)
+- **Laravel Sanctum:** The secure and extensible token-authentication approach.
+  [Read more](../authentication/sanctum.md)
+- **Spatie Permissions:** The team-aware role and permission system with
+  automatic permission discovery. [Read more](../iam/permissions.md)
+- **API Responses and Error Handling:** The standardized API response and
+  business-error strategy. [Read more](../api/responses-and-errors.md)
+- **Dedoc Scramble:** An OpenAPI documentation generator that keeps API
+  documentation current automatically. [Read more](documentation/scramble.md)
 
-## Architectural Blueprints
+## Architectural blueprints
 
-These documents showcase how core principles and tools are combined to build complete features. They serve as practical examples and blueprints for future development.
+These documents show how core principles and tools combine to build complete
+features. They serve as practical examples and blueprints for future work.
 
--   **Category CRUD:** A deep-dive into the implementation of a hierarchical CRUD module, demonstrating patterns for services, Data classes, assertions, and more. [En savoir plus](../features/catalog-categories.md)
--   **Unit Upsert:** A high-performance create/update feature for unit groups, demonstrating bulk operations, custom validation rules, and business assertions. [En savoir plus](../features/catalog-units.md)
+- **Category CRUD:** A deep dive into a hierarchical CRUD module, including
+  services, Data classes, and assertions. [Read more](../features/catalog-categories.md)
+- **Unit upsert:** A high-performance create/update feature for unit groups,
+  including bulk operations, custom validation rules, and business assertions.
+  [Read more](../features/catalog-units.md)
 
-## Infrastructure & Environnement
+## Infrastructure and environment
 
--   **Docker & FrankenPHP :** Une infrastructure multi-conteneurs optimisée pour le développement avec FrankenPHP (Caddy), Reverb, Horizon et un scheduler dédié. [En savoir plus](../infrastructure/docker.md)
+- **Docker and FrankenPHP:** A multi-container development infrastructure with
+  FrankenPHP (Caddy), Reverb, Horizon, and a dedicated scheduler.
+  [Read more](../infrastructure/docker.md)
 
-## Qualité de Code & Automatisation
+## Code quality and automation
 
-L'ensemble de ces outils compose le workflow de qualité du projet. [En savoir plus sur notre philosophie de la qualité](code-quality.md).
+These tools make up the project's quality workflow. [Read more about the code
+quality philosophy](code-quality.md).
 
--   **Pint :** Un formateur de code PHP pour un style unifié.
--   **Rector :** Pour des refactorings et des mises à jour de code à grande échelle.
--   **PHPStan (Larastan) :** Détecte les erreurs et les incohérences de types avant l'exécution.
--   **IDE Helper :** Génère des fichiers d'aide pour l'autocomplétion dans l'IDE.
--   **Husky :** Un outil de gestion de hooks Git pour automatiser les vérifications avant les commits.
+- **Pint:** A PHP formatter for a consistent style.
+- **Rector:** Automated refactoring and large-scale code updates.
+- **PHPStan (Larastan):** Detects type errors and inconsistencies before
+  execution.
+- **IDE Helper:** Generates IDE autocompletion helpers.
+- **Husky:** Manages Git hooks to automate pre-commit checks.
 
-## Débogage
+## Debugging
 
--   **Laravel Telescope :** Un outil puissant pour le débogage et l'inspection de votre application Laravel en environnement de développement. [En savoir plus](debugging/telescope.md)
+- **Laravel Telescope:** Debugging and inspection for local Laravel
+  development. [Read more](debugging/telescope.md)

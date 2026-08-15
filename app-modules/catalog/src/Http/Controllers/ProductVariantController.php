@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
@@ -13,49 +14,62 @@ use Lahatre\Catalog\Http\Requests\ProductVariantFilterRequest;
 use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
 use Lahatre\Catalog\Http\Requests\UpdateProductVariantRequest;
 use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
+use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\ProductVariantService;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductVariantController
 {
     public function __construct(
-        protected ProductVariantService $productVariantService
+        protected ProductVariantService $productVariantService,
+        protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index(ProductVariantFilterRequest $request, Product $product): ProductVariantCollection
+    public function index(ProductVariantFilterRequest $request, Product $product): JsonResource|JsonResponse|Response
     {
         Gate::authorize('retrieve', $product);
         Gate::authorize('list', ProductVariant::class);
 
         $filters = ProductVariantFilterData::fromArray($request->validated());
 
-        return $this->productVariantService->list($product, $filters);
+        $variants = $this->productVariantService->paginate($product, $filters);
+
+        return $this->responseResponder->respond(
+            fn (): JsonResource => ProductVariantCollection::make($variants),
+        );
     }
 
-    public function show(Product $product, ProductVariant $variant): JsonResponse
+    public function show(Product $product, ProductVariant $variant): JsonResource|JsonResponse|Response
     {
         Gate::authorize('retrieve', $product);
         Gate::authorize('retrieve', $variant);
 
-        $response = $this->productVariantService->retrieve($product, $variant);
+        $variant = $this->productVariantService->retrieve($product, $variant);
 
-        return response()->json($response);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => ProductVariantResource::make($variant),
+        );
     }
 
-    public function store(StoreProductVariantRequest $request, Product $product): JsonResponse
+    public function store(StoreProductVariantRequest $request, Product $product): JsonResource|JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('create', ProductVariant::class);
 
         $data = ProductVariantBatchData::fromArray($request->validated());
 
-        $response = $this->productVariantService->create($product, $data);
+        $variants = $this->productVariantService->create($product, $data);
 
-        return response()->json($response, 201);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => ProductVariantCollection::make($variants),
+            status: 201,
+        );
     }
 
-    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResponse
+    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResource|JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('update', $variant);
@@ -65,18 +79,20 @@ class ProductVariantController
             missingFields: ['sku', 'is_active', 'options'],
         );
 
-        $response = $this->productVariantService->update($product, $variant, $data);
+        $variant = $this->productVariantService->update($product, $variant, $data);
 
-        return response()->json($response);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => ProductVariantResource::make($variant),
+        );
     }
 
-    public function destroy(Product $product, ProductVariant $variant): JsonResponse
+    public function destroy(Product $product, ProductVariant $variant): Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('delete', $variant);
 
         $this->productVariantService->delete($product, $variant);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

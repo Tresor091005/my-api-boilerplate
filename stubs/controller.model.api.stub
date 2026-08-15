@@ -5,33 +5,49 @@ declare(strict_types=1);
 namespace {{ namespace }};
 
 use IlluminateHttpJsonResponse;
+use IlluminateHttpResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
 use {{ namespacedModel }};
 use {{ namespacedRequests }}
 
 final class {{ class }}
 {
-    public function index(): JsonResponse
+    public function __construct(
+        private ResponseResponder $responseResponder,
+    ) {}
+
+    public function index(): JsonResource|JsonResponse|Response
     {
-        return response()->json([]);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => JsonResource::make([]),
+        );
     }
 
-    public function store({{ storeRequest }} $request): JsonResponse
+    public function store({{ storeRequest }} $request): JsonResource|JsonResponse|Response
     {
-        return response()->json([]);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => JsonResource::make([]),
+            status: 201,
+        );
     }
 
-    public function show({{ model }} ${{ modelVariable }}): JsonResponse
+    public function show({{ model }} ${{ modelVariable }}): JsonResource|JsonResponse|Response
     {
-        return response()->json([]);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => JsonResource::make([]),
+        );
     }
 
-    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): JsonResponse
+    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): JsonResource|JsonResponse|Response
     {
-        return response()->json([]);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => JsonResource::make([]),
+        );
     }
 
-    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+    public function destroy({{ model }} ${{ modelVariable }}): Response
     {
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

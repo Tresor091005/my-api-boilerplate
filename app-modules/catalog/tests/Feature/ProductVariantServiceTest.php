@@ -66,12 +66,11 @@ it('manages product variants through service methods', function (): void {
         'unit_group_id'   => $this->unitGroup->id,
     ]);
 
-    $payload = $this->service
-        ->list($this->product, ProductVariantFilterData::fromArray(['per_page' => 50]))
-        ->response()
-        ->getData(true);
+    $variantsPage = $this->service
+        ->paginate($this->product, ProductVariantFilterData::fromArray(['per_page' => 50]))
+        ->items();
 
-    $variantIds = collect($payload['data'] ?? [])->pluck('id');
+    $variantIds = collect($variantsPage)->pluck('id');
 
     expect($variantIds)->toContain($variant->id);
     expect($variantIds->contains($otherVariant->id))->toBeFalse();
@@ -109,7 +108,7 @@ it('manages product variants through service methods', function (): void {
     $updated = $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['sku' => 'UPDATED-SKU'],
         missingFields: ['is_active', 'options'],
-    ))->resource;
+    ));
 
     expect($updated->sku)->toBe('UPDATED-SKU');
 
@@ -119,6 +118,22 @@ it('manages product variants through service methods', function (): void {
         ->and(ProductVariant::withTrashed()->findOrFail($createdVariant->id)->deleted_at)->not->toBeNull()
         ->and($createdVariantPivotCount)->toBeGreaterThan(0)
         ->and(VariantOptionValue::query()->where('variant_id', $createdVariant->id)->exists())->toBeFalse();
+});
+
+it('loads the default required relations without an HTTP response context', function (): void {
+    $variant = ProductVariant::factory()->create([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+
+    $retrievedVariant = $this->service->retrieve($this->product, $variant);
+
+    expect($retrievedVariant->relationLoaded('product'))->toBeTrue()
+        ->and($retrievedVariant->relationLoaded('optionValues'))->toBeTrue()
+        ->and($retrievedVariant->relationLoaded('unitGroup'))->toBeTrue()
+        ->and($retrievedVariant->relationLoaded('tags'))->toBeFalse()
+        ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
 });
 
 it('validates tags inside each bulk variant payload', function (): void {

@@ -1,38 +1,59 @@
-# Conventions pour les Modèles Eloquent
+# Eloquent model conventions
 
-Ce document établit les règles et conventions pour la création et la gestion des modèles Eloquent dans l'application, afin d'assurer cohérence, maintenabilité et conformité avec les bonnes pratiques.
+This document defines the conventions for creating and managing Eloquent
+models in the application to ensure consistency, maintainability, and Laravel
+best-practice compliance.
 
-## Principes Généraux
+## General principles
 
--   **Emplacement et Namespace :** Les modèles du module `catalog` doivent être placés dans `app-modules/catalog/src/Models/` et utiliser le namespace `Lahatre\Catalog\Models`.
--   **Classe de Base :** Tous les modèles doivent étendre `Illuminate\Database\Eloquent\Model`.
--   **Traits Communs :** Utiliser le trait `Lahatre\Shared\Traits\SharedTraits`. Ce trait inclut `Illuminate\Database\Eloquent\Concerns\HasUuids` (pour les clés primaires UUID) et `Illuminate\Database\Eloquent\Factories\HasFactory` (pour les usines de modèles).
+- **Location and namespace:** `catalog` models belong in
+  `app-modules/catalog/src/Models/` and use the `Lahatre\Catalog\Models`
+  namespace.
+- **Base class:** Every model must extend
+  `Illuminate\Database\Eloquent\Model`.
+- **Common traits:** Use `Lahatre\Shared\Traits\SharedTraits`. This trait
+  includes `HasUuids` for UUID primary keys and `HasFactory` for model
+  factories.
 
-## Définitions des Propriétés du Modèle
+## Model properties
 
--   **`$table` :** Toujours définir explicitement la propriété `$table` pour spécifier le nom de la table de base de données associée au modèle (par exemple, `protected $table = 'catalog_currencies';`). Les noms de table doivent être au pluriel.
--   **`$primaryKey` et `$incrementing` :**
-    -   Par défaut, toutes les tables devraient utiliser un UUID comme clé primaire (`id`). Dans ce cas, il n'est pas nécessaire de définir `$primaryKey` ou `$incrementing`.
-    -   Si une table utilise une colonne différente de `id` comme clé primaire (par exemple, `code` pour `catalog_currencies`), ou si la clé primaire n'est pas un UUID auto-incrémenté, vous devez explicitement définir `protected $primaryKey = 'votre_cle_primaire';` et `public $incrementing = false;`.
--   **`$fillable` :** Définir explicitement toutes les colonnes qui peuvent être assignées massivement (mass assignable).
--   **`$casts` :**
-    -   Toutes les colonnes du modèle doivent être définies dans la propriété `$casts`.
-    -   **Dates/Heures :** Utiliser `immutable_datetime` pour toutes les colonnes de date et d'heure (`created_at`, `updated_at`, `active_from`, `active_to`, etc.) afin de garantir l'utilisation d'objets `CarbonImmutable`.
-    -   **UUIDs :** Toutes les colonnes UUID (clés primaires `id` et clés étrangères `*_id`) doivent être castées en `string`.
-    -   **Nombres :** Caster les colonnes numériques (`integer`, `bigInteger`, `decimal`, etc.) en types PHP appropriés (`integer`, `float`, `string` pour les grands nombres décimaux).
-    -   **Booléens :** Caster les colonnes booléennes en `boolean`.
-    -   **Autres chaînes :** Les autres colonnes de type texte qui ne sont ni UUID ni dates/heures peuvent être castées en `string` pour une explicitation maximale.
+- **`$table`:** Always define `$table` explicitly to identify the associated
+  database table, for example `protected $table = 'catalog_currencies';`.
+  Table names must be plural.
+- **`$primaryKey` and `$incrementing`:** By default, tables use an `id` UUID,
+  so these properties do not need to be defined. If a table uses another
+  primary key, such as `code` for `catalog_currencies`, or does not use an
+  auto-incrementing UUID, define `protected $primaryKey = 'your_primary_key';`
+  and `public $incrementing = false;` explicitly.
+- **`$fillable`:** Explicitly define every mass-assignable column.
+- **`$casts`:** Define all model columns in `$casts`:
+  - Use `immutable_datetime` for date and time columns such as `created_at`,
+    `updated_at`, `active_from`, and `active_to`.
+  - Cast UUID columns, including primary and foreign keys, to `string`.
+  - Cast numeric columns to appropriate PHP types (`integer`, `float`, or
+    `string` for large decimal values).
+  - Cast boolean columns to `boolean`.
+  - Cast other text columns to `string` when explicit typing is useful.
 
-## Relations Eloquent
+## Eloquent relationships
 
--   **Explicitation :** Toujours définir les relations de manière explicite, en spécifiant les clés étrangères, les clés locales et les noms de table de liaison (si applicable). La clarté est essentielle.
-    -   Exemple `belongsTo` : `return $this->belongsTo(Category::class, 'parent_id', 'id');`
-    -   Exemple `belongsToMany` : `return $this->belongsToMany(Tag::class, 'catalog_product_tags', 'product_id', 'tag_id')->using(ProductTag::class)->withTimestamps();`
--   **Modèles Pivot :** Pour les tables intermédiaires (`pivot tables`) qui contiennent des colonnes supplémentaires (comme `timestamps()`), toujours créer un modèle pivot dédié qui étend `Illuminate\Database\Eloquent\Relations\Pivot`.
-    -   Ces modèles pivots doivent également utiliser `SharedTraits` et définir `$table` ainsi que `$casts` pour toutes leurs colonnes.
-    -   Les relations `belongsToMany` doivent utiliser la méthode `->using(VotreModelePivot::class)` et `->withTimestamps()` si la table pivot a des timestamps.
+- **Explicitness:** Define relationships explicitly, including foreign keys,
+  local keys, and pivot table names when applicable. For example:
+  - `belongsTo`: `return $this->belongsTo(Category::class, 'parent_id', 'id');`
+  - `belongsToMany`: `return $this->belongsToMany(Tag::class, 'catalog_product_tags', 'product_id', 'tag_id')->using(ProductTag::class)->withTimestamps();`
+- **Pivot models:** For intermediate tables containing additional columns,
+  such as timestamps, create a dedicated model extending
+  `Illuminate\Database\Eloquent\Relations\Pivot`.
+  - Pivot models must also use `SharedTraits` and define `$table` and `$casts`
+    for all columns.
+  - `belongsToMany` relationships must use
+    `->using(YourPivotModel::class)` and `->withTimestamps()` when the pivot
+    table has timestamps.
 
-## Style de Code
+## Code style
 
--   **Pas de Commentaires Explicatifs :** Éviter les commentaires qui décrivent ce que fait le code. Le code doit être auto-descriptif. Les commentaires sont réservés aux explications complexes ou aux raisons derrière une décision technique non évidente.
--   **Conventions de Nommage :** Respecter les conventions de nommage PSR-12 et les conventions Laravel (par exemple, noms de modèles au singulier, noms de tables au pluriel).
+- **No explanatory comments:** Avoid comments that merely describe what the
+  code does. Code should be self-descriptive. Reserve comments for complex
+  explanations or non-obvious technical decisions.
+- **Naming:** Follow PSR-12 and Laravel naming conventions, such as singular
+  model names and plural table names.

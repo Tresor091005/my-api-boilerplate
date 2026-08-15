@@ -10,6 +10,7 @@ It provides:
 - deterministic cursor pagination;
 - handle and SKU generation;
 - model discovery and morph-map caching;
+- response-contract discovery and deployment caching;
 - module-aware/native Artisan generator overrides;
 - generator architecture support and shared test helpers.
 

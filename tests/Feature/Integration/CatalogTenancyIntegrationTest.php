@@ -187,10 +187,18 @@ it('enforces tenancy matrix for products and variants', function (): void {
 
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertOk();
     $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")->assertForbidden();
-    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")->assertOk();
+    $variant->attachTags(['status' => ['active']]);
+
+    $variantResponse = $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")
+        ->assertOk();
+    expect($variantResponse->json('data.tags'))->toBeNull();
+
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?include=tags")
+        ->assertOk()
+        ->assertJsonPath('data.tags.0.name', 'active');
     $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
 
-    $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants", [
+    $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants?response=resource", [
         'variants' => [[
             'sku'           => 'CREATED-VAR-001',
             'unit_group_id' => $unitGroup->id,
@@ -199,10 +207,10 @@ it('enforces tenancy matrix for products and variants', function (): void {
         ]],
     ])->assertCreated();
 
-    $createdVariantId = (string) $createdVariant->json('0.id');
+    $createdVariantId = (string) $createdVariant->json('data.0.id');
     expect(ProductVariant::query()->findOrFail($createdVariantId)->organization_id)->toBe($this->organization->id);
 
-    $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", [
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?response=resource", [
         'sku' => 'UPDATED-VAR-SKU',
     ])->assertOk();
     $this->patchJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}", [

@@ -27,12 +27,26 @@ paths:
 - Apply scoped binding explicitly to every nested resource. A request must never resolve a child that does not belong to the route parent.
 - Do not expose a package-generic route in a tenant-scoped host application unless the host access boundary is explicit.
 
+### Response defaults
+
+- Response mode is derived from the HTTP method when a route has a response
+  contract: `GET` returns a resource and rejects `response=none`; mutation
+  methods (`POST`, `PUT`, and `PATCH`) return `204 No Content` by default and
+  may opt into a resource with `?response=resource`; `DELETE` is always
+  `204 No Content`.
+- A contract may define `default_mode` only for an intentional endpoint
+  exception. This override must be documented with the route contract, is not
+  allowed for `DELETE`, and must not be added merely to repeat the method
+  default.
+- Keep `default_shape`, required loads, and allowed includes in the module
+  contract. Response mode is not a per-shape configuration concern.
+
 ## Controllers
 
 - Keep Controllers limited to HTTP orchestration: authorize, construct Data from validated input, call a service, and return a response.
 - Authorize before the service call. For nested reads, authorize the parent with `retrieve`; for nested mutations, authorize the parent with `update`; then authorize the child model or target class for the requested action.
 - Do not place business logic or manual validation in Controllers.
-- Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status.
+- Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Use `response()->noContent()` for responses without a body; do not serialize `null` as JSON for a `204` response.
 
 ## Form Requests
 
@@ -51,6 +65,18 @@ paths:
 ## Resources
 
 - Resources transform output only. Add `@mixin`, use `whenLoaded()` for relations, and load required relations before creating the Resource.
+- Define scalar fields first, then required loaded relations, then optional
+  relations rendered through `includeWhenRequestedAndLoaded()` (or the
+  equivalent shared helper). A Resource must never access a relation directly
+  to make it available; response shapes and the response context own relation
+  loading. Keep every relation guarded by `whenLoaded()` so a loading mistake
+  omits the relation instead of causing a lazy-loading query or exception.
+- The response context is lifecycle-scoped but not HTTP-only. Middleware may
+  configure it from query parameters, while services must provide a minimal
+  default list of required loads for console, job, scheduler, and direct
+  service callers. An active shape replaces that fallback; optional includes
+  are added only when explicitly requested, and `none` loads no response
+  relations.
 - Resource collections extend `Lahatre\Shared\Http\Resources\BaseCollection` and preserve the shared cursor metadata contract.
 - Avoid relationship serialization that can recurse indefinitely.
 

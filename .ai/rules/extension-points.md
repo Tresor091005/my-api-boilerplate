@@ -21,6 +21,11 @@ paths:
   routes, and ordinary package structure; do not manually register those again.
   Morph maps belong here only when their registration is not already handled by
   the project's established mechanism.
+- Do not resolve or manipulate an object owned by another module or package
+  from `register()`. Provider registration order is not a safe dependency boundary;
+  perform cross-module integration in `boot()` using method injection after all
+  providers have registered their bindings. Keep `register()` for the current
+  module's bindings and configuration.
 - Keep `Support` code business-agnostic and free from implicit HTTP,
   authorization, or tenant assumptions. A helper must not become a hidden
   service or policy layer.

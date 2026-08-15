@@ -1,6 +1,6 @@
 # My API Development Cookbook
 
-This project is a personal cookbook and a living documentation of my best practices for building modern, robust, and scalable APIs. It's a collection of practical choices, architectural patterns, and code snippets that I use in my projects. Consider it my personal "playground" to showcase and document my "art de coder".
+This project is a personal cookbook and a living record of my best practices for building modern, robust, and scalable APIs. It is a collection of practical choices, architectural patterns, and code snippets that I use in my projects. Consider it my personal playground for showcasing and documenting my craft.
 
 The main purpose is not to be cloned as a whole, but to serve as a reference and a source of inspiration. You are encouraged to read the code, understand the choices behind it, and copy any part that you find useful for your own projects. This allows others (and myself) to get an idea of how I organize my coding practices.
 

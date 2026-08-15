@@ -1,17 +1,20 @@
-# Philosophie de la Qualité de Code
+# Code quality philosophy
 
-L'objectif de ce projet n'est pas seulement de fournir une base fonctionnelle, mais aussi de démontrer une approche rigoureuse de la qualité du code. L'utilisation d'outils d'analyse statique et de formatage est essentielle pour éviter les bugs en amont et garantir une hégémonie stylistique dans le code. Un code lisible et cohérent est plus facile à maintenir et à faire évoluer.
+This project is intended not only to provide a functional foundation but also
+to demonstrate a rigorous approach to code quality. Static analysis and
+formatting tools help catch bugs early and maintain a consistent style.
+Readable, consistent code is easier to maintain and evolve.
 
-Cette philosophie est mise en œuvre par les outils suivants. Le hook `pre-commit`
-exécute actuellement Pint uniquement ; la vérification complète se lance avec
-`composer quality:check`.
+The following tools implement this philosophy. The `pre-commit` hook currently
+runs Pint only; the complete check is `composer quality:check`.
 
--   **Pint :** Assure un style de code unifié (basé sur PSR-12) sans effort manuel.
--   **Rector :** Permet des refactorings et des mises à jour de code à grande échelle de manière automatisée et sécurisée.
--   **PHPStan (Larastan) :** Détecte les erreurs et les incohérences de types avant même l'exécution du code, agissant comme un filet de sécurité.
--   **IDE Helper :** Génère des fichiers d'aide pour l'autocomplétion dans l'IDE, améliorant l'expérience de développement et la découverte du code.
+- **Pint:** Ensures a unified PSR-12-based style without manual formatting.
+- **Rector:** Automates large-scale refactoring and code updates safely.
+- **PHPStan (Larastan):** Detects type errors and inconsistencies before code
+  runs.
+- **IDE Helper:** Generates helper files for IDE autocompletion and code
+  discovery.
 
-`composer quality:check` regroupe Rector en mode vérification, Pint en mode
-vérification et PHPStan. `composer quality` applique les corrections (et régénère
-les fichiers IDE) avant l'analyse. Aucun de ces scripts ne remplace les tests
-fonctionnels.
+`composer quality:check` runs Rector in dry-run mode, Pint in check mode, and
+PHPStan. `composer quality` applies fixes and regenerates IDE files before
+analysis. None of these scripts replaces functional tests.

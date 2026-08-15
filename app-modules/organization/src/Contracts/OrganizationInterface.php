@@ -10,5 +10,5 @@ interface OrganizationInterface
 {
     public function initializeOrganization(array $data): Organization;
 
-    public function findOrganizationById(string $organizationId): ?Organization;
+    public function findOrganizationById(string $organizationId): Organization;
 }

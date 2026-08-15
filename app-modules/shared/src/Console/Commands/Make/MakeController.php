@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Lahatre\Shared\Console\Commands\Make;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use InterNACHI\Modular\Console\Commands\Make\MakeController as ModularMakeController;
 
 final class MakeController extends ModularMakeController
 {
     protected function buildClass($name): string
     {
-        return str_replace('IlluminateHttpJsonResponse', JsonResponse::class, parent::buildClass($name));
+        $class = str_replace('IlluminateHttpJsonResponse', JsonResponse::class, parent::buildClass($name));
+
+        return str_replace('IlluminateHttpResponse', Response::class, $class);
     }
 
     protected function handleTestCreation($path): bool

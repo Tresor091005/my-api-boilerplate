@@ -7,6 +7,7 @@ namespace Lahatre\Master\Http\Controllers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Master\Contracts\HasTags as HasTagsContract;
 use Lahatre\Master\Data\TagCreateData;
@@ -58,20 +59,20 @@ final class TagController
         return response()->json($this->tagService->update($tag, TagUpdateData::fromArray($request->validated())));
     }
 
-    public function reorder(TagReorderRequest $request): JsonResponse
+    public function reorder(TagReorderRequest $request): Response
     {
         Gate::authorize('reorder', Tag::class);
         $this->tagService->reorder(TagReorderData::fromArray($request->validated()));
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 
-    public function destroy(Tag $tag): JsonResponse
+    public function destroy(Tag $tag): Response
     {
         Gate::authorize('delete', $tag);
         $this->tagService->delete($tag);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 
     private function resolveTaggable(string $taggableType, string $taggableId): HasTagsContract

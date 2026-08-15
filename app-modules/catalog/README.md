@@ -1,10 +1,12 @@
 # Catalog Module
 
-## Exceptions métier
+## Domain exceptions
 
-Les invariants propres aux modèles sont regroupés par modèle : `CategoryException`, `OptionException`, `OptionValueException` et `ProductVariantException`. Utiliser leurs méthodes statiques nommées depuis les assertions.
+Model-specific invariants are grouped by model: `CategoryException`,
+`OptionException`, `OptionValueException`, and `ProductVariantException`. Use
+their named static methods from assertions.
 
-Voir la [convention générale des exceptions métier](../../docs/architecture/coding-rules/exceptions.md).
+See the [general business exception convention](../../docs/architecture/coding-rules/exceptions.md).
 
 ## Product variant tags
 
@@ -28,63 +30,72 @@ relation has already been loaded; Catalog does not eager-load the relation by
 default.
 
 During a variant update, only submitted tag types are synchronized. Omitted
-types remain unchanged, while an explicitly empty type removes all tags of that
-type.
+types remain unchanged, while an explicitly empty type removes all tags of
+that type.
 
 ## Tests
 
-Cette section documente la strategie de test a suivre pour `catalog` (et reutilisable pour les autres modules).
+This section documents the testing strategy for `catalog`, which can also be
+reused by other modules.
 
-### 1. Decoupage obligatoire
+### 1. Required separation
 
 - `app-modules/catalog/tests/*`:
-  - Tests **module-locaux** (metier)
-  - Ciblent `Service`, `Data`, `Assertions`, persistance
-  - **Sans** bootstrap IAM complet (`User`, `Role`, `Permission`, `Organization`)
+  - Module-local business tests.
+  - Targets `Service`, `Data`, `Assertions`, and persistence.
+  - Does not bootstrap the full IAM stack (`User`, `Role`, `Permission`,
+    `Organization`).
 - `tests/Feature/Integration/*`:
-  - Tests **cross-module** (auth, policies, gates, middleware)
-  - Couvre les matrices tenancy et permissions HTTP
+  - Cross-module tests for authentication, policies, gates, and middleware.
+  - Covers HTTP tenancy and permission matrices.
 
-Regle simple:
-- "Que fait le metier ?" => module-local
-- "Qui a le droit ?" => integration
+Simple rule:
 
-### 2. Pattern module-local (catalog)
+- “What does the business logic do?” → module-local.
+- “Who is allowed to do it?” → integration.
 
-Dans les tests module-locaux:
+### 2. Module-local pattern (catalog)
 
-- Initialiser le contexte tenant via le trait:
+In module-local tests:
+
+- Initialize the tenant context through the trait:
   - [InteractsWithCatalogTenantContext.php](./tests/Concerns/InteractsWithCatalogTenantContext.php)
-- Appeler directement les services:
-  - `CategoryService`, `OptionService`, `OptionValueService`, `ProductService`, `ProductVariantService`
-- Valider les payloads via Form Request:
-  - valider les payloads avec les règles de la Form Request et tester séparément le mapping `XxxData::fromArray(...)`
-- Pour les collections/resources:
-  - `->response()->getData(true)` puis assertions sur `data`
+- Call services directly:
+  - `CategoryService`, `OptionService`, `OptionValueService`, `ProductService`,
+    `ProductVariantService`.
+- Validate payloads through the Form Request:
+  - validate payloads with Form Request rules and test the
+    `XxxData::fromArray(...)` mapping separately.
+- For collections and resources:
+  - use `->response()->getData(true)` and assert the `data` payload.
 
-### 3. Pattern integration (catalog)
+### 3. Integration pattern (catalog)
 
-Les tests HTTP tenancy/authorization sont dans:
+HTTP tenancy and authorization tests live in:
 
 - [CatalogTenancyIntegrationTest.php](./../../tests/Feature/Integration/CatalogTenancyIntegrationTest.php)
 - [CatalogAuthorizationIntegrationTest.php](./../../tests/Feature/Integration/CatalogAuthorizationIntegrationTest.php)
 
-Ils couvrent:
-- List: only my org
-- Show/Update/Delete: allowed on my org, denied on other org
-- Create: `organization_id` auto-assigne au tenant courant
-- Permissions: `403` quand les permissions sont retirees
+They cover:
 
-### 4. Factories et FK
+- List: only the current organization.
+- Show/update/delete: allowed for the current organization and denied for
+  another organization.
+- Create: `organization_id` is assigned automatically to the current tenant.
+- Permissions: `403` when permissions are removed.
 
-Les factories `catalog` n'importent pas les modeles `organization`, mais respectent les FK:
+### 4. Factories and foreign keys
 
-- elles inserent une ligne minimale dans `organization_organizations` si necessaire
-- elles reutilisent `currentOrganizationId()` quand disponible
+Catalog factories do not import Organization models, but they respect foreign
+keys:
 
-Objectif: rester conforme a `ModularDependencyTest` tout en gardant des tests stables.
+- They insert a minimal row in `organization_organizations` when necessary.
+- They reuse `currentOrganizationId()` when available.
 
-### 5. Commandes utiles
+The goal is to remain compatible with `ModularDependencyTest` while keeping
+tests stable.
+
+### 5. Useful commands
 
 ```bash
 docker compose exec app php artisan test --compact app-modules/catalog/tests
@@ -93,9 +104,10 @@ docker compose exec app php artisan test --compact tests/Feature/Integration/Cat
 docker compose exec app php artisan test --compact tests/Feature/Architecture/ModularDependencyTest.php
 ```
 
-### 6. Checklist apres ajout de code
+### 6. Checklist after adding code
 
-1. Ajouter/adapter test metier dans `app-modules/catalog/tests`.
-2. Si impact auth/policy: ajouter test integration dans `tests/Feature/Integration`.
-3. Verifier qu'aucun import cross-module interdit n'a ete introduit.
-4. Executer `ModularDependencyTest` avant merge.
+1. Add or adapt the business test in `app-modules/catalog/tests`.
+2. If authentication or policy behavior is affected, add an integration test
+   in `tests/Feature/Integration`.
+3. Check that no forbidden cross-module import was introduced.
+4. Run `ModularDependencyTest` before merging.

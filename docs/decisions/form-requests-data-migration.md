@@ -1,19 +1,26 @@
-# Décision : séparation Form Request et Data
+# Decision: separating Form Requests and Data classes
 
-## Problème résolu
+## Problem resolved
 
-`LahatreDTO` validait, normalisait, castait et construisait les objets de transport dans une même abstraction. Les DTO imbriqués relançaient en plus leur propre Validator, ce qui faisait perdre les chemins d'erreur du parent tels que `units.0.name` ou `variants.1.options.0.value`.
+`LahatreDTO` validated, normalized, cast, and built transport objects in one
+abstraction. Nested DTOs also created their own validators, which lost the
+parent error paths such as `units.0.name` and `variants.1.options.0.value`.
 
-## Décision appliquée
+## Applied decision
 
-- Les Form Requests constituent la frontière de validation HTTP et valident les tableaux imbriqués avec les règles Laravel `field.*`.
-- Les classes Data sont des transports immuables construits par `::fromArray()` après validation.
-- Les Controllers gardent les Gates et Policies.
-- Les Services consomment des Data et réalisent un mapping explicite vers les modèles.
-- `MissingValue` distingue une clé absente d'une valeur explicite `null`, `false`, `0`, chaîne vide ou tableau vide.
+- Form Requests are the HTTP validation boundary and validate nested arrays
+  with Laravel's `field.*` rules.
+- Data classes are immutable transport objects built through `::fromArray()`
+  after validation.
+- Controllers retain Gates and Policies.
+- Services consume Data objects and explicitly map them to models.
+- `MissingValue` distinguishes an absent key from an explicit `null`, `false`,
+  `0`, empty string, or empty array.
 
-## Statut de migration
+## Migration status
 
-Les modules IAM, Catalog, Master et Inventory ont été migrés. La classe `LahatreDTO`, ses casts, ses concerns, sa commande Artisan, ses stubs et ses tests dédiés ont été supprimés.
+The IAM, Catalog, Master, and Inventory modules have been migrated. The
+`LahatreDTO` class, its casts, concerns, Artisan command, stubs, and dedicated
+tests have been removed.
 
-La convention complète est décrite dans [Form Requests et classes Data](../architecture/data/form-requests-and-data.md) et dans [les règles centrales](../../.agents/CODEBASE_RULES.md).
+The complete convention is described in [Form Requests and Data classes](../architecture/data/form-requests-and-data.md) and the [central rules](../../.agents/CODEBASE_RULES.md).

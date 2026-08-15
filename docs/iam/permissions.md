@@ -4,32 +4,54 @@ This project uses `spatie/laravel-permission` as the foundation for a
 team-aware role and permission system. This document describes the
 project-specific conventions and runtime behavior.
 
-## 1. Philosophie et Objectifs
+## 1. Philosophy and goals
 
--   **UUIDs par défaut :** Toutes les clés primaires et étrangères utilisent des UUIDs.
--   **Contextualisation par équipe :** Le système est conçu pour être "multi-tenant" au niveau des permissions. Chaque utilisateur opère dans le contexte d'une équipe (`team_id`).
--   **Permissions système ("Built-in") :** Un mécanisme permet de découvrir et d'enregistrer des permissions et des rôles système qui ne sont pas modifiables par les utilisateurs, garantissant une base stable.
--   **Simplicité de nommage :** Les permissions suivent une convention simple et prévisible : `[modèle].[action]` (ex: `posts.create`).
+- **UUIDs by default:** All primary and foreign keys use UUIDs.
+- **Team context:** The permission system is designed to be multi-tenant. Each
+  user operates in a team context (`team_id`).
+- **Built-in permissions:** The system discovers and registers system
+  permissions and roles that users cannot modify, providing a stable baseline.
+- **Simple naming:** Permissions follow a predictable `[model].[action]`
+  convention, for example `posts.create`.
 
 ## 2. Configuration (`permission.php`)
 
-Le fichier de configuration `@app-modules/iam/config/permission.php` a été ajusté pour nos besoins :
+The `@app-modules/iam/config/permission.php` configuration has been adapted
+for this project:
 
--   **Modèles personnalisés :** Il utilise nos propres modèles `Lahatre\Iam\Models\Permission` et `Lahatre\Iam\Models\Role` qui étendent ceux de Spatie.
--   **Noms de table :** Les tables sont préfixées par `iam_` pour éviter les conflits et clarifier leur appartenance au module d'identité.
--   **Clés primaires UUID :** La configuration `column_names.model_morph_key` est définie sur `model_id` et les migrations sont adaptées pour utiliser des UUIDs (`uuid()`, `foreignUuid()`, `uuidMorphs()`).
--   **Support des équipes (`teams`) :** La fonctionnalité `teams` est activée (`'teams' => true`), ce qui ajoute automatiquement une colonne `team_id` aux tables et relations nécessaires.
+- **Custom models:** It uses `Lahatre\Iam\Models\Permission` and
+  `Lahatre\Iam\Models\Role`, which extend Spatie's models.
+- **Table names:** Tables use the `iam_` prefix to avoid conflicts and make
+  ownership by the identity module explicit.
+- **UUID primary keys:** `column_names.model_morph_key` is `model_id`, and the
+  migrations use UUID helpers such as `uuid()`, `foreignUuid()`, and
+  `uuidMorphs()`.
+- **Team support (`teams`):** The feature is enabled (`'teams' => true`), which
+  adds a `team_id` column to the required tables and relations.
 
 ## 3. Migrations
 
-La migration `@app-modules/iam/database/migrations/..._create_permission_tables.php` personnalise la structure de base de Spatie :
+The `@app-modules/iam/database/migrations/..._create_permission_tables.php`
+migration customizes Spatie's base structure:
 
--   Toutes les clés primaires (`id`) sont des `uuid()`.
--   Les clés étrangères et les pivots sont adaptés pour utiliser des UUIDs.
--   **Table `iam_permissions` :** Ajout de colonnes `title` et `description` pour des permissions plus explicites dans une éventuelle interface de gestion.
--   **Table `iam_roles` :** Ajout d'une colonne `is_builtin` (booléen) pour identifier les rôles système, et `description` pour plus de clarté.
+- All primary keys (`id`) are `uuid()`.
+- Foreign keys and pivots use UUIDs.
+- **`iam_permissions`:** Adds `title` and `description` for clearer
+  permissions in a possible management interface.
+- **`iam_roles`:** Adds `is_builtin` to identify system roles and `description`
+  for clarity.
 
-## 4. System Permission Discovery
+## 4. Morph Map And System Permission Discovery
+
+Morph aliases are the stable model identifiers used by both polymorphic
+relations and generated permissions. The complete lifecycle is:
+
+1. `MorphMapRegistry` discovers concrete module models and registers aliases
+   such as `catalog_product`.
+2. `morph-map:cache` writes the immutable deployment cache used by normal
+   application boots.
+3. `permissions:discover` resolves every model through that registry and
+   synchronizes the corresponding built-in permissions and roles.
 
 The `permissions:discover` command creates the baseline permissions for all
 registered module models.
@@ -55,27 +77,45 @@ Policies should call `BasePolicy::canModel()` or `canOnModel()` so permission
 names are resolved from the same morph registry. If a permission is missing,
 policy authorization denies access by returning `false`.
 
-After adding or renaming a model or morph alias, run:
+After adding, removing, or renaming a model or morph alias, run the commands in
+this order:
 
 ```bash
 docker compose exec -T app php artisan morph-map:cache --no-interaction
 docker compose exec -T app php artisan permissions:discover --no-interaction
 ```
 
+The morph-map cache must be regenerated before permission discovery so the
+permission names and policy lookups use the same aliases. A deployment should
+also run the response-contract cache command when API routes or response
+contracts changed:
+
+```bash
+docker compose exec -T app php artisan response-contracts:cache --no-interaction
+```
+
 The command synchronizes generated permissions and built-in roles. It does not
 remove permissions for models that no longer exist, so historical or custom
 permissions must be reviewed separately before cleanup.
 
-## 5. Intégration dans le Modèle Utilisateur
+## 5. User model integration
 
-Le trait `Lahatre\Shared\Traits\HasAuthenticatableTraits` est appliqué à tous les modèles qui peuvent s'authentifier. Il est crucial car il :
-1.  Importe `Spatie\Permission\Traits\HasRoles`.
-2.  Définit `protected string $guard_name = 'sanctum';`. Cela force Spatie à utiliser le même `guard` que Sanctum, assurant que les permissions sont vérifiées contre le bon contexte d'authentification.
+The `Lahatre\Shared\Traits\HasAuthenticatableTraits` trait is applied to all
+models that can authenticate. It:
 
-## 6. Middleware et Contexte d'Équipe
+1. Imports `Spatie\Permission\Traits\HasRoles`.
+2. Defines `protected string $guard_name = 'sanctum';`, forcing Spatie to use
+   the same guard as Sanctum and therefore the correct authentication context.
 
-Pour que les permissions soient vérifiées dans le bon contexte d'équipe, le middleware `Lahatre\Iam\Http\Middleware\SetTeamPermissionsId` est utilisé.
+## 6. Team-context middleware
 
--   Il est appliqué à chaque requête authentifiée via le groupe de middleware `auth.api` dans `bootstrap/app.php`.
--   **Rôle :** Il récupère l'équipe associée à l'utilisateur authentifié (via le `AuthContext`) et utilise la fonction `setPermissionsTeamId()` de Spatie.
--   Cela garantit que toute vérification de rôle ou de permission effectuée plus loin dans le cycle de vie de la requête (`authContext()->memberRole()->hasPermissionTo('...')`) se fera uniquement dans le périmètre de l'équipe de l'utilisateur.
+The `Lahatre\Iam\Http\Middleware\SetTeamPermissionsId` middleware ensures
+permissions are checked in the correct team context.
+
+- It runs on every authenticated request through the `auth.api` middleware
+  group in `bootstrap/app.php`.
+- **Role:** It retrieves the team associated with the authenticated user through
+  `AuthContext` and calls Spatie's `setPermissionsTeamId()`.
+- This ensures that later role or permission checks, such as
+  `authContext()->memberRole()->hasPermissionTo('...')`, remain limited to the
+  user's team.

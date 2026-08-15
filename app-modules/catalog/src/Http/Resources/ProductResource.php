@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\Product;
 
 /**
@@ -26,14 +27,21 @@ class ProductResource extends JsonResource
             'is_active'   => $this->is_active,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
-            'options'     => $this->whenLoaded('optionValues', fn () => $this->optionValues
-                ->groupBy('option_id')
-                ->map(fn ($values): array => [
-                    'name'   => $values->first()->option->name,
-                    'values' => $values->pluck('value')->unique()->values()->all(),
-                ])
-                ->values()
-            ),
+            'options'     => $this->whenLoaded('optionValues', function ($optionValues): mixed {
+                if ($optionValues->contains(
+                    fn ($optionValue): bool => !$optionValue->relationLoaded('option')
+                )) {
+                    return new MissingValue;
+                }
+
+                return $optionValues
+                    ->groupBy('option_id')
+                    ->map(fn ($values): array => [
+                        'name'   => $values->first()->option->name,
+                        'values' => $values->pluck('value')->unique()->values()->all(),
+                    ])
+                    ->values();
+            }),
             'variants'   => ProductVariantResource::collection($this->whenLoaded('variants')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];

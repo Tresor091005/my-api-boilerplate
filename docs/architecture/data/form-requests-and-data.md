@@ -1,13 +1,13 @@
-# Form Requests et classes Data
+# Form Requests and Data classes
 
-Les entrées HTTP et les contrats de service sont deux responsabilités distinctes.
+HTTP input and service contracts are separate responsibilities.
 
-- Une Form Request valide et normalise le payload HTTP.
-- Une classe Data transporte des valeurs déjà validées vers le service.
-- Le Controller conserve l'autorisation avec les Gates et Policies.
-- Le Service ne dépend ni de HTTP, ni du Validator, ni d'une Request.
+- A Form Request validates and normalizes the HTTP payload.
+- A Data class transports already validated values to the service.
+- The Controller keeps authorization through Gates and Policies.
+- The Service does not depend on HTTP, the Validator, or a Request.
 
-## Flux standard
+## Standard flow
 
 ```php
 public function update(CategoryRequest $request, Category $category): JsonResponse
@@ -23,44 +23,51 @@ public function update(CategoryRequest $request, Category $category): JsonRespon
 }
 ```
 
-Une Request injectée est validée avant l'exécution du Controller. Le Gate reste volontairement dans le Controller : l'autorisation ne doit pas être cachée dans la validation.
+An injected Request is validated before the Controller executes. The Gate
+remains deliberately in the Controller; authorization must not be hidden in
+validation.
 
-## Nommage
+## Naming
 
-Les Form Requests gardent toujours le suffixe `Request` :
+Form Requests always keep the `Request` suffix:
 
-- `CategoryRequest` si store et update partagent réellement le même contrat ;
-- `StoreOptionValueRequest` et `UpdateOptionValueRequest` lorsque les shapes divergent ;
-- `CategoryFilterRequest`, `LoginRequest`, `UnitUpsertRequest` selon l'intention.
+- `CategoryRequest` when store and update genuinely share one contract.
+- `StoreOptionValueRequest` and `UpdateOptionValueRequest` when their shapes
+  differ.
+- `CategoryFilterRequest`, `LoginRequest`, and `UnitUpsertRequest` according to
+  their intent.
 
-Les objets de service utilisent le suffixe `Data` :
+Service transport objects use the `Data` suffix:
 
-- `CategoryData` ;
-- `CategoryFilterData` ;
-- `LoginData` ;
+- `CategoryData`.
+- `CategoryFilterData`.
+- `LoginData`.
 - `UnitUpsertData`.
 
-Il ne faut pas créer automatiquement une paire store/update. Une classe représente un shape cohérent ; elle est divisée lorsque les branches conditionnelles rendent le contrat difficile à lire.
+Do not automatically create a store/update pair. One class represents one
+coherent shape; split it when conditional branches make the contract difficult
+to read.
 
 ## Form Requests
 
-La Request contient :
+A Request contains:
 
-- `rules()` pour les règles Laravel ;
-- `prepareForValidation()` uniquement pour le nettoyage propre aux champs concernés ;
-- `after()` pour les validations HTTP complexes et indexées ;
-- les règles liées au modèle de route, par exemple `unique()->ignore(...)`.
+- `rules()` for Laravel rules.
+- `prepareForValidation()` only for cleanup specific to the affected fields.
+- `after()` for complex, indexed HTTP validation.
+- Rules tied to the route model, such as `unique()->ignore(...)`.
 
-Les règles de présence sont choisies explicitement :
+Presence rules are chosen explicitly:
 
-- absence autorisée : aucune règle de présence ;
-- clé exigée, valeur éventuellement nulle : `present` et `nullable` ;
-- clé et valeur exigées : `required` ;
-- `nullable` ne permet pas de savoir si la clé était absente.
+- Omitted key allowed: no presence rule.
+- Required key, nullable value: `present` and `nullable`.
+- Required key and value: `required`.
+- `nullable` alone does not reveal whether a key was absent.
 
-## Classes Data
+## Data classes
 
-Une classe Data est normalement `final readonly`, utilise un constructeur privé et expose toujours `::fromArray()` :
+A Data class is normally `final readonly`, uses a private constructor, and
+always exposes `::fromArray()`:
 
 ```php
 final readonly class CategoryFilterData
@@ -85,17 +92,21 @@ final readonly class CategoryFilterData
 }
 ```
 
-Les payloads et les colonnes restent en `snake_case`. Les propriétés PHP sont en `camelCase`. Le mapping reste explicite dans `::fromArray()`.
+Payloads and columns remain `snake_case`; PHP properties use `camelCase`.
+Mapping stays explicit in `::fromArray()`.
 
-`::fromArray()` peut construire des enums, dates, collections ou Data imbriquées à partir de valeurs déjà validées. Il ne doit pas relancer une validation HTTP.
+`::fromArray()` may build enums, dates, collections, or nested Data classes
+from already validated values. It must not run HTTP validation again.
 
-## Absence et nullabilité
+## Missing values and nullability
 
-`MissingValue` différencie une clé absente d'une valeur explicite :
+`MissingValue` distinguishes an absent key from an explicit value. In Data
+type unions, put `MissingValue` first so this possibility is immediately
+visible: `MissingValue|string|null`, `MissingValue|array|null`, or
+`MissingValue|bool`.
 
-Dans les unions de types des Data, `MissingValue` est placé en premier afin de rendre cette possibilité visible immédiatement : `MissingValue|string|null`, `MissingValue|array|null` ou `MissingValue|bool`.
-
-Quand une Data lit plusieurs champs, `MissingValueReader` peut être créé une fois pour éviter de répéter le tableau source et la liste des champs absents :
+When a Data class reads several fields, create one `MissingValueReader` to
+avoid repeating the source array and missing-field list:
 
 ```php
 $read = MissingValueReader::fromArray($data, $missingFields);
@@ -108,7 +119,9 @@ return new self(
 );
 ```
 
-Le lecteur conserve exactement les mêmes règles que `MissingValue::fromArray()` : une clé présente garde sa valeur, y compris `null` ; une clé absente autorisée retourne le sentinel ; un `default` est utilisé pour les autres absences.
+The reader follows the same rules as `MissingValue::fromArray()`: a present key
+keeps its value, including `null`; an allowed absent key returns the sentinel;
+and `default` is used for other absent keys.
 
 ```php
 $data = CategoryData::fromArray(
@@ -117,10 +130,13 @@ $data = CategoryData::fromArray(
 );
 ```
 
-Les noms de `missingFields` sont ceux de la source et restent donc en `snake_case`.
-La liste est locale au tableau passé à la Data : elle ne s'applique pas automatiquement aux objets ou tableaux imbriqués. Une Data enfant doit recevoir sa propre liste si elle supporte elle aussi les mises à jour partielles. Les chemins globaux comme `variants.*.name` ne sont donc pas interprétés par `MissingValueReader`.
+`missingFields` names come from the source and therefore remain `snake_case`.
+The list applies only to the array passed to the Data class; it is not applied
+automatically to nested objects or arrays. A child Data class needs its own
+list when it supports partial updates. Global paths such as
+`variants.*.name` are not interpreted by `MissingValueReader`.
 
-Pour appliquer une mise à jour :
+For updates:
 
 ```php
 use function Lahatre\Shared\Data\withoutMissing;
@@ -131,9 +147,10 @@ $category->fill(withoutMissing([
 ]));
 ```
 
-Le helper retire uniquement `MissingValue::Instance`. Il conserve `null`, `false`, `0`, `''` et `[]`.
+The helper removes only `MissingValue::Instance`. It preserves `null`, `false`,
+`0`, `''`, and `[]`.
 
-Pour un champ obligatoire à la création :
+For a field required during creation:
 
 ```php
 use function Lahatre\Shared\Data\required;
@@ -141,22 +158,22 @@ use function Lahatre\Shared\Data\required;
 'name' => required($data->name),
 ```
 
-## Génération
+## Generation
 
-Créer les fichiers dans le module concerné :
+Create files in the relevant module:
 
 ```bash
 php artisan make:request CategoryRequest --module=catalog --no-interaction
 php artisan make:class Data/CategoryData --module=catalog --no-interaction
 ```
 
-La commande `make:dto` et la classe `LahatreDTO` ont été retirées.
+The `make:dto` command and `LahatreDTO` class have been removed.
 
 ## Tests
 
-Tester séparément :
+Test separately:
 
-1. les règles, la normalisation et les erreurs indexées de la Form Request ;
-2. le mapping `snake_case` vers `camelCase` de la Data ;
-3. la différence entre absence, `null`, `false`, zéro et tableaux vides ;
-4. la logique et la persistance du service.
+1. Form Request rules, normalization, and indexed errors.
+2. Data mapping from `snake_case` to `camelCase`.
+3. The difference between absence, `null`, `false`, zero, and empty arrays.
+4. Service logic and persistence.

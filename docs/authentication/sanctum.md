@@ -1,17 +1,26 @@
-# Authentification via Laravel Sanctum
+# Authentication with Laravel Sanctum
 
-Ce document détaille l'approche d'authentification de l'API, qui repose sur Laravel Sanctum. Nous avons étendu ses fonctionnalités de base pour créer un système robuste, flexible et contextuel.
+This document describes the API authentication approach based on Laravel
+Sanctum. The project extends Sanctum's basic features to provide a robust,
+flexible, and contextual system.
 
-## 1. Philosophie : Pourquoi Sanctum ?
+## 1. Philosophy: why Sanctum?
 
-Laravel Sanctum a été choisi pour sa simplicité et son efficacité dans la gestion de l'authentification par tokens (API tokens), ce qui est parfait pour une API stateless. Bien qu'il supporte des scénarios complexes (multi-guards), notre implémentation se concentre sur un seul `guard` (`sanctum`) pour plus de clarté, tout en restant extensible.
+Laravel Sanctum was chosen for its simplicity and effectiveness when managing
+API tokens, which is well suited to a stateless API. Although it supports
+complex scenarios such as multiple guards, this implementation focuses on a
+single `sanctum` guard for clarity while remaining extensible.
 
-## 2. Extension du Token : Ajout de Métadonnées
+## 2. Token extension: adding metadata
 
-Pour enrichir le contexte de chaque token, nous avons étendu le modèle `PersonalAccessToken` de Sanctum.
+The Sanctum `PersonalAccessToken` model is extended to enrich each token's
+context.
 
 ### Migration
-Une migration ajoute une colonne `metadata` de type `jsonb` à la table `personal_access_tokens`.
+
+A migration adds a nullable `jsonb` `metadata` column to
+`personal_access_tokens`.
+
 ```php
 // @app-modules/iam/database/migrations/..._add_metadata_to_personal_access_tokens.php
 Schema::table('personal_access_tokens', function (Blueprint $table): void {
@@ -19,10 +28,13 @@ Schema::table('personal_access_tokens', function (Blueprint $table): void {
 });
 ```
 
-### Modèle Personnalisé
-Nous avons créé un modèle `Lahatre\Iam\Auth\PersonalAccessToken` qui étend celui de Sanctum. Il caste la colonne `metadata` en `json` et ajoute un helper `getMeta()`.
+### Custom model
 
-Ce modèle personnalisé est ensuite enregistré dans le `IamServiceProvider` :
+`Lahatre\Iam\Auth\PersonalAccessToken` extends Sanctum's model. It casts
+`metadata` to `json` and adds a `getMeta()` helper.
+
+The custom model is registered in `IamServiceProvider`:
+
 ```php
 // @app-modules/iam/src/Providers/IamServiceProvider.php
 public function boot(): void
@@ -31,15 +43,16 @@ public function boot(): void
 }
 ```
 
-## 3. Flux de Connexion (Login)
+## 3. Login flow
 
-Lors de la connexion, nous créons le token puis nous y attachons immédiatement les métadonnées pertinentes.
+During login, the token is created and immediately receives the relevant
+metadata.
 
 ```php
 // @app-modules/iam/src/Http/Controllers/AuthController.php
 public function login(LoginRequest $request, string $type): JsonResponse
 {
-    // ... (authentification de l'utilisateur)
+    // ... authenticate the user
 
     $metadata = match ($type) {
         'user'           => ['type' => 'user', 'company_id' => null],
@@ -47,9 +60,9 @@ public function login(LoginRequest $request, string $type): JsonResponse
         default          => null,
     };
 
-    // 1. Crée le token
+    // 1. Create the token
     $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
-    // 2. Met à jour le token avec les métadonnées
+    // 2. Update the token with metadata
     $token->accessToken->update(['metadata' => $metadata]);
 
     return response()->json([
@@ -59,48 +72,60 @@ public function login(LoginRequest $request, string $type): JsonResponse
 }
 ```
 
-## 4. Le Contexte d'Authentification (`AuthContext`)
+## 4. Authentication context (`AuthContext`)
 
-Pour éviter de requêter l'utilisateur ou son contexte à de multiples endroits, nous utilisons un singleton `AuthContext` qui est résolu pour chaque requête authentifiée.
+To avoid querying the user or its context repeatedly, the application uses a
+scoped `AuthContext` resolved for each authenticated request.
 
-1.  **La Classe `AuthContext`** (`Lahatre\Iam\Auth\AuthContext`): C'est un simple conteneur pour l'utilisateur authentifié et d'autres informations (équipe, rôle, etc.). Il est enregistré en tant que `scoped` dans `IamServiceProvider`.
+1. **The `AuthContext` class** (`Lahatre\Iam\Auth\AuthContext`) is a simple
+   container for the authenticated user and other information such as team and
+   role. It is registered as scoped in `IamServiceProvider`.
+2. **The `ResolveAuthContext` middleware** populates the scoped context with
+   the current user's information on every authenticated request.
+3. **The `authContext()` helper** in `app-modules/shared/src/helpers.php` gives
+   the application a readable global access point:
 
-2.  **Le Middleware `ResolveAuthContext`**: Ce middleware, appliqué à chaque requête authentifiée, est responsable de peupler le singleton `AuthContext` avec les informations de l'utilisateur courant.
+   ```php
+   function authContext(): AuthContext
+   {
+       return app(AuthContext::class);
+   }
+   ```
 
-3.  **Le Helper `authContext()`**: Un helper global (`app-modules/shared/src/helpers.php`) a été créé pour un accès facile et lisible à l'instance de `AuthContext` partout dans l'application.
-    ```php
-    // @app-modules/shared/src/helpers.php
-    function authContext(): AuthContext
-    {
-        return app(AuthContext::class);
-    }
-    ```
-    On peut ensuite l'utiliser très simplement : `authContext()->user()`.
+   It can then be used as `authContext()->user()`.
 
-## 5. Application aux Routes
+## 5. Applying authentication to routes
 
-Dans `bootstrap/app.php`, un groupe de middlewares nommé `auth.api` a été défini. Il applique à la fois le guard de Sanctum et notre middleware de résolution de contexte.
+`bootstrap/app.php` defines an `auth.api` middleware group that applies the
+Sanctum guard and the context-resolution middleware together.
+
 ```php
-// @bootstrap/app.php
 $middleware->group('auth.api', [
     'auth:sanctum',
     ResolveAuthContext::class,
     SetTeamPermissionsId::class,
 ]);
 ```
-Toutes les routes nécessitant une authentification doivent utiliser ce groupe.
 
-## 6. Configuration des Modèles "Authentifiables"
+Every route requiring authentication must use this group.
 
-Les modèles qui peuvent s'authentifier (comme `User` ou `CompanyMember`) utilisent le trait `HasAuthenticatableTraits`. Ce trait est crucial car :
-1.  Il inclut `HasApiTokens` de Sanctum.
-2.  Il inclut `HasRoles` de Spatie.
-3.  Il définit `protected string $guard_name = 'sanctum';`, forçant `spatie/laravel-permission` à utiliser le même guard que Sanctum, ce qui garantit une intégration parfaite des rôles et permissions.
+## 6. Configuring authenticatable models
 
-## 7. Configuration d'Environnement
+Models that can authenticate, such as `User` or `CompanyMember`, use the
+`HasAuthenticatableTraits` trait. It:
 
-Enfin, pour que Sanctum soit le mécanisme d'authentification par défaut pour les gardes API, la variable suivante est définie dans `.env.example` :
+1. Includes Sanctum's `HasApiTokens`.
+2. Includes Spatie's `HasRoles`.
+3. Defines `protected string $guard_name = 'sanctum';`, forcing
+   `spatie/laravel-permission` to use the same guard as Sanctum.
+
+## 7. Environment configuration
+
+To make Sanctum the default authentication mechanism for API guards, define
+the following variable in `.env.example`:
+
 ```dotenv
 AUTH_GUARD=sanctum
 ```
-Cela indique à Laravel d'utiliser le pilote `sanctum` pour le guard `api` par défaut.
+
+Laravel then uses the `sanctum` driver for the default `api` guard.

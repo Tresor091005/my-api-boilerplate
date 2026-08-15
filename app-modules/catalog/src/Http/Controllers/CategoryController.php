@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\CategoryData;
 use Lahatre\Catalog\Data\CategoryFilterData;
@@ -63,12 +64,12 @@ class CategoryController
         return response()->json($response);
     }
 
-    public function destroy(Category $category): JsonResponse
+    public function destroy(Category $category): Response
     {
         Gate::authorize('delete', $category);
 
         $this->categoryService->delete($category);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

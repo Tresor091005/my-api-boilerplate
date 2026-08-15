@@ -5,29 +5,38 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\{{Module}}\Data\{{Entity}}Data;
 use Lahatre\{{Module}}\Data\{{Entity}}FilterData;
 use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
 use Lahatre\{{Module}}\Http\Requests\{{Entity}}FilterRequest;
 use Lahatre\{{Module}}\Http\Resources\{{Entity}}Collection;
+use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\{{Module}}\Services\{{Entity}}Service;
+use Lahatre\Shared\Http\Responses\ResponseResponder;
 
 class {{ClassName}}
 {
     public function __construct(
-        protected {{Entity}}Service $service
+        protected {{Entity}}Service $service,
+        protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index({{Entity}}FilterRequest $request): {{Entity}}Collection
+    public function index({{Entity}}FilterRequest $request): JsonResource|JsonResponse|Response
     {
         Gate::authorize('list', {{Entity}}::class);
 
-        return $this->service->list({{Entity}}FilterData::fromArray($request->validated()));
+        $response = $this->service->list({{Entity}}FilterData::fromArray($request->validated()));
+
+        return $this->responseResponder->respond(
+            fn (): JsonResource => {{Entity}}Collection::make($response),
+        );
     }
 
-    public function store({{Entity}}Request $request): JsonResponse
+    public function store({{Entity}}Request $request): JsonResource|JsonResponse|Response
     {
         Gate::authorize('create', {{Entity}}::class);
 
@@ -35,19 +44,24 @@ class {{ClassName}}
 
         $response = $this->service->create($data);
 
-        return response()->json($response, 201);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => {{Entity}}Resource::make($response),
+            status: 201,
+        );
     }
 
-    public function show({{Entity}} ${{EntityLower}}): JsonResponse
+    public function show({{Entity}} ${{EntityLower}}): JsonResource|JsonResponse|Response
     {
         Gate::authorize('retrieve', ${{EntityLower}});
 
         $response = $this->service->retrieve(${{EntityLower}});
 
-        return response()->json($response);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => {{Entity}}Resource::make($response),
+        );
     }
 
-    public function update({{Entity}}Request $request, {{Entity}} ${{EntityLower}}): JsonResponse
+    public function update({{Entity}}Request $request, {{Entity}} ${{EntityLower}}): JsonResource|JsonResponse|Response
     {
         Gate::authorize('update', ${{EntityLower}});
 
@@ -55,15 +69,17 @@ class {{ClassName}}
 
         $response = $this->service->update(${{EntityLower}}, $data);
 
-        return response()->json($response);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => {{Entity}}Resource::make($response),
+        );
     }
 
-    public function destroy({{Entity}} ${{EntityLower}}): JsonResponse
+    public function destroy({{Entity}} ${{EntityLower}}): Response
     {
         Gate::authorize('delete', ${{EntityLower}});
 
         $this->service->delete(${{EntityLower}});
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

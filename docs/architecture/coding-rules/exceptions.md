@@ -1,32 +1,45 @@
-# Exceptions métier
+# Business exceptions
 
-Les exceptions métier héritent de `Lahatre\\Shared\\Exceptions\\AssertionException`. Elles sont réservées aux invariants qui ne peuvent pas être exprimés correctement par une `FormRequest`, une règle de validation ou une contrainte de base de données.
+Business exceptions extend `Lahatre\\Shared\\Exceptions\\AssertionException`.
+They are reserved for invariants that cannot be expressed correctly through a
+`FormRequest`, validation rule, or database constraint.
 
-## Une classe par modèle
+## One class per model
 
-Quand plusieurs règles concernent le même modèle, elles sont regroupées dans une seule exception nommée `<Model>Exception`. Chaque règle est exposée par une méthode statique descriptive :
+When several rules concern the same model, group them in one exception named
+`<Model>Exception`. Expose each rule through a descriptive static method:
 
 ```php
 throw CategoryException::hasChildren($category);
 throw CategoryException::cannotBeDescendantParent($category, $parentId);
 ```
 
-Cette organisation fournit un catalogue lisible des invariants du modèle et évite de multiplier les fichiers pour des variantes d’un même domaine.
+This organization provides a readable catalog of model invariants and avoids
+creating multiple files for variants of the same domain.
 
-Les méthodes statiques doivent construire le message traduit avec `__()` et conserver les identifiants utiles dans `context()`.
+Static methods must build the translated message with `__()` and keep useful
+identifiers in `context()`.
 
-## Quand garder une exception séparée
+## When to keep a separate exception
 
-Une exception reste dans son propre fichier lorsqu’elle décrit un workflow ou une infrastructure plutôt qu’un modèle unique. Exemples : organisation courante, reversal de transaction, idempotence, stock insuffisant et échec d’authentification.
+Keep an exception in its own file when it describes a workflow or
+infrastructure rather than a single model. Examples include the current
+organization, transaction reversal, idempotency, insufficient stock, and
+authentication failure.
 
-Les exceptions transversales ne doivent pas être artificiellement rattachées à un modèle si la règle concerne plusieurs objets ou une étape de processus.
+Cross-cutting exceptions must not be artificially attached to a model when the
+rule concerns several objects or a process step.
 
-## Catalogue actuel
+## Current catalog
 
-- `catalog` : `CategoryException`, `OptionException`, `OptionValueException`, `ProductVariantException`.
-- `master` : `UnitException`, `TagException`.
-- `pricing` : les erreurs de résolution et de validation restent regroupées par responsabilité car elles concernent plusieurs contrats ou cibles polymorphes.
-- `inventory` : les erreurs de transaction, de stock, d’organisation et d’idempotence restent séparées car elles concernent des workflows ou plusieurs modèles.
-- `iam` : les erreurs d’authentification restent séparées du modèle utilisateur.
+- `catalog`: `CategoryException`, `OptionException`, `OptionValueException`,
+  `ProductVariantException`.
+- `master`: `UnitException`, `TagException`.
+- `pricing`: resolution and validation errors remain grouped by responsibility
+  because they concern several contracts or polymorphic targets.
+- `inventory`: transaction, stock, organization, and idempotency errors remain
+  separate because they concern workflows or several models.
+- `iam`: authentication errors remain separate from the user model.
 
-Les tests peuvent inspecter le message ou le contexte pour distinguer la règle précise au sein d’une exception par modèle.
+Tests may inspect the message or context to distinguish the precise rule within
+a model exception.

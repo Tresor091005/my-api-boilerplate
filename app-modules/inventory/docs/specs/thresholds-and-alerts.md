@@ -1,227 +1,284 @@
-# Inventory Thresholds and Alerts Spec
+# Inventory Thresholds and Alerts Specification
 
-Objectif: introduire un systeme de thresholds et d'alertes "sans prise de tete" dans le module Inventory, en restant package-friendly (configurable, faible couplage, peu de faux positifs, debounced).
+Goal: introduce a straightforward threshold and alert system in the Inventory
+module while remaining package-friendly: configurable, loosely coupled, with
+few false positives and debounced alerts.
 
 Date: 2026-04-10
 
-## 1) Principes
+## 1. Principles
 
-- Les thresholds sont definis par "scope": `global`, `item` (across locations), `item_location`.
-- Les alertes doivent etre idempotentes et debounced: on cree une alerte uniquement au "crossing" et on la resolv quand la condition n'est plus vraie.
-- Les endpoints de lecture actuels restent la source de verite pour "stock": les alerts ne doivent pas forcer a charger plus de donnees que necessaire.
-- La configuration doit etre progressive: un projet peut commencer avec uniquement `min/max` et ajouter ensuite expiration/mouvements/valeur.
-- Ne pas stocker de thresholds dans `inventory_items` / `inventory_locations` / `inventory_stocks`: on cree des tables dediees (regles + alertes).
+- Thresholds are defined by scope: `global`, `item` (across locations), or
+  `item_location`.
+- Alerts must be idempotent and debounced: create an alert only when a breach
+  is crossed and resolve it when the condition is no longer true.
+- Existing read endpoints remain the source of truth for stock. Alerts must not
+  force more data to be loaded than necessary.
+- Configuration is progressive: a project may start with only `min/max` and
+  later add expiration, movement, or value thresholds.
+- Do not store thresholds in `inventory_items`, `inventory_locations`, or
+  `inventory_stocks`; create dedicated rule and alert tables.
 
-## 2) Scopes
+## 2. Scopes
 
 `global`
-- S'applique a tous les items actifs.
+
+- Applies to all active items.
 
 `item`
-- S'applique a un `inventory_item` sur l'ensemble de ses locations.
+
+- Applies to one `inventory_item` across all its locations.
 
 `item_location`
-- S'applique au couple `(inventory_item, inventory_location)`.
 
-Resolution de regle:
-- Priorite: `item_location` > `item` > `global`.
-- Une regle peut ne definir qu'une partie des champs (ex: uniquement `expiring_soon_days`).
+- Applies to the `(inventory_item, inventory_location)` pair.
 
-## 3) Types d'alertes (v1)
+Rule resolution:
 
-### 3.1 Quantite (remaining)
+- Priority: `item_location` > `item` > `global`.
+- A rule may define only part of the fields, for example only
+  `expiring_soon_days`.
+
+## 3. Alert types (v1)
+
+### 3.1 Quantity (`remaining`)
 
 - `under_min_remaining`
-  - Condition: `total_remaining < min_remaining`
+  - Condition: `total_remaining < min_remaining`.
 - `over_max_remaining`
-  - Condition: `total_remaining > max_remaining`
+  - Condition: `total_remaining > max_remaining`.
 - `stockout`
-  - Condition: `total_remaining = 0`
-  - Note: peut etre un alias de `under_min_remaining` si `min_remaining` est 1, mais on le garde explicite car c'est une alerte frequente.
+  - Condition: `total_remaining = 0`.
+  - Note: It could be an alias for `under_min_remaining` when
+    `min_remaining` is 1, but it remains explicit because it is a frequent
+    alert.
 
 ### 3.2 Expiration
 
 - `expiring_soon`
-  - Condition: au moins un lot actif (`remaining > 0`) expire dans `expiring_soon_days`.
+  - Condition: at least one active lot (`remaining > 0`) expires within
+    `expiring_soon_days`.
 - `expired`
-  - Condition: au moins un lot actif est deja expire.
+  - Condition: at least one active lot has already expired.
 
-### 3.3 Mouvement
+### 3.3 Movement
 
 - `no_movement_since`
-  - Condition: aucun mouvement depuis `no_movement_days` alors que `total_remaining > 0`.
+  - Condition: no movement for `no_movement_days` while
+    `total_remaining > 0`.
 - `too_many_movements`
-  - Objectif: detecter une activite anormale (suspect: bug d'integration, double envoi, fraude, etc.).
-  - Condition (simple): sur une fenetre glissante `movement_window_days`, le `movement_count` ou `moved_quantity` depasse un seuil.
-  - Exemples de regles:
+  - Goal: detect abnormal activity, such as an integration bug, duplicate
+    submission, or fraud.
+  - Simple condition: within a rolling `movement_window_days` window,
+    `movement_count` or `moved_quantity` exceeds a threshold.
+  - Example rules:
     - `movement_count > max_movements_per_window`
     - `sum(abs(quantity_base_unit)) > max_moved_qty_per_window`
 
-## 4) Valeur financiere (v2)
+## 4. Financial value (v2)
 
-Base: on a deja `unit_cost` et `currency_code` sur les lots, mais on doit clarifier la definition.
+The lots already have `unit_cost` and `currency_code`, but the definition must
+be clarified.
 
-Propositions:
-- `total_value` par scope = SUM(remaining * unit_cost) en devise `currency_code`.
-- Contraintes:
-  - Si plusieurs devises existent dans le scope, on ne calcule pas (ou on force une devise attendue via la regle).
-- Alertes:
+Proposals:
+
+- `total_value` per scope = `SUM(remaining * unit_cost)` in `currency_code`.
+- Constraints:
+  - If several currencies exist in the scope, do not calculate, or require an
+    expected currency through the rule.
+- Alerts:
   - `under_min_value`, `over_max_value`.
 
-## 5) Modele de donnees
+## 5. Data model
 
-### 5.1 Table `inventory_threshold_rules`
+### 5.1 `inventory_threshold_rules`
 
-But: definir des regles par scope, activables/desactivables, et evolutives sans toucher aux tables core.
+Purpose: define scope-based rules that can be enabled, disabled, and evolved
+without changing core tables.
 
-Champs proposes:
-- `id` uuid (PK)
-- `scope` enum: `global`, `item`, `item_location`
-- `item_id` uuid nullable FK -> `inventory_items.id`
-- `location_id` uuid nullable FK -> `inventory_locations.id`
-- `stock_tracking_enabled` boolean default true on inventory items; threshold
-  evaluation must ignore items that do not participate in stock tracking.
-- Quantite:
-  - `min_remaining` bigint nullable
-  - `max_remaining` bigint nullable
+Proposed fields:
+
+- `id` UUID (PK).
+- `scope` enum: `global`, `item`, `item_location`.
+- `item_id` UUID nullable FK → `inventory_items.id`.
+- `location_id` UUID nullable FK → `inventory_locations.id`.
+- `stock_tracking_enabled` boolean, defaulting to true on inventory items;
+  threshold evaluation must ignore items that do not participate in stock
+  tracking.
+- Quantity:
+  - `min_remaining` bigint nullable.
+  - `max_remaining` bigint nullable.
 - Expiration:
-  - `expiring_soon_days` int nullable
-- Mouvement:
-  - `no_movement_days` int nullable
-  - `movement_window_days` int nullable
-  - `max_movements_per_window` int nullable
-  - `max_moved_qty_per_window` bigint nullable
-- Valeur (v2):
-  - `min_value` bigint nullable
-  - `max_value` bigint nullable
-  - `currency_code` char(3) nullable
-- `metadata` jsonb nullable
-- timestamps
-- softDeletes (optionnel, mais utile pour garder l'historique de config)
+  - `expiring_soon_days` integer nullable.
+- Movement:
+  - `no_movement_days` integer nullable.
+  - `movement_window_days` integer nullable.
+  - `max_movements_per_window` integer nullable.
+  - `max_moved_qty_per_window` bigint nullable.
+- Value (v2):
+  - `min_value` bigint nullable.
+  - `max_value` bigint nullable.
+  - `currency_code` char(3) nullable.
+- `metadata` jsonb nullable.
+- Timestamps.
+- Soft deletes, optional but useful for preserving configuration history.
 
-Contraintes:
-- Check scope:
-  - `global` => `item_id IS NULL AND location_id IS NULL`
-  - `item` => `item_id IS NOT NULL AND location_id IS NULL`
-  - `item_location` => `item_id IS NOT NULL AND location_id IS NOT NULL`
-- Unicite (partial unique indexes avec `deleted_at IS NULL` si soft delete):
-  - une seule regle `global`
-  - une seule regle `item` par `item_id`
-  - une seule regle `item_location` par `(item_id, location_id)`
+Constraints:
 
-### 5.2 Table `inventory_alerts`
+- Scope check:
+  - `global` → `item_id IS NULL AND location_id IS NULL`.
+  - `item` → `item_id IS NOT NULL AND location_id IS NULL`.
+  - `item_location` → `item_id IS NOT NULL AND location_id IS NOT NULL`.
+- Uniqueness, using partial unique indexes with `deleted_at IS NULL` when soft
+  deletes are enabled:
+  - one `global` rule;
+  - one `item` rule per `item_id`;
+  - one `item_location` rule per `(item_id, location_id)`.
 
-But: stocker l'etat des alertes (open/resolved) + snapshot + debounce.
+### 5.2 `inventory_alerts`
 
-Champs proposes:
-- `id` uuid (PK)
-- `rule_id` uuid FK -> `inventory_threshold_rules.id`
+Purpose: store alert state (`open`/`resolved`), a snapshot, and debounce data.
+
+Proposed fields:
+
+- `id` UUID (PK).
+- `rule_id` UUID FK → `inventory_threshold_rules.id`.
 - `type` enum:
-  - `under_min_remaining`, `over_max_remaining`, `stockout`
-  - `expiring_soon`, `expired`
-  - `no_movement_since`, `too_many_movements`
-  - (v2) `under_min_value`, `over_max_value`
-- `status` enum: `open`, `resolved`
-- `opened_at` timestamp
-- `resolved_at` timestamp nullable
-- `snapshot` jsonb (ex: totals, ids, counts, last_movement_at, expiring_count, sample_lot_ids)
-- `last_evaluated_at` timestamp nullable (utile si evaluation scheduler)
-- timestamps
+  - `under_min_remaining`, `over_max_remaining`, `stockout`;
+  - `expiring_soon`, `expired`;
+  - `no_movement_since`, `too_many_movements`;
+  - (v2) `under_min_value`, `over_max_value`.
+- `status` enum: `open`, `resolved`.
+- `opened_at` timestamp.
+- `resolved_at` timestamp nullable.
+- `snapshot` jsonb, for example totals, IDs, counts, last movement time,
+  expiring count, and sample lot IDs.
+- `last_evaluated_at` timestamp nullable, useful for scheduled evaluation.
+- Timestamps.
 
-Regle d'idempotence:
-- Cle logique: `(rule_id, type, status=open)` unique (partial unique index) pour eviter les doublons.
+Idempotency rule:
 
-## 6) Evaluation des regles
+- Logical key `(rule_id, type, status=open)` is unique through a partial unique
+  index to prevent duplicates.
 
-### 6.1 Deux canaux
+## 6. Rule evaluation
 
-On-write (synchrone ou queue):
-- Quand une transaction est enregistree, on reevalue uniquement:
-  - `item` touches
-  - `item_location` touches
-- Cibles:
-  - `under_min_remaining`, `over_max_remaining`, `stockout`
-  - `too_many_movements` peut etre evalue ici si la requete reste raisonnable.
+### 6.1 Two channels
 
-Scheduler (toutes les X heures / 1 fois par jour):
-- Reevalue:
-  - `expiring_soon`, `expired`
-  - `no_movement_since`
-  - `too_many_movements` (si on veut eviter le cout on-write)
+On write, synchronously or through a queue:
 
-### 6.2 Calculs de base par scope
+- When a transaction is recorded, reevaluate only:
+  - affected `item` scopes;
+  - affected `item_location` scopes.
+- Targets:
+  - `under_min_remaining`, `over_max_remaining`, `stockout`;
+  - `too_many_movements` may also be evaluated here if the query remains
+    reasonably small.
+
+Scheduler, every few hours or once per day:
+
+- Evaluate:
+  - `expiring_soon`, `expired`;
+  - `no_movement_since`;
+  - `too_many_movements` when avoiding on-write cost is preferable.
+
+### 6.2 Basic calculations by scope
 
 `total_remaining`
-- item: SUM(remaining) sur `inventory_stocks` ou via relation agreggee.
-- item_location: SUM(remaining) filtre `(item_id, location_id)`.
-- global: soit par item (moins de bruit), soit "tous les items" (a definir; recommandation: global = fallback de regle, mais evaluation reste par item/item_location).
 
-Expiration
-- `expiring_soon`: lots actifs `expiration_date <= now + expiring_soon_days`.
-- `expired`: lots actifs `expiration_date < now`.
+- item: `SUM(remaining)` on `inventory_stocks` or through an aggregate relation.
+- item_location: `SUM(remaining)` filtered by `(item_id, location_id)`.
+- global: either per item, which is less noisy, or all items. Recommendation:
+  `global` is a fallback rule, but evaluation remains per item or
+  item-location.
 
-Mouvements
-- `last_movement_at`: MAX(`inventory_movements.created_at`) par scope.
-- `movement_count` et `moved_quantity` sur une fenetre:
-  - Fenetre: `created_at >= now - movement_window_days`.
-  - Quantite: idealement en "base unit" si possible, sinon en "unit_code" (v1: count only, v1.1: quantity base unit).
+Expiration:
 
-Debounce
-- Creation: si breach detecte et aucune alerte open existante.
-- Resolution: si pas breach et alerte open existante.
-- Optionnel: cooldown par type (ex: 24h) si on veut emettre "still low" (pas requis en v1).
+- `expiring_soon`: active lots with `expiration_date <= now +
+  expiring_soon_days`.
+- `expired`: active lots with `expiration_date < now`.
 
-## 7) Events
+Movement:
 
-Events proposes:
-- `InventoryAlertOpened`
-- `InventoryAlertResolved`
+- `last_movement_at`: `MAX(inventory_movements.created_at)` per scope.
+- `movement_count` and `moved_quantity` over a window:
+  - Window: `created_at >= now - movement_window_days`.
+  - Quantity: ideally in base units; otherwise in `unit_code` (v1: count only,
+    v1.1: base-unit quantity).
 
-Payload minimal:
-- `alert_id`
-- `type`
-- `scope` + `item_id` + `location_id`
-- `snapshot`
+Debounce:
 
-Note: on peut aussi emettre `InventoryTransactionRecorded` (si pas deja existant) et laisser un listener lancer l'evaluation.
+- Creation: if a breach is detected and no open alert exists.
+- Resolution: if there is no breach and an open alert exists.
+- Optional cooldown per type, such as 24 hours, for a “still low” event; not
+  required in v1.
 
-## 8) API (lecture + admin)
+## 7. Events
 
-Lecture:
-- `GET /v1/inventory/alerts` (cursor pagination)
-  - filtres: `status`, `type`, `item_id`, `location_id`, `scope`
-- `GET /v1/inventory/alerts/{alert}`
+Proposed events:
 
-Admin thresholds:
-- `GET /v1/inventory/threshold-rules`
-- `GET /v1/inventory/threshold-rules/{rule}`
-- `POST /v1/inventory/threshold-rules`
-- `PATCH /v1/inventory/threshold-rules/{rule}`
-- `DELETE /v1/inventory/threshold-rules/{rule}`
+- `InventoryAlertOpened`.
+- `InventoryAlertResolved`.
 
-Note: en mode package, l'admin UI n'est pas obligatoire, mais l'API facilite beaucoup l'integration.
+Minimal payload:
 
-## 9) Indexing (attendu)
+- `alert_id`;
+- `type`;
+- `scope` + `item_id` + `location_id`;
+- `snapshot`.
 
-Stocks (Postgres partial indexes):
-- `(item_id, location_id)` WHERE `deleted_at IS NULL AND remaining > 0`
-- `(location_id, item_id)` WHERE `deleted_at IS NULL AND remaining > 0`
-- `(expiration_date)` WHERE `deleted_at IS NULL AND remaining > 0 AND expiration_date IS NOT NULL`
+The system may also emit `InventoryTransactionRecorded`, when not already
+available, and let a listener start evaluation.
 
-Movements (a ajouter si evaluation mouvement):
-- `(item_id, created_at)`
-- `(item_id, location_id, created_at)`
-- Optionnel: `(transaction_id)` existe deja.
+## 8. API (read and administration)
+
+Read:
+
+- `GET /v1/inventory/alerts` (cursor pagination).
+  - Filters: `status`, `type`, `item_id`, `location_id`, `scope`.
+- `GET /v1/inventory/alerts/{alert}`.
+
+Threshold administration:
+
+- `GET /v1/inventory/threshold-rules`.
+- `GET /v1/inventory/threshold-rules/{rule}`.
+- `POST /v1/inventory/threshold-rules`.
+- `PATCH /v1/inventory/threshold-rules/{rule}`.
+- `DELETE /v1/inventory/threshold-rules/{rule}`.
+
+In package mode, an admin UI is optional, but the API makes integration much
+easier.
+
+## 9. Expected indexes
+
+Stocks (PostgreSQL partial indexes):
+
+- `(item_id, location_id)` WHERE `deleted_at IS NULL AND remaining > 0`.
+- `(location_id, item_id)` WHERE `deleted_at IS NULL AND remaining > 0`.
+- `(expiration_date)` WHERE `deleted_at IS NULL AND remaining > 0 AND
+  expiration_date IS NOT NULL`.
+
+Movements, if movement evaluation is implemented:
+
+- `(item_id, created_at)`.
+- `(item_id, location_id, created_at)`.
+- Optional `(transaction_id)`, which already exists.
 
 Threshold rules:
-- indexes sur `scope`, `item_id`, `location_id`, `is_active`.
+
+- Indexes on `scope`, `item_id`, `location_id`, and `is_active`.
 
 Alerts:
-- indexes sur `status`, `type`, `opened_at`, `item_id/location_id` si on denormalise dans snapshot ou colonnes.
 
-## 10) Decisions ouvertes
+- Indexes on `status`, `type`, `opened_at`, and `item_id/location_id` when
+  denormalized into snapshot or columns.
 
-- Global scope: evaluation "par item" ou "total de tous les items".
-  - Recommandation: evaluation par item (moins de bruit, plus actionnable).
-- Movement thresholds: v1 uniquement `count`, ou v1.1 `quantity` en base unit (necessite conversion).
-- Valeur: impose-t-on une devise par regle, ou refuse-t-on le calcul si multi-currency dans le scope.
+## 10. Open decisions
+
+- Global scope: evaluate per item or as the total of all items.
+  - Recommendation: evaluate per item because it is less noisy and more
+    actionable.
+- Movement thresholds: v1 count only, or v1.1 quantity in base units, which
+  requires conversion.
+- Value: require one currency per rule, or refuse calculation when the scope
+  contains multiple currencies.

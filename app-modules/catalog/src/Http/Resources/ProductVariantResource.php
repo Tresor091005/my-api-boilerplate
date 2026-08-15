@@ -6,16 +6,20 @@ namespace Lahatre\Catalog\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Inventory\Http\Resources\InventoryItemSummaryResource;
 use Lahatre\Master\Http\Resources\TagResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
+use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin ProductVariant
  */
 class ProductVariantResource extends JsonResource
 {
+    use RendersResponseIncludes;
+
     /**
      * @return array<string, mixed>
      */
@@ -30,12 +34,27 @@ class ProductVariantResource extends JsonResource
             'is_active'     => $this->is_active,
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
-            'options'       => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
-            'tags'          => TagResource::collection($this->whenLoaded('tags')),
-            'unit_group'    => UnitGroupResource::make($this->whenLoaded('unitGroup')),
-            'inventory'     => $this->whenLoaded(
-                'inventoryItem',
-                fn (): array => InventoryItemSummaryResource::make($this->inventoryItem)->resolve($request)
+            'options'       => $this->whenLoaded('optionValues', function ($optionValues): mixed {
+                if ($optionValues->contains(
+                    fn ($optionValue): bool => !$optionValue->relationLoaded('option')
+                )) {
+                    return new MissingValue;
+                }
+
+                return $optionValues->values()->mapWithKeys(
+                    fn ($optionValue): array => [$optionValue->option->name => $optionValue->value]
+                );
+            }),
+            'unit_group' => UnitGroupResource::make($this->whenLoaded('unitGroup')),
+            'tags'       => $this->includeWhenRequestedAndLoaded(
+                include: 'tags',
+                relation: 'tags',
+                resolver: fn ($tags) => TagResource::collection($tags),
+            ),
+            'inventory' => $this->includeWhenRequestedAndLoaded(
+                include: 'inventory',
+                relation: 'inventoryItem',
+                resolver: fn ($inventoryItem) => InventoryItemSummaryResource::make($inventoryItem),
             ),
         ];
     }

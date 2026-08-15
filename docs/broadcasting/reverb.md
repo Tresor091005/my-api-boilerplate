@@ -1,27 +1,42 @@
-# Broadcasting avec Laravel Reverb
+# Broadcasting with Laravel Reverb
 
-L'approche de communication temps réel de ce projet repose sur le broadcasting d'événements, avec **Laravel Reverb** comme implémentation principale. Reverb est en passe de devenir la solution standard de l'écosystème Laravel.
+This project uses event broadcasting for real-time communication, with
+**Laravel Reverb** as its primary implementation. Reverb is becoming a
+standard solution in the Laravel ecosystem.
 
-## Principes du Broadcasting
+## Broadcasting principles
 
-Le broadcasting via WebSockets est une méthode de communication client-serveur qui permet au serveur d'envoyer des informations aux clients dès qu'elles sont disponibles.
+WebSocket broadcasting lets the server send information to clients as soon as
+it becomes available.
 
--   **Efficacité :** Il élimine le besoin pour le client de "sonder" (polling) constamment le serveur pour savoir si des mises à jour sont disponibles.
--   **Instantanéité :** Les clients sont informés quasi instantanément d'un changement, ce qui est crucial pour les applications collaboratives ou les flux de données en direct.
--   **Autonomie :** Utiliser Reverb nous affranchit de toute dépendance à des services tiers payants comme Pusher ou Ably, tout en gardant l'infrastructure sous notre contrôle.
+- **Efficiency:** It removes the need for the client to constantly poll the
+  server for updates.
+- **Immediacy:** Clients are informed almost immediately when data changes,
+  which is important for collaborative applications and live data streams.
+- **Autonomy:** Reverb avoids dependence on paid third-party services such as
+  Pusher or Ably while keeping infrastructure under project control.
 
-## Cas d'usage : Invalidation de cache client
+## Use case: client-cache invalidation
 
-Pour illustrer une approche orientée design et efficacité, considérons la gestion de listes de données sur le frontend (par exemple, une liste de produits).
+Consider a frontend that caches a product list in IndexedDB, localStorage, or a
+more advanced store such as SQLite WASM with OPFS.
 
-**Problème :** Le frontend met en cache la liste des produits (via IndexedDB, localStorage, ou une solution plus avancée comme SQLite WASM + OPFS) pour accélérer la navigation. Comment s'assurer que ce cache est à jour lorsqu'un produit est modifié en base de données ?
+**Problem:** How can the cache remain current when a product changes in the
+database?
 
-**Solution via Broadcasting :**
+**Broadcasting solution:**
 
-1.  Lorsqu'un produit est créé, mis à jour ou supprimé, le backend diffuse un événement privé, par exemple `ProductChanged`.
-2.  Le frontend, qui écoute cet événement, peut alors réagir de plusieurs manières intelligentes :
-    *   **Refresh complet :** L'événement peut simplement notifier le client que les données ont changé, l'incitant à vider son cache local et à redemander la liste complète au prochain appel API. C'est la solution la plus simple.
-    *   **Mise à jour ciblée (Payload) :** L'événement peut contenir les données du produit modifié (`client_refresh` avec le nouvel objet produit). Le frontend peut alors mettre à jour, ajouter ou supprimer cet élément spécifique de son cache local sans avoir à tout recharger.
-    *   **Notification d'URL :** L'événement peut envoyer une URL spécifique (ex: `/api/products/123`) à rafraîchir. Le frontend sait alors que uniquement les données liées à cette URL sont obsolètes dans son cache.
+1. When a product is created, updated, or deleted, the backend broadcasts a
+   private event such as `ProductChanged`.
+2. The frontend listens for this event and can react in several ways:
+   - **Full refresh:** The event tells the client that data changed, so it can
+     clear its local cache and request the full list on the next API call.
+   - **Targeted update:** The event contains the changed product, for example
+     through `client_refresh`. The frontend updates, adds, or removes that
+     item in its local cache without reloading everything.
+   - **URL notification:** The event sends a specific URL, such as
+     `/api/products/123`, to refresh. The frontend then knows which data is
+     stale.
 
-Cette approche permet de construire des interfaces utilisateur rapides et réactives, tout en optimisant les appels réseau et en garantissant la cohérence des données.
+This approach enables fast, reactive interfaces while optimizing network calls
+and preserving data consistency.

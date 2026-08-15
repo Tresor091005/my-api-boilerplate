@@ -1,47 +1,57 @@
-# API : Limite de Débit (Rate Limiting)
+# API rate limiting
 
-Ce document décrit la configuration et la stratégie de limitation de débit appliquée à l'API pour garantir la sécurité et la stabilité du système.
+This document describes the API rate-limiting configuration and strategy used
+to protect the system's security and stability.
 
-## 1. Vue d'ensemble
+## 1. Overview
 
-Nous utilisons les fonctionnalités natives de Laravel pour limiter le nombre de requêtes qu'un client (identifié par son adresse IP ou son ID utilisateur) peut effectuer dans un intervalle de temps donné.
+The project uses Laravel's native rate-limiting features to limit the number
+of requests a client, identified by its IP address or user ID, can make within
+a given period.
 
-Les limites sont définies dans `App\Providers\RateLimitServiceProvider`. 
+Limits are defined in `App\Providers\RateLimitServiceProvider`.
 
-**Note sur l'infrastructure :** Pour garantir que la limitation de débit ne soit pas affectée par la charge du cache applicatif ou des files d'attente, elle utilise une instance Redis dédiée (`redis_limiter`) via le store de cache `limiter`.
+**Infrastructure note:** To keep rate limiting independent from application
+cache and queue load, it uses a dedicated Redis instance (`redis_limiter`) via
+the `limiter` cache store.
 
-## 2. Limiteurs Configurés
+## 2. Configured limiters
 
-### `api` (Global API)
-Ce limiteur s'applique à la plupart des endpoints de l'API (`v1/*`).
+### `api` (global API)
 
--   **Limite :** 90 requêtes par minute.
--   **Identification :** Par ID utilisateur (si authentifié) ou par adresse IP.
--   **Middleware :** `throttle:api`.
--   **Application :** Inclus globalement dans le groupe de middleware `api` dans `bootstrap/app.php`, s'appliquant ainsi par défaut à toutes les routes de l'API.
+This limiter applies to most API endpoints (`v1/*`).
 
-### `auth` (Authentification)
-Ce limiteur s'applique spécifiquement aux endpoints d'authentification sensibles pour prévenir les attaques par force brute.
+- **Limit:** 90 requests per minute.
+- **Identification:** User ID when authenticated, otherwise IP address.
+- **Middleware:** `throttle:api`.
+- **Application:** Included globally in the `api` middleware group in
+  `bootstrap/app.php`, so it applies by default to all API routes.
 
--   **Limite :** 5 requêtes par minute.
--   **Identification :** Par adresse IP uniquement.
--   **Middleware :** `throttle:auth`.
--   **Endpoints concernés :**
-    -   `POST /v1/auth/{type}/login`
-    -   `POST /v1/auth/register`
+### `auth` (authentication)
 
-Les autres routes du module d'authentification (comme `/me`, `/logout`) utilisent le limiteur `api` par défaut.
+This limiter applies specifically to sensitive authentication endpoints to
+prevent brute-force attacks.
 
-## 3. Réponses de Limitation
+- **Limit:** 5 requests per minute.
+- **Identification:** IP address only.
+- **Middleware:** `throttle:auth`.
+- **Affected endpoints:**
+  - `POST /v1/auth/{type}/login`
+  - `POST /v1/auth/register`
 
-Lorsqu'un client dépasse sa limite, l'API renvoie une réponse standardisée :
+Other authentication routes, such as `/me` and `/logout`, use the default
+`api` limiter.
 
--   **Code HTTP :** `429 Too Many Requests`.
--   **En-têtes :**
-    -   `X-RateLimit-Limit`: Nombre total de requêtes autorisées.
-    -   `X-RateLimit-Remaining`: Nombre de requêtes restantes.
-    -   `Retry-After`: Nombre de secondes à attendre avant la prochaine requête.
+## 3. Rate-limit responses
+
+When a client exceeds its limit, the API returns a standardized response:
+
+- **HTTP status:** `429 Too Many Requests`.
+- **Headers:**
+  - `X-RateLimit-Limit`: total number of allowed requests.
+  - `X-RateLimit-Remaining`: number of remaining requests.
+  - `Retry-After`: number of seconds to wait before the next request.
 
 ## 4. Tests
 
-La configuration du rate limiting est testée dans `tests/Feature/RateLimitTest.php`.
+Rate-limiting configuration is tested in `tests/Feature/RateLimitTest.php`.

@@ -1,39 +1,50 @@
-# Conventions de Style et de Nommage
+# Naming and style conventions
 
-Ce document définit les conventions de style et de nommage à suivre dans ce projet pour garantir la cohérence et la lisibilité du code.
+This document defines the naming and style conventions used in the project to
+keep the codebase consistent and readable.
 
-## 1. Conventions Générales (PHP)
+## 1. General PHP conventions
 
 ### Variables
-Utilisez le `camelCase` pour toutes les variables locales.
+
+Use `camelCase` for all local variables.
+
 ```php
-$maVariable = 'valeur';
+$myVariable = 'value';
 $usersList = ['user1', 'user2'];
 ```
 
-### Fonctions & Méthodes
-Utilisez le `camelCase`.
+### Functions and methods
+
+Use `camelCase`.
+
 ```php
-public function maFonction($unArgument)
+public function myFunction($argument)
 {
     // ...
 }
 ```
 
-### Propriétés de Classes
-En règle générale, utilisez le `camelCase`.
+### Class properties
+
+Use `camelCase` by default.
+
 ```php
-class MaClasse
+class MyClass
 {
-    public string $maPropriete;
+    public string $myProperty;
 }
 ```
-**Exception :** Les modèles Eloquent conservent les attributs de base en `snake_case`. Les classes `Data` utilisent toujours des propriétés PHP en `camelCase` et réalisent explicitement le mapping depuis les clés de payload en `snake_case` dans `::fromArray()`.
+
+**Exception:** Eloquent models keep database attributes in `snake_case`. Data
+classes always use `camelCase` PHP properties and explicitly map payload keys
+from `snake_case` in `::fromArray()`.
+
 ```php
-// Modèle Eloquent
+// Eloquent model
 $user->is_active = true;
 
-// Data de transport
+// Transport data
 final readonly class UserData
 {
     private function __construct(
@@ -51,16 +62,20 @@ final readonly class UserData
 }
 ```
 
-## 2. Base de Données
+## 2. Database
 
-Tous les noms de tables, colonnes et contraintes doivent être en `snake_case` et en anglais.
-- **Tables :** Nom au pluriel (ex: `users`, `blog_posts`).
-- **Colonnes :** Nom au singulier (ex: `title`, `created_at`, `is_published`).
-- **Clés étrangères :** `[table_au_singulier]_id` (ex: `user_id` dans la table `posts`).
+All table, column, and constraint names must be in English `snake_case`.
 
-## 3. API & Payloads
+- **Tables:** plural names, for example `users` and `blog_posts`.
+- **Columns:** singular names, for example `title`, `created_at`, and
+  `is_published`.
+- **Foreign keys:** `[singular_table]_id`, for example `user_id` in `posts`.
 
-Toutes les clés dans les requêtes et réponses JSON doivent être en `snake_case`, en cohérence avec les noms des colonnes de la base de données.
+## 3. API and payloads
+
+All keys in JSON requests and responses must use `snake_case`, consistently
+with database column names.
+
 ```json
 {
   "user_name": "John Doe",
@@ -77,14 +92,20 @@ domain meaning.
 
 ## 4. Routes
 
-### Chemins (Paths)
-Utilisez le `kebab-case` pour les segments d'URL qui contiennent plusieurs mots. Les ressources doivent être au pluriel.
+### Paths
+
+Use `kebab-case` for URL segments containing multiple words. Resources should
+be plural.
+
 - `GET /users`
 - `GET /users/{user}`
 - `POST /users/{user}/publish-resume`
 
-### Noms (Names)
-Utilisez la notation par points (`dot.notation`) pour nommer les routes. Cela facilite l'organisation et le référencement.
+### Names
+
+Use dot notation for route names. This makes them easier to organize and
+reference.
+
 - `users.index`
 - `users.show`
 - `user.publish.resume`

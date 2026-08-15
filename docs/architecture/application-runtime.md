@@ -51,7 +51,21 @@ the complete `auth.api` group.
 
 `MorphMapRegistry` discovers concrete models in the application and modules,
 generates aliases such as `catalog_product`, and registers them with Eloquent.
-It loads `bootstrap/cache/morph-map.php` when present.
+For a model in the configured `Lahatre` module namespace, the alias combines
+the module and model names in snake case. This prevents collisions between
+models with the same basename in different modules.
+
+`AppServiceProvider` enables `Relation::requireMorphMap(true)`, so every
+polymorphic relation must resolve through this registry. Alias collisions are
+fatal; the registry never silently replaces an existing alias.
+
+On a normal production application boot, the registry loads
+`bootstrap/cache/morph-map.php` when present. In local, testing, staging, and
+other non-production environments, the cache is ignored and the registry
+always discovers models through `ModelFinder`. Without a production cache, it
+also discovers models and registers the generated map. The cache is deployment
+state, not business data: regenerate it after adding, removing, renaming, or
+moving a model.
 
 Use these commands after adding or renaming a model:
 
@@ -61,8 +75,44 @@ php artisan morph-map:cache
 ```
 
 The application optimization lifecycle runs the cache command during optimize
-and the clear command during optimize clear. Alias collisions are fatal and
-must be resolved instead of silently overwritten.
+and the clear command during optimize clear. A production deployment should
+run the cache command after the new code is available and before workers serve
+requests. The architecture test verifies that every concrete model is present
+in the active map and reports the model class that is missing.
+
+## Response contract lifecycle
+
+API response contracts follow the same application-owned discovery pattern.
+The root API definitions live in `config/response-contracts.php`; each module
+that owns API routes may provide `config/response-contracts.php` under its own
+module directory. The keys are complete route names, and the values contain
+optional shapes, required loads, and allowed includes.
+
+`SharedServiceProvider` discovers these files after providers have registered,
+so module providers do not resolve or register the shared registry manually.
+The registry rejects duplicate route keys and loads the generated
+`bootstrap/cache/response-contracts.php` file only in production. Other
+environments always rediscover the configuration. Use:
+
+```bash
+php artisan response-contracts:clear
+php artisan response-contracts:cache
+```
+
+Every application API route must have a contract, even when the definition is
+empty. An empty contract still supplies the method-derived response policy:
+`GET` returns a resource, `POST`/`PUT`/`PATCH` return no content by default,
+and `DELETE` is always no content. The architecture test reports both missing
+route contracts and stale contract keys. Shapes and includes are optional;
+response mode overrides are exceptional and must be documented with the route.
+
+`ResponseContext` is scoped to the application lifecycle, not exclusively to
+HTTP requests. `ResolveResponseContext` is the HTTP adapter that configures it
+from query parameters. Services still provide a minimal fallback for their
+required relation loads when no shape is active, so console commands, jobs,
+schedulers, and direct service callers do not silently lose required resource
+data. An active shape replaces that fallback; optional includes are loaded only
+when requested, and `response=none` loads no response relations.
 
 ## Service lifetime
 

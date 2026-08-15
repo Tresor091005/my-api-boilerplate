@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace {{ namespace }};
 
 use IlluminateHttpJsonResponse;
+use IlluminateHttpResponse;
 use {{ namespacedModel }};
 use {{ namespacedRequests }}
 
@@ -40,8 +41,8 @@ final class {{ class }}
         return response()->json([]);
     }
 
-    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+    public function destroy({{ model }} ${{ modelVariable }}): Response
     {
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }
