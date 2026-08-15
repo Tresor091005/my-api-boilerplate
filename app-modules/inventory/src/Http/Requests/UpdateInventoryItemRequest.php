@@ -17,7 +17,7 @@ class UpdateInventoryItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sku'                    => ['string', 'max:255'],
+            'sku'                    => ['string', 'max:100'],
             'stock_tracking_enabled' => ['boolean'],
             'is_expirable'           => ['boolean'],
             'deduction_strategy'     => ['nullable', Rule::enum(DeductionStrategy::class)],

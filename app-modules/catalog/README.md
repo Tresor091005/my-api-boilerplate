@@ -6,6 +6,31 @@ Les invariants propres aux modèles sont regroupés par modèle : `CategoryExcep
 
 Voir la [convention générale des exceptions métier](../../docs/architecture/coding-rules/exceptions.md).
 
+## Product variant tags
+
+`ProductVariant` implements the Master `HasTags` contract and uses
+`InteractsWithTags`. Variant creation accepts an optional `tags` object grouped
+by type:
+
+```json
+{
+  "tags": {
+    "status": ["active"],
+    "channel": ["online", "store"]
+  }
+}
+```
+
+The same validation schema is reused for direct variant batches and variants
+nested in product creation. Tags are attached inside the existing variant
+creation transaction. The `ProductVariantResource` exposes tags only when the
+relation has already been loaded; Catalog does not eager-load the relation by
+default.
+
+During a variant update, only submitted tag types are synchronized. Omitted
+types remain unchanged, while an explicitly empty type removes all tags of that
+type.
+
 ## Tests
 
 Cette section documente la strategie de test a suivre pour `catalog` (et reutilisable pour les autres modules).

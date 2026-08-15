@@ -27,8 +27,8 @@ class InventoryMovementFilterRequest extends FormRequest
             'from'           => ['nullable', 'date'],
             'to'             => ['nullable', 'date', 'after_or_equal:from'],
             'movement_type'  => ['nullable', Rule::enum(MovementType::class)],
-            'reference_type' => ['nullable', 'string'],
-            'reference_id'   => ['nullable', 'string'],
+            'reference_type' => ['nullable', 'string', 'max:100'],
+            'reference_id'   => ['nullable', 'uuid'],
         ];
     }
 }

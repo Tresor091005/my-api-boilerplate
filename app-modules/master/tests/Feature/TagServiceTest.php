@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Tests\Feature;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Lahatre\Master\Data\TagCreateData;
 use Lahatre\Master\Data\TagFilterData;
 use Lahatre\Master\Data\TagReorderData;
 use Lahatre\Master\Data\TagUpdateData;
 use Lahatre\Master\Exceptions\TagException;
+use Lahatre\Master\Http\Requests\TagCreateRequest;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Tag;
 use Lahatre\Master\Models\Unit;
@@ -39,9 +43,14 @@ beforeEach(function (): void {
 });
 
 it('attaches tags by type, normalizes values, and avoids duplicates', function (): void {
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'Status' => [' Active ', 'active'],
         'Color'  => ['Red', 'Blue'],
+    ]);
+
+    $this->taggableUnit->attachTags([
+        'status' => ['active'],
+        'color'  => ['red'],
     ]);
 
     $tags = $this->taggableUnit->tags()->get();
@@ -54,16 +63,65 @@ it('attaches tags by type, normalizes values, and avoids duplicates', function (
         Tag::query()
             ->where('organization_id', $this->organizationId)
             ->count()
-    )->toBe(3);
+    )->toBe(3)
+        ->and($this->taggableUnit->tags()->count())->toBe(3);
+});
+
+it('creates tags in batches by type and ignores unique conflicts', function (): void {
+    $data = TagCreateData::fromArray([
+        'tags' => [
+            'Status' => ['Active', 'Inactive'],
+            'Color'  => ['Red'],
+        ],
+    ]);
+
+    $firstResult = app(TagService::class)->create($data);
+    $secondResult = app(TagService::class)->create($data);
+
+    expect($firstResult->collection)->toHaveCount(3)
+        ->and($secondResult->collection)->toHaveCount(3)
+        ->and(Tag::query()->where('organization_id', $this->organizationId)->count())->toBe(3);
+});
+
+it('does not ignore non-unique database errors during tag creation', function (): void {
+    $missingOrganizationId = (string) Str::uuid7();
+    setPermissionsTeamId($missingOrganizationId);
+
+    expect(fn () => app(TagService::class)->create(TagCreateData::fromArray([
+        'tags' => ['status' => ['active']],
+    ])))->toThrow(QueryException::class);
+});
+
+it('validates tag type keys and short tag names', function (): void {
+    $invalidTypeRequest = TagCreateRequest::create('/', 'POST', [
+        'tags' => [123 => ['active']],
+    ])->setContainer(app())->setRedirector(app('redirect'));
+
+    expect(fn () => $invalidTypeRequest->validateResolved())
+        ->toThrow(ValidationException::class);
+
+    $invalidNameRequest = TagCreateRequest::create('/', 'POST', [
+        'tags' => ['status' => [str_repeat('a', 51)]],
+    ])->setContainer(app())->setRedirector(app('redirect'));
+
+    expect(fn () => $invalidNameRequest->validateResolved())
+        ->toThrow(ValidationException::class);
+
+    $blankNameRequest = TagCreateRequest::create('/', 'POST', [
+        'tags' => ['status' => ['   ']],
+    ])->setContainer(app())->setRedirector(app('redirect'));
+
+    expect(fn () => $blankNameRequest->validateResolved())
+        ->toThrow(ValidationException::class);
 });
 
 it('syncs only one type without wiping other types', function (): void {
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'status' => ['active'],
         'color'  => ['red'],
     ]);
 
-    $this->taggableUnit->syncForType('status', ['inactive']);
+    $this->taggableUnit->syncTagsForType('status', ['inactive']);
 
     $grouped = $this->taggableUnit->fresh()->tags->groupBy('type');
 
@@ -73,11 +131,11 @@ it('syncs only one type without wiping other types', function (): void {
 });
 
 it('throws when detaching unknown tags or unknown links', function (): void {
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'status' => ['active'],
     ]);
 
-    expect(fn () => $this->taggableUnit->detach([
+    expect(fn () => $this->taggableUnit->detachTags([
         'status' => ['ghost'],
     ]))->toThrow(TagException::class);
 
@@ -87,13 +145,13 @@ it('throws when detaching unknown tags or unknown links', function (): void {
     ]);
     $otherTaggableUnit = TestTaggableUnit::query()->findOrFail($otherUnit->id);
 
-    expect(fn () => $otherTaggableUnit->detach([
+    expect(fn () => $otherTaggableUnit->detachTags([
         'status' => ['active'],
     ]))->toThrow(TagException::class);
 });
 
 it('supports soft deleted duplicates in same tenant and keeps slug uniqueness in practice', function (): void {
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'status' => ['active'],
     ]);
 
@@ -103,13 +161,13 @@ it('supports soft deleted duplicates in same tenant and keeps slug uniqueness in
         ->where('name', 'active')
         ->firstOrFail();
 
-    $this->taggableUnit->detach([
+    $this->taggableUnit->detachTags([
         'status' => ['active'],
     ]);
 
     $originalTag->delete();
 
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'status' => ['active'],
     ]);
 
@@ -262,7 +320,7 @@ it('lists only current organization tags with filters', function (): void {
 });
 
 it('lists tags attached to a taggable model', function (): void {
-    $this->taggableUnit->attach([
+    $this->taggableUnit->attachTags([
         'status' => ['active'],
         'color'  => ['blue'],
     ]);

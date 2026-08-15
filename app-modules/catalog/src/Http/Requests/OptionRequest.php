@@ -44,14 +44,14 @@ class OptionRequest extends FormRequest
             'name' => [
                 ...($isUpdate ? [] : ['required']),
                 'string',
-                'max:255',
+                'max:100',
                 Rule::unique('catalog_options', 'name')
                     ->where('organization_id', currentOrganizationId())
                     ->whereNull('deleted_at')
                     ->ignore($isUpdate ? $option : null),
             ],
-            'values'   => ['nullable', 'array'],
-            'values.*' => ['string', 'max:255'],
+            'values'   => ['nullable', 'array', 'max:100'],
+            'values.*' => ['string', 'max:100'],
         ];
     }
 }

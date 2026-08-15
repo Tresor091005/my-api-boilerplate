@@ -19,5 +19,6 @@ it('keeps product missing fields scoped away from nested variants', function ():
     expect($product->name)->toBe(MissingValue::Instance)
         ->and($variant)->toBeInstanceOf(ProductVariantData::class)
         ->and($variant->unitGroupId)->toBe('unit-group-id')
-        ->and($variant->sku)->toBeNull();
+        ->and($variant->sku)->toBeNull()
+        ->and($variant->tags)->toBe([]);
 });

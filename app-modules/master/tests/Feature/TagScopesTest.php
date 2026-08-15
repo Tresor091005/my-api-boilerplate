@@ -37,12 +37,12 @@ beforeEach(function (): void {
         'name'            => 'unit-three',
     ])->id);
 
-    $this->unitOne->attach([
+    $this->unitOne->attachTags([
         'status' => ['active'],
         'color'  => ['red'],
     ]);
 
-    $this->unitTwo->attach([
+    $this->unitTwo->attachTags([
         'status' => ['inactive'],
         'color'  => ['blue'],
     ]);
@@ -106,7 +106,7 @@ it('does not return taggable models from another organization', function (): voi
     ])->id);
 
     setPermissionsTeamId($this->otherOrganizationId);
-    $foreignUnit->attach(['status' => ['active']]);
+    $foreignUnit->attachTags(['status' => ['active']]);
     setPermissionsTeamId($this->organizationId);
 
     $ids = TestTaggableUnit::query()

@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Master\Contracts\HasTags as HasTagsContract;
+use Lahatre\Master\Data\TagCreateData;
 use Lahatre\Master\Data\TagFilterData;
 use Lahatre\Master\Data\TagReorderData;
 use Lahatre\Master\Data\TagUpdateData;
+use Lahatre\Master\Http\Requests\TagCreateRequest;
 use Lahatre\Master\Http\Requests\TagFilterRequest;
 use Lahatre\Master\Http\Requests\TagReorderRequest;
 use Lahatre\Master\Http\Requests\TagUpdateRequest;
@@ -29,6 +31,16 @@ final class TagController
         Gate::authorize('list', Tag::class);
 
         return $this->tagService->list(TagFilterData::fromArray($request->validated()));
+    }
+
+    public function store(TagCreateRequest $request): JsonResponse
+    {
+        Gate::authorize('create', Tag::class);
+
+        return response()->json(
+            $this->tagService->create(TagCreateData::fromArray($request->validated())),
+            201,
+        );
     }
 
     public function taggableTags(string $taggableType, string $taggableId): TagCollection

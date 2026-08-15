@@ -95,7 +95,7 @@ trait InteractsWithTags
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function attach(array $tagsByType): void
+    public function attachTags(array $tagsByType): void
     {
         app(TagService::class)->attach($this, $tagsByType);
     }
@@ -103,15 +103,15 @@ trait InteractsWithTags
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function attachForType(string $type, Collection|array $tags): void
+    public function attachTagsForType(string $type, Collection|array $tags): void
     {
-        $this->attach([$type => $tags]);
+        $this->attachTags([$type => $tags]);
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function detach(array $tagsByType): void
+    public function detachTags(array $tagsByType): void
     {
         app(TagService::class)->detach($this, $tagsByType);
     }
@@ -119,15 +119,15 @@ trait InteractsWithTags
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function detachForType(string $type, Collection|array $tags): void
+    public function detachTagsForType(string $type, Collection|array $tags): void
     {
-        $this->detach([$type => $tags]);
+        $this->detachTags([$type => $tags]);
     }
 
     /**
      * @param  array<string, array<int, string>|Collection<int, string>>  $tagsByType
      */
-    public function sync(array $tagsByType): void
+    public function syncTags(array $tagsByType): void
     {
         app(TagService::class)->sync($this, $tagsByType);
     }
@@ -135,7 +135,7 @@ trait InteractsWithTags
     /**
      * @param  array<int, string>|Collection<int, string>  $tags
      */
-    public function syncForType(string $type, Collection|array $tags): void
+    public function syncTagsForType(string $type, Collection|array $tags): void
     {
         app(TagService::class)->syncForType($this, $type, $tags);
     }

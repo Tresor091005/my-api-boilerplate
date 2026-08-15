@@ -23,6 +23,8 @@ paths:
 - `prohibited`, `prohibited_if`, and `prohibited_unless` are allowed for conditional payloads. Treat wildcard combinations carefully; if the behavior depends on parent or sibling wildcard data, move the orchestration to `withValidator()`/`after()` and test the exact paths.
 - A Form Request may serve create and update when their payload shape is coherent. Merge rules explicitly using the route model or action context; do not hide materially different contracts behind dense conditionals.
 - Use `prepareForValidation()` only for named normalization that the endpoint contract requires, such as trimming a specific field or normalizing case. Never recursively normalize every input value.
+- Set string length limits from the domain contract, not from a generic default. Short identifiers, names, types, labels, and codes should use an explicit bounded maximum appropriate to their meaning; do not use `max:255` when the field is not intended to hold a long description. When the value is an associative-array key, validate the key explicitly in `withValidator()` or `after()` because wildcard rules validate values, not keys.
+- Project baseline limits are documented in `docs/development/validation-limits.md`: short names and labels generally use 100 characters, product names 150, machine identifiers 50–100, and UUID-backed filters use `uuid`. Treat these as defaults to justify or refine per domain, not as permission to leave a field unbounded.
 
 ## Custom Rule Dependency Discipline
 

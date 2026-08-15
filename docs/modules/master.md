@@ -51,8 +51,11 @@ normalized, operations are transactional, and detaching a tag does not delete
 the tag itself. The tag write methods return `void`; reload the `tags` relation
 explicitly when the updated collection is needed.
 
-Tags expose organization-scoped list, name update, reorder, and safe-delete
-routes. `GET /v1/master/taggables/{taggable_type}/{taggable_id}/tags` reads the
+Tags expose organization-scoped list, batch creation by type, name update,
+reorder, and safe-delete routes. `POST /v1/master/tags` accepts a payload shaped
+like `{"tags":{"status":["active","inactive"],"color":["red"]}}`.
+Types are 2-50 character identifiers and tag names are limited to 50
+characters. `GET /v1/master/taggables/{taggable_type}/{taggable_id}/tags` reads the
 tags attached to a model that implements `HasTags`; it resolves the type from
 the registered morph map and requires the taggable model's `retrieve`
 permission. A tag cannot be deleted while pivot links still reference it.

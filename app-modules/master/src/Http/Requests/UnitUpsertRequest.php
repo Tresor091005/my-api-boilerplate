@@ -35,7 +35,7 @@ class UnitUpsertRequest extends FormRequest
             'group_name' => [
                 'required_without:group_id',
                 'string',
-                'max:255',
+                'max:100',
                 Rule::unique('master_unit_groups', 'name')
                     ->where('organization_id', $organizationId)
                     ->whereNull('deleted_at')
@@ -46,13 +46,14 @@ class UnitUpsertRequest extends FormRequest
                 'nullable',
                 'array',
                 'min:1',
+                'max:100',
                 new BulkExists('master_units', 'id', 'id', 'uuid', true, [
                     'organization_id' => $organizationId,
                 ]),
             ],
             'units.*.id'     => ['nullable', 'uuid'],
-            'units.*.name'   => ['required', 'string'],
-            'units.*.symbol' => ['nullable', 'string'],
+            'units.*.name'   => ['required', 'string', 'max:100'],
+            'units.*.symbol' => ['nullable', 'string', 'max:10'],
             'units.*.ratio'  => ['nullable', 'integer', 'gt:0'],
         ];
     }

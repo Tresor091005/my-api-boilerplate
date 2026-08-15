@@ -18,7 +18,7 @@ class OptionValueFilterRequest extends FormRequest
         return [
             'sort_by'    => ['string', Rule::in(['value', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
-            'value'      => ['nullable', 'string', 'max:255'],
+            'value'      => ['nullable', 'string', 'max:100'],
         ];
     }
 }

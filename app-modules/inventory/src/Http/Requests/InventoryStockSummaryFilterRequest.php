@@ -22,10 +22,10 @@ class InventoryStockSummaryFilterRequest extends FormRequest
         return [
             'per_page'      => ['integer', 'min:1', 'max:100'],
             'cursor'        => ['nullable', 'string'],
-            'item_id'       => ['nullable', 'array'],
-            'item_id.*'     => ['string'],
-            'location_id'   => ['nullable', 'array'],
-            'location_id.*' => ['string'],
+            'item_id'       => ['nullable', 'array', 'max:100'],
+            'item_id.*'     => ['uuid'],
+            'location_id'   => ['nullable', 'array', 'max:100'],
+            'location_id.*' => ['uuid'],
         ];
     }
 

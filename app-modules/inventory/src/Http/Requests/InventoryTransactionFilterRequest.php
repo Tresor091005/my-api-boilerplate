@@ -7,6 +7,7 @@ namespace Lahatre\Inventory\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Lahatre\Inventory\Enums\TransactionType;
 
 class InventoryTransactionFilterRequest extends FormRequest
 {
@@ -25,12 +26,12 @@ class InventoryTransactionFilterRequest extends FormRequest
             'cursor'           => ['nullable', 'string'],
             'sort_by'          => ['string', Rule::in(['id', 'reference_type', 'reference_id', 'transaction_type', 'created_at', 'updated_at'])],
             'sort_order'       => ['string', Rule::in(['asc', 'desc'])],
-            'ids'              => ['nullable', 'array', 'min:1'],
-            'ids.*'            => ['string'],
-            'reference_type'   => ['required_with:reference_id', 'string'],
-            'reference_id'     => ['required_with:reference_type', 'array', 'min:1'],
-            'reference_id.*'   => ['string'],
-            'transaction_type' => ['nullable', 'string'],
+            'ids'              => ['nullable', 'array', 'min:1', 'max:100'],
+            'ids.*'            => ['uuid'],
+            'reference_type'   => ['required_with:reference_id', 'string', 'max:100'],
+            'reference_id'     => ['required_with:reference_type', 'array', 'min:1', 'max:100'],
+            'reference_id.*'   => ['uuid'],
+            'transaction_type' => ['nullable', Rule::enum(TransactionType::class)],
         ];
     }
 }

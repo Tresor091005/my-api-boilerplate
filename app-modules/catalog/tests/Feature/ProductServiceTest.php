@@ -92,6 +92,22 @@ it('validates product payload via request rules', function (): void {
         ->toThrow(ValidationException::class);
 });
 
+it('validates tags nested in product variants', function (): void {
+    $request = ProductRequest::create('/', 'POST', [
+        'name'     => 'Tagged product',
+        'variants' => [[
+            'unit_group_id' => $this->unitGroup->id,
+            'options'       => [['name' => 'Color', 'value' => 'White']],
+            'tags'          => ['status' => [str_repeat('a', 51)]],
+        ]],
+    ])
+        ->setContainer(app())
+        ->setRedirector(app('redirect'));
+
+    expect(fn () => $request->validateResolved())
+        ->toThrow(ValidationException::class);
+});
+
 it('rejects soft-deleted category ids in product requests', function (): void {
     $activeCategory = Category::factory()->create([
         'organization_id' => $this->organizationId,

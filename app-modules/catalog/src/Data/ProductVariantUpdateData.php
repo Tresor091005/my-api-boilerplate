@@ -11,11 +11,13 @@ final readonly class ProductVariantUpdateData
 {
     /**
      * @param  MissingValue|array<int, array{name: string, value: string}>  $options
+     * @param  MissingValue|array<string, array<int, string>>  $tags
      */
     private function __construct(
         public MissingValue|string|null $sku,
         public MissingValue|bool $isActive,
         public MissingValue|array $options,
+        public MissingValue|array $tags,
     ) {}
 
     /**
@@ -31,6 +33,7 @@ final readonly class ProductVariantUpdateData
             sku: $read->get('sku'),
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             options: $read->get('options'),
+            tags: $read->get('tags', default: []),
         );
     }
 }

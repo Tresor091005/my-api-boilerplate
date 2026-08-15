@@ -18,7 +18,9 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
+use Lahatre\Master\Contracts\HasTags;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Traits\InteractsWithTags;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -72,9 +74,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem
+class ProductVariant extends Model implements HasInventoryItem, HasTags
 {
     use InteractsWithInventoryItem;
+    use InteractsWithTags;
     use SharedTraits;
     use SoftDeletes;
 

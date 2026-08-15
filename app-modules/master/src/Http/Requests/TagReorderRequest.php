@@ -13,7 +13,7 @@ class TagReorderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'      => ['required', 'string', 'max:255'],
+            'type'      => ['required', 'string', 'max:50', 'regex:/^[A-Za-z][A-Za-z0-9_-]{1,49}$/'],
             'tag_ids'   => ['required', 'array', 'min:1', 'max:100'],
             'tag_ids.*' => ['required', 'uuid', 'distinct'],
         ];

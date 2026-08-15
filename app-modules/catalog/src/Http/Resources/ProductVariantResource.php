@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Inventory\Http\Resources\InventoryItemSummaryResource;
+use Lahatre\Master\Http\Resources\TagResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 
 /**
@@ -30,6 +31,7 @@ class ProductVariantResource extends JsonResource
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
             'options'       => $this->optionValues->values()->mapWithKeys(fn ($optionValue, $index): array => [$optionValue->option->name => $optionValue->value]),
+            'tags'          => TagResource::collection($this->whenLoaded('tags')),
             'unit_group'    => UnitGroupResource::make($this->whenLoaded('unitGroup')),
             'inventory'     => $this->whenLoaded(
                 'inventoryItem',

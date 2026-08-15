@@ -31,7 +31,7 @@ class UpdateOptionValueRequest extends FormRequest
         return [
             'value' => [
                 'string',
-                'max:255',
+                'max:100',
                 Rule::unique('catalog_option_values', 'value')
                     ->where(fn ($query) => $query
                         ->where('option_id', $option instanceof Option ? $option->id : null)

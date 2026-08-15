@@ -6,6 +6,7 @@
 - [Queues and communication](async-and-communication.md)
 - [Observability](observability.md)
 - [Testing and code generation](testing-and-generation.md)
+- [Validation limits](validation-limits.md)
 - [Tools](tools.md)
 - [Telescope debugging](debugging/telescope.md)
 - [Scramble documentation](documentation/scramble.md)

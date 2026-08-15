@@ -72,7 +72,7 @@ class ManageInventoryItemService
     protected function persistUpdate(InventoryItem $item, array $data): InventoryItem
     {
         $validated = validator($data, [
-            'sku'                    => ['string', 'max:255'],
+            'sku'                    => ['string', 'max:100'],
             'stock_tracking_enabled' => ['boolean'],
             'is_expirable'           => ['boolean'],
             'deduction_strategy'     => ['nullable', Rule::enum(DeductionStrategy::class)],

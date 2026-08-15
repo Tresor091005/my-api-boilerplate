@@ -32,8 +32,8 @@ class StoreOptionValueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'values'   => ['required', 'array', 'min:1'],
-            'values.*' => ['string', 'max:255'],
+            'values'   => ['required', 'array', 'min:1', 'max:100'],
+            'values.*' => ['string', 'max:100'],
         ];
     }
 }

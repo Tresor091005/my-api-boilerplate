@@ -2,8 +2,8 @@
 
 ## API de gestion des tags
 
-- [ ] Ajouter des routes API dédiées pour gérer le référentiel de tags, sans passer par `attach` sur un modèle.
-- [ ] Ajouter un endpoint de création de tag.
+- [x] Ajouter des routes API dédiées pour gérer le référentiel de tags, sans passer par `attach` sur un modèle.
+- [x] Ajouter un endpoint de création groupée de tags par type.
 - [ ] Ajouter un endpoint de mise à jour de tag pour gérer le renommage.
 - [ ] Ajouter un endpoint de fusion de tags.
 - [ ] Ajouter un endpoint de suppression de tag.

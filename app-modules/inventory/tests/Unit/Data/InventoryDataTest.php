@@ -46,5 +46,5 @@ it('keeps filter validation in form requests', function (): void {
     $summaryRequest = new InventoryStockSummaryFilterRequest;
 
     expect(Validator::make(['per_page' => 0], $itemRequest->rules())->fails())->toBeTrue()
-        ->and(Validator::make(['item_id' => ['item-1']], $summaryRequest->rules())->passes())->toBeTrue();
+        ->and(Validator::make(['item_id' => [(string) str()->uuid()]], $summaryRequest->rules())->passes())->toBeTrue();
 });

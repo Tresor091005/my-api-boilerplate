@@ -18,8 +18,8 @@ class CurrencyFilterRequest extends FormRequest
             'cursor'     => ['nullable', 'string'],
             'sort_by'    => ['string', Rule::in(['code', 'name', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
-            'code'       => ['nullable', 'string', 'max:255'],
-            'name'       => ['nullable', 'string', 'max:255'],
+            'code'       => ['nullable', 'string', 'size:3'],
+            'name'       => ['nullable', 'string', 'max:100'],
         ];
     }
 }

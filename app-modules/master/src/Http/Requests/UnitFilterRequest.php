@@ -18,9 +18,9 @@ class UnitFilterRequest extends FormRequest
             'cursor'     => ['nullable', 'string'],
             'sort_by'    => ['string', Rule::in(['code', 'name', 'group', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
-            'code'       => ['nullable', 'string', 'max:255'],
-            'name'       => ['nullable', 'string', 'max:255'],
-            'group'      => ['nullable', 'string', 'max:255'],
+            'code'       => ['nullable', 'string', 'max:50'],
+            'name'       => ['nullable', 'string', 'max:100'],
+            'group'      => ['nullable', 'string', 'max:100'],
             'is_builtin' => ['nullable', 'boolean'],
         ];
     }

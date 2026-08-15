@@ -81,6 +81,12 @@ class ProductVariantService
                 );
             }
 
+            if (!$data->tags instanceof MissingValue) {
+                foreach ($data->tags as $type => $tags) {
+                    $variant->syncTagsForType($type, $tags);
+                }
+            }
+
             $this->inventoryService->updateItem($variant, ['sku' => $variant->sku]);
         });
 

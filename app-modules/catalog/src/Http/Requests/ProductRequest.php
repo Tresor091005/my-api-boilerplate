@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Master\Validation\TagPayloadRules;
 use Lahatre\Shared\Rules\BulkExists;
 use Lahatre\Shared\Rules\BulkUnique;
 
@@ -44,7 +45,7 @@ class ProductRequest extends FormRequest
             'name' => [
                 ...($isUpdate ? [] : ['required']),
                 'string',
-                'max:255',
+                'max:150',
             ],
             'description' => ['nullable', 'string'],
             'is_active'   => ['boolean'],
@@ -57,6 +58,7 @@ class ProductRequest extends FormRequest
                 $isUpdate ? 'prohibited' : 'required',
                 'array',
                 'min:1',
+                'max:100',
                 new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true, [
                     fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', $organizationId),
                 ]),
@@ -64,12 +66,13 @@ class ProductRequest extends FormRequest
                     'organization_id' => $organizationId,
                 ]),
             ],
-            'variants.*.sku'             => ['nullable', 'string', 'max:255'],
+            'variants.*.sku'             => ['nullable', 'string', 'max:100'],
             'variants.*.unit_group_id'   => ['required', 'uuid'],
             'variants.*.is_active'       => ['boolean'],
-            'variants.*.options'         => ['required', 'array', 'min:1'],
-            'variants.*.options.*.name'  => ['required', 'string', 'max:255'],
-            'variants.*.options.*.value' => ['required', 'string', 'max:255'],
+            'variants.*.options'         => ['required', 'array', 'min:1', 'max:100'],
+            'variants.*.options.*.name'  => ['required', 'string', 'max:100'],
+            'variants.*.options.*.value' => ['required', 'string', 'max:100'],
+            ...TagPayloadRules::rules('variants.*.tags'),
         ];
     }
 
@@ -79,6 +82,8 @@ class ProductRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
+            TagPayloadRules::validate($validator, $this->all(), 'variants.*.tags');
+
             $variants = $this->input('variants');
             if (!is_array($variants)) {
                 return;

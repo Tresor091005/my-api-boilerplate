@@ -25,11 +25,11 @@ class InventoryLocationFilterRequest extends FormRequest
             'cursor'        => ['nullable', 'string'],
             'sort_by'       => ['string', Rule::in(['id', 'external_type', 'external_id', 'created_at', 'updated_at'])],
             'sort_order'    => ['string', Rule::in(['asc', 'desc'])],
-            'ids'           => ['nullable', 'array', 'min:1'],
-            'ids.*'         => ['string'],
-            'external_type' => ['required_with:external_id', 'string'],
-            'external_id'   => ['required_with:external_type', 'array', 'min:1'],
-            'external_id.*' => ['string'],
+            'ids'           => ['nullable', 'array', 'min:1', 'max:100'],
+            'ids.*'         => ['uuid'],
+            'external_type' => ['required_with:external_id', 'string', 'max:100'],
+            'external_id'   => ['required_with:external_type', 'array', 'min:1', 'max:100'],
+            'external_id.*' => ['uuid'],
             'is_active'     => ['nullable', 'boolean'],
         ];
     }

@@ -20,10 +20,10 @@ class CategoryFilterRequest extends FormRequest
             'cursor'     => ['nullable', 'string'],
             'sort_by'    => ['string', Rule::in(['handle', 'name', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
-            'handle'     => ['nullable', 'string', 'max:255'],
-            'name'       => ['nullable', 'string', 'max:255'],
+            'handle'     => ['nullable', 'string', 'max:100'],
+            'name'       => ['nullable', 'string', 'max:100'],
             'is_active'  => ['nullable', 'boolean'],
-            'parent_id'  => ['nullable', 'string'],
+            'parent_id'  => ['nullable', 'uuid'],
         ];
     }
 }

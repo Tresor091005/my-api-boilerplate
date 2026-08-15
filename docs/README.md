@@ -27,6 +27,8 @@ development workflows, and current roadmap.
   links.
 - [Testing and generation](development/testing-and-generation.md): test scope,
   quality checks, and generator contracts.
+- [Validation limits](development/validation-limits.md): domain-sized string,
+  identifier, and collection limits used by Form Requests.
 - [Caching and consistency](development/caching-and-consistency.md): cache
   stores, UnitCache, permissions, and transaction consistency.
 - [Queues and communication](development/async-and-communication.md): queues,

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Lahatre\Master\Contracts\HasTags as HasTagsContract;
+use Lahatre\Master\Data\TagCreateData;
 use Lahatre\Master\Data\TagFilterData;
 use Lahatre\Master\Data\TagReorderData;
 use Lahatre\Master\Data\TagUpdateData;
@@ -25,6 +26,7 @@ class TagService
 {
     public function listForTaggable(HasTagsContract $model): TagCollection
     {
+        // TODO replace with relation include system for list and retrieve
         $this->assertModelUsesTags($model);
         $this->resolveAndValidateOrganizationId($model);
 
@@ -36,11 +38,11 @@ class TagService
         $query = Tag::query()->where('organization_id', currentOrganizationId());
 
         if ($filters->name) {
-            $query->where('name', 'like', $filters->name.'%');
+            $query->where('name', 'like', str($filters->name)->normalize()->value().'%');
         }
 
         if ($filters->type) {
-            $query->where('type', $filters->type);
+            $query->where('type', str($filters->type)->normalize()->value());
         }
 
         $sortColumn = match ($filters->sortBy) {
@@ -57,6 +59,17 @@ class TagService
         return TagCollection::make(stableCursorPaginate($query, $filters));
     }
 
+    public function create(TagCreateData $data): TagCollection
+    {
+        $organizationId = currentOrganizationId();
+
+        return DB::transaction(function () use ($data, $organizationId): TagCollection {
+            $tags = $this->ensureTagsExist($organizationId, $this->normalizeTagsByType($data->tagsByType));
+
+            return TagCollection::make($tags);
+        });
+    }
+
     public function update(Tag $tag, TagUpdateData $data): TagResource
     {
         $organizationId = currentOrganizationId();
@@ -65,6 +78,7 @@ class TagService
             $ownedTag = Tag::query()
                 ->where('organization_id', $organizationId)
                 ->whereKey($tag->getKey())
+                ->lockForUpdate()
                 ->firstOrFail();
 
             $ownedTag->name = $data->name;
@@ -125,6 +139,7 @@ class TagService
             $ownedTag = Tag::query()
                 ->where('organization_id', $organizationId)
                 ->whereKey($tag->getKey())
+                ->lockForUpdate()
                 ->firstOrFail();
 
             $usages = Taggable::query()
@@ -153,66 +168,18 @@ class TagService
         DB::transaction(function () use ($model, $tagsByType): void {
             $this->assertModelUsesTags($model);
             $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $this->lockTaggable($model, $organizationId);
             $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
 
             if ($normalizedTagsByType->isEmpty()) {
                 return;
             }
 
-            /** @var Collection<int, Tag> $tags */
-            $tags = collect();
-            $now = now();
-
-            foreach ($normalizedTagsByType as $type => $names) {
-                $existingTags = Tag::query()
-                    ->where('organization_id', $organizationId)
-                    ->where('type', $type)
-                    ->whereIn('name', $names)
-                    ->get()
-                    ->keyBy('name');
-
-                $missingNames = $names->reject(fn (string $name): bool => $existingTags->has($name));
-                if ($missingNames->isNotEmpty()) {
-                    $missingRows = $missingNames->map(fn (string $name): array => [
-                        'id'              => (string) Str::uuid7(),
-                        'organization_id' => $organizationId,
-                        'name'            => $name,
-                        'slug'            => HandleGenerator::generate(
-                            name: $name,
-                            table: 'master_tags',
-                            column: 'slug',
-                            extra: ['organization_id' => $organizationId],
-                        ),
-                        'type'       => $type,
-                        'order_col'  => 0,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ])->all();
-
-                    Tag::query()->insertOrIgnore($missingRows);
-
-                    $createdTags = Tag::query()
-                        ->where('organization_id', $organizationId)
-                        ->where('type', $type)
-                        ->whereIn('name', $missingNames)
-                        ->get();
-
-                    $tags = $tags->merge($createdTags);
-                }
-
-                $tags = $tags->merge($existingTags->values());
-            }
+            $tags = $this->ensureTagsExist($organizationId, $normalizedTagsByType);
 
             $tagIds = $tags->pluck('id')->unique()->values()->all();
             if ($tagIds !== []) {
-                $alreadyLinkedTagIds = $model->tags()
-                    ->whereIn('master_tags.id', $tagIds)
-                    ->pluck('master_tags.id')
-                    ->all();
-
-                $tagIdsToAttach = array_values(array_diff($tagIds, $alreadyLinkedTagIds));
-
-                $syncPayload = collect($tagIdsToAttach)
+                $syncPayload = collect($tagIds)
                     ->mapWithKeys(fn (string $tagId): array => [
                         $tagId => [
                             'id'              => (string) Str::uuid7(),
@@ -236,6 +203,7 @@ class TagService
         DB::transaction(function () use ($model, $tagsByType): void {
             $this->assertModelUsesTags($model);
             $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $this->lockTaggable($model, $organizationId);
             $normalizedTagsByType = $this->normalizeTagsByType($tagsByType);
 
             foreach ($normalizedTagsByType as $type => $names) {
@@ -243,6 +211,8 @@ class TagService
                     ->where('organization_id', $organizationId)
                     ->where('type', $type)
                     ->whereIn('name', $names)
+                    ->orderBy('id')
+                    ->lockForUpdate()
                     ->get()
                     ->keyBy('name');
 
@@ -276,10 +246,10 @@ class TagService
      */
     public function sync(HasTagsContract $model, array $tagsByType): void
     {
-        $this->assertModelUsesTags($model);
-        $this->resolveAndValidateOrganizationId($model);
-
         DB::transaction(function () use ($model, $tagsByType): void {
+            $this->assertModelUsesTags($model);
+            $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $this->lockTaggable($model, $organizationId);
             $model->tags()->detach();
             $this->attach($model, $tagsByType);
         });
@@ -290,11 +260,11 @@ class TagService
      */
     public function syncForType(HasTagsContract $model, string $type, Collection|array $tags): void
     {
-        $this->assertModelUsesTags($model);
-        $this->resolveAndValidateOrganizationId($model);
-        $normalizedType = str($type)->normalize()->value();
-
-        DB::transaction(function () use ($model, $tags, $normalizedType): void {
+        DB::transaction(function () use ($model, $tags, $type): void {
+            $this->assertModelUsesTags($model);
+            $organizationId = $this->resolveAndValidateOrganizationId($model);
+            $this->lockTaggable($model, $organizationId);
+            $normalizedType = str($type)->normalize()->value();
             $existingTagIds = $model->tags()
                 ->where('master_tags.type', $normalizedType)
                 ->pluck('master_tags.id')
@@ -331,6 +301,58 @@ class TagService
             ->filter(fn (Collection $tags): bool => $tags->isNotEmpty());
 
         return $normalized;
+    }
+
+    /**
+     * @param  Collection<string, Collection<int, string>>  $normalizedTagsByType
+     * @return Collection<int, Tag>
+     */
+    protected function ensureTagsExist(string $organizationId, Collection $normalizedTagsByType): Collection
+    {
+        /** @var Collection<int, Tag> $tags */
+        $tags = collect();
+        $now = now();
+
+        foreach ($normalizedTagsByType->sortKeys() as $type => $names) {
+            $rows = $names->map(fn (string $name): array => [
+                'id'              => (string) Str::uuid7(),
+                'organization_id' => $organizationId,
+                'name'            => $name,
+                'slug'            => HandleGenerator::generate(
+                    name: $name,
+                    table: 'master_tags',
+                    column: 'slug',
+                    extra: ['organization_id' => $organizationId],
+                ),
+                'type'       => $type,
+                'order_col'  => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+
+            Tag::query()->insertOrIgnore($rows);
+
+            $tags = $tags->merge(
+                Tag::query()
+                    ->where('organization_id', $organizationId)
+                    ->where('type', $type)
+                    ->whereIn('name', $names)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+            );
+        }
+
+        return $tags;
+    }
+
+    protected function lockTaggable(HasTagsContract $model, string $organizationId): void
+    {
+        $model->newQuery()
+            ->where('organization_id', $organizationId)
+            ->whereKey($model->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
     }
 
     protected function resolveAndValidateOrganizationId(HasTagsContract $model): string

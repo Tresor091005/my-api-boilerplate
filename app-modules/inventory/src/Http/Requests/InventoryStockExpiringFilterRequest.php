@@ -23,8 +23,8 @@ class InventoryStockExpiringFilterRequest extends FormRequest
             'per_page'    => ['integer', 'min:1', 'max:100'],
             'cursor'      => ['nullable', 'string'],
             'days'        => ['integer', 'min:1', 'max:365'],
-            'location_id' => ['nullable', 'string'],
-            'item_id'     => ['nullable', 'string'],
+            'location_id' => ['nullable', 'uuid'],
+            'item_id'     => ['nullable', 'uuid'],
         ];
     }
 }

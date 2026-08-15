@@ -18,6 +18,7 @@ Route::group([
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
 
         Route::get('tags', [TagController::class, 'index'])->name('tags.index');
+        Route::post('tags', [TagController::class, 'store'])->name('tags.store');
         Route::get('taggables/{taggable_type}/{taggable_id}/tags', [TagController::class, 'taggableTags'])->name('taggables.tags.index');
         Route::put('tags/reorder', [TagController::class, 'reorder'])->name('tags.reorder');
         Route::patch('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
