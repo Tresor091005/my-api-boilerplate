@@ -106,8 +106,9 @@ deletion, and must have an inline explanation in the owning module config. An
 empty contract still supplies the method-derived response policy:
 GET returns a resource, POST/PUT/PATCH return no content by default, and DELETE
 is always no content. The architecture test reports both missing route
-contracts and stale contract keys. Response mode overrides are exceptional and
-must be documented with the route.
+contracts and stale contract keys. The HTTP response-context middleware also
+fails before controller execution when a routed API endpoint has no contract.
+Response mode overrides are exceptional and must be documented with the route.
 
 `ResponseContext` is scoped to the application lifecycle, not exclusively to
 HTTP requests. `ResolveResponseContext` is the HTTP adapter that configures it

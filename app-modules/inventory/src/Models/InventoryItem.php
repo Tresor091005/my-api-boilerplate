@@ -99,12 +99,14 @@ class InventoryItem extends Model
 
     public function itemable(): MorphTo
     {
-        return $this->morphTo('itemable', 'itemable_type', 'itemable_id');
+        return $this->morphTo('itemable', 'itemable_type', 'itemable_id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function stocks(): HasMany
     {
-        return $this->hasMany(InventoryStock::class, 'item_id', 'id');
+        return $this->hasMany(InventoryStock::class, 'item_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function activeStocks(): HasMany
@@ -132,6 +134,7 @@ class InventoryItem extends Model
 
     public function movements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'item_id', 'id');
+        return $this->hasMany(InventoryMovement::class, 'item_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 }

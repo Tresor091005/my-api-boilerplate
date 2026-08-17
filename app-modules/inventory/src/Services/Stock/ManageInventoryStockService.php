@@ -13,15 +13,22 @@ class ManageInventoryStockService
     public function updateMetadata(InventoryStock $stock, ?array $metadata): InventoryStock
     {
         $organizationId = currentOrganizationId();
-        if ($stock->organization_id !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $stock->organization_id);
-        }
 
-        return DB::transaction(function () use ($stock, $metadata): InventoryStock {
-            $stock->metadata = $metadata;
-            $stock->save();
+        return DB::transaction(function () use ($stock, $metadata, $organizationId): InventoryStock {
+            $ownedStock = InventoryStock::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($stock->getKey())
+                ->lockForUpdate()
+                ->first();
 
-            return $stock->refresh()->load(responseRelationsToLoad());
+            if ($ownedStock === null) {
+                throw OrganizationScopeException::mismatch($organizationId, $stock->organization_id);
+            }
+
+            $ownedStock->metadata = $metadata;
+            $ownedStock->save();
+
+            return $ownedStock->refresh()->load(responseRelationsToLoad());
         });
     }
 }

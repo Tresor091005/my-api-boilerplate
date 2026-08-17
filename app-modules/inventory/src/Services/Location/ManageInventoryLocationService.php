@@ -59,12 +59,13 @@ class ManageInventoryLocationService
     public function resolve(HasInventoryLocation $model): InventoryLocation
     {
         $organizationId = currentOrganizationId();
-        $this->assertOrganization($model, $organizationId);
+        $model = $this->resolveAndValidateModel($model, $organizationId);
 
         return InventoryLocation::query()
             ->where('organization_id', $organizationId)
             ->where('external_type', $model->getMorphClass())
             ->where('external_id', (string) $model->getKey())
+            ->lockForUpdate()
             ->firstOrFail();
     }
 
@@ -74,14 +75,14 @@ class ManageInventoryLocationService
      */
     public function ensure(Collection $models): Collection
     {
+        $organizationId = currentOrganizationId();
+
         if ($models->isEmpty()) {
             return collect();
         }
 
-        $organizationId = currentOrganizationId();
-        $models->each(function (HasInventoryLocation $model) use ($organizationId): void {
-            $this->assertOrganization($model, $organizationId);
-        });
+        $models = $models
+            ->map(fn (HasInventoryLocation $model): HasInventoryLocation => $this->resolveAndValidateModel($model, $organizationId));
 
         $groupedModels = $models
             ->unique(fn (HasInventoryLocation $model): string => $model->getMorphClass().':'.(string) $model->getKey())
@@ -138,10 +139,28 @@ class ManageInventoryLocationService
         return $resolvedLocations->values();
     }
 
-    protected function assertOrganization(HasInventoryLocation $model, string $organizationId): void
+    protected function resolveAndValidateModel(HasInventoryLocation $model, string $organizationId): HasInventoryLocation
     {
-        if ($model->getOrganizationId() !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $model->getOrganizationId());
+        if ($model->getKey() === null) {
+            throw OrganizationScopeException::resolutionFailed();
         }
+
+        $persistedAttributes = $model->newQuery()
+            ->whereKey($model->getKey())
+            ->firstOrFail()
+            ->getAttributes();
+        $persistedModel = clone $model;
+        $persistedModel->setRawAttributes($persistedAttributes, true);
+        $persistedOrganizationId = $persistedModel->getOrganizationId();
+
+        if ($persistedOrganizationId === '') {
+            throw OrganizationScopeException::resolutionFailed();
+        }
+
+        if ($persistedOrganizationId !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $persistedOrganizationId);
+        }
+
+        return $persistedModel;
     }
 }

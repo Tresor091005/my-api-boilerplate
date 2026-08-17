@@ -105,12 +105,14 @@ class InventoryStock extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(InventoryItem::class, 'item_id', 'id');
+        return $this->belongsTo(InventoryItem::class, 'item_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function location(): BelongsTo
     {
-        return $this->belongsTo(InventoryLocation::class, 'location_id', 'id');
+        return $this->belongsTo(InventoryLocation::class, 'location_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function unit(): BelongsTo
@@ -128,6 +130,7 @@ class InventoryStock extends Model
      */
     public function movements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'stock_id', 'id');
+        return $this->hasMany(InventoryMovement::class, 'stock_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 }

@@ -35,8 +35,13 @@ Defaults are determined by the HTTP verb: `GET` returns a resource; `POST`,
 The architecture test verifies that every API route has a contract and that
 every declared key matches an existing route. Shapes currently describe
 required relation loads; includes describe only relations explicitly requested
-by the client. Field selection is not supported yet and must not be declared in
-a shape. Module contract files may declare reusable shapes under the
+by the client. When field selection is introduced, the fields selected by a
+shape will be the source of truth for `required_loads`: a relation is required
+only when a displayed field or computed field needs it. For example, a
+ProductVariant representation that does not display `name` must not load the
+`product` or `optionValues` relations solely because another representation
+displays that field. Field selection is not currently supported and must not be
+declared in a shape. Module contract files may declare reusable shapes under the
 reserved `_shapes` key and reference them from a route shape with `ref`.
 References are resolved before the production response-contract cache is
 written and are scoped to the configuration file that declares them.

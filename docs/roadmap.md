@@ -1,45 +1,3 @@
-## High priority — secure tenant scoping for tags
-
-- [x] Review `TagService::resolveOrganizationId()`: `organization_id` on the
-  supplied model must never be treated as the security authority. A model may
-  be partially hydrated, changed in memory, manually constructed, or belong to
-  another organization. The authority is the active organization
-  (`currentOrganizationId()`), with explicit validation of the model value when
-  available.
-- [x] Define behavior for models with a null `organization_id` and partially
-  hydrated models. Do not silently turn a global or incomplete model into a
-  tenant-scoped model without an explicit business rule. The selected rule is
-  that a taggable model must provide `getOrganizationId(): string`; global
-  models are not taggable.
-- [x] Explicitly reject any mismatch between the active organization and the
-  model before reading, creating, modifying, or attaching a tag. Cover this
-  with a localized business exception rather than a generic
-  `InvalidArgumentException`.
-- [x] Verify isolation for `attach`, `detach`, `sync`, and `syncForType`,
-  including direct service calls outside `InteractsWithTags` and `HasTags`.
-  The caller must authorize the operation, but the service must still validate
-  the tenant before its first tenant-owned query.
-- [x] Secure the `master_taggables` polymorphic relation. It currently has no
-  `organization_id`, so a malformed link could associate a tag from B with a
-  model from A or expose that tag through `tags()`. Add local tenant proof to
-  relation reads and writes, then evaluate a schema constraint or pivot
-  structure that prevents this mismatch at database level.
-- [x] Verify `withAnyTagsOfType`, `withAllTagsOfType`, and
-  `withoutTagsOfType` scopes. They must remain bounded by the model's
-  organization and must not rely solely on trust in existing pivot links.
-- [x] Make writes atomic and concurrency-safe: two transactions may execute
-  the tag “find then insert” sequence simultaneously. Preserve the tenant-aware
-  uniqueness constraint and use an atomic write or handle the collision safely.
-- [x] Clarify transaction ownership. Public service methods must remain safe
-  when called without `DB::transaction()` by `InteractsWithTags`, a job, or a
-  command; `sync` must not detach links before all preconditions are validated.
-- [ ] Add integration tests for a model from another organization, a forged
-  in-memory `organization_id`, a partially hydrated model, a null
-  `organization_id`, missing context, direct service calls, an inter-tenant
-  pivot link, scope reads, and concurrent creation of the same tag. Security
-  and scope cases are covered; the concurrency scenario still needs to run
-  with PostgreSQL available.
-
 ## Next high priority — audit polymorphic Inventory tenant scoping
 
 - [ ] Audit `HasInventoryItem` and `InteractsWithInventoryItem`: verify that
@@ -66,6 +24,12 @@
   in-memory organization, a partially hydrated model, a null organization,
   missing context, direct service calls, inter-tenant polymorphic links, eager
   loading, batch resolution, and concurrency.
+- [ ] Audit tenant-owned Eloquent relationships across business models: keep
+  the active organization constraint on `belongsTo`, `hasMany`, `hasOne`, and
+  homogeneous polymorphic relations; exclude global or mixed-scope models and
+  constrain `belongsToMany` pivots with `wherePivot` where required. Verify
+  lazy loading, eager loading, `whereHas`, `withCount`, and qualified columns
+  when joins could make `organization_id` ambiguous.
 
 ## Current status
 
@@ -174,25 +138,9 @@
 
 - Global activity logging.
 
-## TODO: enforce HTTP response-contract coverage
+## Deferred technical follow-ups
 
-After every API module has declared its response contracts:
-
-- [ ] Make `ResolveResponseContext` fail fast when an API route has no
-  registered response contract.
-- [ ] Keep an explicitly empty contract valid for routes that intentionally use
-  only the method-derived response policy and no response relation loads.
-- [ ] Reject missing contracts before the controller or service executes, so a
-  misconfigured HTTP route cannot silently fall back to an incomplete response.
-- [ ] Add an integration test proving that a missing HTTP contract is rejected,
-  while console, job, scheduler, and direct service callers retain their
-  scalar-only response behavior without an active shape.
-
-## TODO: response shape field selection
-
-- [ ] Define and implement backend-controlled field selection for response
-  shapes.
-- [ ] Apply the selected fields during resource serialization without exposing
-  fields that the active shape excludes.
-- [ ] Add resource tests for allowed fields, computed fields, and required
-  relation dependencies before enabling the `fields` configuration key.
+- [ ] Run the PostgreSQL concurrency scenario for tag creation and
+  synchronization.
+- [ ] Implement backend-controlled field selection for response shapes,
+  including resource serialization and required relation dependencies.

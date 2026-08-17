@@ -85,21 +85,25 @@ class InventoryTransaction extends Model
 
     public function reference(): MorphTo
     {
-        return $this->morphTo('reference', 'reference_type', 'reference_id');
+        return $this->morphTo('reference', 'reference_type', 'reference_id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function movements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'transaction_id', 'id');
+        return $this->hasMany(InventoryMovement::class, 'transaction_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function reversalOf(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'reversal_of_transaction_id', 'id');
+        return $this->belongsTo(self::class, 'reversal_of_transaction_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function reversal(): HasOne
     {
-        return $this->hasOne(self::class, 'reversal_of_transaction_id', 'id');
+        return $this->hasOne(self::class, 'reversal_of_transaction_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 }

@@ -51,9 +51,7 @@ class ManageInventoryItemService
     {
         $organizationId = currentOrganizationId();
 
-        if ($item->organization_id !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
-        }
+        $this->assertInventoryItemOrganization($item, $organizationId);
 
         $updatedItem = DB::transaction(function () use ($item, $data, $organizationId): InventoryItem {
             $lockedItem = InventoryItem::query()
@@ -141,14 +139,17 @@ class ManageInventoryItemService
     public function resolve(HasInventoryItem $model): InventoryItem
     {
         $organizationId = currentOrganizationId();
-        $this->assertOrganization($model, $organizationId);
+        $model = $this->resolveAndValidateModel($model, $organizationId);
 
-        return InventoryItem::query()
+        /** @var InventoryItem $item */
+        $item = InventoryItem::query()
             ->where('organization_id', $organizationId)
             ->where('itemable_type', $model->getMorphClass())
             ->where('itemable_id', (string) $model->getKey())
             ->lockForUpdate()
             ->firstOrFail();
+
+        return $item;
     }
 
     /**
@@ -157,14 +158,14 @@ class ManageInventoryItemService
      */
     public function ensure(Collection $models): Collection
     {
+        $organizationId = currentOrganizationId();
+
         if ($models->isEmpty()) {
             return collect();
         }
 
-        $organizationId = currentOrganizationId();
-        $models->each(function (HasInventoryItem $model) use ($organizationId): void {
-            $this->assertOrganization($model, $organizationId);
-        });
+        $models = $models
+            ->map(fn (HasInventoryItem $model): HasInventoryItem => $this->resolveAndValidateModel($model, $organizationId));
 
         $groupedModels = $models
             ->unique(fn (HasInventoryItem $model): string => $model->getMorphClass().':'.(string) $model->getKey())
@@ -223,10 +224,35 @@ class ManageInventoryItemService
         return $resolvedItems->values();
     }
 
-    protected function assertOrganization(HasInventoryItem $model, string $organizationId): void
+    protected function resolveAndValidateModel(HasInventoryItem $model, string $organizationId): HasInventoryItem
     {
-        if ($model->getOrganizationId() !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $model->getOrganizationId());
+        if ($model->getKey() === null) {
+            throw OrganizationScopeException::resolutionFailed();
+        }
+
+        $persistedAttributes = $model->newQuery()
+            ->whereKey($model->getKey())
+            ->firstOrFail()
+            ->getAttributes();
+        $persistedModel = clone $model;
+        $persistedModel->setRawAttributes($persistedAttributes, true);
+        $persistedOrganizationId = $persistedModel->getOrganizationId();
+
+        if ($persistedOrganizationId === '') {
+            throw OrganizationScopeException::resolutionFailed();
+        }
+
+        if ($persistedOrganizationId !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $persistedOrganizationId);
+        }
+
+        return $persistedModel;
+    }
+
+    protected function assertInventoryItemOrganization(InventoryItem $item, string $organizationId): void
+    {
+        if ($item->organization_id !== $organizationId) {
+            throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
         }
     }
 }

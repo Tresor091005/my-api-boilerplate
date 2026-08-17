@@ -8,6 +8,13 @@ use Lahatre\Shared\Exceptions\AssertionException;
 
 final class OrganizationScopeException extends AssertionException
 {
+    public static function resolutionFailed(): self
+    {
+        return new self(
+            __('inventory::exceptions.organization_resolution_failed'),
+        );
+    }
+
     public static function mismatch(string $expectedOrganizationId, ?string $actualOrganizationId): self
     {
         return new self(

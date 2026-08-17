@@ -82,12 +82,14 @@ class InventoryLocation extends Model
 
     public function external(): MorphTo
     {
-        return $this->morphTo('external', 'external_type', 'external_id');
+        return $this->morphTo('external', 'external_type', 'external_id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function stocks(): HasMany
     {
-        return $this->hasMany(InventoryStock::class, 'location_id', 'id');
+        return $this->hasMany(InventoryStock::class, 'location_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function activeStocks(): HasMany
@@ -113,6 +115,7 @@ class InventoryLocation extends Model
 
     public function movements(): HasMany
     {
-        return $this->hasMany(InventoryMovement::class, 'location_id', 'id');
+        return $this->hasMany(InventoryMovement::class, 'location_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 }

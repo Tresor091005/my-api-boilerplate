@@ -20,8 +20,11 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
+use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Inventory\Services\InventoryService;
+use Lahatre\Inventory\Services\Stock\ManageInventoryStockService;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
+use Lahatre\Inventory\Tests\Fixtures\TestInventoryMaterial;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -59,12 +62,131 @@ it('rejects an itemable from another organization', function (): void {
         ->toThrow(OrganizationScopeException::class);
 });
 
+it('uses persisted host ownership for falsified and partially hydrated models', function (): void {
+    $material = $this->createTestMaterial();
+    $material->organization_id = $this->otherOrganizationId;
+
+    $item = $this->service->createItem($material);
+
+    $partialMaterial = TestInventoryMaterial::query()
+        ->select(['id'])
+        ->findOrFail($material->id);
+    $partialItem = $this->service->createItem($partialMaterial);
+
+    expect($item->organization_id)->toBe($this->organizationId)
+        ->and($partialItem->id)->toBe($item->id);
+});
+
+it('scopes polymorphic inventory relations to the current organization', function (): void {
+    $material = $this->createTestMaterial();
+    $warehouse = $this->createTestWarehouse();
+    $item = $this->service->createItem($material);
+    $location = $this->service->createLocation($warehouse);
+
+    setPermissionsTeamId($this->otherOrganizationId);
+
+    expect($material->fresh()->inventoryItem)->toBeNull()
+        ->and($warehouse->fresh()->inventoryLocation)->toBeNull();
+
+    setPermissionsTeamId($this->organizationId);
+
+    expect($material->fresh()->inventoryItem?->id)->toBe($item->id)
+        ->and($warehouse->fresh()->inventoryLocation?->id)->toBe($location->id);
+});
+
+it('scopes descendant relations and rejects forged stock updates', function (): void {
+    $material = $this->createTestMaterial();
+    $warehouse = $this->createTestWarehouse();
+    $item = $this->service->createItem($material);
+    $location = $this->service->createLocation($warehouse);
+    $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create();
+
+    setPermissionsTeamId($this->otherOrganizationId);
+
+    $foreignMaterial = $this->createTestMaterial([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignWarehouse = $this->createTestWarehouse([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignItem = InventoryItem::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+        'base_unit_code'  => $this->unit->code,
+    ]);
+    $foreignLocation = InventoryLocation::factory()->create([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignStock = InventoryStock::factory()
+        ->for($foreignItem, 'item')
+        ->for($foreignLocation, 'location')
+        ->create();
+
+    setPermissionsTeamId($this->organizationId);
+
+    $crossTenantItemLink = InventoryItem::factory()->create([
+        'organization_id' => $this->organizationId,
+        'itemable_type'   => $foreignMaterial->getMorphClass(),
+        'itemable_id'     => $foreignMaterial->id,
+        'base_unit_code'  => $this->unit->code,
+    ]);
+    $crossTenantLocationLink = InventoryLocation::factory()->create([
+        'organization_id' => $this->organizationId,
+        'external_type'   => $foreignWarehouse->getMorphClass(),
+        'external_id'     => $foreignWarehouse->id,
+    ]);
+
+    expect($item->fresh()->stocks)->toHaveCount(1)
+        ->and($location->fresh()->stocks)->toHaveCount(1)
+        ->and($crossTenantItemLink->itemable)->toBeNull()
+        ->and($crossTenantLocationLink->external)->toBeNull()
+        ->and(InventoryItem::query()->with('itemable')->findOrFail($crossTenantItemLink->id)->itemable)->toBeNull()
+        ->and(InventoryLocation::query()->with('external')->findOrFail($crossTenantLocationLink->id)->external)->toBeNull()
+        ->and($foreignStock->setAttribute('organization_id', $this->organizationId))
+        ->and(fn () => app(ManageInventoryStockService::class)->updateMetadata($foreignStock, ['forged' => true]))
+        ->toThrow(OrganizationScopeException::class);
+
+    expect($foreignStock->refresh()->metadata)->toBeNull()
+        ->and(app(InventoryQueryService::class)->retrieveItem($item->setAttribute('organization_id', $this->otherOrganizationId))->id)
+        ->toBe($item->id);
+});
+
 it('rejects inventory operations without an organization context', function (): void {
     $material = $this->createTestMaterial();
     setPermissionsTeamId(null);
 
     expect(fn () => $this->service->createItem($material))
         ->toThrow(AuthorizationException::class);
+});
+
+it('requires an organization context for empty batches', function (): void {
+    setPermissionsTeamId(null);
+
+    expect(fn () => $this->service->createManyItems([]))
+        ->toThrow(AuthorizationException::class);
+});
+
+it('rejects foreign organization models for update and delete', function (): void {
+    setPermissionsTeamId($this->otherOrganizationId);
+
+    $foreignMaterial = $this->createTestMaterial([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $foreignWarehouse = $this->createTestWarehouse([
+        'organization_id' => $this->otherOrganizationId,
+    ]);
+    $this->service->createItem($foreignMaterial);
+    $this->service->createLocation($foreignWarehouse);
+
+    setPermissionsTeamId($this->organizationId);
+
+    expect(fn () => $this->service->updateItem($foreignMaterial, ['sku' => 'forbidden']))
+        ->toThrow(OrganizationScopeException::class)
+        ->and(fn () => $this->service->deleteItem($foreignMaterial))
+        ->toThrow(OrganizationScopeException::class)
+        ->and(fn () => $this->service->updateLocation($foreignWarehouse, ['is_active' => false]))
+        ->toThrow(OrganizationScopeException::class)
+        ->and(fn () => $this->service->deleteLocation($foreignWarehouse))
+        ->toThrow(OrganizationScopeException::class);
 });
 
 it('createManyLocations skips already existing external_id/type pairs without failing', function (): void {

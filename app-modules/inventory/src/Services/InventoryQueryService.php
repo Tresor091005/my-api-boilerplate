@@ -83,7 +83,7 @@ class InventoryQueryService
 
     public function retrieveItem(InventoryItem $item): InventoryItem
     {
-        $this->assertOrganization($item->organization_id);
+        $item = $this->resolveItem($item);
 
         return $item->load(responseRelationsToLoad());
     }
@@ -118,14 +118,14 @@ class InventoryQueryService
 
     public function retrieveLocation(InventoryLocation $location): InventoryLocation
     {
-        $this->assertOrganization($location->organization_id);
+        $location = $this->resolveLocation($location);
 
         return $location->load(responseRelationsToLoad());
     }
 
     public function getItemStock(InventoryItem $item): ItemStockViewData
     {
-        $this->assertOrganization($item->organization_id);
+        $item = $this->resolveItem($item);
 
         $locations = InventoryStock::query()
             ->select('location_id')
@@ -152,7 +152,7 @@ class InventoryQueryService
 
     public function getItemValue(InventoryItem $item, InventoryItemValueFilterData $filters): ItemValueViewData
     {
-        $this->assertOrganization($item->organization_id);
+        $item = $this->resolveItem($item);
 
         $query = InventoryStock::query()
             ->select(['location_id', 'currency_code'])
@@ -234,7 +234,7 @@ class InventoryQueryService
     public function getLocationStock(InventoryLocation $location): LocationStockViewData
     {
         $organizationId = currentOrganizationId();
-        $this->assertOrganization($location->organization_id);
+        $location = $this->resolveLocation($location);
 
         $aggregatedStocks = InventoryStock::query()
             ->select('item_id')
@@ -272,7 +272,7 @@ class InventoryQueryService
 
     public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterData $filters): LocationValueViewData
     {
-        $this->assertOrganization($location->organization_id);
+        $location = $this->resolveLocation($location);
 
         $query = InventoryStock::query()
             ->select(['item_id', 'currency_code'])
@@ -356,8 +356,8 @@ class InventoryQueryService
         InventoryLocation $location,
         InventoryLotFilterData $filters
     ): ItemLocationLotsViewData {
-        $this->assertOrganization($item->organization_id);
-        $this->assertOrganization($location->organization_id);
+        $item = $this->resolveItem($item);
+        $location = $this->resolveLocation($location);
 
         $strategy = $filters->strategy
             ?? $item->deduction_strategy
@@ -407,6 +407,8 @@ class InventoryQueryService
             ->join('inventory_items as items', 'items.id', '=', 'stocks.item_id')
             ->join('inventory_locations as locations', 'locations.id', '=', 'stocks.location_id')
             ->where('stocks.organization_id', currentOrganizationId())
+            ->where('items.organization_id', currentOrganizationId())
+            ->where('locations.organization_id', currentOrganizationId())
             ->whereNull('stocks.deleted_at')
             ->whereNull('items.deleted_at')
             ->whereNull('locations.deleted_at')
@@ -448,6 +450,8 @@ class InventoryQueryService
             ->join('inventory_items', 'inventory_items.id', '=', 'inventory_stocks.item_id')
             ->join('inventory_locations', 'inventory_locations.id', '=', 'inventory_stocks.location_id')
             ->where('inventory_stocks.organization_id', currentOrganizationId())
+            ->where('inventory_items.organization_id', currentOrganizationId())
+            ->where('inventory_locations.organization_id', currentOrganizationId())
             ->whereNull('inventory_items.deleted_at')
             ->whereNull('inventory_locations.deleted_at')
             ->where('inventory_stocks.remaining', '>', 0)
@@ -478,7 +482,7 @@ class InventoryQueryService
     /** @return Builder<InventoryMovement> */
     private function itemMovementsQuery(InventoryItem $item, InventoryMovementFilterData $filters): Builder
     {
-        $this->assertOrganization($item->organization_id);
+        $item = $this->resolveItem($item);
 
         $query = InventoryMovement::query()
             ->where('item_id', $item->id)
@@ -502,7 +506,7 @@ class InventoryQueryService
     /** @return Builder<InventoryMovement> */
     private function locationMovementsQuery(InventoryLocation $location, InventoryMovementFilterData $filters): Builder
     {
-        $this->assertOrganization($location->organization_id);
+        $location = $this->resolveLocation($location);
 
         $query = InventoryMovement::query()
             ->where('location_id', $location->id)
@@ -520,7 +524,7 @@ class InventoryQueryService
 
     public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransaction
     {
-        $this->assertOrganization($transaction->organization_id);
+        $transaction = $this->resolveTransaction($transaction);
 
         $transaction->load(responseRelationsToLoad());
 
@@ -592,12 +596,48 @@ class InventoryQueryService
         }
     }
 
-    protected function assertOrganization(string $organizationId): void
+    protected function resolveItem(InventoryItem $item): InventoryItem
     {
-        $currentOrganizationId = currentOrganizationId();
+        $organizationId = currentOrganizationId();
+        $ownedItem = InventoryItem::query()
+            ->where('organization_id', $organizationId)
+            ->whereKey($item->getKey())
+            ->first();
 
-        if ($organizationId !== $currentOrganizationId) {
-            throw OrganizationScopeException::mismatch($currentOrganizationId, $organizationId);
+        if ($ownedItem === null) {
+            throw OrganizationScopeException::mismatch($organizationId, $item->getAttribute('organization_id'));
         }
+
+        return $ownedItem;
+    }
+
+    protected function resolveLocation(InventoryLocation $location): InventoryLocation
+    {
+        $organizationId = currentOrganizationId();
+        $ownedLocation = InventoryLocation::query()
+            ->where('organization_id', $organizationId)
+            ->whereKey($location->getKey())
+            ->first();
+
+        if ($ownedLocation === null) {
+            throw OrganizationScopeException::mismatch($organizationId, $location->getAttribute('organization_id'));
+        }
+
+        return $ownedLocation;
+    }
+
+    protected function resolveTransaction(InventoryTransaction $transaction): InventoryTransaction
+    {
+        $organizationId = currentOrganizationId();
+        $ownedTransaction = InventoryTransaction::query()
+            ->where('organization_id', $organizationId)
+            ->whereKey($transaction->getKey())
+            ->first();
+
+        if ($ownedTransaction === null) {
+            throw OrganizationScopeException::mismatch($organizationId, $transaction->getAttribute('organization_id'));
+        }
+
+        return $ownedTransaction;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,10 +20,13 @@ final class ResolveResponseContext
 
     public function handle(Request $request, Closure $next): Response
     {
-        $contract = $this->contracts->forRoute($request->route()->getName());
+        $routeName = $request->route()->getName();
+        $contract = $this->contracts->forRoute($routeName);
 
         if ($contract === null) {
-            return $next($request);
+            throw new InvalidArgumentException(__('shared::exceptions.response_contract_missing', [
+                'route' => $routeName ?? $request->path(),
+            ]));
         }
 
         $parameters = config('api-responses.parameters');

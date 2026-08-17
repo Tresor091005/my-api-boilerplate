@@ -54,7 +54,6 @@ development workflows, and current roadmap.
 - [Inventory threshold and alert specification](../app-modules/inventory/docs/specs/thresholds-and-alerts.md)
 - [Inventory follow-up notes](../app-modules/inventory/docs/plans/events-and-follow-ups.md)
 - [IAM permissions](iam/permissions.md)
-- [Master module TODO](../app-modules/master/docs/todo.md)
 
 ### Development and operations
 

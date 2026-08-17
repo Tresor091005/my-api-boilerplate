@@ -109,22 +109,26 @@ class InventoryMovement extends Model
 
     public function transaction(): BelongsTo
     {
-        return $this->belongsTo(InventoryTransaction::class, 'transaction_id', 'id');
+        return $this->belongsTo(InventoryTransaction::class, 'transaction_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(InventoryItem::class, 'item_id', 'id');
+        return $this->belongsTo(InventoryItem::class, 'item_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function stock(): BelongsTo
     {
-        return $this->belongsTo(InventoryStock::class, 'stock_id', 'id');
+        return $this->belongsTo(InventoryStock::class, 'stock_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function location(): BelongsTo
     {
-        return $this->belongsTo(InventoryLocation::class, 'location_id', 'id');
+        return $this->belongsTo(InventoryLocation::class, 'location_id', 'id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function unit(): BelongsTo

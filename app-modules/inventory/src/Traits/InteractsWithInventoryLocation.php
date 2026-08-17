@@ -29,13 +29,7 @@ trait InteractsWithInventoryLocation
      */
     public function inventoryLocation(): MorphOne
     {
-        $organizationId = $this->getAttribute('organization_id');
-
-        if ($organizationId === null && $this->getKey() === null) {
-            $organizationId = currentOrganizationId();
-        } else {
-            $organizationId = $this->getOrganizationId();
-        }
+        $organizationId = currentOrganizationId();
 
         /** @var MorphOne<InventoryLocation, Model> $relation */
         $relation = $this->morphOne(InventoryLocation::class, 'external')
