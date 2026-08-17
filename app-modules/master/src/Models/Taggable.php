@@ -29,6 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Taggable whereTaggableId($value)
  * @method static Builder<static>|Taggable whereTaggableType($value)
  * @method static TaggableFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Taggable whereOrganizationId($value)
  *
  * @mixin \Eloquent
  */

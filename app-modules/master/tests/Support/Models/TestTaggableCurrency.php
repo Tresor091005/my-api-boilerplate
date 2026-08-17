@@ -14,7 +14,7 @@ class TestTaggableCurrency extends Currency implements HasTags
 
     public function getOrganizationId(): string
     {
-        return (string) $this->organization_id;
+        return currentOrganizationId();
     }
 
     public function getMorphClass(): string

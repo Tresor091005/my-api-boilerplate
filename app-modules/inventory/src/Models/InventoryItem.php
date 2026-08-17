@@ -61,6 +61,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $stock_summaries_count
  *
  * @method static Builder<static>|InventoryItem whereIsExpirable($value)
+ * @method static Builder<static>|InventoryItem whereStockTrackingEnabled($value)
  *
  * @mixin \Eloquent
  */

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Lahatre\Shared\Support\ModelFinder;
+use Pest\TestSuite;
 use Tests\TestCase;
 
 /*
@@ -52,4 +53,15 @@ pest()->extend(TestCase::class)
 function getAllModels(): array
 {
     return ModelFinder::getAllModels();
+}
+
+function currentTestCase(): TestCase
+{
+    $testCase = TestSuite::getInstance()->test;
+
+    if (!$testCase instanceof TestCase) {
+        throw new RuntimeException('No active test case is available.');
+    }
+
+    return $testCase;
 }

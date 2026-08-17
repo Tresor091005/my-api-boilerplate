@@ -274,8 +274,10 @@ it('rejects tag operations on models without the has tags contract', function ()
     $tag = Tag::factory()->create([
         'organization_id' => $this->organizationId,
     ]);
+    /** @var mixed $invalidModel */
+    $invalidModel = $tag;
 
-    expect(fn () => app(TagService::class)->attach($tag, [
+    expect(fn () => app(TagService::class)->attach($invalidModel, [
         'status' => ['active'],
     ]))->toThrow(TypeError::class);
 });

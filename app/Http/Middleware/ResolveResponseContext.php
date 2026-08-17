@@ -11,7 +11,7 @@ use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Symfony\Component\HttpFoundation\Response;
 
-final class ResolveResponseContext
+final readonly class ResolveResponseContext
 {
     public function __construct(
         private ResponseContractRegistry $contracts,
@@ -53,6 +53,6 @@ final class ResolveResponseContext
             return [];
         }
 
-        return array_values(array_filter(array_map('trim', explode(',', $value))));
+        return array_values(array_filter(array_map(trim(...), explode(',', $value))));
     }
 }

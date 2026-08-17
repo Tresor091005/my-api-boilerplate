@@ -19,7 +19,7 @@ it('uses the resource response pipeline for every content status', function (int
 
     expect($response)->toBeInstanceOf(JsonResponse::class)
         ->and($response->getStatusCode())->toBe($status)
-        ->and($response->getData(true))->toBe([
+        ->and($response instanceof JsonResponse ? $response->getData(true) : null)->toBe([
             'data' => ['name' => 'example'],
             'meta' => ['source' => 'test'],
         ]);
@@ -49,5 +49,5 @@ it('serializes non-resource payloads through the same response mode', function (
     );
 
     expect($response)->toBeInstanceOf(JsonResponse::class)
-        ->and($response->getData(true))->toBe(['detail' => true]);
+        ->and($response instanceof JsonResponse ? $response->getData(true) : null)->toBe(['detail' => true]);
 });

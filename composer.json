@@ -71,21 +71,20 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
-        ],
-        "test:tia": [
             "./vendor/bin/pest --parallel --tia"
         ],
         "quality": [
             "@composer run ide-helper",
             "@composer run rector:fix",
             "@composer run pint",
-            "@composer run analyse"
+            "@composer run analyse",
+            "@composer run test"
         ],
         "quality:check": [
             "@composer run rector:check",
             "@composer run pint:check",
-            "@composer run analyse"
+            "@composer run analyse",
+            "@composer run test"
         ],
         "ide-helper": [
             "@php artisan ide-helper:models --write",

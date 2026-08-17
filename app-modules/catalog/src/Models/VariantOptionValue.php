@@ -31,6 +31,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|VariantOptionValue whereProductId($value)
  * @method static Builder<static>|VariantOptionValue whereVariantId($value)
  * @method static VariantOptionValueFactory factory($count = null, $state = [])
+ * @method static Builder<static>|VariantOptionValue whereOrganizationId($value)
  *
  * @mixin \Eloquent
  */

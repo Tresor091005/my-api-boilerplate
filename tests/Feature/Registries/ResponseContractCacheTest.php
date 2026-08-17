@@ -165,11 +165,10 @@ it('caches response contracts from discovered definitions when no cache exists',
 
     $cachedDefinitions = require responseContractCachePath();
 
-    expect($cachedDefinitions)
-        ->toHaveKey('lahatre.catalog.products.variants.show')
-        ->not->toHaveKey('_shapes')
+    expect($cachedDefinitions)->toHaveKey('lahatre.catalog.products.variants.show')
+        ->and(array_key_exists('_shapes', $cachedDefinitions))->toBeFalse()
         ->and($cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default'])
-        ->not->toHaveKey('ref')
+        ->and(array_key_exists('ref', $cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default']))->toBeFalse()
         ->and($cachedDefinitions['lahatre.inventory.stock.expiring.index'])
         ->toBe([])
         ->and($cachedDefinitions['lahatre.inventory.stock.summary.index'])

@@ -14,10 +14,10 @@ it('rejects an api route without a response contract before executing it', funct
         return response()->json(['ok' => true]);
     })->name('testing.missing-response-contract');
 
-    $this->withoutExceptionHandling();
+    currentTestCase()->disableExceptionHandling();
 
     try {
-        expect(fn () => $this->getJson('/testing/missing-response-contract'))
+        expect(fn () => currentTestCase()->getJson('/testing/missing-response-contract'))
             ->toThrow(InvalidArgumentException::class)
             ->and($executed)->toBeFalse();
     } finally {

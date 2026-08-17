@@ -62,6 +62,8 @@ use Lahatre\Shared\Models\Authenticatable;
  * @method static Builder<static>|User whereDeletedAt($value)
  * @method static Builder<static>|User withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|User withoutTrashed()
+ * @method static Builder<static>|User team($teams, bool $without = false)
+ * @method static Builder<static>|User withoutTeam($teams)
  *
  * @mixin \Eloquent
  */

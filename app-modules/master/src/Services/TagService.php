@@ -60,9 +60,7 @@ class TagService
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($data, $organizationId): Collection {
-            return $this->ensureTagsExist($organizationId, $this->normalizeTagsByType($data->tagsByType));
-        });
+        return DB::transaction(fn (): Collection => $this->ensureTagsExist($organizationId, $this->normalizeTagsByType($data->tagsByType)));
     }
 
     public function update(Tag $tag, TagUpdateData $data): Tag

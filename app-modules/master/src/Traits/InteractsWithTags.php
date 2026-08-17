@@ -81,6 +81,9 @@ trait InteractsWithTags
         });
     }
 
+    /**
+     * @return MorphToMany<Tag, $this>
+     */
     public function tags(): MorphToMany
     {
         $organizationId = currentOrganizationId();

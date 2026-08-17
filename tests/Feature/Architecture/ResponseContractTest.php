@@ -55,7 +55,13 @@ it('ensures resource include aliases are declared by response contracts', functi
     $declaredIncludes = [];
 
     foreach ($registry->routeNames() as $routeName) {
-        foreach ($registry->forRoute($routeName)?->shapes ?? [] as $shape) {
+        $contract = $registry->forRoute($routeName);
+
+        if ($contract === null) {
+            continue;
+        }
+
+        foreach ($contract->shapes as $shape) {
             $declaredIncludes = array_merge($declaredIncludes, array_keys($shape->includes));
         }
     }
@@ -76,9 +82,9 @@ it('ensures resource include aliases are declared by response contracts', functi
         );
 
         foreach ($matches as $match) {
-            $includes = $match[1] !== ''
+            $includes = ($match[1] ?? '') !== ''
                 ? [$match[1]]
-                : (preg_match_all("/'([^']+)'/", $match[2], $arrayMatches)
+                : (preg_match_all("/'([^']+)'/", $match[2] ?? '', $arrayMatches)
                     ? $arrayMatches[1]
                     : []);
 

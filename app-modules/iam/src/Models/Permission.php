@@ -39,6 +39,8 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  * @method static Builder<static>|Permission withoutPermission($permissions)
  * @method static Builder<static>|Permission withoutRole($roles, ?string $guard = null)
  * @method static PermissionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Permission team($teams, bool $without = false)
+ * @method static Builder<static>|Permission withoutTeam($teams)
  *
  * @mixin \Eloquent
  */

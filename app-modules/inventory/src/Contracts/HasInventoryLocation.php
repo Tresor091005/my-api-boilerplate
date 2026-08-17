@@ -21,7 +21,7 @@ interface HasInventoryLocation
     public function getMorphClass();
 
     /**
-     * @return string|int
+     * @return string|int|null
      */
     public function getKey();
 

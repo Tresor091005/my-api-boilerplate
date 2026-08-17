@@ -25,6 +25,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductCategory whereId($value)
  * @method static Builder<static>|ProductCategory whereProductId($value)
  * @method static ProductCategoryFactory factory($count = null, $state = [])
+ * @method static Builder<static>|ProductCategory whereOrganizationId($value)
  *
  * @mixin \Eloquent
  */

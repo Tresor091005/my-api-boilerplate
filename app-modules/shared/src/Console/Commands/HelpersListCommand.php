@@ -88,13 +88,7 @@ final class HelpersListCommand extends Command
 
     private function isProjectFile(string $file): bool
     {
-        foreach ([base_path('app'), base_path('app-modules')] as $root) {
-            if (str_starts_with($file, $root.DIRECTORY_SEPARATOR)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any([base_path('app'), base_path('app-modules')], fn (string $root): bool => str_starts_with($file, $root.DIRECTORY_SEPARATOR));
     }
 
     private function relativePath(string $file): string

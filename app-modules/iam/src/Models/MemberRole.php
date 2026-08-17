@@ -51,6 +51,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property CarbonImmutable|null $deleted_at
  *
  * @method static Builder<static>|MemberRole whereDeletedAt($value)
+ * @method static Builder<static>|MemberRole team($teams, bool $without = false)
+ * @method static Builder<static>|MemberRole withoutTeam($teams)
  *
  * @mixin \Eloquent
  */

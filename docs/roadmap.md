@@ -7,12 +7,6 @@
   in-memory organization, a partially hydrated model, a null organization,
   missing context, direct service calls, inter-tenant polymorphic links, eager
   loading, batch resolution, and concurrency.
-- [x] Audit tenant-owned Eloquent relationships across business models: keep
-  the active organization constraint on `belongsTo`, `hasMany`, `hasOne`, and
-  homogeneous polymorphic relations; exclude global or mixed-scope models and
-  constrain `belongsToMany` pivots with `wherePivot` where required. Verify
-  lazy loading, eager loading, `whereHas`, `withCount`, and qualified columns
-  when joins could make `organization_id` ambiguous.
 
 ## Current status
 

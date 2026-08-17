@@ -105,5 +105,5 @@ it('can create the cache file via the cache method', function (): void {
 });
 
 it('boots the shared provider with separate optimization commands', function (): void {
-    $this->artisan('list')->assertSuccessful();
+    currentTestCase()->artisan('list')->assertSuccessful();
 });

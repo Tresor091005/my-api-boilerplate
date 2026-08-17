@@ -8,6 +8,11 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    public function disableExceptionHandling(): void
+    {
+        $this->withoutExceptionHandling();
+    }
+
     protected mixed $organization;
 
     protected mixed $otherOrganization;

@@ -33,18 +33,18 @@ it('rejects a response mode or include that the contract does not allow', functi
         'default_shape' => 'list',
     ]);
 
-    expect(fn () => $contract->resolveMode('none', 'GET'))
+    expect(fn (): ResponseMode => $contract->resolveMode('none', 'GET'))
         ->toThrow(ValidationException::class);
 
     expect($contract->resolveMode(null, 'POST'))->toBe(ResponseMode::None)
         ->and($contract->resolveMode('resource', 'POST'))->toBe(ResponseMode::Resource)
-        ->and(fn () => $contract->resolveMode('resource', 'DELETE'))
+        ->and(fn (): ResponseMode => $contract->resolveMode('resource', 'DELETE'))
         ->toThrow(ValidationException::class);
 
-    expect(fn () => $contract->resolveShape('list')?->validateIncludes(['inventory']))
+    expect(fn (): ?array => $contract->resolveShape('list')?->validateIncludes(['inventory']))
         ->toThrow(ValidationException::class);
 
-    expect(fn () => ResponseContract::fromArray([
+    expect(fn (): ResponseContract => ResponseContract::fromArray([
         'shapes' => ['invalid' => ['fields' => ['id']]],
     ]))->toThrow(InvalidArgumentException::class, 'field selection');
 });
