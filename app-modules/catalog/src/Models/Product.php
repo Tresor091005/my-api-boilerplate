@@ -83,12 +83,16 @@ class Product extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'catalog_product_categories', 'product_id', 'category_id')
-            ->using(ProductCategory::class);
+            ->using(ProductCategory::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_categories.organization_id', currentOrganizationId());
     }
 
     public function variants(): HasMany
     {
-        return $this->hasMany(ProductVariant::class, 'product_id', 'id');
+        return $this->hasMany(ProductVariant::class, 'product_id', 'id')
+            ->where('catalog_product_variants.organization_id', currentOrganizationId());
     }
 
     public function optionValues(): BelongsToMany
@@ -100,6 +104,10 @@ class Product extends Model
             'catalog_variant_option_value',
             'product_id',
             'option_value_id'
-        )->distinct()->using(VariantOptionValue::class);
+        )->distinct()
+            ->using(VariantOptionValue::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_option_values.organization_id', currentOrganizationId());
     }
 }

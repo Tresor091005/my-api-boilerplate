@@ -82,7 +82,10 @@ class ProductService
         DB::transaction(function () use ($product, $data): void {
             $product->save();
 
-            $product->categories()->sync(required($data->categories) ?? []);
+            $product->categories()->syncWithPivotValues(
+                required($data->categories) ?? [],
+                ['organization_id' => $product->organization_id],
+            );
 
             $this->transactionalProductVariantService->createMany($product, required($data->variants));
         });
@@ -101,7 +104,10 @@ class ProductService
         DB::transaction(function () use ($product, $data): void {
             $product->save();
             if (!$data->categories instanceof MissingValue) {
-                $product->categories()->sync($data->categories ?? []);
+                $product->categories()->syncWithPivotValues(
+                    $data->categories ?? [],
+                    ['organization_id' => $product->organization_id],
+                );
             }
         });
 

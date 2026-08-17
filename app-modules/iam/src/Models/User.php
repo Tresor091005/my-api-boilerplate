@@ -101,6 +101,7 @@ class User extends Authenticatable
 
     public function organizationMemberships(): HasMany
     {
-        return $this->hasMany(OrganizationMember::class, 'user_id');
+        return $this->hasMany(OrganizationMember::class, 'user_id')
+            ->where('iam_organization_members.organization_id', currentOrganizationId());
     }
 }

@@ -87,7 +87,8 @@ class MemberRole extends Model
 
     public function organizationMember(): BelongsTo
     {
-        return $this->belongsTo(OrganizationMember::class, 'member_id');
+        return $this->belongsTo(OrganizationMember::class, 'member_id')
+            ->where('iam_organization_members.organization_id', currentOrganizationId());
     }
 
     public function role(): BelongsTo

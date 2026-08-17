@@ -76,11 +76,13 @@ class BundleItem extends Model
 
     public function item(): MorphTo
     {
-        return $this->morphTo('item', 'item_type', 'item_id');
+        return $this->morphTo('item', 'item_type', 'item_id')
+            ->where('organization_id', currentOrganizationId());
     }
 
     public function bundle(): BelongsTo
     {
-        return $this->belongsTo(Bundle::class, 'bundle_id', 'id');
+        return $this->belongsTo(Bundle::class, 'bundle_id', 'id')
+            ->where('catalog_bundles.organization_id', currentOrganizationId());
     }
 }

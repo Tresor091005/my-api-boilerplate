@@ -71,7 +71,8 @@ class OptionValue extends Model
 
     public function option(): BelongsTo
     {
-        return $this->belongsTo(Option::class, 'option_id', 'id');
+        return $this->belongsTo(Option::class, 'option_id', 'id')
+            ->where('catalog_options.organization_id', currentOrganizationId());
     }
 
     public function variants(): BelongsToMany
@@ -81,6 +82,9 @@ class OptionValue extends Model
             'catalog_variant_option_value',
             'option_value_id',
             'variant_id'
-        )->using(VariantOptionValue::class);
+        )->using(VariantOptionValue::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_product_variants.organization_id', currentOrganizationId());
     }
 }

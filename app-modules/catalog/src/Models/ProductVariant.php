@@ -142,7 +142,8 @@ class ProductVariant extends Model implements HasInventoryItem, HasTags
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id')
+            ->where('catalog_products.organization_id', currentOrganizationId());
     }
 
     public function unitGroup(): BelongsTo
@@ -157,7 +158,10 @@ class ProductVariant extends Model implements HasInventoryItem, HasTags
             'catalog_variant_option_value',
             'variant_id',
             'option_value_id'
-        )->using(VariantOptionValue::class);
+        )->using(VariantOptionValue::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_option_values.organization_id', currentOrganizationId());
     }
 
     public function toInventoryItemableSummary(): array
@@ -165,15 +169,6 @@ class ProductVariant extends Model implements HasInventoryItem, HasTags
         return [
             'id'  => $this->id,
             'sku' => $this->sku,
-        ];
-    }
-
-    public function toPriceableSummary(): array
-    {
-        return [
-            'id'   => $this->id,
-            'sku'  => $this->sku,
-            'name' => $this->name,
         ];
     }
 }

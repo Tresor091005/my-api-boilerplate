@@ -12,6 +12,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $product_id
  * @property string $category_id
  * @property-read Category $category
@@ -36,6 +37,7 @@ class ProductCategory extends Pivot
     protected $table = 'catalog_product_categories';
 
     protected $fillable = [
+        'organization_id',
         'product_id',
         'category_id',
     ];
@@ -43,18 +45,21 @@ class ProductCategory extends Pivot
     public $incrementing = false;
 
     protected $casts = [
-        'id'          => 'string',
-        'product_id'  => 'string',
-        'category_id' => 'string',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'product_id'      => 'string',
+        'category_id'     => 'string',
     ];
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id')
+            ->where('catalog_products.organization_id', currentOrganizationId());
     }
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'category_id', 'id');
+        return $this->belongsTo(Category::class, 'category_id', 'id')
+            ->where('catalog_categories.organization_id', currentOrganizationId());
     }
 }

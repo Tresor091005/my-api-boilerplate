@@ -83,6 +83,7 @@ class Tag extends Model
 
     public function taggables(): HasMany
     {
-        return $this->hasMany(Taggable::class, 'tag_id', 'id');
+        return $this->hasMany(Taggable::class, 'tag_id', 'id')
+            ->where('master_taggables.organization_id', currentOrganizationId());
     }
 }

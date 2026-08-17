@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use InvalidArgumentException;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 it('rejects an api route without a response contract before executing it', function (): void {

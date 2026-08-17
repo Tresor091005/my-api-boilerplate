@@ -120,6 +120,9 @@ class Category extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'catalog_product_categories', 'category_id', 'product_id')
-            ->using(ProductCategory::class);
+            ->using(ProductCategory::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_products.organization_id', currentOrganizationId());
     }
 }

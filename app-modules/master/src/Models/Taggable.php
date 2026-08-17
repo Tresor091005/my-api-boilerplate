@@ -59,11 +59,13 @@ class Taggable extends Pivot
 
     public function tag(): BelongsTo
     {
-        return $this->belongsTo(Tag::class, 'tag_id', 'id');
+        return $this->belongsTo(Tag::class, 'tag_id', 'id')
+            ->where('master_tags.organization_id', currentOrganizationId());
     }
 
     public function taggable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()
+            ->where('organization_id', currentOrganizationId());
     }
 }

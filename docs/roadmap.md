@@ -1,22 +1,5 @@
 ## Next high priority — audit polymorphic Inventory tenant scoping
 
-- [ ] Audit `HasInventoryItem` and `InteractsWithInventoryItem`: verify that
-  `getOrganizationId()` is the sole ownership source for the host model and
-  that forged, partially hydrated, or in-memory models cannot bypass the
-  active tenant.
-- [ ] Audit `HasInventoryLocation` and `InteractsWithInventoryLocation` using
-  the same rules, especially for external location models.
-- [ ] Verify `create`, `createMany`, `resolve`, `update`, and `delete`, including
-  direct service calls outside HTTP: organization context required, mismatch
-  rejected before any tenant-owned query, and localized business exception.
-- [ ] Verify `inventoryItem()` and `inventoryLocation()` polymorphic relations
-  during lazy loading, eager loading, and batch loading. They must remain
-  bounded by the current organization without breaking relations prepared by
-  `with()` or `load()`.
-- [ ] Verify isolation for `inventory_items` and `inventory_locations`, as well
-  as stocks, movements, and transactions reached through these relations. No
-  inter-tenant link may be resolved or exposed through a polymorphic identifier
-  alone.
 - [ ] Clarify transaction ownership and concurrency safety for creation, batch
   resolution, updates, and deletion. Preserve tenant-aware constraints and
   operation atomicity.
@@ -24,7 +7,7 @@
   in-memory organization, a partially hydrated model, a null organization,
   missing context, direct service calls, inter-tenant polymorphic links, eager
   loading, batch resolution, and concurrency.
-- [ ] Audit tenant-owned Eloquent relationships across business models: keep
+- [x] Audit tenant-owned Eloquent relationships across business models: keep
   the active organization constraint on `belongsTo`, `hasMany`, `hasOne`, and
   homogeneous polymorphic relations; exclude global or mixed-scope models and
   constrain `belongsToMany` pivots with `wherePivot` where required. Verify

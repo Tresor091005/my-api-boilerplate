@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Validation\ValidationException;
-use InvalidArgumentException;
 use Lahatre\Shared\Http\Responses\ResponseContract;
 use Lahatre\Shared\Http\Responses\ResponseMode;
 use Lahatre\Shared\Registries\ResponseContractRegistry;

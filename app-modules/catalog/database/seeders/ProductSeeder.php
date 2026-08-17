@@ -174,7 +174,10 @@ class ProductSeeder extends Seeder
 
             // Attach categories
             $categoryIds = Category::where('organization_id', $organizationId)->whereIn('handle', $categoriesToAttach)->pluck('id');
-            $product->categories()->sync($categoryIds);
+            $product->categories()->syncWithPivotValues(
+                $categoryIds,
+                ['organization_id' => $organizationId],
+            );
 
             // Create and attach variants
             foreach ($variantsData as $variantData) {
@@ -194,8 +197,9 @@ class ProductSeeder extends Seeder
                 $attachments = [];
                 foreach ($optionValuesToAttach as $optionValue) {
                     $attachments[$optionValue->id] = [
-                        'product_id' => $product->id,
-                        'option_id'  => $optionValue->option_id,
+                        'organization_id' => $organizationId,
+                        'product_id'      => $product->id,
+                        'option_id'       => $optionValue->option_id,
                     ];
                 }
 

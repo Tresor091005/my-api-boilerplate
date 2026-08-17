@@ -68,7 +68,8 @@ class Option extends Model
 
     public function values(): HasMany
     {
-        return $this->hasMany(OptionValue::class, 'option_id', 'id');
+        return $this->hasMany(OptionValue::class, 'option_id', 'id')
+            ->where('catalog_option_values.organization_id', currentOrganizationId());
     }
 
     public function products(): BelongsToMany
@@ -79,6 +80,10 @@ class Option extends Model
             'catalog_variant_option_value',
             'option_id',
             'product_id'
-        )->distinct()->using(VariantOptionValue::class);
+        )->distinct()
+            ->using(VariantOptionValue::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('catalog_products.organization_id', currentOrganizationId());
     }
 }

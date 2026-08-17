@@ -12,6 +12,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * @property string $id
+ * @property string $organization_id
  * @property string $product_id
  * @property string $variant_id
  * @property string $option_value_id
@@ -42,6 +43,7 @@ class VariantOptionValue extends Pivot
     protected $table = 'catalog_variant_option_value';
 
     protected $fillable = [
+        'organization_id',
         'product_id',
         'variant_id',
         'option_value_id',
@@ -50,6 +52,7 @@ class VariantOptionValue extends Pivot
 
     protected $casts = [
         'id'              => 'string',
+        'organization_id' => 'string',
         'product_id'      => 'string',
         'variant_id'      => 'string',
         'option_id'       => 'string',
@@ -58,21 +61,25 @@ class VariantOptionValue extends Pivot
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id', 'id')
+            ->where('catalog_products.organization_id', currentOrganizationId());
     }
 
     public function variant(): BelongsTo
     {
-        return $this->belongsTo(ProductVariant::class, 'variant_id', 'id');
+        return $this->belongsTo(ProductVariant::class, 'variant_id', 'id')
+            ->where('catalog_product_variants.organization_id', currentOrganizationId());
     }
 
     public function optionValue(): BelongsTo
     {
-        return $this->belongsTo(OptionValue::class, 'option_value_id', 'id');
+        return $this->belongsTo(OptionValue::class, 'option_value_id', 'id')
+            ->where('catalog_option_values.organization_id', currentOrganizationId());
     }
 
     public function option(): BelongsTo
     {
-        return $this->belongsTo(Option::class, 'option_id', 'id');
+        return $this->belongsTo(Option::class, 'option_id', 'id')
+            ->where('catalog_options.organization_id', currentOrganizationId());
     }
 }

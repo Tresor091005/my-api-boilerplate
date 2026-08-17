@@ -76,6 +76,7 @@ class TransactionalProductVariantService
     public function replaceOptions(Product $product, ProductVariant $variant, array $optionsData): void
     {
         VariantOptionValue::query()
+            ->where('organization_id', $product->organization_id)
             ->where('product_id', $product->id)
             ->where('variant_id', $variant->id)
             ->delete();
@@ -88,6 +89,7 @@ class TransactionalProductVariantService
     public function delete(ProductVariant $variant): void
     {
         VariantOptionValue::query()
+            ->where('organization_id', $variant->organization_id)
             ->where('product_id', $variant->product_id)
             ->where('variant_id', $variant->id)
             ->delete();
@@ -122,6 +124,7 @@ class TransactionalProductVariantService
 
                 $pivotRows[] = [
                     'id'              => (string) Str::uuid7(),
+                    'organization_id' => $product->organization_id,
                     'product_id'      => $product->id,
                     'variant_id'      => $variantId,
                     'option_id'       => $optionValue->option_id,

@@ -74,11 +74,14 @@ class OrganizationMember extends Model
 
     public function memberRoles(): HasMany
     {
-        return $this->hasMany(MemberRole::class, 'member_id');
+        return $this->hasMany(MemberRole::class, 'member_id')
+            ->where('iam_member_roles.organization_id', currentOrganizationId());
     }
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'iam_member_roles', 'member_id', 'role_id');
+        return $this->belongsToMany(Role::class, 'iam_member_roles', 'member_id', 'role_id')
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId());
     }
 }

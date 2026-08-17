@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -78,6 +80,56 @@ beforeEach(function (): void {
     $this->withToken($token->plainTextToken);
 });
 
+it('scopes tenant-owned catalog relations across lazy eager aggregate and pivot queries', function (): void {
+    $product = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    $otherProduct = Product::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+    ]);
+    $category = Category::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    $otherCategory = Category::factory()->create([
+        'organization_id' => $this->otherOrganization->id,
+    ]);
+
+    $product->categories()->attach($category, [
+        'organization_id' => $this->organization->id,
+    ]);
+    $otherProduct->categories()->attach($otherCategory, [
+        'organization_id' => $this->otherOrganization->id,
+    ]);
+
+    expect($product->categories)->toHaveCount(1)
+        ->and($product->categories->first()->is($category))->toBeTrue();
+
+    $product->load('categories');
+    expect($product->categories)->toHaveCount(1)
+        ->and($product->categories->first()->is($category))->toBeTrue();
+
+    $queriedProduct = Product::query()
+        ->whereHas('categories', fn ($query) => $query->whereKey($category->id))
+        ->withCount('categories')
+        ->with('categories')
+        ->findOrFail($product->id);
+
+    expect($queriedProduct->categories_count)->toBe(1)
+        ->and($queriedProduct->categories->first()->is($category))->toBeTrue();
+
+    expect(Product::query()
+        ->whereHas('categories', fn ($query) => $query->whereKey($otherCategory->id))
+        ->whereKey($product->id)
+        ->exists())->toBeFalse();
+
+    expect(fn (): bool => DB::table('catalog_product_categories')->insert([
+        'id'              => (string) str()->uuid(),
+        'organization_id' => $this->organization->id,
+        'product_id'      => $product->id,
+        'category_id'     => $otherCategory->id,
+    ]))->toThrow(QueryException::class);
+});
+
 it('enforces tenancy matrix for categories', function (): void {
     $category = Category::factory()->create([
         'organization_id' => $this->organization->id,
@@ -146,7 +198,9 @@ it('enforces tenancy matrix for products and variants', function (): void {
     $productCategory = Category::factory()->create([
         'organization_id' => $this->organization->id,
     ]);
-    $product->categories()->attach($productCategory);
+    $product->categories()->attach($productCategory, [
+        'organization_id' => $this->organization->id,
+    ]);
     ProductVariant::factory()->create([
         'organization_id' => $this->organization->id,
         'product_id'      => $product->id,
@@ -219,7 +273,7 @@ it('enforces tenancy matrix for products and variants', function (): void {
     $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?include=tags")
         ->assertOk()
         ->assertJsonPath('data.tags.0.name', 'active');
-    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
+    $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertNotFound();
 
     $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants?response=resource", [
         'variants' => [[
@@ -238,12 +292,12 @@ it('enforces tenancy matrix for products and variants', function (): void {
     ])->assertOk();
     $this->patchJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}", [
         'sku' => 'HACKED',
-    ])->assertForbidden();
+    ])->assertNotFound();
 
     $this->deleteJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")->assertNoContent();
     $this->getJson("/v1/catalog/products/{$product->id}/variants/{$createdVariantId}")->assertNotFound();
     expect(ProductVariant::withTrashed()->whereKey($createdVariantId)->exists())->toBeTrue();
-    $this->deleteJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertForbidden();
+    $this->deleteJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertNotFound();
     $this->deleteJson("/v1/catalog/products/{$createdProductId}")->assertNoContent();
     $this->getJson("/v1/catalog/products/{$createdProductId}")->assertNotFound();
     expect(Product::withTrashed()->whereKey($createdProductId)->exists())->toBeTrue();
@@ -295,7 +349,7 @@ it('enforces tenancy matrix for options and option values', function (): void {
     $this->getJson("/v1/catalog/options/{$option->id}/values")->assertOk();
     $this->getJson("/v1/catalog/options/{$otherOption->id}/values")->assertForbidden();
     $this->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertOk();
-    $this->getJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
+    $this->getJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertNotFound();
 
     $createdValue = $this->postJson("/v1/catalog/options/{$option->id}/values?response=resource", [
         'values' => ['Yellow'],
@@ -308,12 +362,12 @@ it('enforces tenancy matrix for options and option values', function (): void {
     ])->assertOk();
     $this->putJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}", [
         'value' => 'Hacked',
-    ])->assertForbidden();
+    ])->assertNotFound();
 
     $this->deleteJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNoContent();
     $this->getJson("/v1/catalog/options/{$option->id}/values/{$createdValueId}")->assertNotFound();
     expect(OptionValue::withTrashed()->whereKey($createdValueId)->exists())->toBeTrue();
-    $this->deleteJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertForbidden();
+    $this->deleteJson("/v1/catalog/options/{$otherOption->id}/values/{$otherValue->id}")->assertNotFound();
 });
 
 it('rejects nested catalog bindings when child does not belong to parent', function (): void {
