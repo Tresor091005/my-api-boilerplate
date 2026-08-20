@@ -28,6 +28,12 @@ movements, but its historical stock and movement records remain queryable.
 
 The application model supplies `getOrganizationId()` and `toInventoryLocationExternalSummary()`.
 
+The item and location integration traits expose tenant-scoped deep relations to
+stocks and movements. Their active-stock relations exclude depleted lots, and
+their stock-summary relations preserve the grouped totals when loaded directly
+or eagerly. Every joined inventory table applies its own qualified
+`organization_id` constraint.
+
 ## Inventory stock
 
 `InventoryStock` is a physical lot. Important fields are:

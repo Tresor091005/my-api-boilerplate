@@ -89,12 +89,12 @@ class InventoryLocation extends Model
     public function stocks(): HasMany
     {
         return $this->hasMany(InventoryStock::class, 'location_id', 'id')
-            ->where('organization_id', currentOrganizationId());
+            ->where('inventory_stocks.organization_id', currentOrganizationId());
     }
 
     public function activeStocks(): HasMany
     {
-        return $this->stocks()->where('remaining', '>', 0);
+        return $this->stocks()->where('inventory_stocks.remaining', '>', 0);
     }
 
     /**
@@ -104,18 +104,18 @@ class InventoryLocation extends Model
     {
         return $this->activeStocks()
             ->select([
-                'location_id',
-                'item_id',
-                DB::raw('SUM(remaining) as total_remaining'),
+                'inventory_stocks.location_id',
+                'inventory_stocks.item_id',
+                DB::raw('SUM(inventory_stocks.remaining) as total_remaining'),
                 DB::raw('COUNT(*) as active_lots_count'),
             ])
-            ->groupBy('location_id', 'item_id')
-            ->orderBy('item_id');
+            ->groupBy('inventory_stocks.location_id', 'inventory_stocks.item_id')
+            ->orderBy('inventory_stocks.item_id');
     }
 
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class, 'location_id', 'id')
-            ->where('organization_id', currentOrganizationId());
+            ->where('inventory_movements.organization_id', currentOrganizationId());
     }
 }

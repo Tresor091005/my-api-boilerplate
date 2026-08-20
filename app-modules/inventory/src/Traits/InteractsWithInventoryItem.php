@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
 use Staudenmeir\EloquentHasManyDeep\HasManyDeep;
@@ -33,7 +34,7 @@ trait InteractsWithInventoryItem
 
         /** @var MorphOne<InventoryItem, Model> $relation */
         $relation = $this->morphOne(InventoryItem::class, 'itemable')
-            ->where('organization_id', $organizationId);
+            ->where('inventory_items.organization_id', $organizationId);
 
         return $relation;
     }
@@ -43,7 +44,7 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->stocks());
+        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'stocks']);
     }
 
     /**
@@ -51,7 +52,7 @@ trait InteractsWithInventoryItem
      */
     public function activeInventoryItemStocks(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->activeStocks());
+        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'activeStocks']);
     }
 
     /**
@@ -59,7 +60,19 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemStockSummaries(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->stockSummaries());
+        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'stockSummaries'])
+            ->select([
+                'inventory_stocks.item_id',
+                'inventory_stocks.location_id',
+                DB::raw('SUM(inventory_stocks.remaining) as total_remaining'),
+                DB::raw('COUNT(*) as active_lots_count'),
+            ])
+            ->groupBy(
+                'inventory_stocks.item_id',
+                'inventory_stocks.location_id',
+                'inventory_items.itemable_id',
+            )
+            ->orderBy('inventory_stocks.location_id');
     }
 
     /**
@@ -67,6 +80,6 @@ trait InteractsWithInventoryItem
      */
     public function inventoryItemMovements(): HasManyDeep
     {
-        return $this->hasManyDeepFromRelations($this->inventoryItem(), new InventoryItem()->movements());
+        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'movements']);
     }
 }
