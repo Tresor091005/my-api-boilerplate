@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4cf0d58dea80b0f495189799530bbdb9",
+    "content-hash": "77f36c0267f33b75e6498b1368e7c875",
     "packages": [
         {
             "name": "brick/math",
@@ -2123,6 +2123,38 @@
                 "source": "https://github.com/jsonrainbow/json-schema/tree/6.10.0"
             },
             "time": "2026-06-16T20:50:26+00:00"
+        },
+        {
+            "name": "lahatre/billing",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/billing",
+                "reference": "b4e15f151bc168bc7f17ec2dbee89ada054f7f6f"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Billing\\Providers\\BillingServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Billing\\": "src/",
+                    "Lahatre\\Billing\\Tests\\": "tests/",
+                    "Lahatre\\Billing\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Billing\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "lahatre/catalog",

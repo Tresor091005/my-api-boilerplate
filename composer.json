@@ -12,6 +12,7 @@
         "php": "^8.4",
         "dedoc/scramble": "^0.13.10",
         "internachi/modular": "^3.0",
+        "lahatre/billing": "*",
         "lahatre/catalog": "*",
         "lahatre/iam": "*",
         "lahatre/inventory": "*",
