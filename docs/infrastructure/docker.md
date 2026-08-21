@@ -37,8 +37,6 @@ consistent:
   development tools and available to containers at `db:5432`. Tests use the
   `my_api_boilerplate` database directly and may reset it.
 - **`redis`:** Redis 8 (Alpine) for cache, queues, and Reverb.
-- **`redis_limiter`:** Dedicated Redis 8 instance for rate limiting, with a
-  `noeviction` policy to keep counters reliable.
 - **`mailpit`:** Development email capture tool, with its web interface at
   `http://localhost:28419` and internal SMTP server at `mailpit:1025`.
 

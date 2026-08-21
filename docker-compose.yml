@@ -49,26 +49,6 @@ services:
       retries: 3
       start_period: 5s
 
-  # ============ Redis Limiter (Dédié au Rate Limiting) ============
-  redis_limiter:
-    image: redis:8-alpine
-    container_name: lahatre_redis_limiter
-    restart: unless-stopped
-    command: [
-      "redis-server",
-      "--maxmemory", "128mb",
-      "--maxmemory-policy", "noeviction",
-      "--loglevel", "warning"
-    ]
-    volumes:
-      - redislimiterdata:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-
   # ============ Mailpit (Dev) ============
   mailpit:
     image: axllent/mailpit:latest
@@ -203,4 +183,3 @@ services:
 volumes:
   dbdata:
   redisdata:
-  redislimiterdata:

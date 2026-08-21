@@ -85,11 +85,6 @@ return [
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
-        'redis-limiter' => [
-            'driver'     => 'redis',
-            'connection' => 'limiter',
-        ],
-
         'dynamodb' => [
             'driver'   => 'dynamodb',
             'key'      => env('AWS_ACCESS_KEY_ID'),

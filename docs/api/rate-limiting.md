@@ -11,9 +11,9 @@ a given period.
 
 Limits are defined in `App\Providers\RateLimitServiceProvider`.
 
-**Infrastructure note:** To keep rate limiting independent from application
-cache and queue load, it uses a dedicated Redis instance (`redis_limiter`) via
-the `limiter` cache store.
+**Infrastructure note:** Rate limiting uses Laravel's database cache store.
+This keeps the setup small while sharing the application's existing PostgreSQL
+dependency. Redis remains dedicated to cache, queues, and Reverb.
 
 ## 2. Configured limiters
 

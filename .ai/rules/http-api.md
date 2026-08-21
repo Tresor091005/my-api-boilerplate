@@ -85,7 +85,7 @@ paths:
   group, including JSON responses, throttling, Sanctum, authentication
   context, and organization permission context.
 - `app/Providers/RateLimitServiceProvider.php` defines the current `api` and
-  `auth` limiter values; `config/cache.php` defines the dedicated limiter
+  `auth` limiter values; `config/cache.php` defines the database limiter
   store configuration.
 - `app-modules/iam/src/Http/Middleware/ResolveAuthContext.php` resolves the
   authenticated user, organization, member, and role context.

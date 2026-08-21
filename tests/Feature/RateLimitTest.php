@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Cache\DatabaseStore;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Cache\RedisStore;
 use Illuminate\Cache\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -76,7 +76,7 @@ it('ensures all api routes are throttled correctly', function (): void {
     }
 });
 
-it('uses the dedicated limiter cache store', function (): void {
+it('uses the database limiter cache store', function (): void {
     /** @var Illuminate\Cache\RateLimiter $rateLimiter */
     $rateLimiter = app(Illuminate\Cache\RateLimiter::class);
 
@@ -90,17 +90,6 @@ it('uses the dedicated limiter cache store', function (): void {
         $cache = $cache->getStore();
     }
 
-    if ($cache instanceof RedisStore) {
-        $reflectionStore = new ReflectionClass($cache);
-        $connectionProperty = $reflectionStore->getProperty('connection');
-        $connection = $connectionProperty->getValue($cache);
-
-        expect(config('cache.limiter'))->toBe('redis-limiter');
-        expect($connection)->toBe('limiter');
-    } else {
-        // Fallback or skip if not using Redis in this environment
-        expect(config('cache.limiter'))->toBeIn(['array', 'database']);
-    }
-
-    // TODO: enforce project to work under redis ? and for testing too ?
+    expect(config('cache.limiter'))->toBe('database')
+        ->and($cache)->toBeInstanceOf(DatabaseStore::class);
 });

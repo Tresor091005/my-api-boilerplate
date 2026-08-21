@@ -46,7 +46,6 @@ The service hostnames are already configured for the Docker network:
 
 - PostgreSQL: `DB_HOST=db`, `DB_PORT=5432`
 - Redis: `REDIS_HOST=redis`
-- Redis limiter: `REDIS_LIMITER_HOST=redis_limiter`
 - Mailpit: `MAIL_HOST=mailpit`, `MAIL_PORT=1025`
 - Reverb: `REVERB_HOST=reverb`, `REVERB_PORT=6001`
 
