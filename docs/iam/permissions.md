@@ -98,6 +98,18 @@ The command synchronizes generated permissions and built-in roles. It does not
 remove permissions for models that no longer exist, so historical or custom
 permissions must be reviewed separately before cleanup.
 
+Modules may define additional model actions through the IAM system-permissions
+configuration. These actions are merged with the standard CRUD actions during
+discovery. The Master notes module currently defines:
+
+- `master_note.pin`
+- `master_note.mention`
+- `master_note.visibility_organization`
+
+Note policies may intentionally bypass standard CRUD permissions for
+author-owned operations while retaining these explicit permissions for
+collective display and visibility actions.
+
 ## 5. User model integration
 
 The `Lahatre\Shared\Traits\HasAuthenticatableTraits` trait is applied to all

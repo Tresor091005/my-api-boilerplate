@@ -11,6 +11,16 @@ $emptyContracts = array_fill_keys(
         'lahatre.master.labels.update',
         'lahatre.master.labels.destroy',
         'lahatre.master.labels.reorder',
+        'lahatre.master.notes.index',
+        'lahatre.master.notes.store',
+        'lahatre.master.notes.update',
+        'lahatre.master.notes.visibility.update',
+        'lahatre.master.notes.destroy',
+        'lahatre.master.notes.pin',
+        'lahatre.master.notes.unpin',
+        'lahatre.master.notes.mentions.store',
+        'lahatre.master.notes.mentions.destroy',
+        'lahatre.master.notes.mentions.read',
     ],
     [],
 );
@@ -31,6 +41,15 @@ return [
             'includes' => [
                 'units'       => ['loads' => ['units']],
                 'units.group' => ['loads' => ['units.group']],
+            ],
+        ]],
+    ],
+    'lahatre.master.notes.show' => [
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'includes' => [
+                'children' => ['loads' => ['replies']],
+                'mentions' => ['loads' => ['mentions']],
             ],
         ]],
     ],

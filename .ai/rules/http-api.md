@@ -52,6 +52,7 @@ paths:
 
 - Form Requests own HTTP validation and field-specific normalization. They must not contain Gate or Policy logic.
 - Reuse one Request while store and update share a coherent shape; split it when conditional branches or missing-value semantics obscure the contract.
+- When create and update require separate Requests, name them `EntityCreateRequest` and `EntityUpdateRequest`, with the resource name first. Do not introduce `StoreEntityRequest` or `UpdateEntityRequest`.
 - Normalize only named fields in `prepareForValidation()`; never recursively sanitize every input string.
 - Choose presence rules deliberately: absence, `nullable`, `present`, and `required` are different contracts.
 - Use `after()` for request-specific cross-field checks. Extract named reusable, nested, or SQL-heavy checks into composable Rules as described in `.ai/rules/validation.md`.

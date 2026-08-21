@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Str;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
@@ -24,6 +25,7 @@ uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 beforeEach(function (): void {
     $this->withoutMiddleware([
         Authenticate::class,
+        ThrottleRequests::class,
         ResolveAuthContext::class,
         SetTeamPermissionsId::class,
     ]);

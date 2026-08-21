@@ -37,6 +37,13 @@ Before generating anything, always read:
 6. Use only the examples referenced by the matching rules; do not scan the whole examples directory.
 7. If a rule is missing, flag the gap and propose the appropriate `.ai/rules/*.md`, `CODEBASE_RULES.md`, or `PROJECT_MEMORY.md` update before generation.
 
+## Form Request naming
+
+When create and update share one coherent validation contract, use one
+`{{Entity}}Request`. When their contracts differ, generate
+`{{Entity}}CreateRequest` and `{{Entity}}UpdateRequest`. Keep the resource name
+first; never generate `Store{{Entity}}Request` or `Update{{Entity}}Request`.
+
 ## Reference Examples
 
 - Read only the example files referenced by the matching `.ai/rules` section for the file type in scope.

@@ -1,5 +1,32 @@
 # Master module
 
+## Notes
+
+Notes are organization-scoped and use the current organization member as their
+author identity. Every authenticated member may list and create notes; results
+are filtered by visibility. Private notes are visible only to their author,
+mentioned notes to their author and mentioned members, and organization notes
+to all members.
+
+Authors may edit their note content and display metadata, while deletion is
+available to the author or members with master_note.delete. Pinning a private
+note is an author action; pinning collective notes requires master_note.pin.
+Mention management requires master_note.mention and is available only for
+mentioned notes. Initial member mentions are accepted when creating a
+mentioned note, or when promoting a private note to mentioned visibility.
+Promoting a note to organization visibility requires
+master_note.visibility_organization.
+
+Visibility can move from private to mentioned or organization only once. A
+mentioned note must have at least one active member mention, and collective
+visibility cannot later be reduced or changed.
+
+Included replies are filtered with the same visibility rules as note lists.
+Mention rows carry the organization identifier and database constraints reject
+links to notes or members from another organization, including writes that
+bypass the note service. Historical note and member identities remain indexed
+so those tenant constraints continue to protect soft-deleted records.
+
 The Master module owns shared reference data used by business modules.
 
 ## Currencies

@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
+use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantFilterRequest;
-use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
-use Lahatre\Catalog\Http\Requests\UpdateProductVariantRequest;
+use Lahatre\Catalog\Http\Requests\ProductVariantUpdateRequest;
 use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
 use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
@@ -54,7 +54,7 @@ class ProductVariantController
         );
     }
 
-    public function store(StoreProductVariantRequest $request, Product $product): JsonResponse|Response
+    public function store(ProductVariantCreateRequest $request, Product $product): JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('create', ProductVariant::class);
@@ -69,7 +69,7 @@ class ProductVariantController
         );
     }
 
-    public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): JsonResponse|Response
+    public function update(ProductVariantUpdateRequest $request, Product $product, ProductVariant $variant): JsonResponse|Response
     {
         Gate::authorize('update', $product);
         Gate::authorize('update', $variant);

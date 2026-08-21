@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Iam\Database\Factories\OrganizationMemberFactory;
@@ -23,8 +22,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
- * @property-read Collection<int, Role> $roles
- * @property-read int|null $roles_count
  * @property-read User $user
  *
  * @method static Builder<static>|OrganizationMember newModelQuery()
@@ -76,12 +73,5 @@ class OrganizationMember extends Model
     {
         return $this->hasMany(MemberRole::class, 'member_id')
             ->where('iam_member_roles.organization_id', currentOrganizationId());
-    }
-
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'iam_member_roles', 'member_id', 'role_id')
-            ->withPivot('organization_id')
-            ->wherePivot('organization_id', currentOrganizationId());
     }
 }

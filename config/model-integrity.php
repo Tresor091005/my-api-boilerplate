@@ -97,5 +97,8 @@ return [
         'catalog_products'         => ['id', 'handle'],
         'catalog_bundles'          => ['handle'],
         'master_labels'            => ['organization_id'],
+        // Composite tenant foreign keys must keep historical identities addressable.
+        'iam_organization_members' => ['id'],
+        'master_notes'             => ['id'],
     ],
 ];

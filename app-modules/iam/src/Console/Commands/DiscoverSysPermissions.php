@@ -26,7 +26,8 @@ class DiscoverSysPermissions extends Command
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $guardName = config('auth.defaults.guard');
-        $actions = ['list', 'retrieve', 'create', 'update', 'delete'];
+        $baseActions = ['list', 'retrieve', 'create', 'update', 'delete'];
+        $additionalActions = config('iam.system_permissions.additional_actions', []);
         $morphMapRegistry = app(MorphMapRegistry::class);
         $skippedModels = [];
         $this->info(__('iam::console.discovery.scanning', ['path' => 'configured model namespaces']));
@@ -41,6 +42,11 @@ class DiscoverSysPermissions extends Command
             }
 
             $this->line(__('iam::console.discovery.discovered_model', ['class' => $class, 'model' => $modelName]));
+
+            $actions = array_values(array_unique([
+                ...$baseActions,
+                ...($additionalActions[$modelName] ?? []),
+            ]));
 
             foreach ($actions as $action) {
                 $permissionName = "{$modelName}.{$action}";

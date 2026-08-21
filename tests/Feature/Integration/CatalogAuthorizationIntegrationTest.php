@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -20,6 +21,8 @@ use Spatie\Permission\PermissionRegistrar;
 uses(DatabaseTransactions::class);
 
 beforeEach(function (): void {
+    $this->withoutMiddleware(ThrottleRequests::class);
+
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     $this->organization = Organization::factory()->create([

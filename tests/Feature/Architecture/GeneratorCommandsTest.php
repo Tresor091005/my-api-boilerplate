@@ -91,8 +91,8 @@ it('generates the standard module file matrix with project conventions', functio
         base_path("app-modules/catalog/src/Models/{$modelName}.php"),
         base_path("app-modules/catalog/database/factories/{$modelName}Factory.php"),
         base_path("app-modules/catalog/database/seeders/{$modelName}Seeder.php"),
-        base_path("app-modules/catalog/src/Http/Requests/Store{$modelName}Request.php"),
-        base_path("app-modules/catalog/src/Http/Requests/Update{$modelName}Request.php"),
+        base_path("app-modules/catalog/src/Http/Requests/{$modelName}CreateRequest.php"),
+        base_path("app-modules/catalog/src/Http/Requests/{$modelName}UpdateRequest.php"),
         base_path("app-modules/catalog/src/Http/Controllers/{$modelName}Controller.php"),
         base_path("app-modules/catalog/src/Policies/{$modelName}Policy.php"),
         base_path("app-modules/catalog/tests/Feature/{$modelName}Test.php"),
@@ -149,8 +149,8 @@ it('generates the standard module file matrix with project conventions', functio
             ->and($migration)->toContain("\$table->uuid('id')->primary();")
             ->and($factory)->toContain('declare(strict_types=1);')
             ->and($seeder)->toContain('declare(strict_types=1);')
-            ->and($request)->toContain('class Store'.$modelName.'Request extends FormRequest')
-            ->and($controller)->toContain('use Lahatre\\Catalog\\Http\\Requests\\Store'.$modelName.'Request;')
+            ->and($request)->toContain('class '.$modelName.'CreateRequest extends FormRequest')
+            ->and($controller)->toContain('use Lahatre\\Catalog\\Http\\Requests\\'.$modelName.'CreateRequest;')
             ->toContain('use Illuminate\\Http\\JsonResponse;')
             ->toContain(': JsonResponse')
             ->and($policy)->toContain('extends BasePolicy')

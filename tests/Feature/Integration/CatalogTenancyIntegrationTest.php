@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
@@ -25,6 +26,8 @@ use Spatie\Permission\PermissionRegistrar;
 uses(DatabaseTransactions::class);
 
 beforeEach(function (): void {
+    $this->withoutMiddleware(ThrottleRequests::class);
+
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     $this->organization = Organization::factory()->create([

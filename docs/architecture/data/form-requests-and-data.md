@@ -32,8 +32,9 @@ validation.
 Form Requests always keep the `Request` suffix:
 
 - `CategoryRequest` when store and update genuinely share one contract.
-- `StoreOptionValueRequest` and `UpdateOptionValueRequest` when their shapes
-  differ.
+- `ProductVariantCreateRequest` and `ProductVariantUpdateRequest` when their
+  shapes differ. The resource name comes first; do not use
+  `StoreEntityRequest` or `UpdateEntityRequest`.
 - `CategoryFilterRequest`, `LoginRequest`, and `UnitUpsertRequest` according to
   their intent.
 
@@ -46,7 +47,7 @@ Service transport objects use the `Data` suffix:
 
 Do not automatically create a store/update pair. One class represents one
 coherent shape; split it when conditional branches make the contract difficult
-to read.
+to read, using the `EntityCreateRequest` / `EntityUpdateRequest` naming pair.
 
 ## Form Requests
 

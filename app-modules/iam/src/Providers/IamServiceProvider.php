@@ -16,6 +16,7 @@ class IamServiceProvider extends ServiceProvider
         $this->app->scoped(AuthContext::class);
 
         $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
+        $this->mergeConfigFrom(__DIR__.'/../../config/system-permissions.php', 'iam.system_permissions');
     }
 
     public function boot(): void

@@ -10,7 +10,7 @@ use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
 use Lahatre\Catalog\Exceptions\ProductVariantException;
-use Lahatre\Catalog\Http\Requests\StoreProductVariantRequest;
+use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
@@ -137,7 +137,7 @@ it('does not load response relations without an active response shape', function
 });
 
 it('validates labels inside each bulk variant payload', function (): void {
-    $request = StoreProductVariantRequest::create('/', 'POST', [
+    $request = ProductVariantCreateRequest::create('/', 'POST', [
         'variants' => [[
             'unit_group_id' => $this->unitGroup->id,
             'options'       => [['name' => 'Color', 'value' => 'White']],
@@ -181,7 +181,7 @@ it('syncs only submitted label types when updating a variant', function (): void
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {
-    expect(fn (): array => validator([], new StoreProductVariantRequest()->rules())->validate())
+    expect(fn (): array => validator([], new ProductVariantCreateRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
 
     $singleVariant = ProductVariant::factory()->create([

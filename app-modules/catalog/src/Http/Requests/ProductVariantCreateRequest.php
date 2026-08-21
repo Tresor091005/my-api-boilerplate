@@ -12,7 +12,7 @@ use Lahatre\Master\Validation\LabelPayloadRules;
 use Lahatre\Shared\Rules\BulkExists;
 use Lahatre\Shared\Rules\BulkUnique;
 
-class StoreProductVariantRequest extends FormRequest
+class ProductVariantCreateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {

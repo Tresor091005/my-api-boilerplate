@@ -17,6 +17,7 @@ paths:
 
 ## FormRequest Contract
 
+- When create and update use separate Form Requests, use the resource-first names `EntityCreateRequest` and `EntityUpdateRequest`. Use one `EntityRequest` only when both operations genuinely share one coherent validation contract.
 - Keep `rules()` readable as the input schema: scalar types, formats, presence, simple conditionals, `exists`, `unique`, enum membership, and small field relationships belong there.
 - Do not use `sometimes` by default. An omitted field needs no rule; an accepted `null` uses `nullable`; a required key that may be empty uses `present`; a required non-empty value uses `required`.
 - Use `present|array` when the array key must exist, including when an empty array is valid. `min:0` adds no presence semantics.

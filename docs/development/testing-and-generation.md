@@ -46,5 +46,10 @@ Custom shared commands also generate services, policies, resources, and
 collections. Their output is governed by `stubs/`, `.agents/skills/code-generator/stubs/`,
 and `app-modules/shared/stubs/`, with command placeholders kept synchronized.
 
+For HTTP input contracts, generated code follows the Form Request naming rule:
+use `EntityRequest` when create and update share one coherent contract; when
+they differ, use `EntityCreateRequest` and `EntityUpdateRequest`. The resource
+name must remain first in both names.
+
 When adding a new generated file type, update the command, stub, generator
 architecture test, and the relevant module documentation together.

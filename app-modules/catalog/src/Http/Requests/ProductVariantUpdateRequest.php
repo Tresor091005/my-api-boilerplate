@@ -12,7 +12,7 @@ use Illuminate\Validation\Validator;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Master\Validation\LabelPayloadRules;
 
-class UpdateProductVariantRequest extends FormRequest
+class ProductVariantUpdateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {

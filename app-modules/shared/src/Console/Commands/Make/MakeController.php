@@ -56,4 +56,21 @@ final class MakeController extends ModularMakeController
 
         return $replace;
     }
+
+    protected function generateFormRequests($modelClass, $storeRequestClass, $updateRequestClass): array
+    {
+        $entity = class_basename($modelClass);
+        $createRequestClass = $entity.'CreateRequest';
+        $updateRequestClass = $entity.'UpdateRequest';
+
+        $this->call('make:request', [
+            'name' => $createRequestClass,
+        ]);
+
+        $this->call('make:request', [
+            'name' => $updateRequestClass,
+        ]);
+
+        return [$createRequestClass, $updateRequestClass];
+    }
 }

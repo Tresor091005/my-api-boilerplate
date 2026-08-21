@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Iam\Models\Permission;
+use Lahatre\Master\Models\Note;
 use Lahatre\Shared\Policies\BasePolicy;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 
@@ -30,5 +31,9 @@ it('discovers namespaced permissions without basename collisions', function (): 
     Artisan::call('permissions:discover');
 
     expect(Permission::query()->where('name', 'catalog_product.retrieve')->exists())->toBeTrue()
-        ->and(Permission::query()->where('name', 'products.retrieve')->exists())->toBeFalse();
+        ->and(Permission::query()->where('name', 'products.retrieve')->exists())->toBeFalse()
+        ->and(Permission::query()->where('name', 'master_note.pin')->exists())->toBeTrue()
+        ->and(Permission::query()->where('name', 'master_note.mention')->exists())->toBeTrue()
+        ->and(Permission::query()->where('name', 'master_note.visibility_organization')->exists())->toBeTrue()
+        ->and(app(MorphMapRegistry::class)->getAlias(Note::class))->toBe('master_note');
 });
