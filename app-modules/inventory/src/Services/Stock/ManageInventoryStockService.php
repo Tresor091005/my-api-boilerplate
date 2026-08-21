@@ -22,7 +22,7 @@ class ManageInventoryStockService
                 ->first();
 
             if ($ownedStock === null) {
-                throw OrganizationScopeException::mismatch($organizationId, $stock->organization_id);
+                throw OrganizationScopeException::mismatch();
             }
 
             $ownedStock->metadata = $metadata;

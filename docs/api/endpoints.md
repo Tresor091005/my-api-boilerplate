@@ -32,17 +32,17 @@ from being addressed through a parent that does not own it.
 | Method | URI | Purpose |
 | --- | --- | --- |
 | GET | `/v1/master/currencies` | List currencies. |
-| GET | `/v1/master/tags` | List tags for the active organization. |
-| PATCH | `/v1/master/tags/{tag}` | Update a tag name without changing its slug. |
-| PUT | `/v1/master/tags/reorder` | Replace the order of all tags for one type. |
-| DELETE | `/v1/master/tags/{tag}` | Delete an unused tag. |
-| GET | `/v1/master/taggables/{taggable_type}/{taggable_id}/tags` | List tags attached to a taggable model. |
+| GET | `/v1/master/labels` | List labels for the active organization. |
+| PATCH | `/v1/master/labels/{label}` | Update a label value without changing its slug. |
+| PUT | `/v1/master/labels/reorder` | Replace the order of all labels for one group. |
+| DELETE | `/v1/master/labels/{label}` | Delete an unused label. |
+| GET | `/v1/master/labelables/{labelable_type}/{labelable_id}/labels` | List labels attached to a labelable model. |
 | GET | `/v1/master/units` | List units, optionally filtered. |
 | POST | `/v1/master/units/upsert` | Create or update unit groups and units. |
 
-The taggable tags endpoint resolves `taggable_type` through the registered
+The labelable labels endpoint resolves `labelable_type` through the registered
 morph map and requires the target model's `{morph_alias}.retrieve` permission.
-The target must implement `HasTags` and belong to the active organization.
+The target must use `InteractsWithLabels` and belong to the active organization.
 
 ## Inventory reads and stock metadata
 

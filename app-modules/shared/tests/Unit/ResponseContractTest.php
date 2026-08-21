@@ -13,7 +13,7 @@ it('resolves a named shape and its relation dependencies', function (): void {
         'shapes'        => [
             'list' => [
                 'required_loads' => ['product'],
-                'includes'       => ['tags' => ['loads' => ['tags.metadata']]],
+                'includes'       => ['labels' => ['loads' => ['labels.metadata']]],
             ],
         ],
     ]);
@@ -21,14 +21,14 @@ it('resolves a named shape and its relation dependencies', function (): void {
     $shape = $contract->resolveShape(null);
 
     expect($contract->resolveMode(null, 'GET'))->toBe(ResponseMode::Resource)
-        ->and($shape?->validateIncludes(['tags']))->toBe(['tags'])
-        ->and($shape?->relationsToLoad(['tags']))->toEqualCanonicalizing(['product', 'tags.metadata']);
+        ->and($shape?->validateIncludes(['labels']))->toBe(['labels'])
+        ->and($shape?->relationsToLoad(['labels']))->toEqualCanonicalizing(['product', 'labels.metadata']);
 });
 
 it('rejects a response mode or include that the contract does not allow', function (): void {
     $contract = ResponseContract::fromArray([
         'shapes' => [
-            'list' => ['includes' => ['tags' => ['loads' => ['tags']]]],
+            'list' => ['includes' => ['labels' => ['loads' => ['labels']]]],
         ],
         'default_shape' => 'list',
     ]);

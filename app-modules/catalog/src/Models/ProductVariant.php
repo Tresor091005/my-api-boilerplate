@@ -18,9 +18,8 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
-use Lahatre\Master\Contracts\HasTags;
 use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Master\Traits\InteractsWithTags;
+use Lahatre\Master\Traits\InteractsWithLabels;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -74,10 +73,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem, HasTags
+class ProductVariant extends Model implements HasInventoryItem
 {
     use InteractsWithInventoryItem;
-    use InteractsWithTags;
+    use InteractsWithLabels;
     use SharedTraits;
     use SoftDeletes;
 
@@ -111,11 +110,6 @@ class ProductVariant extends Model implements HasInventoryItem, HasTags
     public function getSku(): string
     {
         return $this->sku;
-    }
-
-    public function getOrganizationId(): string
-    {
-        return $this->organization_id;
     }
 
     protected function optionsLabel(): Attribute
@@ -164,7 +158,7 @@ class ProductVariant extends Model implements HasInventoryItem, HasTags
             ->where('catalog_option_values.organization_id', currentOrganizationId());
     }
 
-    public function toInventoryItemableSummary(): array
+    public function toInventoryItemSummary(): array
     {
         return [
             'id'  => $this->id,

@@ -10,9 +10,14 @@ use Illuminate\Support\Str;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Shared\Support\OrganizationScopeResolver;
 
 class ManageInventoryLocationService
 {
+    public function __construct(
+        protected OrganizationScopeResolver $organizationScopeResolver,
+    ) {}
+
     public function create(HasInventoryLocation $model): InventoryLocation
     {
         return DB::transaction(
@@ -59,7 +64,7 @@ class ManageInventoryLocationService
     public function resolve(HasInventoryLocation $model): InventoryLocation
     {
         $organizationId = currentOrganizationId();
-        $model = $this->resolveAndValidateModel($model, $organizationId);
+        $model = $this->resolveAndValidateModel($model);
 
         return InventoryLocation::query()
             ->where('organization_id', $organizationId)
@@ -82,7 +87,7 @@ class ManageInventoryLocationService
         }
 
         $models = $models
-            ->map(fn (HasInventoryLocation $model): HasInventoryLocation => $this->resolveAndValidateModel($model, $organizationId));
+            ->map(fn (HasInventoryLocation $model): HasInventoryLocation => $this->resolveAndValidateModel($model));
 
         $groupedModels = $models
             ->unique(fn (HasInventoryLocation $model): string => $model->getMorphClass().':'.(string) $model->getKey())
@@ -139,28 +144,20 @@ class ManageInventoryLocationService
         return $resolvedLocations->values();
     }
 
-    protected function resolveAndValidateModel(HasInventoryLocation $model, string $organizationId): HasInventoryLocation
+    protected function resolveAndValidateModel(HasInventoryLocation $model): HasInventoryLocation
     {
-        if ($model->getKey() === null) {
-            throw OrganizationScopeException::resolutionFailed();
+        $resolution = $this->organizationScopeResolver->resolve($model);
+
+        if (is_string($resolution)) {
+            throw match ($resolution) {
+                OrganizationScopeResolver::NoModelKey,
+                OrganizationScopeResolver::NoOrganizationContext,
+                OrganizationScopeResolver::NoOrganizationId     => OrganizationScopeException::resolutionFailed(),
+                OrganizationScopeResolver::OrganizationMismatch => OrganizationScopeException::mismatch(),
+                default                                         => OrganizationScopeException::resolutionFailed(),
+            };
         }
 
-        $persistedAttributes = $model->newQuery()
-            ->whereKey($model->getKey())
-            ->firstOrFail()
-            ->getAttributes();
-        $persistedModel = clone $model;
-        $persistedModel->setRawAttributes($persistedAttributes, true);
-        $persistedOrganizationId = $persistedModel->getOrganizationId();
-
-        if ($persistedOrganizationId === '') {
-            throw OrganizationScopeException::resolutionFailed();
-        }
-
-        if ($persistedOrganizationId !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $persistedOrganizationId);
-        }
-
-        return $persistedModel;
+        return $resolution;
     }
 }

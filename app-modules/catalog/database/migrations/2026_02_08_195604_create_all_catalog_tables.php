@@ -178,7 +178,7 @@ return new class extends Migration
             $table->unique(['option_id', 'variant_id']);
         });
 
-        // TODO universal tags system
+        // TODO universal labels system
     }
 
     /**

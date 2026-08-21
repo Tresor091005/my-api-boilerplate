@@ -86,7 +86,7 @@ $variantContracts = array_fill_keys(
             'includes'       => [
                 'unit_group' => ['loads' => ['unitGroup']],
                 'units'      => ['loads' => ['unitGroup.units']],
-                'tags'       => ['loads' => ['tags']],
+                'labels'     => ['loads' => ['labels']],
                 'inventory'  => ['loads' => ['inventoryItem.stockSummaries']],
             ],
         ]],

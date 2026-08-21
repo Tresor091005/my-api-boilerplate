@@ -60,11 +60,11 @@ class TransactionalProductVariantService
 
         $variantsById = $variants->keyBy('id');
         foreach ($variantsData as $index => $variantData) {
-            if ($variantData->tags === []) {
+            if ($variantData->labels === []) {
                 continue;
             }
 
-            $variantsById->get($variantRows[$index]['id'])?->attachTags($variantData->tags);
+            $variantsById->get($variantRows[$index]['id'])?->attachLabels($variantData->labels);
         }
 
         return $variants;

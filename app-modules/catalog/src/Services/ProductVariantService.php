@@ -73,9 +73,9 @@ class ProductVariantService
                 );
             }
 
-            if (!$data->tags instanceof MissingValue) {
-                foreach ($data->tags as $type => $tags) {
-                    $variant->syncTagsForType($type, $tags);
+            if (!$data->labels instanceof MissingValue) {
+                foreach ($data->labels as $group => $labels) {
+                    $variant->syncLabelsForGroup($group, $labels);
                 }
             }
 

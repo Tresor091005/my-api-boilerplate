@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Inventory\Http\Resources\InventoryItemSummaryResource;
-use Lahatre\Master\Http\Resources\TagResource;
+use Lahatre\Master\Http\Resources\LabelResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
@@ -50,10 +50,10 @@ class ProductVariantResource extends JsonResource
                 relation: 'unitGroup',
                 resolver: fn ($unitGroup): mixed => UnitGroupResource::make($unitGroup),
             ),
-            'tags' => $this->includeWhenRequestedAndLoaded(
-                include: 'tags',
-                relation: 'tags',
-                resolver: fn ($tags) => TagResource::collection($tags),
+            'labels' => $this->includeWhenRequestedAndLoaded(
+                include: 'labels',
+                relation: 'labels',
+                resolver: fn ($labels) => LabelResource::collection($labels),
             ),
             'inventory' => $this->includeWhenRequestedAndLoaded(
                 include: 'inventory',

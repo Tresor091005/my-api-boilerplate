@@ -605,7 +605,7 @@ class InventoryQueryService
             ->first();
 
         if ($ownedItem === null) {
-            throw OrganizationScopeException::mismatch($organizationId, $item->getAttribute('organization_id'));
+            throw OrganizationScopeException::mismatch();
         }
 
         return $ownedItem;
@@ -620,7 +620,7 @@ class InventoryQueryService
             ->first();
 
         if ($ownedLocation === null) {
-            throw OrganizationScopeException::mismatch($organizationId, $location->getAttribute('organization_id'));
+            throw OrganizationScopeException::mismatch();
         }
 
         return $ownedLocation;
@@ -635,7 +635,7 @@ class InventoryQueryService
             ->first();
 
         if ($ownedTransaction === null) {
-            throw OrganizationScopeException::mismatch($organizationId, $transaction->getAttribute('organization_id'));
+            throw OrganizationScopeException::mismatch();
         }
 
         return $ownedTransaction;

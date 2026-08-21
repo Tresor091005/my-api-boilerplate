@@ -7,12 +7,12 @@ namespace Lahatre\Master\Validation;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
-final class TagPayloadRules
+final class LabelPayloadRules
 {
     /**
      * @return array<string, array<int, string>>
      */
-    public static function rules(string $basePath = 'tags', bool $required = false, bool $allowEmpty = false): array
+    public static function rules(string $basePath = 'labels', bool $required = false, bool $allowEmpty = false): array
     {
         $presence = $required ? ['required'] : [];
         $minimum = $allowEmpty ? [] : ['min:1'];
@@ -26,25 +26,25 @@ final class TagPayloadRules
 
     public static function validate(Validator $validator, array $input, string $basePath): void
     {
-        foreach (self::resolve($input, explode('.', $basePath)) as [$path, $tags]) {
-            if (!is_array($tags)) {
+        foreach (self::resolve($input, explode('.', $basePath)) as [$path, $labels]) {
+            if (!is_array($labels)) {
                 continue;
             }
 
-            foreach ($tags as $type => $names) {
-                if (!is_string($type) || preg_match('/^[A-Za-z][A-Za-z0-9_-]{1,49}$/', $type) !== 1) {
-                    $validator->errors()->add($path, __('master::validation.tag_type_invalid'));
+            foreach ($labels as $group => $values) {
+                if (!is_string($group) || preg_match('/^[A-Za-z][A-Za-z0-9_-]{1,49}$/', $group) !== 1) {
+                    $validator->errors()->add($path, __('master::validation.label_group_invalid'));
                 }
 
-                if (!is_array($names)) {
+                if (!is_array($values)) {
                     continue;
                 }
 
-                foreach ($names as $index => $name) {
-                    if (is_string($name) && Str::normalize($name) === '') {
+                foreach ($values as $index => $value) {
+                    if (is_string($value) && Str::normalize($value) === '') {
                         $validator->errors()->add(
-                            "{$path}.{$type}.{$index}",
-                            __('master::validation.tag_name_invalid'),
+                            "{$path}.{$group}.{$index}",
+                            __('master::validation.label_value_invalid'),
                         );
                     }
                 }

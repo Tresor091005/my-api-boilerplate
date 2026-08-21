@@ -15,11 +15,13 @@ use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Master\Contracts\MasterInterface;
+use Lahatre\Shared\Support\OrganizationScopeResolver;
 
 class ManageInventoryItemService
 {
     public function __construct(
         protected MasterInterface $masterInterface,
+        protected OrganizationScopeResolver $organizationScopeResolver,
     ) {}
 
     public function create(HasInventoryItem $model): InventoryItem
@@ -139,7 +141,7 @@ class ManageInventoryItemService
     public function resolve(HasInventoryItem $model): InventoryItem
     {
         $organizationId = currentOrganizationId();
-        $model = $this->resolveAndValidateModel($model, $organizationId);
+        $model = $this->resolveAndValidateModel($model);
 
         /** @var InventoryItem $item */
         $item = InventoryItem::query()
@@ -165,7 +167,7 @@ class ManageInventoryItemService
         }
 
         $models = $models
-            ->map(fn (HasInventoryItem $model): HasInventoryItem => $this->resolveAndValidateModel($model, $organizationId));
+            ->map(fn (HasInventoryItem $model): HasInventoryItem => $this->resolveAndValidateModel($model));
 
         $groupedModels = $models
             ->unique(fn (HasInventoryItem $model): string => $model->getMorphClass().':'.(string) $model->getKey())
@@ -224,35 +226,27 @@ class ManageInventoryItemService
         return $resolvedItems->values();
     }
 
-    protected function resolveAndValidateModel(HasInventoryItem $model, string $organizationId): HasInventoryItem
+    protected function resolveAndValidateModel(HasInventoryItem $model): HasInventoryItem
     {
-        if ($model->getKey() === null) {
-            throw OrganizationScopeException::resolutionFailed();
+        $resolution = $this->organizationScopeResolver->resolve($model);
+
+        if (is_string($resolution)) {
+            throw match ($resolution) {
+                OrganizationScopeResolver::NoModelKey,
+                OrganizationScopeResolver::NoOrganizationContext,
+                OrganizationScopeResolver::NoOrganizationId     => OrganizationScopeException::resolutionFailed(),
+                OrganizationScopeResolver::OrganizationMismatch => OrganizationScopeException::mismatch(),
+                default                                         => OrganizationScopeException::resolutionFailed(),
+            };
         }
 
-        $persistedAttributes = $model->newQuery()
-            ->whereKey($model->getKey())
-            ->firstOrFail()
-            ->getAttributes();
-        $persistedModel = clone $model;
-        $persistedModel->setRawAttributes($persistedAttributes, true);
-        $persistedOrganizationId = $persistedModel->getOrganizationId();
-
-        if ($persistedOrganizationId === '') {
-            throw OrganizationScopeException::resolutionFailed();
-        }
-
-        if ($persistedOrganizationId !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $persistedOrganizationId);
-        }
-
-        return $persistedModel;
+        return $resolution;
     }
 
     protected function assertInventoryItemOrganization(InventoryItem $item, string $organizationId): void
     {
         if ($item->organization_id !== $organizationId) {
-            throw OrganizationScopeException::mismatch($organizationId, $item->organization_id);
+            throw OrganizationScopeException::mismatch();
         }
     }
 }

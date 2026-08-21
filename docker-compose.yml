@@ -26,22 +26,12 @@ services:
     restart: unless-stopped
     command: [
       "redis-server",
-      "--appendonly", "yes",
-      "--appendfilename", "appendonly.aof",
-      "--dir", "/data",
-      "--appendfsync", "everysec",
-      "--auto-aof-rewrite-percentage", "100",
-      "--auto-aof-rewrite-min-size", "64mb",
-      "--aof-use-rdb-preamble", "yes",
-      "--aof-rewrite-incremental-fsync", "yes",
       "--maxmemory", "512mb",
       "--maxmemory-policy", "volatile-lru",
       "--tcp-backlog", "511",
       "--timeout", "300",
       "--loglevel", "warning"
     ]
-    volumes:
-      - redisdata:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping || exit 1"]
       interval: 10s
@@ -182,4 +172,3 @@ services:
 
 volumes:
   dbdata:
-  redisdata:

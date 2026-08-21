@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Data;
 
-final readonly class TagUpdateData
+final readonly class LabelUpdateData
 {
-    private function __construct(public string $name) {}
+    private function __construct(public string $value) {}
 
     /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
-        return new self(name: (string) $data['name']);
+        return new self(value: (string) $data['value']);
     }
 }

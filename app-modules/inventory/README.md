@@ -41,7 +41,6 @@ class Product extends Model implements HasInventoryItem
 
     public function getSku(): string { return $this->sku; }
     public function getUnitGroupId(): string { return $this->unit_group_id; }
-    public function getOrganizationId(): string { return $this->organization_id; }
 }
 ```
 

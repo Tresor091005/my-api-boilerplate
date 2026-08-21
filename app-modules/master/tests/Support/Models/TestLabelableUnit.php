@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Tests\Support\Models;
 
-use Lahatre\Master\Contracts\HasTags;
 use Lahatre\Master\Models\Unit;
-use Lahatre\Master\Traits\InteractsWithTags;
+use Lahatre\Master\Traits\InteractsWithLabels;
 
-class TestTaggableUnit extends Unit implements HasTags
+class TestLabelableUnit extends Unit
 {
-    use InteractsWithTags;
+    use InteractsWithLabels;
 
     public function getMorphClass(): string
     {

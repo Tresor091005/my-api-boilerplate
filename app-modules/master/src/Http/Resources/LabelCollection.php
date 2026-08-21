@@ -6,7 +6,7 @@ namespace Lahatre\Master\Http\Resources;
 
 use Lahatre\Shared\Http\Resources\BaseCollection;
 
-class TagCollection extends BaseCollection
+class LabelCollection extends BaseCollection
 {
-    public $collects = TagResource::class;
+    public $collects = LabelResource::class;
 }

@@ -5,34 +5,34 @@ declare(strict_types=1);
 namespace Lahatre\Master\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Lahatre\Master\Models\Tag;
+use Lahatre\Master\Models\Label;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 use Lahatre\Shared\Support\HandleGenerator;
 
 /**
- * @extends Factory<Tag>
+ * @extends Factory<Label>
  */
-class TagFactory extends Factory
+class LabelFactory extends Factory
 {
     use ResolvesOrganizationId;
 
     public function definition(): array
     {
-        $name = str($this->faker->unique()->words(2, true))->normalize()->value();
+        $value = str($this->faker->unique()->words(2, true))->normalize()->value();
         $organizationId = $this->resolveOrganizationId();
 
         return [
             'organization_id' => $organizationId,
-            'name'            => $name,
+            'value'           => $value,
             'slug'            => HandleGenerator::generate(
-                name: $name,
-                table: 'master_tags',
+                name: $value,
+                table: 'master_labels',
                 column: 'slug',
                 extra: [
                     'organization_id' => $organizationId,
                 ],
             ),
-            'type'      => '',
+            'group'     => '',
             'order_col' => 0,
         ];
     }

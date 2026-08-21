@@ -89,13 +89,13 @@ it('validates product payload via request rules', function (): void {
         ->toThrow(ValidationException::class);
 });
 
-it('validates tags nested in product variants', function (): void {
+it('validates labels nested in product variants', function (): void {
     $request = ProductRequest::create('/', 'POST', [
-        'name'     => 'Tagged product',
+        'name'     => 'Labelged product',
         'variants' => [[
             'unit_group_id' => $this->unitGroup->id,
             'options'       => [['name' => 'Color', 'value' => 'White']],
-            'tags'          => ['status' => [str_repeat('a', 51)]],
+            'labels'        => ['status' => [str_repeat('a', 51)]],
         ]],
     ])
         ->setContainer(app())

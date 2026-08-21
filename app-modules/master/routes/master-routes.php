@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Master\Http\Controllers\CurrencyController;
-use Lahatre\Master\Http\Controllers\TagController;
+use Lahatre\Master\Http\Controllers\LabelController;
 use Lahatre\Master\Http\Controllers\UnitController;
 
 Route::group([
@@ -17,11 +17,11 @@ Route::group([
     ], function (): void {
         Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
 
-        Route::get('tags', [TagController::class, 'index'])->name('tags.index');
-        Route::post('tags', [TagController::class, 'store'])->name('tags.store');
-        Route::put('tags/reorder', [TagController::class, 'reorder'])->name('tags.reorder');
-        Route::patch('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
-        Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+        Route::get('labels', [LabelController::class, 'index'])->name('labels.index');
+        Route::post('labels', [LabelController::class, 'store'])->name('labels.store');
+        Route::put('labels/reorder', [LabelController::class, 'reorder'])->name('labels.reorder');
+        Route::patch('labels/{label}', [LabelController::class, 'update'])->name('labels.update');
+        Route::delete('labels/{label}', [LabelController::class, 'destroy'])->name('labels.destroy');
 
         Route::get('units', [UnitController::class, 'index'])->name('units.index');
         Route::post('units/upsert', [UnitController::class, 'upsert'])->name('units.upsert');

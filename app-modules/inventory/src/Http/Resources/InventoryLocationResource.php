@@ -34,7 +34,7 @@ class InventoryLocationResource extends JsonResource
                 relation: 'external',
                 resolver: function (): ?array {
                     if ($this->external instanceof HasInventoryLocation) {
-                        return $this->external->toInventoryLocationExternalSummary();
+                        return $this->external->toInventoryLocationSummary();
                     }
 
                     return null;

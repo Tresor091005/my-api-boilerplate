@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Master\Validation\TagPayloadRules;
+use Lahatre\Master\Validation\LabelPayloadRules;
 
 class UpdateProductVariantRequest extends FormRequest
 {
@@ -60,7 +60,7 @@ class UpdateProductVariantRequest extends FormRequest
             'options'         => ['array', 'max:100'],
             'options.*.name'  => ['required', 'string', 'max:100'],
             'options.*.value' => ['required', 'string', 'max:100'],
-            ...TagPayloadRules::rules('tags', allowEmpty: true),
+            ...LabelPayloadRules::rules('labels', allowEmpty: true),
         ];
     }
 
@@ -70,7 +70,7 @@ class UpdateProductVariantRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            TagPayloadRules::validate($validator, $this->all(), 'tags');
+            LabelPayloadRules::validate($validator, $this->all(), 'labels');
 
             if (!is_array($this->input('options'))) {
                 return;

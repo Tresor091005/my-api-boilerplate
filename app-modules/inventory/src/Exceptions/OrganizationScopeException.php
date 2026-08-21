@@ -15,14 +15,10 @@ final class OrganizationScopeException extends AssertionException
         );
     }
 
-    public static function mismatch(string $expectedOrganizationId, ?string $actualOrganizationId): self
+    public static function mismatch(): self
     {
         return new self(
             __('inventory::exceptions.organization_mismatch'),
-            [
-                'expected_organization_id' => $expectedOrganizationId,
-                'actual_organization_id'   => $actualOrganizationId,
-            ]
         );
     }
 }

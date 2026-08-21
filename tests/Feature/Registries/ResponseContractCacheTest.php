@@ -50,7 +50,7 @@ it('applies the same default shape to catalog variant contracts', function (): v
     $showShape = $show->shapes['default'];
 
     expect($showShape->requiredLoads)->toBe(['product', 'optionValues.option'])
-        ->and(array_keys($showShape->includes))->toBe(['unit_group', 'units', 'tags', 'inventory'])
+        ->and(array_keys($showShape->includes))->toBe(['unit_group', 'units', 'labels', 'inventory'])
         ->and($store->shapes['default']->requiredLoads)->toBe($showShape->requiredLoads)
         ->and($store->shapes['default']->includes)->toEqual($showShape->includes)
         ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
@@ -115,7 +115,7 @@ it('maps every relation-backed resource operation to required loads or includes'
         ->toContain('organizationMemberships.memberRoles.role');
 });
 
-it('does not expose variant tags as a product-level include', function (): void {
+it('does not expose variant labels as a product-level include', function (): void {
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
@@ -124,7 +124,7 @@ it('does not expose variant tags as a product-level include', function (): void 
         ?->resolveShape(null);
 
     expect($productShape)->not->toBeNull()
-        ->and($productShape->includes)->not->toHaveKey('tags');
+        ->and($productShape->includes)->not->toHaveKey('labels');
 });
 
 it('ignores a response contract cache outside production and discovers definitions', function (): void {

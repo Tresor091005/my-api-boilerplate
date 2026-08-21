@@ -63,7 +63,7 @@ registered module models.
        permissions: `list`, `retrieve`, `create`, `update`, and `delete`.
     3. Permission names use the registered morph alias, for example
        `catalog_product.retrieve`, `inventory_item.update`, or
-       `master_tag.delete`.
+       `master_label.delete`.
     4. Models without a registered morph alias are skipped and reported.
     5. It creates or updates the built-in Administrator and Readonly roles;
        Administrator receives all permissions and Readonly receives only

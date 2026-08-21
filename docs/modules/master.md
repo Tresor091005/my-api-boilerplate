@@ -19,43 +19,35 @@ is null`) or organization-specific.
 rewarm the relevant cache after commit. System groups and another
 organization's groups are protected by request validation and service checks.
 
-## Tags
+## Labels
 
-`InteractsWithTags` provides typed polymorphic tag attachment, detachment, synchronization,
-and scopes for any/all/none of a tag set. A model that uses tags must implement
-`Lahatre\Master\Contracts\HasTags`, use
-`Lahatre\Master\Traits\InteractsWithTags`, and return its persisted tenant from
-`getOrganizationId(): string`:
+`InteractsWithLabels` provides grouped polymorphic label attachment, detachment, synchronization,
+and scopes for any/all/none of a label set. A model that uses labels must use
+`Lahatre\Master\Traits\InteractsWithLabels` and expose a persisted `organization_id`:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
-use Lahatre\Master\Contracts\HasTags;
-use Lahatre\Master\Traits\InteractsWithTags;
+use Lahatre\Master\Traits\InteractsWithLabels;
 
-class ProductVariant extends Model implements HasTags
+class ProductVariant extends Model
 {
-    use InteractsWithTags;
-
-    public function getOrganizationId(): string
-    {
-        return $this->organization_id;
-    }
+    use InteractsWithLabels;
 }
 ```
 
-The returned organization must be non-empty and match the active organization;
-system or organization-less models cannot be tagged. Relation loading requires
+The persisted organization must be non-empty and match the active organization;
+system or organization-less models cannot be labeled. Relation loading requires
 an active organization context, including eager loading; write operations also
-validate the persisted model through the tag service. Tag names and types are
-normalized, operations are transactional, and detaching a tag does not delete
-the tag itself. The tag write methods return `void`; reload the `tags` relation
+validate the persisted model through the label service. Label values and groups are
+normalized, operations are transactional, and detaching a label does not delete
+the label itself. The label write methods return `void`; reload the `labels` relation
 explicitly when the updated collection is needed.
 
-Tags expose organization-scoped list, batch creation by type, name update,
-reorder, and safe-delete routes. `POST /v1/master/tags` accepts a payload shaped
-like `{"tags":{"status":["active","inactive"],"color":["red"]}}`.
-Types are 2-50 character identifiers and tag names are limited to 50
-characters. `GET /v1/master/taggables/{taggable_type}/{taggable_id}/tags` reads the
-tags attached to a model that implements `HasTags`; it resolves the type from
-the registered morph map and requires the taggable model's `retrieve`
-permission. A tag cannot be deleted while pivot links still reference it.
+Labels expose organization-scoped list, batch creation by group, value update,
+reorder, and safe-delete routes. `POST /v1/master/labels` accepts a payload shaped
+like `{"labels":{"status":["active","inactive"],"color":["red"]}}`.
+Groups are 2-50 character identifiers and label values are limited to 50
+characters. `GET /v1/master/labelables/{labelable_type}/{labelable_id}/labels` reads the
+labels attached to a model that uses `InteractsWithLabels`; it resolves the morph type from
+the registered morph map and requires the labelable model's `retrieve`
+permission. A label cannot be deleted while pivot links still reference it.

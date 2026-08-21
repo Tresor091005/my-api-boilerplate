@@ -17,7 +17,7 @@ use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\ProductVariantService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Master\Models\Tag;
+use Lahatre\Master\Models\Label;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
@@ -84,7 +84,7 @@ it('manages product variants through service methods', function (): void {
                 'options'       => [
                     ['name' => 'color', 'value' => 'white'],
                 ],
-                'tags' => [
+                'labels' => [
                     'status'  => ['active'],
                     'channel' => ['online', 'store'],
                 ],
@@ -101,9 +101,9 @@ it('manages product variants through service methods', function (): void {
         ->where('variant_id', $createdVariant->id)
         ->count();
 
-    expect($createdVariant->tags()->pluck('name')->all())
+    expect($createdVariant->labels()->pluck('value')->all())
         ->toEqualCanonicalizing(['active', 'online', 'store'])
-        ->and(Tag::query()->where('organization_id', $this->organizationId)->count())->toBe(3);
+        ->and(Label::query()->where('organization_id', $this->organizationId)->count())->toBe(3);
 
     $updated = $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['sku' => 'UPDATED-SKU'],
@@ -132,16 +132,16 @@ it('does not load response relations without an active response shape', function
     expect($retrievedVariant->relationLoaded('product'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('optionValues'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('unitGroup'))->toBeFalse()
-        ->and($retrievedVariant->relationLoaded('tags'))->toBeFalse()
+        ->and($retrievedVariant->relationLoaded('labels'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
 });
 
-it('validates tags inside each bulk variant payload', function (): void {
+it('validates labels inside each bulk variant payload', function (): void {
     $request = StoreProductVariantRequest::create('/', 'POST', [
         'variants' => [[
             'unit_group_id' => $this->unitGroup->id,
             'options'       => [['name' => 'Color', 'value' => 'White']],
-            'tags'          => [123 => ['active']],
+            'labels'        => [123 => ['active']],
         ]],
     ])
         ->setContainer(app())
@@ -151,7 +151,7 @@ it('validates tags inside each bulk variant payload', function (): void {
         ->toThrow(ValidationException::class);
 });
 
-it('syncs only submitted tag types when updating a variant', function (): void {
+it('syncs only submitted label types when updating a variant', function (): void {
     $variant = ProductVariant::factory()->create([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
@@ -159,25 +159,25 @@ it('syncs only submitted tag types when updating a variant', function (): void {
     ]);
     app(InventoryInterface::class)->createItem($variant);
 
-    $variant->attachTags([
+    $variant->attachLabels([
         'status'  => ['active'],
         'channel' => ['online'],
     ]);
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
-        ['tags' => ['status' => ['inactive']]],
+        ['labels' => ['status' => ['inactive']]],
         missingFields: ['sku', 'is_active', 'options'],
     ));
 
-    expect($variant->fresh()->tags->pluck('name')->all())
+    expect($variant->fresh()->labels->pluck('value')->all())
         ->toEqualCanonicalizing(['inactive', 'online']);
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
-        ['tags' => ['status' => []]],
+        ['labels' => ['status' => []]],
         missingFields: ['sku', 'is_active', 'options'],
     ));
 
-    expect($variant->fresh()->tags->pluck('name')->all())->toBe(['online']);
+    expect($variant->fresh()->labels->pluck('value')->all())->toBe(['online']);
 });
 
 it('validates variant payload and blocks deletion of the last variant', function (): void {

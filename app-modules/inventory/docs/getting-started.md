@@ -4,7 +4,11 @@
 
 An item model implements `HasInventoryItem` and uses `InteractsWithInventoryItem`. A location model does the equivalent with `HasInventoryLocation` and `InteractsWithInventoryLocation`.
 
-Items expose their SKU and unit group. Locations expose a lightweight external summary. Tenant-aware host models also expose `getOrganizationId()`. The inventory module remains tenant-agnostic; the host application must enforce access to its inventory records.
+Items expose their SKU and unit group through `getSku()` and
+`getUnitGroupId()`. Locations expose a lightweight external summary.
+Tenant-aware host models expose an `organization_id` attribute. The inventory
+module remains tenant-agnostic; the host application must enforce access to its
+inventory records.
 
 See [Models and resources](models.md) for the persisted fields and the data exposed by API resources.
 

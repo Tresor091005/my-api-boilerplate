@@ -59,7 +59,7 @@ abstract class TestCase extends BaseTestCase
 
     protected mixed $unitThree;
 
-    protected mixed $taggableUnit;
+    protected mixed $labelableUnit;
 
     protected mixed $baseUnit;
 

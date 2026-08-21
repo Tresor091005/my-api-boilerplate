@@ -40,7 +40,7 @@ best-practice compliance.
 - **Explicitness:** Define relationships explicitly, including foreign keys,
   local keys, and pivot table names when applicable. For example:
   - `belongsTo`: `return $this->belongsTo(Category::class, 'parent_id', 'id');`
-  - `belongsToMany`: `return $this->belongsToMany(Tag::class, 'catalog_product_tags', 'product_id', 'tag_id')->using(ProductTag::class)->withTimestamps();`
+  - `belongsToMany`: `return $this->belongsToMany(Label::class, 'catalog_product_labels', 'product_id', 'label_id')->using(ProductLabel::class)->withTimestamps();`
 - **Pivot models:** For intermediate tables containing additional columns,
   such as timestamps, create a dedicated model extending
   `Illuminate\Database\Eloquent\Relations\Pivot`.

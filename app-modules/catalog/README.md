@@ -8,15 +8,14 @@ their named static methods from assertions.
 
 See the [general business exception convention](../../docs/architecture/coding-rules/exceptions.md).
 
-## Product variant tags
+## Product variant labels
 
-`ProductVariant` implements the Master `HasTags` contract and uses
-`InteractsWithTags`. Variant creation accepts an optional `tags` object grouped
-by type:
+`ProductVariant` uses the Master `InteractsWithLabels` trait. Variant creation accepts
+an optional `labels` object organized by group:
 
 ```json
 {
-  "tags": {
+  "labels": {
     "status": ["active"],
     "channel": ["online", "store"]
   }
@@ -24,14 +23,14 @@ by type:
 ```
 
 The same validation schema is reused for direct variant batches and variants
-nested in product creation. Tags are attached inside the existing variant
-creation transaction. The `ProductVariantResource` exposes tags only when the
+nested in product creation. Labels are attached inside the existing variant
+creation transaction. The `ProductVariantResource` exposes labels only when the
 relation has already been loaded; Catalog does not eager-load the relation by
 default.
 
-During a variant update, only submitted tag types are synchronized. Omitted
-types remain unchanged, while an explicitly empty type removes all tags of
-that type.
+During a variant update, only submitted label groups are synchronized. Omitted
+groups remain unchanged, while an explicitly empty group removes all labels of
+that group.
 
 ## Tests
 

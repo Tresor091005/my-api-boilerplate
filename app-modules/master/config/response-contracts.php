@@ -6,11 +6,11 @@ declare(strict_types=1);
 $emptyContracts = array_fill_keys(
     [
         'lahatre.master.currencies.index',
-        'lahatre.master.tags.index',
-        'lahatre.master.tags.store',
-        'lahatre.master.tags.update',
-        'lahatre.master.tags.destroy',
-        'lahatre.master.tags.reorder',
+        'lahatre.master.labels.index',
+        'lahatre.master.labels.store',
+        'lahatre.master.labels.update',
+        'lahatre.master.labels.destroy',
+        'lahatre.master.labels.reorder',
     ],
     [],
 );

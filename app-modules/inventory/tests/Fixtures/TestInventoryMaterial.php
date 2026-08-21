@@ -46,11 +46,6 @@ class TestInventoryMaterial extends Model implements HasInventoryItem
         return (string) $this->unit_group_id;
     }
 
-    public function getOrganizationId(): string
-    {
-        return $this->organization_id;
-    }
-
     public function getSku(): string
     {
         return (string) $this->sku;
@@ -59,7 +54,7 @@ class TestInventoryMaterial extends Model implements HasInventoryItem
     /**
      * @return array<string, mixed>
      */
-    public function toInventoryItemableSummary(): array
+    public function toInventoryItemSummary(): array
     {
         return [
             'id'   => $this->id,

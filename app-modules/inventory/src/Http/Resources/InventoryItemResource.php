@@ -38,7 +38,7 @@ class InventoryItemResource extends JsonResource
                 relation: 'itemable',
                 resolver: function (): ?array {
                     if ($this->itemable instanceof HasInventoryItem) {
-                        return $this->itemable->toInventoryItemableSummary();
+                        return $this->itemable->toInventoryItemSummary();
                     }
 
                     return null;

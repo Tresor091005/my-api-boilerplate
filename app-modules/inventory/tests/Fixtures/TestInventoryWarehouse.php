@@ -38,12 +38,7 @@ class TestInventoryWarehouse extends Model implements HasInventoryLocation
         'is_active'       => 'boolean',
     ];
 
-    public function getOrganizationId(): string
-    {
-        return $this->organization_id;
-    }
-
-    public function toInventoryLocationExternalSummary(): array
+    public function toInventoryLocationSummary(): array
     {
         return [
             'id'   => $this->id,

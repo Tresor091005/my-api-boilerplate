@@ -8,33 +8,33 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Lahatre\Master\Models\Tag;
+use Lahatre\Master\Models\Label;
 
-class TagUpdateRequest extends FormRequest
+class LabelUpdateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('name'))) {
-            $this->merge(['name' => Str::normalize($this->input('name'))]);
+        if (is_string($this->input('value'))) {
+            $this->merge(['value' => Str::normalize($this->input('value'))]);
         }
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        $tag = $this->route('tag');
+        $label = $this->route('label');
 
         return [
-            'name' => [
+            'value' => [
                 'required',
                 'string',
                 'min:1',
                 'max:50',
-                Rule::unique('master_tags', 'name')
+                Rule::unique('master_labels', 'value')
                     ->where('organization_id', currentOrganizationId())
-                    ->where('type', $tag instanceof Tag ? $tag->type : '')
+                    ->where('group', $label instanceof Label ? $label->group : '')
                     ->whereNull('deleted_at')
-                    ->ignore($tag instanceof Tag ? $tag->getKey() : null),
+                    ->ignore($label instanceof Label ? $label->getKey() : null),
             ],
         ];
     }

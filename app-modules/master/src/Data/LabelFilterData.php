@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Data;
 
-final readonly class TagFilterData
+final readonly class LabelFilterData
 {
     private function __construct(
         public int $perPage,
         public ?string $cursor,
         public string $sortBy,
         public string $sortOrder,
-        public ?string $name,
-        public ?string $type,
+        public ?string $value,
+        public ?string $group,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -21,10 +21,10 @@ final readonly class TagFilterData
         return new self(
             perPage: (int) ($data['per_page'] ?? 15),
             cursor: $data['cursor'] ?? null,
-            sortBy: $data['sort_by'] ?? 'name',
+            sortBy: $data['sort_by'] ?? 'value',
             sortOrder: $data['sort_order'] ?? 'asc',
-            name: $data['name'] ?? null,
-            type: $data['type'] ?? null,
+            value: $data['value'] ?? null,
+            group: $data['group'] ?? null,
         );
     }
 }

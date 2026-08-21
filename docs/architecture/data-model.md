@@ -24,9 +24,9 @@ preference. Application services and queries must preserve it explicitly.
 - `master_unit_groups` owns coherent unit families.
 - `master_units` stores units and their ratio to the group base unit. Tenant
   units use `organization_id`; system units have a null organization.
-- `master_tags` stores normalized tags.
-- `master_taggables` links tags to arbitrary taggable models by morph type,
-  model ID, and tag type.
+- `master_labels` stores normalized labels.
+- `master_labelables` links labels to arbitrary labelable models by morph type,
+  model ID, and label group.
 
 Currency amounts are converted to integer minor units using currency precision.
 Unit quantities use ratio-based decimal conversion with BCMath precision.

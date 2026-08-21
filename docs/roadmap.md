@@ -23,7 +23,7 @@
 - [x] `option value`: API CRUD under `options.values`.
 - [x] `unit`: Group and unit reads plus upsert in `master`, with cache and tests.
 - [x] `currency`: Listed reads in `master`.
-- [x] `tag`: Type-based attach, detach, and synchronization; single-type read
+- [x] `label`: Group-based attach, detach, and synchronization; single-group read
   scopes; and tests.
 - [x] `inventory item`: Creation, update, deletion, and reads through
   `inventory`.
@@ -117,7 +117,7 @@
 
 ## Deferred technical follow-ups
 
-- [ ] Run the PostgreSQL concurrency scenario for tag creation and
+- [ ] Run the PostgreSQL concurrency scenario for label creation and
   synchronization.
 - [ ] Implement backend-controlled field selection for response shapes,
   including resource serialization and required relation dependencies.

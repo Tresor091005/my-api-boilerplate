@@ -11,5 +11,5 @@ return [
     'option_value_not_attached_to_option'     => 'The option value does not belong to the selected option.',
     'product_variant_is_last'                 => 'Cannot delete the last variant of a product.',
     'product_variant_not_attached_to_product' => 'The product variant does not belong to the selected product.',
-    'tag_in_use'                              => 'Cannot delete a tag that is currently in use by products: :products.',
+    'label_in_use'                            => 'Cannot delete a label that is currently in use by products: :products.',
 ];

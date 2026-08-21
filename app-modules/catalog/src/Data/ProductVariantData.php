@@ -8,14 +8,14 @@ final readonly class ProductVariantData
 {
     /**
      * @param  array<int, array{name: string, value: string}>  $options
-     * @param  array<string, array<int, string>>  $tags
+     * @param  array<string, array<int, string>>  $labels
      */
     private function __construct(
         public ?string $sku,
         public string $unitGroupId,
         public bool $isActive,
         public array $options,
-        public array $tags,
+        public array $labels,
     ) {}
 
     /**
@@ -28,7 +28,7 @@ final readonly class ProductVariantData
             unitGroupId: $data['unit_group_id'],
             isActive: (bool) ($data['is_active'] ?? false),
             options: $data['options'],
-            tags: $data['tags'] ?? [],
+            labels: $data['labels'] ?? [],
         );
     }
 }

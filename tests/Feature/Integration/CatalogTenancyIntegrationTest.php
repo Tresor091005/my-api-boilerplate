@@ -264,15 +264,15 @@ it('enforces tenancy matrix for products and variants', function (): void {
 
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertOk();
     $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants")->assertForbidden();
-    $variant->attachTags(['status' => ['active']]);
+    $variant->attachLabels(['status' => ['active']]);
 
     $variantResponse = $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}")
         ->assertOk();
-    expect($variantResponse->json('data.tags'))->toBeNull();
+    expect($variantResponse->json('data.labels'))->toBeNull();
 
-    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?include=tags")
+    $this->getJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?include=labels")
         ->assertOk()
-        ->assertJsonPath('data.tags.0.name', 'active');
+        ->assertJsonPath('data.labels.0.value', 'active');
     $this->getJson("/v1/catalog/products/{$otherProduct->id}/variants/{$otherVariant->id}")->assertNotFound();
 
     $createdVariant = $this->postJson("/v1/catalog/products/{$product->id}/variants?response=resource", [

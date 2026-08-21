@@ -34,7 +34,7 @@ rule concerns several objects or a process step.
 
 - `catalog`: `CategoryException`, `OptionException`, `OptionValueException`,
   `ProductVariantException`.
-- `master`: `UnitException`, `TagException`.
+- `master`: `UnitException`, `LabelException`.
 - `pricing`: resolution and validation errors remain grouped by responsibility
   because they concern several contracts or polymorphic targets.
 - `inventory`: transaction, stock, organization, and idempotency errors remain
