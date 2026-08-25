@@ -42,6 +42,8 @@ class SharedServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../../config/business-numbering.php', 'business-numbering');
+
         $this->app->scoped(MorphMapRegistry::class);
         $this->app->scoped(ResponseContext::class);
         $this->app->scoped(ResponseContractRegistry::class);
