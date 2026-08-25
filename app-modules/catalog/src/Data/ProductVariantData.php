@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Data;
 
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
+
 final readonly class ProductVariantData
 {
     /**
@@ -16,6 +18,7 @@ final readonly class ProductVariantData
         public bool $isActive,
         public array $options,
         public array $labels,
+        public InventoryItemConfigurationData $inventory,
     ) {}
 
     /**
@@ -29,6 +32,7 @@ final readonly class ProductVariantData
             isActive: (bool) ($data['is_active'] ?? false),
             options: $data['options'],
             labels: $data['labels'] ?? [],
+            inventory: InventoryItemConfigurationData::fromArray($data['inventory'] ?? []),
         );
     }
 }

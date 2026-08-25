@@ -49,7 +49,12 @@ class TransactionalProductVariantService
 
         /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = ProductVariant::whereIn('id', $variantRows->pluck('id')->all())->get();
-        $this->inventoryService->createManyItems($variants->all());
+        $inventoryConfigurations = $variantsData->mapWithKeys(
+            fn (ProductVariantData $variantData, int $index): array => [
+                (string) $variantRows[$index]['id'] => $variantData->inventory,
+            ]
+        );
+        $this->inventoryService->createManyItems($variants->all(), $inventoryConfigurations);
 
         $this->attachOptions(
             $product,

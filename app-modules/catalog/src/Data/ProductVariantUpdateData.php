@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Data;
 
+use Lahatre\Inventory\Data\InventoryItemConfigurationUpdateData;
 use Lahatre\Shared\Data\MissingValue;
 use Lahatre\Shared\Data\MissingValueReader;
 
@@ -18,6 +19,7 @@ final readonly class ProductVariantUpdateData
         public MissingValue|bool $isActive,
         public MissingValue|array $options,
         public MissingValue|array $labels,
+        public MissingValue|InventoryItemConfigurationUpdateData $inventory,
     ) {}
 
     /**
@@ -28,12 +30,18 @@ final readonly class ProductVariantUpdateData
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
         $isActive = $read->get('is_active');
+        $inventory = array_key_exists('inventory', $data)
+            ? $data['inventory']
+            : MissingValue::Instance;
 
         return new self(
             sku: $read->get('sku'),
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             options: $read->get('options'),
             labels: $read->get('labels', default: []),
+            inventory: $inventory instanceof MissingValue
+                ? $inventory
+                : InventoryItemConfigurationUpdateData::fromArray($inventory),
         );
     }
 }

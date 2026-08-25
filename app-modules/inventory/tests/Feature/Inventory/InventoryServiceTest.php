@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -223,6 +224,20 @@ it('updateItem validates the deduction_strategy enum', function (): void {
 
     $this->service->updateItem($variant, ['deduction_strategy' => null]);
     expect($variant->inventoryItem->refresh()->deduction_strategy)->toBeNull();
+});
+
+it('validates inventory configuration before creating an item', function (): void {
+    $material = $this->createTestMaterial();
+
+    expect(fn () => $this->service->createItem(
+        $material,
+        new InventoryItemConfigurationData(
+            isExpirable: false,
+            deductionStrategy: DeductionStrategy::Fefo,
+        ),
+    ))->toThrow(ValidationException::class);
+
+    expect(InventoryItem::query()->where('itemable_id', $material->id)->exists())->toBeFalse();
 });
 
 it('only disables stock tracking when no active stock remains', function (): void {

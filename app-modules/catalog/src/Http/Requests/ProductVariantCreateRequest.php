@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
+use Lahatre\Inventory\Validation\InventoryItemPayloadRules;
 use Lahatre\Master\Validation\LabelPayloadRules;
 use Lahatre\Shared\Rules\BulkExists;
 use Lahatre\Shared\Rules\BulkUnique;
@@ -54,6 +55,7 @@ class ProductVariantCreateRequest extends FormRequest
             'variants.*.options'         => ['required', 'array', 'min:1', 'max:100'],
             'variants.*.options.*.name'  => ['required', 'string', 'max:100'],
             'variants.*.options.*.value' => ['required', 'string', 'max:100'],
+            ...InventoryItemPayloadRules::rules('variants.*.inventory'),
             ...LabelPayloadRules::rules('variants.*.labels'),
         ];
     }
@@ -65,6 +67,7 @@ class ProductVariantCreateRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             LabelPayloadRules::validate($validator, $this->all(), 'variants.*.labels');
+            InventoryItemPayloadRules::validate($validator, $this->all(), 'variants.*.inventory');
 
             $variants = $this->input('variants');
             if (!is_array($variants)) {

@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
@@ -79,7 +80,16 @@ class ProductVariantService
                 }
             }
 
-            $this->inventoryService->updateItem($variant, ['sku' => $variant->sku]);
+            $inventoryData = ['sku' => $variant->sku];
+
+            if (!$data->inventory instanceof MissingValue) {
+                $inventoryData = [
+                    ...$inventoryData,
+                    ...$data->inventory->toArray(),
+                ];
+            }
+
+            $this->syncInventoryItem($variant, $inventoryData);
         });
 
         return $variant->load(responseRelationsToLoad());
@@ -109,5 +119,23 @@ class ProductVariantService
         }
 
         return $query;
+    }
+
+    /**
+     * Keep Inventory validation errors attached to the nested Variant payload.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function syncInventoryItem(ProductVariant $variant, array $data): void
+    {
+        try {
+            $this->inventoryService->updateItem($variant, $data);
+        } catch (ValidationException $exception) {
+            $errors = collect($exception->errors())
+                ->mapWithKeys(fn (array $messages, string $field): array => ["inventory.{$field}" => $messages])
+                ->all();
+
+            throw ValidationException::withMessages($errors);
+        }
     }
 }

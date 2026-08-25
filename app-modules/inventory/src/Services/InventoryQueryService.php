@@ -29,12 +29,8 @@ use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\ViewData\AvailableLotViewData;
 use Lahatre\Inventory\ViewData\CurrencyValueViewData;
 use Lahatre\Inventory\ViewData\ItemLocationLotsViewData;
-use Lahatre\Inventory\ViewData\ItemStockLocationViewData;
-use Lahatre\Inventory\ViewData\ItemStockViewData;
 use Lahatre\Inventory\ViewData\ItemValueLocationViewData;
 use Lahatre\Inventory\ViewData\ItemValueViewData;
-use Lahatre\Inventory\ViewData\LocationStockItemViewData;
-use Lahatre\Inventory\ViewData\LocationStockViewData;
 use Lahatre\Inventory\ViewData\LocationValueItemViewData;
 use Lahatre\Inventory\ViewData\LocationValueViewData;
 use Lahatre\Master\Contracts\MasterInterface;
@@ -54,15 +50,6 @@ class InventoryQueryService
     private function itemsQuery(InventoryItemFilterData $filters): Builder
     {
         $query = InventoryItem::query()->where('organization_id', currentOrganizationId());
-
-        if ($filters->ids) {
-            $query->whereIn('id', $filters->ids);
-        }
-
-        if ($filters->itemableType && $filters->itemableId) {
-            $query->where('itemable_type', $filters->itemableType)
-                ->whereIn('itemable_id', $filters->itemableId);
-        }
 
         if ($filters->sku) {
             $query->where('sku', 'like', "$filters->sku%");
@@ -98,15 +85,6 @@ class InventoryQueryService
     {
         $query = InventoryLocation::query()->where('organization_id', currentOrganizationId());
 
-        if ($filters->ids) {
-            $query->whereIn('id', $filters->ids);
-        }
-
-        if ($filters->externalType && $filters->externalId) {
-            $query->where('external_type', $filters->externalType)
-                ->whereIn('external_id', $filters->externalId);
-        }
-
         if ($filters->isActive !== null) {
             $query->where('is_active', $filters->isActive);
         }
@@ -123,103 +101,27 @@ class InventoryQueryService
         return $location->load(responseRelationsToLoad());
     }
 
-    public function getItemStock(InventoryItem $item): ItemStockViewData
-    {
-        $item = $this->resolveItem($item);
-
-        $locations = InventoryStock::query()
-            ->select('location_id')
-            ->selectRaw('SUM(remaining) as remaining')
-            ->where('item_id', $item->id)
-            ->where('organization_id', currentOrganizationId())
-            ->where('remaining', '>', 0)
-            ->groupBy('location_id')
-            ->orderBy('location_id')
-            ->get();
-
-        return new ItemStockViewData(
-            itemId: $item->id,
-            totalRemaining: (int) $locations->sum('remaining'),
-            unitCode: $item->base_unit_code,
-            locations: $locations
-                ->map(fn (InventoryStock $stock): ItemStockLocationViewData => new ItemStockLocationViewData(
-                    locationId: $stock->location_id,
-                    remaining: (int) $stock->remaining,
-                ))
-                ->values()
-        );
-    }
-
     public function getItemValue(InventoryItem $item, InventoryItemValueFilterData $filters): ItemValueViewData
     {
         $item = $this->resolveItem($item);
 
-        $query = InventoryStock::query()
-            ->select(['location_id', 'currency_code'])
-            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
-            ->where('item_id', $item->id)
-            ->where('organization_id', currentOrganizationId())
-            ->where('remaining', '>', 0)
-            ->whereNotNull('currency_code')
-            ->groupBy('location_id', 'currency_code')
-            ->orderBy('location_id')
-            ->orderBy('currency_code');
+        $rows = $this->stockValueQuery(
+            scopeColumn: 'item_id',
+            scopeId: $item->id,
+            groupColumn: 'location_id',
+            groupIds: $filters->locationId,
+            currencyCodes: $filters->currencyCode,
+        )->get();
 
-        if ($filters->locationId) {
-            $query->whereIn('location_id', $filters->locationId);
-        }
-
-        if ($filters->currencyCode) {
-            $query->whereIn('currency_code', $filters->currencyCode);
-        }
-
-        $rows = $query->get();
-
-        $totals = $rows
-            ->groupBy('currency_code')
-            ->map(function (Collection $group, string $currency): CurrencyValueViewData {
-                $minor = $group->reduce(
-                    fn (string $carry, mixed $row): string => bcadd(
-                        $carry,
-                        (string) data_get($row, 'total_value_minor', '0'),
-                        0
-                    ),
-                    '0'
-                );
-
-                return new CurrencyValueViewData(
-                    currencyCode: $currency,
-                    totalValue: $this->masterInterface->fromMinor($minor, $currency),
-                );
-            })
-            ->values();
+        $totals = $this->sumValuesByCurrency($rows);
 
         $locations = $rows
             ->groupBy('location_id')
             ->sortKeys()
             ->map(function (Collection $group, string $locationId): ItemValueLocationViewData {
-                $values = $group
-                    ->groupBy('currency_code')
-                    ->map(function (Collection $currencyGroup, string $currency): CurrencyValueViewData {
-                        $minor = $currencyGroup->reduce(
-                            fn (string $carry, mixed $row): string => bcadd(
-                                $carry,
-                                (string) data_get($row, 'total_value_minor', '0'),
-                                0
-                            ),
-                            '0'
-                        );
-
-                        return new CurrencyValueViewData(
-                            currencyCode: $currency,
-                            totalValue: $this->masterInterface->fromMinor($minor, $currency),
-                        );
-                    })
-                    ->values();
-
                 return new ItemValueLocationViewData(
                     locationId: $locationId,
-                    values: $values,
+                    values: $this->sumValuesByCurrency($group),
                 );
             })
             ->values();
@@ -231,115 +133,27 @@ class InventoryQueryService
         );
     }
 
-    public function getLocationStock(InventoryLocation $location): LocationStockViewData
-    {
-        $organizationId = currentOrganizationId();
-        $location = $this->resolveLocation($location);
-
-        $aggregatedStocks = InventoryStock::query()
-            ->select('item_id')
-            ->selectRaw('SUM(remaining) as remaining')
-            ->where('location_id', $location->id)
-            ->where('organization_id', $organizationId)
-            ->where('remaining', '>', 0)
-            ->groupBy('item_id')
-            ->get();
-
-        /** @var Collection<string, InventoryItem> $items */
-        $items = InventoryItem::query()
-            ->where('organization_id', $organizationId)
-            ->whereIn('id', $aggregatedStocks->pluck('item_id')->all())
-            ->get()
-            ->keyBy('id');
-
-        return new LocationStockViewData(
-            locationId: $location->id,
-            items: $aggregatedStocks
-                ->map(function (InventoryStock $stock) use ($items): LocationStockItemViewData {
-                    $item = $items->get($stock->item_id);
-
-                    return new LocationStockItemViewData(
-                        itemId: $stock->item_id,
-                        sku: $item?->sku,
-                        remaining: (int) $stock->remaining,
-                        unitCode: $item?->base_unit_code,
-                    );
-                })
-                ->sortBy(fn (LocationStockItemViewData $stockItem): array => [$stockItem->sku ?? '', $stockItem->itemId])
-                ->values()
-        );
-    }
-
     public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterData $filters): LocationValueViewData
     {
         $location = $this->resolveLocation($location);
 
-        $query = InventoryStock::query()
-            ->select(['item_id', 'currency_code'])
-            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
-            ->where('location_id', $location->id)
-            ->where('organization_id', currentOrganizationId())
-            ->where('remaining', '>', 0)
-            ->whereNotNull('currency_code')
-            ->groupBy('item_id', 'currency_code')
-            ->orderBy('item_id')
-            ->orderBy('currency_code');
+        $rows = $this->stockValueQuery(
+            scopeColumn: 'location_id',
+            scopeId: $location->id,
+            groupColumn: 'item_id',
+            groupIds: $filters->itemId,
+            currencyCodes: $filters->currencyCode,
+        )->get();
 
-        if ($filters->itemId) {
-            $query->whereIn('item_id', $filters->itemId);
-        }
-
-        if ($filters->currencyCode) {
-            $query->whereIn('currency_code', $filters->currencyCode);
-        }
-
-        $rows = $query->get();
-
-        $totals = $rows
-            ->groupBy('currency_code')
-            ->map(function (Collection $group, string $currency): CurrencyValueViewData {
-                $minor = $group->reduce(
-                    fn (string $carry, mixed $row): string => bcadd(
-                        $carry,
-                        (string) data_get($row, 'total_value_minor', '0'),
-                        0
-                    ),
-                    '0'
-                );
-
-                return new CurrencyValueViewData(
-                    currencyCode: $currency,
-                    totalValue: $this->masterInterface->fromMinor($minor, $currency),
-                );
-            })
-            ->values();
+        $totals = $this->sumValuesByCurrency($rows);
 
         $items = $rows
             ->groupBy('item_id')
             ->sortKeys()
             ->map(function (Collection $group, string $itemId): LocationValueItemViewData {
-                $values = $group
-                    ->groupBy('currency_code')
-                    ->map(function (Collection $currencyGroup, string $currency): CurrencyValueViewData {
-                        $minor = $currencyGroup->reduce(
-                            fn (string $carry, mixed $row): string => bcadd(
-                                $carry,
-                                (string) data_get($row, 'total_value_minor', '0'),
-                                0
-                            ),
-                            '0'
-                        );
-
-                        return new CurrencyValueViewData(
-                            currencyCode: $currency,
-                            totalValue: $this->masterInterface->fromMinor($minor, $currency),
-                        );
-                    })
-                    ->values();
-
                 return new LocationValueItemViewData(
                     itemId: $itemId,
-                    values: $values,
+                    values: $this->sumValuesByCurrency($group),
                 );
             })
             ->values();
@@ -454,6 +268,7 @@ class InventoryQueryService
             ->where('inventory_locations.organization_id', currentOrganizationId())
             ->whereNull('inventory_items.deleted_at')
             ->whereNull('inventory_locations.deleted_at')
+            ->where('inventory_items.is_expirable', true)
             ->where('inventory_stocks.remaining', '>', 0)
             ->whereNotNull('inventory_stocks.expiration_date')
             ->where('inventory_stocks.expiration_date', '<=', now()->addDays($filters->days)->endOfDay())
@@ -474,18 +289,16 @@ class InventoryQueryService
         return $query;
     }
 
-    public function paginateItemMovements(InventoryItem $item, InventoryMovementFilterData $filters): CursorPaginator
+    public function paginateMovements(InventoryMovementFilterData $filters): CursorPaginator
     {
-        return $this->itemMovementsQuery($item, $filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+        return $this->movementsQuery($filters)
+            ->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
     }
 
     /** @return Builder<InventoryMovement> */
-    private function itemMovementsQuery(InventoryItem $item, InventoryMovementFilterData $filters): Builder
+    private function movementsQuery(InventoryMovementFilterData $filters): Builder
     {
-        $item = $this->resolveItem($item);
-
         $query = InventoryMovement::query()
-            ->where('item_id', $item->id)
             ->where('organization_id', currentOrganizationId());
         applyResponseContextToQuery($query);
 
@@ -498,28 +311,61 @@ class InventoryQueryService
         return $query;
     }
 
-    public function paginateLocationMovements(InventoryLocation $location, InventoryMovementFilterData $filters): CursorPaginator
-    {
-        return $this->locationMovementsQuery($location, $filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
-    }
+    /**
+     * @param  array<int, string>|null  $groupIds
+     * @param  array<int, string>|null  $currencyCodes
+     * @return Builder<InventoryStock>
+     */
+    private function stockValueQuery(
+        string $scopeColumn,
+        string $scopeId,
+        string $groupColumn,
+        ?array $groupIds = null,
+        ?array $currencyCodes = null,
+    ): Builder {
+        $query = InventoryStock::query()
+            ->select([$groupColumn, 'currency_code'])
+            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
+            ->where($scopeColumn, $scopeId)
+            ->where('organization_id', currentOrganizationId())
+            ->where('remaining', '>', 0)
+            ->whereNotNull('currency_code')
+            ->groupBy($groupColumn, 'currency_code')
+            ->orderBy($groupColumn)
+            ->orderBy('currency_code');
 
-    /** @return Builder<InventoryMovement> */
-    private function locationMovementsQuery(InventoryLocation $location, InventoryMovementFilterData $filters): Builder
-    {
-        $location = $this->resolveLocation($location);
+        if ($groupIds) {
+            $query->whereIn($groupColumn, $groupIds);
+        }
 
-        $query = InventoryMovement::query()
-            ->where('location_id', $location->id)
-            ->where('organization_id', currentOrganizationId());
-        applyResponseContextToQuery($query);
-
-        $this->applyMovementFilters($query, $filters);
-
-        $query
-            ->orderByDesc('created_at')
-            ->orderByDesc('id');
+        if ($currencyCodes) {
+            $query->whereIn('currency_code', $currencyCodes);
+        }
 
         return $query;
+    }
+
+    /** @return Collection<int, CurrencyValueViewData> */
+    private function sumValuesByCurrency(Collection $rows): Collection
+    {
+        return $rows
+            ->groupBy('currency_code')
+            ->map(function (Collection $group, string $currency): CurrencyValueViewData {
+                $minor = $group->reduce(
+                    fn (string $carry, mixed $row): string => bcadd(
+                        $carry,
+                        (string) data_get($row, 'total_value_minor', '0'),
+                        0
+                    ),
+                    '0'
+                );
+
+                return new CurrencyValueViewData(
+                    currencyCode: $currency,
+                    totalValue: $this->masterInterface->fromMinor($minor, $currency),
+                );
+            })
+            ->values();
     }
 
     public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransaction
@@ -571,6 +417,14 @@ class InventoryQueryService
 
     protected function applyMovementFilters(Builder $query, InventoryMovementFilterData $filters): void
     {
+        if ($filters->itemId) {
+            $query->whereIn('item_id', $filters->itemId);
+        }
+
+        if ($filters->locationId) {
+            $query->whereIn('location_id', $filters->locationId);
+        }
+
         if ($filters->from instanceof CarbonImmutable) {
             $query->where('created_at', '>=', $filters->from->startOfDay());
         }

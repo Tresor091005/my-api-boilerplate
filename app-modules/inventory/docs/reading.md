@@ -26,8 +26,7 @@ Values include the cost remainder and are converted from persisted minor units i
 
 ## History
 
-- `listItemMovements($item, $filters)`: movements for an item;
-- `listLocationMovements($location, $filters)`: movements for a location;
+- `listMovements($filters)`: movements, optionally filtered by item, location, type, date, or business reference;
 - `listTransactions($filters)`: transaction ledger;
 - `retrieveTransaction($transaction)`: one transaction with its movements, stocks, units, currencies, and locations loaded.
 
@@ -39,17 +38,10 @@ All package routes use the `/v1/inventory` prefix and return resources or cursor
 
 | Method | Endpoint | Read |
 |---|---|---|
-| GET | `/items` | List inventory items |
-| GET | `/items/{item}` | Retrieve an item |
-| GET | `/items/{item}/stock` | Item stock by location |
 | GET | `/items/{item}/value` | Item value by currency |
 | GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
-| GET | `/items/{item}/movements` | Item movement history |
-| GET | `/locations` | List inventory locations |
-| GET | `/locations/{location}` | Retrieve a location |
-| GET | `/locations/{location}/stock` | Location stock by item |
+| GET | `/movements` | Movement history, optionally filtered by item or location |
 | GET | `/locations/{location}/value` | Location value by currency |
-| GET | `/locations/{location}/movements` | Location movement history |
 | GET | `/stock/summary` | Global item/location summary |
 | GET | `/stock/expiring` | Expiring active lots |
 | GET | `/transactions` | List transactions |

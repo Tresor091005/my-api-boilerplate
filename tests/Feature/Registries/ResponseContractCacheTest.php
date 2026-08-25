@@ -87,17 +87,15 @@ it('maps every relation-backed resource operation to required loads or includes'
     $registry->discover();
 
     $expectations = [
-        'lahatre.catalog.categories.show'         => ['bloodline' => ['bloodline']],
-        'lahatre.catalog.options.show'            => ['values' => ['values']],
-        'lahatre.catalog.options.values.show'     => ['option' => ['option']],
-        'lahatre.catalog.products.variants.show'  => ['unit_group' => ['unitGroup']],
-        'lahatre.inventory.items.show'            => ['stocks.location' => ['stocks.location']],
-        'lahatre.inventory.locations.show'        => ['stocks.currency' => ['stocks.currency']],
-        'lahatre.inventory.items.movements.index' => ['location' => ['location']],
-        'lahatre.inventory.transactions.show'     => ['movements' => ['movements']],
-        'lahatre.inventory.stocks.update'         => ['unit' => ['unit']],
-        'lahatre.master.units.index'              => ['group' => ['group']],
-        'lahatre.master.units.upsert'             => ['units' => ['units']],
+        'lahatre.catalog.categories.show'        => ['bloodline' => ['bloodline']],
+        'lahatre.catalog.options.show'           => ['values' => ['values']],
+        'lahatre.catalog.options.values.show'    => ['option' => ['option']],
+        'lahatre.catalog.products.variants.show' => ['unit_group' => ['unitGroup']],
+        'lahatre.inventory.movements.index'      => ['location' => ['location']],
+        'lahatre.inventory.transactions.show'    => ['movements' => ['movements']],
+        'lahatre.inventory.stocks.update'        => ['unit' => ['unit']],
+        'lahatre.master.units.index'             => ['group' => ['group']],
+        'lahatre.master.units.upsert'            => ['units' => ['units']],
     ];
 
     foreach ($expectations as $routeName => $includes) {

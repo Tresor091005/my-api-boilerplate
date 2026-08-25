@@ -39,7 +39,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('returns aggregated item stock, location stock, and active lots', function (): void {
+it('returns active lots for an item and location', function (): void {
     $item = InventoryItem::factory()->create([
         'base_unit_code'     => $this->unit->code,
         'deduction_strategy' => DeductionStrategy::Fefo,
@@ -75,21 +75,6 @@ it('returns aggregated item stock, location stock, and active lots', function ()
         'remaining'     => 40,
     ]);
 
-    $this->getJson("/v1/inventory/items/{$item->id}/stock")
-        ->assertOk()
-        ->assertJsonPath('item_id', $item->id)
-        ->assertJsonPath('total_remaining', 240)
-        ->assertJsonPath('unit_code', $this->unit->code)
-        ->assertJsonCount(2, 'locations')
-        ->assertJsonFragment([
-            'location_id' => $locationA->id,
-            'remaining'   => 200,
-        ])
-        ->assertJsonFragment([
-            'location_id' => $locationB->id,
-            'remaining'   => 40,
-        ]);
-
     $this->getJson("/v1/inventory/items/{$item->id}/value")
         ->assertOk()
         ->assertJsonPath('item_id', $item->id)
@@ -97,13 +82,6 @@ it('returns aggregated item stock, location stock, and active lots', function ()
             'totals'    => [['currency_code', 'total_value']],
             'locations' => [['location_id', 'values' => [['currency_code', 'total_value']]]],
         ]);
-
-    $this->getJson("/v1/inventory/locations/{$locationA->id}/stock")
-        ->assertOk()
-        ->assertJsonPath('location_id', $locationA->id)
-        ->assertJsonPath('items.0.item_id', $item->id)
-        ->assertJsonPath('items.0.remaining', 200)
-        ->assertJsonPath('items.0.unit_code', $this->unit->code);
 
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots")
         ->assertOk()
@@ -264,6 +242,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
     $itemA = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
         'sku'            => 'ITEM-A',
+        'is_expirable'   => true,
     ]);
     $itemB = InventoryItem::factory()->create([
         'base_unit_code' => $this->unit->code,
@@ -285,7 +264,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         'currency_code'   => $this->currency->code,
         'quantity'        => 90,
         'remaining'       => 90,
-        'expiration_date' => now()->addDays(12),
+        'expiration_date' => now()->addDays(2),
     ]);
 
     InventoryStock::factory()->for($itemA, 'item')->for($locationB, 'location')->create([
@@ -304,6 +283,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
     $this->getJson('/v1/inventory/stock/expiring?days=7')
         ->assertOk()
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
+        ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.stock_id', $expiringLot->id)
         ->assertJsonPath('data.0.item_id', $itemA->id)
         ->assertJsonPath('data.0.location_id', $locationA->id)
@@ -316,7 +296,7 @@ it('validates query filters on expiring stock endpoint', function (): void {
         ->assertJsonValidationErrors('days');
 });
 
-it('lists inventory items and locations with optional includes', function (): void {
+it('does not expose inventory item and location registry endpoints', function (): void {
     $variant = $this->createTestMaterial();
     $item = InventoryItem::factory()->create([
         'itemable_type'  => $variant->getMorphClass(),
@@ -335,64 +315,10 @@ it('lists inventory items and locations with optional includes', function (): vo
         'currency_code' => $this->currency->code,
     ]);
 
-    $this->getJson("/v1/inventory/items/{$item->id}")
-        ->assertOk()
-        ->assertJsonPath('data.id', $item->id)
-        ->assertJsonPath('data.is_expirable', false)
-        ->assertJsonMissingPath('data.itemable');
-
-    $this->getJson("/v1/inventory/items/{$item->id}?include=itemable")
-        ->assertOk()
-        ->assertJsonPath('data.id', $item->id)
-        ->assertJsonPath('data.itemable.id', $variant->id)
-        ->assertJsonPath('data.itemable.sku', $variant->sku);
-
-    $this->getJson("/v1/inventory/items/{$item->id}?include=stocks")
-        ->assertOk()
-        ->assertJsonPath('data.stocks.0.id', $stock->id)
-        ->assertJsonMissingPath('data.itemable');
-
-    $this->getJson("/v1/inventory/items?ids[]={$item->id}&include=itemable")
-        ->assertOk()
-        ->assertJsonPath('data.0.id', $item->id)
-        ->assertJsonPath('data.0.itemable.id', $variant->id)
-        ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']]);
-
-    $this->getJson("/v1/inventory/locations/{$location->id}")
-        ->assertOk()
-        ->assertJsonPath('data.id', $location->id)
-        ->assertJsonMissingPath('data.external');
-
-    $this->getJson("/v1/inventory/locations/{$location->id}?include=external")
-        ->assertOk()
-        ->assertJsonPath('data.id', $location->id)
-        ->assertJsonPath('data.external.id', $org->id)
-        ->assertJsonPath('data.external.name', $org->name);
-
-    $this->getJson("/v1/inventory/locations/{$location->id}?include=stocks")
-        ->assertOk()
-        ->assertJsonPath('data.stocks.0.id', $stock->id)
-        ->assertJsonMissingPath('data.external');
-
-    $this->getJson("/v1/inventory/locations?ids[]={$location->id}&include=external")
-        ->assertOk()
-        ->assertJsonPath('data.0.id', $location->id)
-        ->assertJsonPath('data.0.external.id', $org->id)
-        ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']]);
-
-    $this->getJson('/v1/inventory/items')
-        ->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['per_page', 'next_cursor', 'prev_cursor']]);
-
-    $this->getJson("/v1/inventory/items?itemable_type={$item->itemable_type}&itemable_id[]={$item->itemable_id}&include=itemable")
-        ->assertOk()
-        ->assertJsonPath('data.0.id', $item->id)
-        ->assertJsonPath('data.0.itemable.id', $variant->id);
-
-    $this->getJson("/v1/inventory/locations?external_type={$location->external_type}&external_id[]={$location->external_id}&include=external")
-        ->assertOk()
-        ->assertJsonPath('data.0.id', $location->id)
-        ->assertJsonPath('data.0.external.id', $org->id);
+    $this->getJson('/v1/inventory/items')->assertNotFound();
+    $this->getJson("/v1/inventory/items/{$item->id}")->assertNotFound();
+    $this->getJson('/v1/inventory/locations')->assertNotFound();
+    $this->getJson("/v1/inventory/locations/{$location->id}")->assertNotFound();
 });
 
 it('returns movements filtered by item, location, and transaction reference plus transaction details', function (): void {
@@ -435,7 +361,7 @@ it('returns movements filtered by item, location, and transaction reference plus
         ]],
     ]);
 
-    $this->getJson("/v1/inventory/items/{$item->id}/movements?movement_type=out&reference_type=sale_order&reference_id={$saleReferenceId}")
+    $this->getJson("/v1/inventory/movements?item_id[]={$item->id}&location_id[]={$location->id}&movement_type=out&reference_type=sale_order&reference_id={$saleReferenceId}")
         ->assertOk()
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
         ->assertJsonCount(1, 'data')
@@ -443,7 +369,7 @@ it('returns movements filtered by item, location, and transaction reference plus
         ->assertJsonPath('data.0.movement_type', MovementType::Out->value)
         ->assertJsonPath('data.0.quantity', 35);
 
-    $this->getJson("/v1/inventory/locations/{$location->id}/movements")
+    $this->getJson("/v1/inventory/movements?location_id[]={$location->id}")
         ->assertOk()
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
         ->assertJsonCount(2, 'data');

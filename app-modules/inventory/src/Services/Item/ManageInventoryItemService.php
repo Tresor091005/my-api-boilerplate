@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
@@ -24,20 +25,23 @@ class ManageInventoryItemService
         protected OrganizationScopeResolver $organizationScopeResolver,
     ) {}
 
-    public function create(HasInventoryItem $model): InventoryItem
+    public function create(HasInventoryItem $model, ?InventoryItemConfigurationData $configuration = null): InventoryItem
     {
         return DB::transaction(
-            fn (): InventoryItem => $this->ensure(collect([$model]))->firstOrFail()
+            fn (): InventoryItem => $this->ensure(
+                collect([$model]),
+                $configuration === null ? [] : [(string) $model->getKey() => $configuration],
+            )->firstOrFail()
         );
     }
 
     /**
      * @param  array<int, HasInventoryItem>|Collection<int, HasInventoryItem>  $models
      */
-    public function createMany(array|Collection $models): Collection
+    public function createMany(array|Collection $models, array|Collection $configurations = []): Collection
     {
         return DB::transaction(
-            fn (): Collection => $this->ensure(collect($models))
+            fn (): Collection => $this->ensure(collect($models), $configurations)
         );
     }
 
@@ -47,25 +51,6 @@ class ManageInventoryItemService
     public function update(HasInventoryItem $model, array $data): InventoryItem
     {
         return DB::transaction(fn (): InventoryItem => $this->persistUpdate($this->resolve($model), $data));
-    }
-
-    public function updateRecord(InventoryItem $item, array $data): InventoryItem
-    {
-        $organizationId = currentOrganizationId();
-
-        $this->assertInventoryItemOrganization($item, $organizationId);
-
-        $updatedItem = DB::transaction(function () use ($item, $data, $organizationId): InventoryItem {
-            $lockedItem = InventoryItem::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($item->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            return $this->persistUpdate($lockedItem, $data);
-        });
-
-        return $updatedItem->load(responseRelationsToLoad());
     }
 
     /**
@@ -115,6 +100,8 @@ class ManageInventoryItemService
             $strategy = null;
         }
 
+        $this->validateConfiguration($isExpirable, $strategy);
+
         $item->fill([
             'sku'                    => $validated['sku'] ?? $item->sku,
             'stock_tracking_enabled' => $stockTrackingEnabled,
@@ -123,6 +110,21 @@ class ManageInventoryItemService
         ])->save();
 
         return $item;
+    }
+
+    protected function validateConfiguration(bool $isExpirable, ?DeductionStrategy $strategy): void
+    {
+        if ($strategy === DeductionStrategy::Fifo && $isExpirable) {
+            throw ValidationException::withMessages([
+                'deduction_strategy' => __('inventory::validation.fifo_expirable_prohibited'),
+            ]);
+        }
+
+        if ($strategy === DeductionStrategy::Fefo && !$isExpirable) {
+            throw ValidationException::withMessages([
+                'deduction_strategy' => __('inventory::validation.fefo_non_expirable_prohibited'),
+            ]);
+        }
     }
 
     public function delete(HasInventoryItem $model): void
@@ -158,13 +160,15 @@ class ManageInventoryItemService
      * @param  Collection<int, HasInventoryItem>  $models
      * @return Collection<int, InventoryItem>
      */
-    public function ensure(Collection $models): Collection
+    public function ensure(Collection $models, array|Collection $configurations = []): Collection
     {
         $organizationId = currentOrganizationId();
 
         if ($models->isEmpty()) {
             return collect();
         }
+
+        $configurations = collect($configurations);
 
         $models = $models
             ->map(fn (HasInventoryItem $model): HasInventoryItem => $this->resolveAndValidateModel($model));
@@ -196,17 +200,29 @@ class ManageInventoryItemService
 
                 InventoryItem::query()->insert(
                     $missingModels
-                        ->map(fn (HasInventoryItem $model): array => [
-                            'id'                     => (string) Str::uuid7(),
-                            'organization_id'        => $organizationId,
-                            'itemable_type'          => $model->getMorphClass(),
-                            'itemable_id'            => (string) $model->getKey(),
-                            'sku'                    => $model->getSku(),
-                            'stock_tracking_enabled' => true,
-                            'base_unit_code'         => $this->masterInterface->baseUnit($model->getUnitGroupId())->code,
-                            'created_at'             => $now,
-                            'updated_at'             => $now,
-                        ])
+                        ->map(function (HasInventoryItem $model) use ($configurations, $organizationId, $now): array {
+                            $configuration = $configurations->get((string) $model->getKey())
+                                ?? new InventoryItemConfigurationData;
+
+                            $this->validateConfiguration(
+                                $configuration->isExpirable,
+                                $configuration->deductionStrategy,
+                            );
+
+                            return [
+                                'id'                     => (string) Str::uuid7(),
+                                'organization_id'        => $organizationId,
+                                'itemable_type'          => $model->getMorphClass(),
+                                'itemable_id'            => (string) $model->getKey(),
+                                'sku'                    => $model->getSku(),
+                                'stock_tracking_enabled' => $configuration->stockTrackingEnabled,
+                                'base_unit_code'         => $this->masterInterface->baseUnit($model->getUnitGroupId())->code,
+                                'is_expirable'           => $configuration->isExpirable,
+                                'deduction_strategy'     => $configuration->deductionStrategy?->value,
+                                'created_at'             => $now,
+                                'updated_at'             => $now,
+                            ];
+                        })
                         ->all()
                 );
 
@@ -241,12 +257,5 @@ class ManageInventoryItemService
         }
 
         return $resolution;
-    }
-
-    protected function assertInventoryItemOrganization(InventoryItem $item, string $organizationId): void
-    {
-        if ($item->organization_id !== $organizationId) {
-            throw OrganizationScopeException::mismatch();
-        }
     }
 }

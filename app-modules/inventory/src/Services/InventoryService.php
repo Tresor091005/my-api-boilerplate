@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Inventory\Data\MovementData;
 use Lahatre\Inventory\Data\MovementExecutionContextData;
 use Lahatre\Inventory\Data\TransactionData;
@@ -65,17 +66,17 @@ class InventoryService implements InventoryInterface
         return $this->inventoryLocationService->createMany($models);
     }
 
-    public function createItem(HasInventoryItem $model): InventoryItem
+    public function createItem(HasInventoryItem $model, ?InventoryItemConfigurationData $configuration = null): InventoryItem
     {
-        return $this->inventoryItemService->create($model);
+        return $this->inventoryItemService->create($model, $configuration);
     }
 
     /**
      * @param  array<int, HasInventoryItem>|Collection<int, HasInventoryItem>  $models
      */
-    public function createManyItems(array|Collection $models): Collection
+    public function createManyItems(array|Collection $models, array|Collection $configurations = []): Collection
     {
-        return $this->inventoryItemService->createMany($models);
+        return $this->inventoryItemService->createMany($models, $configurations);
     }
 
     public function updateLocation(HasInventoryLocation $model, array $data): InventoryLocation

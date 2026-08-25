@@ -24,6 +24,10 @@ class InventoryMovementFilterRequest extends FormRequest
         return [
             'per_page'       => ['integer', 'min:1', 'max:100'],
             'cursor'         => ['nullable', 'string'],
+            'item_id'        => ['nullable', 'array', 'min:1', 'max:100'],
+            'item_id.*'      => ['uuid'],
+            'location_id'    => ['nullable', 'array', 'min:1', 'max:100'],
+            'location_id.*'  => ['uuid'],
             'from'           => ['nullable', 'date'],
             'to'             => ['nullable', 'date', 'after_or_equal:from'],
             'movement_type'  => ['nullable', Rule::enum(MovementType::class)],

@@ -1,13 +1,3 @@
-## Next high priority — audit polymorphic Inventory tenant scoping
-
-- [ ] Clarify transaction ownership and concurrency safety for creation, batch
-  resolution, updates, and deletion. Preserve tenant-aware constraints and
-  operation atomicity.
-- [ ] Add integration tests for another organization's model, a forged
-  in-memory organization, a partially hydrated model, a null organization,
-  missing context, direct service calls, inter-tenant polymorphic links, eager
-  loading, batch resolution, and concurrency.
-
 ## Current status
 
 ### Already usable
@@ -100,6 +90,33 @@
 - [ ] Keep internal prices, inventory costs, movements, and aggregates in the
   functional currency. Do not convert every row that happens to contain a
   `currency_code`.
+- [ ] Audit and migrate Inventory away from per-operation currencies once
+  `organization.functional_currency_code` exists:
+  - [ ] Make `inventory_stocks.currency_code` and
+    `inventory_movements.currency_code` represent the organization's
+    functional currency for new internal records; define the treatment of
+    existing nullable or foreign-currency rows before enforcing the rule.
+  - [ ] Remove the ability for `IN` and `ADJUSTMENT` payloads to choose an
+    arbitrary currency; resolve and validate the organization functional
+    currency in the transaction service.
+  - [ ] Keep `OUT`, `TRANSFER`, and reversal currency propagation coherent
+    with the original internal stock or movement currency while historical
+    data is being supported.
+  - [ ] Replace adjustment's currency-specific average-cost selection with
+    the functional-currency stock cost, and reject or explicitly convert
+    incompatible historical stock.
+  - [ ] Enrich Inventory `/stock/summary` rows with `total_value` and the
+    organization's functional `currency_code`; the value is calculated per
+    item/location row and can be aggregated by clients after filtering.
+  - [ ] Remove the redundant Inventory value endpoints
+    (`items/{item}/value` and `locations/{location}/value`) once the enriched
+    summary is available; do not preserve separate per-currency grouping.
+  - [ ] Update Inventory contracts, data objects, validation, resources,
+    README examples, factories, and tests that currently expose or require a
+    movement-level `currency_code`.
+  - [ ] Preserve `currency_code` in immutable historical records where it is
+    needed for auditability; this is a data migration decision, not a blanket
+    column deletion.
 - [ ] Allow foreign-currency payment only when the organization configuration
   permits it. Creating a second organization is reserved for a genuinely
   separate legal, accounting, or operational lifecycle.
@@ -129,9 +146,9 @@
 - [ ] `inventory`: review HTTP authorization for every exposed route,
   including read endpoints, nested resources, policies, permissions, and
   organization boundaries.
-- [ ] `inventory`: define the update pattern for `InventoryItem` and
-  `InventoryLocation`, including parent-owned updates versus standalone
-  Inventory endpoints.
+- [x] `inventory`: manage `InventoryItem` and `InventoryLocation` lifecycle
+  through their owning polymorphic workflows; do not expose standalone
+  Inventory lifecycle endpoints.
 - [ ] `product variant`: define the sales/order integration that will trigger
   Inventory movements.
 - [ ] `unit`: cover safe deletion of groups and units that are already in use.

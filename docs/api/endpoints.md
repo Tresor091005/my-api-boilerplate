@@ -48,17 +48,10 @@ The target must use `InteractsWithLabels` and belong to the active organization.
 
 | Method | URI | Purpose |
 | --- | --- | --- |
-| GET | `/v1/inventory/items` | List registered inventory items. |
-| GET | `/v1/inventory/items/{item}` | Retrieve an item. |
-| GET | `/v1/inventory/items/{item}/stock` | Read item stock. |
 | GET | `/v1/inventory/items/{item}/value` | Aggregate item value. |
 | GET | `/v1/inventory/items/{item}/locations/{location}/lots` | Read lots for an item/location pair. |
-| GET | `/v1/inventory/items/{item}/movements` | Read item movements. |
-| GET | `/v1/inventory/locations` | List registered locations. |
-| GET | `/v1/inventory/locations/{location}` | Retrieve a location. |
-| GET | `/v1/inventory/locations/{location}/stock` | Read location stock. |
+| GET | `/v1/inventory/movements` | Read movements, optionally filtered by item, location, type, date, or business reference. |
 | GET | `/v1/inventory/locations/{location}/value` | Aggregate location value. |
-| GET | `/v1/inventory/locations/{location}/movements` | Read location movements. |
 | GET | `/v1/inventory/stock/summary` | Read stock summary. |
 | GET | `/v1/inventory/stock/expiring` | Read expiring lots. |
 | PATCH | `/v1/inventory/stocks/{stock}` | Update stock metadata only. |
@@ -77,9 +70,7 @@ available; its threshold model is still a specification.
 - `/debug` is Telescope when enabled.
 - `/queues` is Horizon when enabled and authorized.
 
-Inventory item configuration can be updated with `PATCH /v1/inventory/items/{item}`.
-The `stock_tracking_enabled` flag can be turned off only when the item has no
-active stock remaining; deletion is also rejected while active stock remains.
-SKU, expiration, and deduction strategy are owned by the inventory item rather
-than duplicated on catalog variants.
+Inventory item and location lifecycle changes are managed by the owning
+polymorphic business workflows. Inventory exposes read endpoints for these
+records, while item configuration is propagated through those workflows.
 - `/docs/api` is the Scramble OpenAPI UI when enabled by the package.
