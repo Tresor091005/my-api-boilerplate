@@ -77,6 +77,36 @@
 - [ ] Define business links: `supplier -> procurement`, `customer -> order`.
 - [ ] Decide when these flows officially begin affecting Inventory and Pricing.
 
+## TODO: organization currencies and exchange rates
+
+- [ ] Add an immutable `functional_currency_code` to `organization`: set it
+  once, reject in-place changes, and use it as the currency for internal
+  prices, stock costs, balances, and aggregates.
+- [ ] Define currency transitions as a migration to a new organization with
+  new identifiers, an explicit opening-balance conversion, and closure of the
+  previous organization. Do not rewrite historical rows in place.
+- [ ] Add an `ExchangeRateService` with an explicit organization, source and
+  target currency, direction, effective date, amount, and rounding policy. It
+  must not resolve tenant context implicitly.
+- [ ] Define organization-scoped rate configuration for fixed/manual rates,
+  validity periods, rate ownership, and the rule for selecting a rate at quote
+  and settlement time.
+- [ ] Persist immutable exchange-rate snapshots on external monetary
+  operations, including the original amount and currency, the functional
+  amount and currency, the rate, currency exponents, and effective timestamp.
+- [ ] Use conversion at external boundaries: customer payments, refunds,
+  supplier invoices, expenses, revenues, imports, and organization
+  transitions.
+- [ ] Keep internal prices, inventory costs, movements, and aggregates in the
+  functional currency. Do not convert every row that happens to contain a
+  `currency_code`.
+- [ ] Allow foreign-currency payment only when the organization configuration
+  permits it. Creating a second organization is reserved for a genuinely
+  separate legal, accounting, or operational lifecycle.
+- [ ] Add tests for same-currency operations, disabled conversion, fixed-rate
+  conversion, inbound and outbound directions, rounding, rate validity, rate
+  snapshots, historical reproducibility, and transition opening balances.
+
 ## TODO: stock location
 
 - [ ] Name the business concept correctly.
