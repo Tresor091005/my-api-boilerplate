@@ -23,16 +23,18 @@ trait InteractsWithInventoryTestFixtures
         $now = now();
         DB::table('organization_organizations')->insert([
             [
-                'id'         => $this->organizationId,
-                'name'       => 'Inventory Test Organization',
-                'created_at' => $now,
-                'updated_at' => $now,
+                'id'                       => $this->organizationId,
+                'name'                     => 'Inventory Test Organization',
+                'functional_currency_code' => 'XOF',
+                'created_at'               => $now,
+                'updated_at'               => $now,
             ],
             [
-                'id'         => $this->otherOrganizationId,
-                'name'       => 'Inventory Other Organization',
-                'created_at' => $now,
-                'updated_at' => $now,
+                'id'                       => $this->otherOrganizationId,
+                'name'                     => 'Inventory Other Organization',
+                'functional_currency_code' => 'XOF',
+                'created_at'               => $now,
+                'updated_at'               => $now,
             ],
         ]);
 

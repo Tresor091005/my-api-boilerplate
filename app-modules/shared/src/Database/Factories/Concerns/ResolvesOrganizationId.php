@@ -20,11 +20,12 @@ trait ResolvesOrganizationId
         $organizationId = (string) Str::uuid7();
 
         DB::table('organization_organizations')->insert([
-            'id'         => $organizationId,
-            'name'       => 'Factory Organization '.$organizationId,
-            'created_at' => now(),
-            'updated_at' => now(),
-            'deleted_at' => null,
+            'id'                       => $organizationId,
+            'name'                     => 'Factory Organization '.$organizationId,
+            'functional_currency_code' => 'XOF',
+            'created_at'               => now(),
+            'updated_at'               => now(),
+            'deleted_at'               => null,
         ]);
 
         return $organizationId;

@@ -55,18 +55,20 @@ it('scopes cached units to system units and the current organization', function 
 
     DB::table('organization_organizations')->insert([
         [
-            'id'         => $organizationId,
-            'name'       => 'Cache Test Organization',
-            'created_at' => $now,
-            'updated_at' => $now,
-            'deleted_at' => null,
+            'id'                       => $organizationId,
+            'name'                     => 'Cache Test Organization',
+            'functional_currency_code' => 'XOF',
+            'created_at'               => $now,
+            'updated_at'               => $now,
+            'deleted_at'               => null,
         ],
         [
-            'id'         => $otherOrganizationId,
-            'name'       => 'Other Cache Test Organization',
-            'created_at' => $now,
-            'updated_at' => $now,
-            'deleted_at' => null,
+            'id'                       => $otherOrganizationId,
+            'name'                     => 'Other Cache Test Organization',
+            'functional_currency_code' => 'XOF',
+            'created_at'               => $now,
+            'updated_at'               => $now,
+            'deleted_at'               => null,
         ],
     ]);
 
