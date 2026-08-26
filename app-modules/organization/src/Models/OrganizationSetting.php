@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Organization\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -14,6 +15,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property array<int, string> $enable_currencies
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ *
+ * @method static Builder<static>|OrganizationSetting newModelQuery()
+ * @method static Builder<static>|OrganizationSetting newQuery()
+ * @method static Builder<static>|OrganizationSetting query()
+ *
+ * @mixin \Eloquent
  */
 class OrganizationSetting extends Model
 {

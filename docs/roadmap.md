@@ -69,21 +69,30 @@
 
 ## TODO: organization currencies and exchange rates
 
-- [ ] Add an immutable `functional_currency_code` to `organization`: set it
-  once, reject in-place changes, and use it as the currency for internal
-  prices, stock costs, balances, and aggregates.
+- [x] Add an immutable `functional_currency_code` to `organization`: set it
+  once and reject in-place changes. Using it for internal prices, stock costs,
+  balances, and aggregates remains part of the downstream Inventory and
+  business-module work.
+- [x] Add organization currency settings through `organization_settings`.
+  `enable_currencies` is initialized with the functional currency, and every
+  additional currency must exist in the Master currency catalog before it can
+  be enabled.
 - [ ] Define currency transitions as a migration to a new organization with
   new identifiers, an explicit opening-balance conversion, and closure of the
   previous organization. Do not rewrite historical rows in place.
-- [ ] Add an `ExchangeRateService` with an explicit organization, source and
-  target currency, direction, effective date, amount, and rounding policy. It
-  must not resolve tenant context implicitly.
-- [ ] Define organization-scoped rate configuration for fixed/manual rates,
-  validity periods, rate ownership, and the rule for selecting a rate at quote
-  and settlement time.
-- [ ] Persist immutable exchange-rate snapshots on external monetary
-  operations, including the original amount and currency, the functional
-  amount and currency, the rate, currency exponents, and effective timestamp.
+- [x] Add organization-scoped manual exchange rates with CRUD API, directed
+  currency pairs, effective dates, a closed `default` context, uniqueness by
+  organization/pair/context/effective date, and protection for effective rates.
+- [x] Add an `ExchangeRateService` that resolves the active organization from
+  the current organization ID, validates enabled currencies, selects the
+  latest applicable directed rate, converts minor units with BCMath, and
+  applies explicit half-up rounding. A missing requested context falls back
+  to `default` before conversion is rejected.
+- [~] Return exchange-rate snapshots from the conversion service, including the
+  requested and effective contexts, original and functional currencies and
+  amounts, rate, and effective timestamp. Persisting this snapshot on each
+  external monetary document remains the responsibility of the future business
+  module that owns that document.
 - [ ] Use conversion at external boundaries: customer payments, refunds,
   supplier invoices, expenses, revenues, imports, and organization
   transitions.

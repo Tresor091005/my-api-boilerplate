@@ -15,22 +15,24 @@ use Lahatre\Organization\Models\OrganizationSetting;
 class OrganizationSettingsService
 {
     public function __construct(
-        private MasterInterface $masterInterface,
+        private readonly MasterInterface $masterInterface,
     ) {}
 
-    public function retrieve(Organization $organization): OrganizationSetting
+    public function retrieve(): OrganizationSetting
     {
+        $organization = $this->currentOrganization();
         /** @var OrganizationSetting $settings */
         $settings = $organization->settings()->firstOrFail();
 
         return $settings;
     }
 
-    public function update(Organization $organization, OrganizationSettingsData $data): OrganizationSetting
+    public function update(OrganizationSettingsData $data): OrganizationSetting
     {
+        $organization = $this->currentOrganization();
         /** @var Collection<int, string> $currencyCodes */
         $currencyCodes = collect(array_map(
-            fn (string $code): string => Str::upper($code),
+            fn (string $code): string => Str::toUpper($code),
             $data->enableCurrencies,
         ))
             ->unique()
@@ -48,9 +50,17 @@ class OrganizationSettingsService
             }
         }
 
-        $settings = $this->retrieve($organization);
+        $settings = $this->retrieve();
         $settings->update(['enable_currencies' => $currencyCodes->all()]);
 
         return $settings->refresh();
+    }
+
+    private function currentOrganization(): Organization
+    {
+        /** @var Organization $organization */
+        $organization = Organization::query()->findOrFail(currentOrganizationId());
+
+        return $organization;
     }
 }

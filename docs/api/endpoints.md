@@ -44,6 +44,23 @@ The labelable labels endpoint resolves `labelable_type` through the registered
 morph map and requires the target model's `{morph_alias}.retrieve` permission.
 The target must use `InteractsWithLabels` and belong to the active organization.
 
+## Organization
+
+| Method | URI | Purpose |
+| --- | --- | --- |
+| GET | `/v1/organization/settings` | Retrieve the active organization's enabled currency codes. |
+| PATCH | `/v1/organization/settings` | Replace enabled currency codes while retaining the functional currency. |
+| GET | `/v1/organization/exchange-rates` | List exchange rates for the active organization. |
+| POST | `/v1/organization/exchange-rates` | Create a future or historical exchange rate. |
+| GET | `/v1/organization/exchange-rates/{exchange_rate}` | Retrieve one exchange rate. |
+| PATCH | `/v1/organization/exchange-rates/{exchange_rate}` | Update a future exchange rate. |
+| DELETE | `/v1/organization/exchange-rates/{exchange_rate}` | Delete a future exchange rate. |
+
+Exchange rates are organization-scoped. Effective rates are immutable; corrections
+must be created as a new effective-dated rate. All exchange-rate routes require
+the dedicated model permissions. Settings are also organization-scoped and
+require the dedicated settings permissions.
+
 ## Inventory reads and stock metadata
 
 | Method | URI | Purpose |

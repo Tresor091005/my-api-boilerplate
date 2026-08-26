@@ -38,7 +38,7 @@ class OrganizationSettingsRequest extends FormRequest
     {
         $this->merge([
             'enable_currencies' => collect($this->input('enable_currencies', []))
-                ->map(fn (mixed $code): mixed => is_string($code) ? Str::upper($code) : $code)
+                ->map(fn (mixed $code): mixed => is_string($code) ? Str::toUpper($code) : $code)
                 ->all(),
         ]);
     }

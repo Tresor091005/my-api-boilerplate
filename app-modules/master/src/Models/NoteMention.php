@@ -29,6 +29,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|NoteMention whereMentionedAt($value)
  * @method static Builder<static>|NoteMention whereNoteId($value)
  * @method static Builder<static>|NoteMention whereReadAt($value)
+ * @method static Builder<static>|NoteMention whereOrganizationId($value)
  *
  * @mixin \Eloquent
  */

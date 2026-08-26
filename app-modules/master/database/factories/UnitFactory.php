@@ -21,7 +21,7 @@ class UnitFactory extends Factory
         return [
             'code'     => $this->faker->unique()->lexify('???'),
             'name'     => $name,
-            'symbol'   => Str::upper(Str::limit($name, 2, '')),
+            'symbol'   => Str::toUpper(Str::limit($name, 2, '')),
             'ratio'    => $this->faker->numberBetween(1, 1000),
             'group_id' => UnitGroup::factory()->create()->id,
         ];

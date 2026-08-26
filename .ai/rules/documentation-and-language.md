@@ -29,6 +29,15 @@ paths:
   the intended behavior. Use the more specific macro such as `normalize()`,
   `toTitle()`, `toHeadline()`, `toUpper()`, or `toKebab()` when that complete
   transformation is the intended contract.
+- Do not use native `strtoupper()`, `strtolower()`, `Str::upper()`, or
+  `Str::lower()` for application string normalization. Use `Str::toUpper()`,
+  `Str::normalize()`, or the appropriate registered macro instead. Native
+  case conversion remains acceptable for protocol, SQL, parser, and test
+  comparisons where application normalization is not the intent.
+- Use native `trim()`, `ltrim()`, and `rtrim()` only when removing a syntactic
+  boundary such as URL slashes, namespace separators, delimiters, or parser
+  whitespace. Use `sanitize()` or another registered macro for business or
+  user-input normalization.
 - Apply these helpers only to named fields or values whose contract requires
   the transformation; do not recursively rewrite arbitrary input data.
 

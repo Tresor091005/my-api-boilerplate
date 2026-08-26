@@ -23,6 +23,6 @@ class SkuGenerator
         $date = now()->format('ymd');
         $random = Str::random(4);
 
-        return Str::upper("{$prefix}-{$date}-{$random}");
+        return Str::toUpper("{$prefix}-{$date}-{$random}");
     }
 }

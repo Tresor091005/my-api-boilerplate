@@ -34,6 +34,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Organization withoutTrashed()
  * @method static OrganizationFactory factory($count = null, $state = [])
  *
+ * @property-read OrganizationSetting|null $settings
+ *
  * @mixin \Eloquent
  */
 class Organization extends Model

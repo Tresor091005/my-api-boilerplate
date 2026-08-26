@@ -118,12 +118,10 @@ class InventoryQueryService
         $locations = $rows
             ->groupBy('location_id')
             ->sortKeys()
-            ->map(function (Collection $group, string $locationId): ItemValueLocationViewData {
-                return new ItemValueLocationViewData(
-                    locationId: $locationId,
-                    values: $this->sumValuesByCurrency($group),
-                );
-            })
+            ->map(fn (Collection $group, string $locationId): ItemValueLocationViewData => new ItemValueLocationViewData(
+                locationId: $locationId,
+                values: $this->sumValuesByCurrency($group),
+            ))
             ->values();
 
         return new ItemValueViewData(
@@ -150,12 +148,10 @@ class InventoryQueryService
         $items = $rows
             ->groupBy('item_id')
             ->sortKeys()
-            ->map(function (Collection $group, string $itemId): LocationValueItemViewData {
-                return new LocationValueItemViewData(
-                    itemId: $itemId,
-                    values: $this->sumValuesByCurrency($group),
-                );
-            })
+            ->map(fn (Collection $group, string $itemId): LocationValueItemViewData => new LocationValueItemViewData(
+                itemId: $itemId,
+                values: $this->sumValuesByCurrency($group),
+            ))
             ->values();
 
         return new LocationValueViewData(
