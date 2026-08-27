@@ -17,12 +17,16 @@ $lots = $queries->getItemLocationLots($inventoryItem, $inventoryLocation, $filte
 
 Lot reads include the stock ID, remaining and original quantity, base-unit cost, cost remainder, currency, expiration, creation date, and metadata. This makes them suitable for a manual picking screen or a stock detail page.
 
-## Value
+## Quantity and value summary
 
-- `getItemValue($item, $filters)`: value for an item, optionally filtered by locations;
-- `getLocationValue($location, $filters)`: value for a location, optionally filtered by items.
+`listSummary($filters)` returns one row per item/location pair. Each row combines
+the current quantity with its total value and functional currency, so consumers
+do not need to join separate quantity and value projections.
 
-Values include the cost remainder and are converted from persisted minor units into the organization's functional currency display amount. Inventory does not aggregate different currencies together because internal stock costs are normalized at the inbound boundary.
+Values include the cost remainder and are converted from persisted minor units
+into the organization's functional currency display amount. Inventory does not
+aggregate different currencies together because internal stock costs are
+normalized at the inbound boundary.
 
 ## History
 
@@ -38,10 +42,8 @@ All package routes use the `/v1/inventory` prefix and return resources or cursor
 
 | Method | Endpoint | Read |
 |---|---|---|
-| GET | `/items/{item}/value` | Item value in the functional currency |
 | GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
 | GET | `/movements` | Movement history, optionally filtered by item or location |
-| GET | `/locations/{location}/value` | Location value in the functional currency |
 | GET | `/stock/summary` | Global item/location summary |
 | GET | `/stock/expiring` | Expiring active lots |
 | GET | `/transactions` | List transactions |

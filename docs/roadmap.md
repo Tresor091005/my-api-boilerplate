@@ -18,7 +18,7 @@
 - [x] `inventory item`: Creation, update, deletion, and reads through
   `inventory`.
 - [x] `inventory stock`: `in`, `out`, `transfer`, and `adjustment` transactions,
-  plus stock, lot, movement, and value views.
+  plus stock, lot, movement, and combined quantity/value summary views.
 - [x] `permission`: Available for reading the current context through
   `current-permissions`.
 - [x] `user`: Available in auth for login, me, logout, password reset, and
@@ -105,9 +105,11 @@
   currency propagation coherent for `OUT`, `TRANSFER`, and reversals.
 - [x] Replace adjustment's currency-specific average-cost selection with the
   functional-currency stock cost.
-- [x] Remove the redundant Inventory value endpoints' public currency filters;
-  `/stock/summary` remains the aggregate read model and exposes the functional
-  currency and `total_value` per item/location row.
+- [x] Enrich `/stock/summary` with `total_value` and the organization's
+  functional `currency_code` per item/location row, so quantity and value are
+  returned together.
+- [x] Remove the redundant Inventory value endpoints
+  (`items/{item}/value` and `locations/{location}/value`).
 - [x] Update Inventory contracts, data objects, validation, resources,
   factories, and tests for boundary conversion and historical snapshots.
 - [ ] Allow foreign-currency payment only when the organization configuration

@@ -8,12 +8,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Data\InventoryItemFilterData;
-use Lahatre\Inventory\Data\InventoryItemValueFilterData;
 use Lahatre\Inventory\Data\InventoryLocationFilterData;
-use Lahatre\Inventory\Data\InventoryLocationValueFilterData;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
 use Lahatre\Inventory\Data\InventoryMovementFilterData;
 use Lahatre\Inventory\Data\InventoryStockExpiringFilterData;
@@ -27,12 +24,7 @@ use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\ViewData\AvailableLotViewData;
-use Lahatre\Inventory\ViewData\CurrencyValueViewData;
 use Lahatre\Inventory\ViewData\ItemLocationLotsViewData;
-use Lahatre\Inventory\ViewData\ItemValueLocationViewData;
-use Lahatre\Inventory\ViewData\ItemValueViewData;
-use Lahatre\Inventory\ViewData\LocationValueItemViewData;
-use Lahatre\Inventory\ViewData\LocationValueViewData;
 use Lahatre\Master\Contracts\MasterInterface;
 
 class InventoryQueryService
@@ -99,64 +91,6 @@ class InventoryQueryService
         $location = $this->resolveLocation($location);
 
         return $location->load(responseRelationsToLoad());
-    }
-
-    public function getItemValue(InventoryItem $item, InventoryItemValueFilterData $filters): ItemValueViewData
-    {
-        $item = $this->resolveItem($item);
-
-        $rows = $this->stockValueQuery(
-            scopeColumn: 'item_id',
-            scopeId: $item->id,
-            groupColumn: 'location_id',
-            groupIds: $filters->locationId,
-        )->get();
-
-        $totals = $this->sumValuesByCurrency($rows);
-
-        $locations = $rows
-            ->groupBy('location_id')
-            ->sortKeys()
-            ->map(fn (Collection $group, string $locationId): ItemValueLocationViewData => new ItemValueLocationViewData(
-                locationId: $locationId,
-                values: $this->sumValuesByCurrency($group),
-            ))
-            ->values();
-
-        return new ItemValueViewData(
-            itemId: $item->id,
-            totals: $totals,
-            locations: $locations,
-        );
-    }
-
-    public function getLocationValue(InventoryLocation $location, InventoryLocationValueFilterData $filters): LocationValueViewData
-    {
-        $location = $this->resolveLocation($location);
-
-        $rows = $this->stockValueQuery(
-            scopeColumn: 'location_id',
-            scopeId: $location->id,
-            groupColumn: 'item_id',
-            groupIds: $filters->itemId,
-        )->get();
-
-        $totals = $this->sumValuesByCurrency($rows);
-
-        $items = $rows
-            ->groupBy('item_id')
-            ->sortKeys()
-            ->map(fn (Collection $group, string $itemId): LocationValueItemViewData => new LocationValueItemViewData(
-                itemId: $itemId,
-                values: $this->sumValuesByCurrency($group),
-            ))
-            ->values();
-
-        return new LocationValueViewData(
-            locationId: $location->id,
-            totals: $totals,
-            items: $items,
-        );
     }
 
     public function getItemLocationLots(
@@ -228,8 +162,10 @@ class InventoryQueryService
                 'items.sku',
                 DB::raw('items.base_unit_code as unit_code'),
                 DB::raw('SUM(stocks.remaining) as remaining'),
+                'stocks.currency_code',
+                DB::raw('SUM((stocks.remaining::numeric * stocks.unit_cost::numeric) + stocks.cost_remainder::numeric) as total_value_minor'),
             ])
-            ->groupBy('stocks.item_id', 'stocks.location_id', 'items.sku', 'items.base_unit_code')
+            ->groupBy('stocks.item_id', 'stocks.location_id', 'items.sku', 'items.base_unit_code', 'stocks.currency_code')
             ->orderBy('stocks.item_id')
             ->orderBy('stocks.location_id');
 
@@ -304,57 +240,6 @@ class InventoryQueryService
             ->orderByDesc('id');
 
         return $query;
-    }
-
-    /**
-     * @param  array<int, string>|null  $groupIds
-     * @return Builder<InventoryStock>
-     */
-    private function stockValueQuery(
-        string $scopeColumn,
-        string $scopeId,
-        string $groupColumn,
-        ?array $groupIds = null,
-    ): Builder {
-        $query = InventoryStock::query()
-            ->select([$groupColumn, 'currency_code'])
-            ->selectRaw('SUM((remaining::numeric) * (unit_cost::numeric) + (cost_remainder::numeric)) as total_value_minor')
-            ->where($scopeColumn, $scopeId)
-            ->where('organization_id', currentOrganizationId())
-            ->where('remaining', '>', 0)
-            ->whereNotNull('currency_code')
-            ->groupBy($groupColumn, 'currency_code')
-            ->orderBy($groupColumn)
-            ->orderBy('currency_code');
-
-        if ($groupIds) {
-            $query->whereIn($groupColumn, $groupIds);
-        }
-
-        return $query;
-    }
-
-    /** @return Collection<int, CurrencyValueViewData> */
-    private function sumValuesByCurrency(Collection $rows): Collection
-    {
-        return $rows
-            ->groupBy('currency_code')
-            ->map(function (Collection $group, string $currency): CurrencyValueViewData {
-                $minor = $group->reduce(
-                    fn (string $carry, mixed $row): string => bcadd(
-                        $carry,
-                        (string) data_get($row, 'total_value_minor', '0'),
-                        0
-                    ),
-                    '0'
-                );
-
-                return new CurrencyValueViewData(
-                    currencyCode: $currency,
-                    totalValue: $this->masterInterface->fromMinor($minor, $currency),
-                );
-            })
-            ->values();
     }
 
     public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransaction

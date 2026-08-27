@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Lahatre\Master\Contracts\MasterInterface;
 
 class InventorySummaryRowResource extends JsonResource
 {
@@ -20,6 +21,11 @@ class InventorySummaryRowResource extends JsonResource
             'sku'         => data_get($this->resource, 'sku'),
             'remaining'   => (int) data_get($this->resource, 'remaining', 0),
             'unit_code'   => data_get($this->resource, 'unit_code'),
+            'total_value' => app(MasterInterface::class)->fromMinor(
+                (string) data_get($this->resource, 'total_value_minor', '0'),
+                (string) data_get($this->resource, 'currency_code'),
+            ),
+            'currency_code' => data_get($this->resource, 'currency_code'),
         ];
     }
 }

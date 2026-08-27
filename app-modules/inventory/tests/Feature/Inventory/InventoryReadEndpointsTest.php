@@ -76,14 +76,6 @@ it('returns active lots for an item and location', function (): void {
         'remaining'     => 40,
     ]);
 
-    $this->getJson("/v1/inventory/items/{$item->id}/value")
-        ->assertOk()
-        ->assertJsonPath('item_id', $item->id)
-        ->assertJsonStructure([
-            'totals'    => [['currency_code', 'total_value']],
-            'locations' => [['location_id', 'values' => [['currency_code', 'total_value']]]],
-        ]);
-
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots")
         ->assertOk()
         ->assertJsonPath('item_id', $item->id)
@@ -99,121 +91,6 @@ it('returns active lots for an item and location', function (): void {
         ->assertJsonPath('deduction_strategy', DeductionStrategy::Fifo->value)
         ->assertJsonPath('lots.0.stock_id', $lot1->id)
         ->assertJsonPath('lots.1.stock_id', $lot2->id);
-});
-
-it('returns item value aggregated by location in the functional currency', function (): void {
-    $item = InventoryItem::factory()->create([
-        'base_unit_code' => $this->unit->code,
-    ]);
-    $locationA = InventoryLocation::factory()->create();
-    $locationB = InventoryLocation::factory()->create();
-
-    InventoryStock::factory()->for($item, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 100,
-        'quantity'      => 10,
-        'remaining'     => 10,
-    ]);
-    InventoryStock::factory()->for($item, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 200,
-        'quantity'      => 5,
-        'remaining'     => 5,
-    ]);
-    InventoryStock::factory()->for($item, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 300,
-        'quantity'      => 2,
-        'remaining'     => 2,
-    ]);
-    InventoryStock::factory()->for($item, 'item')->for($locationB, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 400,
-        'quantity'      => 1,
-        'remaining'     => 1,
-    ]);
-
-    // Totals:
-    // locationA = 10*100 + 5*200 + 2*300 = 2600
-    // locationB = 1*400 = 400
-    $this->getJson("/v1/inventory/items/{$item->id}/value")
-        ->assertOk()
-        ->assertJsonPath('item_id', $item->id)
-        ->assertJsonFragment(['currency_code' => $this->currency->code, 'total_value' => '30.00'])
-        ->assertJsonFragment([
-            'location_id' => $locationA->id,
-            'values'      => [
-                ['currency_code' => $this->currency->code, 'total_value' => '26.00'],
-            ],
-        ])
-        ->assertJsonFragment([
-            'location_id' => $locationB->id,
-            'values'      => [
-                ['currency_code' => $this->currency->code, 'total_value' => '4.00'],
-            ],
-        ]);
-
-    $this->getJson("/v1/inventory/items/{$item->id}/value?location_id[]={$locationA->id}")
-        ->assertOk()
-        ->assertJsonCount(1, 'locations')
-        ->assertJsonPath('locations.0.location_id', $locationA->id);
-});
-
-it('returns location value aggregated by item in the functional currency', function (): void {
-    $itemA = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
-    $itemB = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
-    $location = InventoryLocation::factory()->create();
-
-    InventoryStock::factory()->for($itemA, 'item')->for($location, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 100,
-        'quantity'      => 10,
-        'remaining'     => 10,
-    ]);
-    InventoryStock::factory()->for($itemA, 'item')->for($location, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 300,
-        'quantity'      => 2,
-        'remaining'     => 2,
-    ]);
-    InventoryStock::factory()->for($itemB, 'item')->for($location, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'unit_cost'     => 400,
-        'quantity'      => 1,
-        'remaining'     => 1,
-    ]);
-
-    // Totals:
-    // itemA = 10*100 + 2*300 = 1600
-    // itemB = 1*400 = 400
-    $this->getJson("/v1/inventory/locations/{$location->id}/value")
-        ->assertOk()
-        ->assertJsonPath('location_id', $location->id)
-        ->assertJsonFragment(['currency_code' => $this->currency->code, 'total_value' => '20.00'])
-        ->assertJsonFragment([
-            'item_id' => $itemA->id,
-            'values'  => [
-                ['currency_code' => $this->currency->code, 'total_value' => '16.00'],
-            ],
-        ])
-        ->assertJsonFragment([
-            'item_id' => $itemB->id,
-            'values'  => [
-                ['currency_code' => $this->currency->code, 'total_value' => '4.00'],
-            ],
-        ]);
-
-    $this->getJson("/v1/inventory/locations/{$location->id}/value?item_id[]={$itemA->id}")
-        ->assertOk()
-        ->assertJsonCount(1, 'items')
-        ->assertJsonPath('items.0.item_id', $itemA->id);
 });
 
 it('returns stock summary and expiring lots with pagination metadata', function (): void {
@@ -234,7 +111,16 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         'currency_code'   => $this->currency->code,
         'quantity'        => 70,
         'remaining'       => 70,
+        'unit_cost'       => 100,
         'expiration_date' => now()->addDays(4),
+    ]);
+
+    InventoryStock::factory()->for($itemA, 'item')->for($locationA, 'location')->create([
+        'unit_code'     => $this->unit->code,
+        'currency_code' => $this->currency->code,
+        'quantity'      => 30,
+        'remaining'     => 30,
+        'unit_cost'     => 200,
     ]);
 
     InventoryStock::factory()->for($itemB, 'item')->for($locationA, 'location')->create([
@@ -258,6 +144,14 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
         ->assertJsonCount(1, 'data');
 
+    $this->getJson("/v1/inventory/stock/summary?item_id[]={$itemA->id}&location_id[]={$locationA->id}")
+        ->assertOk()
+        ->assertJsonPath('data.0.item_id', $itemA->id)
+        ->assertJsonPath('data.0.location_id', $locationA->id)
+        ->assertJsonPath('data.0.remaining', 100)
+        ->assertJsonPath('data.0.total_value', '130.00')
+        ->assertJsonPath('data.0.currency_code', $this->currency->code);
+
     $this->getJson('/v1/inventory/stock/expiring?days=7')
         ->assertOk()
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
@@ -272,6 +166,14 @@ it('validates query filters on expiring stock endpoint', function (): void {
     $this->getJson('/v1/inventory/stock/expiring?days=0')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('days');
+});
+
+it('does not expose the removed standalone value endpoints', function (): void {
+    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
+    $location = InventoryLocation::factory()->create();
+
+    $this->getJson("/v1/inventory/items/{$item->id}/value")->assertNotFound();
+    $this->getJson("/v1/inventory/locations/{$location->id}/value")->assertNotFound();
 });
 
 it('does not expose inventory item and location registry endpoints', function (): void {

@@ -65,11 +65,9 @@ require the dedicated settings permissions.
 
 | Method | URI | Purpose |
 | --- | --- | --- |
-| GET | `/v1/inventory/items/{item}/value` | Aggregate item value. |
 | GET | `/v1/inventory/items/{item}/locations/{location}/lots` | Read lots for an item/location pair. |
 | GET | `/v1/inventory/movements` | Read movements, optionally filtered by item, location, type, date, or business reference. |
-| GET | `/v1/inventory/locations/{location}/value` | Aggregate location value. |
-| GET | `/v1/inventory/stock/summary` | Read stock summary. |
+| GET | `/v1/inventory/stock/summary` | Read one quantity/value row per item/location pair in the functional currency. |
 | GET | `/v1/inventory/stock/expiring` | Read expiring lots. |
 | PATCH | `/v1/inventory/stocks/{stock}` | Update stock metadata only. |
 | GET | `/v1/inventory/transactions` | List transactions. |

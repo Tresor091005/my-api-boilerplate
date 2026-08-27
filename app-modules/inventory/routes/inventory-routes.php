@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Inventory\Http\Controllers\InventoryItemController;
-use Lahatre\Inventory\Http\Controllers\InventoryLocationController;
 use Lahatre\Inventory\Http\Controllers\InventoryMovementController;
 use Lahatre\Inventory\Http\Controllers\InventoryReadController;
 use Lahatre\Inventory\Http\Controllers\InventoryStockController;
@@ -16,10 +15,7 @@ Route::group([
     'middleware' => 'api',
 ], function (): void {
     Route::group(['middleware' => 'auth.api'], function (): void {
-        Route::get('items/{item}/value', [InventoryItemController::class, 'showValue'])->name('items.value.show');
         Route::get('items/{item}/locations/{location}/lots', [InventoryItemController::class, 'indexLocationLots'])->name('items.locations.lots.index');
-
-        Route::get('locations/{location}/value', [InventoryLocationController::class, 'showValue'])->name('locations.value.show');
 
         Route::get('stock/summary', [InventoryReadController::class, 'indexSummary'])->name('stock.summary.index');
         // TODO: add low stock endpoint when inventory thresholds are modeled.

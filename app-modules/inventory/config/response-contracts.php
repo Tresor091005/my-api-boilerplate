@@ -22,8 +22,6 @@ $movementContracts = array_fill_keys(
 $emptyContracts = array_fill_keys(
     [
         'lahatre.inventory.items.locations.lots.index',
-        'lahatre.inventory.items.value.show',
-        'lahatre.inventory.locations.value.show',
         'lahatre.inventory.stock.expiring.index',
         'lahatre.inventory.stock.summary.index',
     ],

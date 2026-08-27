@@ -6,9 +6,7 @@ namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use JsonSerializable;
-use Lahatre\Inventory\Data\InventoryItemValueFilterData;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
-use Lahatre\Inventory\Http\Requests\InventoryItemValueFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryLotFilterRequest;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -22,15 +20,6 @@ class InventoryItemController
         protected InventoryQueryService $inventoryQueryService,
         protected ResponseResponder $responseResponder,
     ) {}
-
-    public function showValue(InventoryItemValueFilterRequest $request, InventoryItem $item): JsonResponse|Response
-    {
-        $filters = InventoryItemValueFilterData::fromArray($request->validated());
-
-        $response = $this->inventoryQueryService->getItemValue($item, $filters);
-
-        return $this->responseResponder->respond(fn (): JsonSerializable => $response);
-    }
 
     public function indexLocationLots(InventoryLotFilterRequest $request, InventoryItem $item, InventoryLocation $location): JsonResponse|Response
     {
