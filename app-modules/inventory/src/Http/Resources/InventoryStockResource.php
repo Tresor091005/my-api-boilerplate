@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Resources;
 
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Inventory\Models\InventoryStock;
@@ -36,6 +37,7 @@ class InventoryStockResource extends JsonResource
             'remaining'         => $this->remaining,
             'unit_code'         => $this->unit_code,
             'expiration_date'   => $this->expiration_date,
+            'days_remaining'    => $this->resolveDaysRemaining(),
             'metadata'          => $this->metadata,
             'exchange_metadata' => $this->exchange_metadata,
             'created_at'        => $this->created_at,
@@ -90,5 +92,14 @@ class InventoryStockResource extends JsonResource
         }
 
         return app(MasterInterface::class)->fromMinor((string) $this->cost_remainder, $this->currency_code);
+    }
+
+    private function resolveDaysRemaining(): ?int
+    {
+        if (!$this->expiration_date instanceof CarbonInterface) {
+            return null;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($this->expiration_date->startOfDay(), false);
     }
 }

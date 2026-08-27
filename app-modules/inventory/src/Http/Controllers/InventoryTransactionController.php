@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Http\Requests\InventoryTransactionFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryTransactionCollection;
@@ -24,6 +25,8 @@ class InventoryTransactionController
 
     public function index(InventoryTransactionFilterRequest $request): JsonResponse|Response
     {
+        Gate::authorize('list', InventoryTransaction::class);
+
         $filters = InventoryTransactionFilterData::fromArray($request->validated());
 
         $response = $this->inventoryQueryService->paginateTransactions($filters);
@@ -33,6 +36,8 @@ class InventoryTransactionController
 
     public function show(InventoryTransaction $transaction): JsonResponse|Response
     {
+        Gate::authorize('retrieve', $transaction);
+
         $transaction = $this->inventoryQueryService->retrieveTransaction($transaction);
 
         return $this->responseResponder->respond(fn (): JsonResource => InventoryTransactionResource::make($transaction));

@@ -10,6 +10,11 @@ use Lahatre\Shared\Policies\BasePolicy;
 
 class InventoryStockPolicy extends BasePolicy
 {
+    public function list(Authorizable $user): bool
+    {
+        return $this->canModel('list', InventoryStock::class);
+    }
+
     public function update(Authorizable $user, InventoryStock $stock): bool
     {
         return $this->canOnModel('update', $stock);

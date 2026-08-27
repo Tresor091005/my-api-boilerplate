@@ -6,17 +6,13 @@ namespace Lahatre\Inventory\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin InventoryItem
  */
 class InventoryItemResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * @return array<string, mixed>
      */
@@ -24,36 +20,38 @@ class InventoryItemResource extends JsonResource
     {
         return [
             'id'                     => $this->id,
-            'itemable_type'          => $this->itemable_type,
-            'itemable_id'            => $this->itemable_id,
             'sku'                    => $this->sku,
             'base_unit_code'         => $this->base_unit_code,
             'deduction_strategy'     => $this->deduction_strategy,
             'is_expirable'           => $this->is_expirable,
             'stock_tracking_enabled' => $this->stock_tracking_enabled,
-            'created_at'             => $this->created_at,
-            'updated_at'             => $this->updated_at,
-            'itemable'               => $this->includeWhenRequestedAndLoaded(
-                include: 'itemable',
-                relation: 'itemable',
-                resolver: function (): ?array {
-                    if ($this->itemable instanceof HasInventoryItem) {
-                        return $this->itemable->toInventoryItemSummary();
-                    }
-
-                    return null;
-                },
-            ),
-            'stocks' => $this->includeWhenRequestedAndLoaded(
-                include: 'stocks',
-                relation: 'stocks',
-                resolver: fn ($stocks): mixed => InventoryStockResource::collection($stocks),
-            ),
-            'movements' => $this->includeWhenRequestedAndLoaded(
-                include: 'movements',
-                relation: 'movements',
-                resolver: fn ($movements): mixed => InventoryMovementResource::collection($movements),
+            'total_remaining'        => $this->resolveTotalRemaining(),
+            'active_lots_count'      => $this->resolveActiveLotsCount(),
+            'locations'              => $this->whenLoaded(
+                'stockSummaries',
+                fn (): array => $this->stockSummaries
+                    ->map(fn ($summary): array => [
+                        'location_id'       => data_get($summary, 'location_id'),
+                        'total_remaining'   => (int) data_get($summary, 'total_remaining', 0),
+                        'active_lots_count' => (int) data_get($summary, 'active_lots_count', 0),
+                    ])
+                    ->values()
+                    ->all(),
             ),
         ];
+    }
+
+    private function resolveTotalRemaining(): int
+    {
+        return $this->relationLoaded('stockSummaries')
+            ? (int) $this->stockSummaries->sum('total_remaining')
+            : 0;
+    }
+
+    private function resolveActiveLotsCount(): int
+    {
+        return $this->relationLoaded('stockSummaries')
+            ? (int) $this->stockSummaries->sum('active_lots_count')
+            : 0;
     }
 }

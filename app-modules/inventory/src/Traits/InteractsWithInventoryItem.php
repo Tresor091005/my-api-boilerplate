@@ -6,11 +6,8 @@ namespace Lahatre\Inventory\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Support\Facades\DB;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
-use Staudenmeir\EloquentHasManyDeep\HasManyDeep;
-use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
 /**
  * @phpstan-require-extends Model
@@ -21,8 +18,6 @@ use Staudenmeir\EloquentHasManyDeep\HasRelationships;
  */
 trait InteractsWithInventoryItem
 {
-    use HasRelationships;
-
     /**
      * Get the model's inventory item.
      *
@@ -37,49 +32,5 @@ trait InteractsWithInventoryItem
             ->where('inventory_items.organization_id', $organizationId);
 
         return $relation;
-    }
-
-    /**
-     * Get all the model's inventory stocks through its inventory item.
-     */
-    public function inventoryItemStocks(): HasManyDeep
-    {
-        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'stocks']);
-    }
-
-    /**
-     * Get all active inventory stocks through the model's inventory item.
-     */
-    public function activeInventoryItemStocks(): HasManyDeep
-    {
-        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'activeStocks']);
-    }
-
-    /**
-     * Aggregated active stocks grouped by location (lightweight summary).
-     */
-    public function inventoryItemStockSummaries(): HasManyDeep
-    {
-        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'stockSummaries'])
-            ->select([
-                'inventory_stocks.item_id',
-                'inventory_stocks.location_id',
-                DB::raw('SUM(inventory_stocks.remaining) as total_remaining'),
-                DB::raw('COUNT(*) as active_lots_count'),
-            ])
-            ->groupBy(
-                'inventory_stocks.item_id',
-                'inventory_stocks.location_id',
-                'inventory_items.itemable_id',
-            )
-            ->orderBy('inventory_stocks.location_id');
-    }
-
-    /**
-     * Get all the model's inventory movements through its inventory item.
-     */
-    public function inventoryItemMovements(): HasManyDeep
-    {
-        return $this->hasManyDeepFromRelationsWithConstraints([$this, 'inventoryItem'], [new InventoryItem, 'movements']);
     }
 }

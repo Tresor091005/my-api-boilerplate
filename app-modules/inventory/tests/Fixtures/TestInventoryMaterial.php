@@ -50,16 +50,4 @@ class TestInventoryMaterial extends Model implements HasInventoryItem
     {
         return (string) $this->sku;
     }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function toInventoryItemSummary(): array
-    {
-        return [
-            'id'   => $this->id,
-            'name' => $this->name,
-            'sku'  => $this->sku,
-        ];
-    }
 }

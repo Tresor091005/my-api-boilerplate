@@ -7,13 +7,12 @@ namespace Lahatre\Inventory\Services;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
-use Lahatre\Inventory\Data\InventoryItemFilterData;
-use Lahatre\Inventory\Data\InventoryLocationFilterData;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
 use Lahatre\Inventory\Data\InventoryMovementFilterData;
-use Lahatre\Inventory\Data\InventoryStockExpiringFilterData;
+use Lahatre\Inventory\Data\InventoryStockFilterData;
 use Lahatre\Inventory\Data\InventoryStockSummaryFilterData;
 use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
@@ -23,8 +22,6 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
-use Lahatre\Inventory\ViewData\AvailableLotViewData;
-use Lahatre\Inventory\ViewData\ItemLocationLotsViewData;
 use Lahatre\Master\Contracts\MasterInterface;
 
 class InventoryQueryService
@@ -33,71 +30,11 @@ class InventoryQueryService
         protected MasterInterface $masterInterface
     ) {}
 
-    public function paginateItems(InventoryItemFilterData $filters): CursorPaginator
-    {
-        return stableCursorPaginate($this->itemsQuery($filters), $filters);
-    }
-
-    /** @return Builder<InventoryItem> */
-    private function itemsQuery(InventoryItemFilterData $filters): Builder
-    {
-        $query = InventoryItem::query()->where('organization_id', currentOrganizationId());
-
-        if ($filters->sku) {
-            $query->where('sku', 'like', "$filters->sku%");
-        }
-
-        if ($filters->baseUnitCode) {
-            $query->where('base_unit_code', $filters->baseUnitCode);
-        }
-
-        if ($filters->stockTrackingEnabled !== null) {
-            $query->where('stock_tracking_enabled', $filters->stockTrackingEnabled);
-        }
-
-        applyResponseContextToQuery($query);
-
-        return $query;
-    }
-
-    public function retrieveItem(InventoryItem $item): InventoryItem
-    {
-        $item = $this->resolveItem($item);
-
-        return $item->load(responseRelationsToLoad());
-    }
-
-    public function paginateLocations(InventoryLocationFilterData $filters): CursorPaginator
-    {
-        return stableCursorPaginate($this->locationsQuery($filters), $filters);
-    }
-
-    /** @return Builder<InventoryLocation> */
-    private function locationsQuery(InventoryLocationFilterData $filters): Builder
-    {
-        $query = InventoryLocation::query()->where('organization_id', currentOrganizationId());
-
-        if ($filters->isActive !== null) {
-            $query->where('is_active', $filters->isActive);
-        }
-
-        applyResponseContextToQuery($query);
-
-        return $query;
-    }
-
-    public function retrieveLocation(InventoryLocation $location): InventoryLocation
-    {
-        $location = $this->resolveLocation($location);
-
-        return $location->load(responseRelationsToLoad());
-    }
-
     public function getItemLocationLots(
         InventoryItem $item,
         InventoryLocation $location,
         InventoryLotFilterData $filters
-    ): ItemLocationLotsViewData {
+    ): array {
         $item = $this->resolveItem($item);
         $location = $this->resolveLocation($location);
 
@@ -115,33 +52,53 @@ class InventoryQueryService
             $query->where('expiration_date', '<=', $filters->expiringBefore->endOfDay());
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, InventoryStock> $lots */
+        /** @var Collection<int, InventoryStock> $lots */
         $lots = $this->applyLotOrdering($query, $strategy)->get();
 
-        return new ItemLocationLotsViewData(
-            itemId: $item->id,
-            locationId: $location->id,
-            deductionStrategy: $strategy->value,
-            totalRemaining: (int) $lots->sum('remaining'),
-            unitCode: $item->base_unit_code,
-            lots: $lots->map(fn (InventoryStock $stock): AvailableLotViewData => new AvailableLotViewData(
-                stockId: $stock->id,
-                remaining: $stock->remaining,
-                quantity: $stock->quantity,
-                unitCost: $stock->unit_cost,
-                costRemainder: $stock->cost_remainder,
-                currencyCode: $stock->currency_code,
-                expirationDate: $stock->expiration_date,
-                createdAt: $stock->created_at,
-                metadata: $stock->metadata,
-                exchangeMetadata: $stock->exchange_metadata,
-            ))->values()
-        );
+        return [
+            'item_id'            => $item->id,
+            'location_id'        => $location->id,
+            'deduction_strategy' => $strategy->value,
+            'total_remaining'    => (int) $lots->sum('remaining'),
+            'unit_code'          => $item->base_unit_code,
+            'lots'               => $lots->values(),
+        ];
     }
 
     public function paginateSummary(InventoryStockSummaryFilterData $filters): CursorPaginator
     {
         return $this->summaryQuery($filters)->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+    }
+
+    public function paginateStocks(InventoryStockFilterData $filters): CursorPaginator
+    {
+        $query = InventoryStock::query()
+            ->where('organization_id', currentOrganizationId());
+
+        applyResponseContextToQuery($query);
+
+        if ($filters->itemId) {
+            $query->whereIn('item_id', $filters->itemId);
+        }
+
+        if ($filters->locationId) {
+            $query->whereIn('location_id', $filters->locationId);
+        }
+
+        if ($filters->expiringBefore instanceof CarbonImmutable) {
+            $query->where('remaining', '>', 0)
+                ->whereNotNull('expiration_date')
+                ->where('expiration_date', '<=', $filters->expiringBefore)
+                ->whereHas('item', fn (Builder $itemQuery): Builder => $itemQuery->where('is_expirable', true))
+                ->whereHas('location')
+                ->orderBy('expiration_date')
+                ->orderBy('created_at')
+                ->orderBy('id');
+        } else {
+            $query->orderBy('id');
+        }
+
+        return $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
     }
 
     private function summaryQuery(InventoryStockSummaryFilterData $filters): QueryBuilder
@@ -179,43 +136,6 @@ class InventoryQueryService
         if ($locationIds->isNotEmpty()) {
             $query->whereIn('stocks.location_id', $locationIds->all());
         }
-
-        return $query;
-    }
-
-    public function paginateExpiring(InventoryStockExpiringFilterData $filters): CursorPaginator
-    {
-        return $this->expiringQuery($filters)->cursorPaginate($filters->perPage, ['inventory_stocks.*'], 'cursor', $filters->cursor);
-    }
-
-    /** @return Builder<InventoryStock> */
-    private function expiringQuery(InventoryStockExpiringFilterData $filters): Builder
-    {
-        $query = InventoryStock::query()
-            ->join('inventory_items', 'inventory_items.id', '=', 'inventory_stocks.item_id')
-            ->join('inventory_locations', 'inventory_locations.id', '=', 'inventory_stocks.location_id')
-            ->where('inventory_stocks.organization_id', currentOrganizationId())
-            ->where('inventory_items.organization_id', currentOrganizationId())
-            ->where('inventory_locations.organization_id', currentOrganizationId())
-            ->whereNull('inventory_items.deleted_at')
-            ->whereNull('inventory_locations.deleted_at')
-            ->where('inventory_items.is_expirable', true)
-            ->where('inventory_stocks.remaining', '>', 0)
-            ->whereNotNull('inventory_stocks.expiration_date')
-            ->where('inventory_stocks.expiration_date', '<=', now()->addDays($filters->days)->endOfDay())
-            ->select('inventory_stocks.*')
-            ->orderBy('inventory_stocks.expiration_date')
-            ->orderBy('inventory_stocks.created_at');
-
-        if ($filters->locationId) {
-            $query->where('inventory_stocks.location_id', $filters->locationId);
-        }
-
-        if ($filters->itemId) {
-            $query->where('inventory_stocks.item_id', $filters->itemId);
-        }
-
-        $query->orderBy('inventory_stocks.id');
 
         return $query;
     }

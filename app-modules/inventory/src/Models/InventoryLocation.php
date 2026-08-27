@@ -48,7 +48,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @method static InventoryLocationFactory factory($count = null, $state = [])
  *
- * @property-read Collection<int, InventoryStock> $activeStocks
  * @property-read int|null $active_stocks_count
  * @property-read Collection<int, InventoryStock> $stockSummaries
  * @property-read int|null $stock_summaries_count
@@ -92,17 +91,12 @@ class InventoryLocation extends Model
             ->where('inventory_stocks.organization_id', currentOrganizationId());
     }
 
-    public function activeStocks(): HasMany
-    {
-        return $this->stocks()->where('inventory_stocks.remaining', '>', 0);
-    }
-
     /**
      * Aggregated active stocks grouped by item for lightweight summary reads.
      */
     public function stockSummaries(): HasMany
     {
-        return $this->activeStocks()
+        return $this->stocks()->where('inventory_stocks.remaining', '>', 0)
             ->select([
                 'inventory_stocks.location_id',
                 'inventory_stocks.item_id',

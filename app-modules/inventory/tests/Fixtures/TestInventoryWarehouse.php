@@ -37,13 +37,4 @@ class TestInventoryWarehouse extends Model implements HasInventoryLocation
         'code'            => 'string',
         'is_active'       => 'boolean',
     ];
-
-    public function toInventoryLocationSummary(): array
-    {
-        return [
-            'id'   => $this->id,
-            'name' => $this->name,
-            'code' => $this->code,
-        ];
-    }
 }

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Master\Contracts\MasterInterface;
 
-class InventorySummaryRowResource extends JsonResource
+class InventorySummaryResource extends JsonResource
 {
     /**
      * @return array<string, mixed>

@@ -8,5 +8,5 @@ use Lahatre\Shared\Http\Resources\BaseCollection;
 
 class InventorySummaryCollection extends BaseCollection
 {
-    public $collects = InventorySummaryRowResource::class;
+    public $collects = InventorySummaryResource::class;
 }

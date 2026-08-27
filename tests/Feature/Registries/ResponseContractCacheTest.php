@@ -167,9 +167,7 @@ it('caches response contracts from discovered definitions when no cache exists',
         ->and(array_key_exists('_shapes', $cachedDefinitions))->toBeFalse()
         ->and($cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default'])
         ->and(array_key_exists('ref', $cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default']))->toBeFalse()
-        ->and($cachedDefinitions['lahatre.inventory.stock.expiring.index'])
-        ->toBe([])
-        ->and($cachedDefinitions['lahatre.inventory.stock.summary.index'])
+        ->and($cachedDefinitions['lahatre.inventory.stocks.summary.index'])
         ->toBe([])
         ->and($cachedDefinitions['lahatre.inventory.stocks.update']['shapes']['projection'])
         ->not->toHaveKey('ref');

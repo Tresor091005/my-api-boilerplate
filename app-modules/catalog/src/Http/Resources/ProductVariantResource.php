@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Inventory\Http\Resources\InventoryItemSummaryResource;
+use Lahatre\Inventory\Http\Resources\InventoryItemResource;
 use Lahatre\Master\Http\Resources\LabelResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
@@ -58,7 +58,7 @@ class ProductVariantResource extends JsonResource
             'inventory' => $this->includeWhenRequestedAndLoaded(
                 include: 'inventory',
                 relation: 'inventoryItem',
-                resolver: fn ($inventoryItem) => InventoryItemSummaryResource::make($inventoryItem),
+                resolver: fn ($inventoryItem) => InventoryItemResource::make($inventoryItem),
             ),
         ];
     }

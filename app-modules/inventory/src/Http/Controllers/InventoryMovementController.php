@@ -6,9 +6,11 @@ namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryMovementFilterData;
 use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
 use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
+use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +24,8 @@ class InventoryMovementController
 
     public function index(InventoryMovementFilterRequest $request): JsonResponse|Response
     {
+        Gate::authorize('list', InventoryMovement::class);
+
         $filters = InventoryMovementFilterData::fromArray($request->validated());
 
         $response = $this->inventoryQueryService->paginateMovements($filters);

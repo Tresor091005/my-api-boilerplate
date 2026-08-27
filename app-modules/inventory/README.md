@@ -11,7 +11,7 @@ The Inventory Module provides a reusable, location-aware inventory ledger for La
 - Metadata updates through a dedicated stock endpoint.
 - Idempotent reversals for in, out, and transfers.
 - Rollback-only previews that run the real validation and calculation pipeline.
-- Query services and API resources for stock, value, movements, and transactions.
+- Query services and API resources for stock summaries, lot details, movements, and transactions.
 
 ## Bring your own models
 

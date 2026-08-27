@@ -6,7 +6,7 @@ namespace Lahatre\Inventory\Http\Resources;
 
 use Lahatre\Shared\Http\Resources\BaseCollection;
 
-class InventoryItemCollection extends BaseCollection
+class InventoryStockCollection extends BaseCollection
 {
-    public $collects = InventoryItemResource::class;
+    public $collects = InventoryStockResource::class;
 }

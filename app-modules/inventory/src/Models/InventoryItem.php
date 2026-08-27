@@ -56,7 +56,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem whereDeductionStrategy($value)
  *
  * @property-read int|null $active_stock_location_summaries_count
- * @property-read Collection<int, InventoryStock> $activeStocks
  * @property-read int|null $active_stocks_count
  * @property-read int|null $stock_summaries_count
  *
@@ -110,11 +109,6 @@ class InventoryItem extends Model
             ->where('inventory_stocks.organization_id', currentOrganizationId());
     }
 
-    public function activeStocks(): HasMany
-    {
-        return $this->stocks()->where('inventory_stocks.remaining', '>', 0);
-    }
-
     /**
      * Aggregated active stocks grouped by location for lightweight "summary" reads.
      *
@@ -122,7 +116,7 @@ class InventoryItem extends Model
      */
     public function stockSummaries(): HasMany
     {
-        return $this->activeStocks()
+        return $this->stocks()->where('inventory_stocks.remaining', '>', 0)
             ->select([
                 'inventory_stocks.item_id',
                 'inventory_stocks.location_id',

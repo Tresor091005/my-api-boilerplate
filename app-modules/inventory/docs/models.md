@@ -18,7 +18,7 @@ When no item strategy is configured, expirable items default to FEFO and non-exp
 If an item becomes expirable while it has older undated lots, those lots remain valid legacy stock. FEFO orders dated lots first and undated lots last; future expiration alerts can report them as having an unknown date.
 
 The application model supplies `getSku()`, `getUnitGroupId()`, the persisted
-`organization_id` attribute, and `toInventoryItemSummary()`.
+`organization_id` attribute.
 
 ## Inventory location
 
@@ -27,13 +27,13 @@ The application model supplies `getSku()`, `getUnitGroupId()`, the persisted
 related stocks and movements. An inactive location cannot participate in new
 movements, but its historical stock and movement records remain queryable.
 
-The application model supplies `organization_id` and
-`toInventoryLocationSummary()`.
+The application model supplies a persisted `organization_id` attribute.
 
-The item and location integration traits expose tenant-scoped deep relations to
-stocks and movements. Their active-stock relations exclude depleted lots, and
-their stock-summary relations preserve the grouped totals when loaded directly
-or eagerly. Every joined inventory table applies its own qualified
+The item and location integration traits expose only the tenant-scoped
+polymorphic InventoryItem or InventoryLocation relation. Stocks, summaries,
+and movements remain owned by those Inventory models and are accessed through
+them or through the dedicated read endpoints.
+Every joined inventory table applies its own qualified
 `organization_id` constraint.
 
 ## Inventory stock

@@ -15,8 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Models\InventoryMovement;
-use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Traits\InteractsWithLabels;
@@ -53,14 +51,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static ProductVariantFactory factory($count = null, $state = [])
  *
  * @property-read InventoryItem|null $inventoryItem
- * @property-read Collection<int, InventoryStock> $inventoryItemStocks
- * @property-read int|null $inventory_item_stocks_count
- * @property-read Collection<int, InventoryStock> $activeInventoryItemStocks
- * @property-read int|null $active_inventory_item_stocks_count
- * @property-read Collection<int, InventoryStock> $inventoryItemStockSummaries
- * @property-read int|null $inventory_item_stock_summaries_count
- * @property-read Collection<int, InventoryMovement> $inventoryItemMovements
- * @property-read int|null $inventory_item_movements_count
  *
  * @method static Builder<static>|ProductVariant onlyTrashed()
  * @method static Builder<static>|ProductVariant whereOrganizationId($value)
@@ -156,13 +146,5 @@ class ProductVariant extends Model implements HasInventoryItem
             ->withPivot('organization_id')
             ->wherePivot('organization_id', currentOrganizationId())
             ->where('catalog_option_values.organization_id', currentOrganizationId());
-    }
-
-    public function toInventoryItemSummary(): array
-    {
-        return [
-            'id'  => $this->id,
-            'sku' => $this->sku,
-        ];
     }
 }

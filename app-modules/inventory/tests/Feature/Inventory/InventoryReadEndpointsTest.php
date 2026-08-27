@@ -8,6 +8,11 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Str;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
+use Lahatre\Iam\Models\MemberRole;
+use Lahatre\Iam\Models\OrganizationMember;
+use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
+use Lahatre\Iam\Models\User;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
@@ -19,6 +24,7 @@ use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
@@ -30,6 +36,44 @@ beforeEach(function (): void {
         SetTeamPermissionsId::class,
     ]);
     $this->ensureInventoryTestTables();
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $user = User::factory()->create();
+    $member = OrganizationMember::create([
+        'user_id'         => $user->id,
+        'organization_id' => $this->organizationId,
+    ]);
+    $role = Role::query()->create([
+        'name'       => 'inventory-read-test-role',
+        'guard_name' => 'sanctum',
+    ]);
+    $memberRole = MemberRole::create([
+        'organization_id' => $this->organizationId,
+        'member_id'       => $member->id,
+        'role_id'         => $role->id,
+    ]);
+    $permissions = [
+        'inventory_stock.list',
+        'inventory_stock.update',
+        'inventory_movement.list',
+        'inventory_transaction.list',
+        'inventory_transaction.retrieve',
+    ];
+    foreach ($permissions as $permission) {
+        Permission::query()->create([
+            'name'       => $permission,
+            'guard_name' => 'sanctum',
+        ]);
+    }
+    $memberRole->givePermissionTo($permissions);
+    authContext()->setContext($user, [
+        'organization_id' => $this->organizationId,
+        'member_id'       => $member->id,
+        'member_role_id'  => $memberRole->id,
+        'role_id'         => $role->id,
+    ]);
+    auth('sanctum')->setUser($user);
+
     $this->inventoryService = app(InventoryService::class);
     $this->currency = Currency::factory()->create();
     currentTestCase()->configureInventoryCurrency($this->currency->code);
@@ -82,15 +126,15 @@ it('returns active lots for an item and location', function (): void {
         ->assertJsonPath('location_id', $locationA->id)
         ->assertJsonPath('deduction_strategy', DeductionStrategy::Fefo->value)
         ->assertJsonPath('total_remaining', 200)
-        ->assertJsonPath('lots.0.stock_id', $lot2->id)
+        ->assertJsonPath('lots.0.id', $lot2->id)
         ->assertJsonPath('lots.0.unit_cost', '25.00')
-        ->assertJsonPath('lots.1.stock_id', $lot1->id);
+        ->assertJsonPath('lots.1.id', $lot1->id);
 
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots?strategy=fifo")
         ->assertOk()
         ->assertJsonPath('deduction_strategy', DeductionStrategy::Fifo->value)
-        ->assertJsonPath('lots.0.stock_id', $lot1->id)
-        ->assertJsonPath('lots.1.stock_id', $lot2->id);
+        ->assertJsonPath('lots.0.id', $lot1->id)
+        ->assertJsonPath('lots.1.id', $lot2->id);
 });
 
 it('returns stock summary and expiring lots with pagination metadata', function (): void {
@@ -138,13 +182,13 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         'remaining'     => 30,
     ]);
 
-    $this->getJson("/v1/inventory/stock/summary?per_page=1&location_id[]={$locationA->id}")
+    $this->getJson("/v1/inventory/stocks/summary?per_page=1&location_id[]={$locationA->id}")
         ->assertOk()
         ->assertJsonPath('meta.per_page', 1)
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
         ->assertJsonCount(1, 'data');
 
-    $this->getJson("/v1/inventory/stock/summary?item_id[]={$itemA->id}&location_id[]={$locationA->id}")
+    $this->getJson("/v1/inventory/stocks/summary?item_id[]={$itemA->id}&location_id[]={$locationA->id}")
         ->assertOk()
         ->assertJsonPath('data.0.item_id', $itemA->id)
         ->assertJsonPath('data.0.location_id', $locationA->id)
@@ -152,20 +196,30 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         ->assertJsonPath('data.0.total_value', '130.00')
         ->assertJsonPath('data.0.currency_code', $this->currency->code);
 
-    $this->getJson('/v1/inventory/stock/expiring?days=7')
+    $this->getJson("/v1/inventory/stocks?item_id={$itemA->id}&location_id={$locationA->id}")
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.item_id', $itemA->id)
+        ->assertJsonPath('data.0.location_id', $locationA->id)
+        ->assertJsonFragment(['id' => $expiringLot->id]);
+
+    $this->getJson('/v1/inventory/stocks?expiring_within_days=7')
         ->assertOk()
         ->assertJsonStructure(['meta' => ['per_page', 'next_cursor', 'prev_cursor']])
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.stock_id', $expiringLot->id)
+        ->assertJsonPath('data.0.id', $expiringLot->id)
         ->assertJsonPath('data.0.item_id', $itemA->id)
         ->assertJsonPath('data.0.location_id', $locationA->id)
-        ->assertJsonPath('data.0.remaining', 70);
+        ->assertJsonPath('data.0.remaining', 70)
+        ->assertJsonPath('data.0.unit_cost', '1.00')
+        ->assertJsonPath('data.0.total_cost', '70.00')
+        ->assertJsonPath('data.0.days_remaining', 4);
 });
 
-it('validates query filters on expiring stock endpoint', function (): void {
-    $this->getJson('/v1/inventory/stock/expiring?days=0')
+it('validates expiring stock filters', function (): void {
+    $this->getJson('/v1/inventory/stocks?expiring_within_days=0')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors('days');
+        ->assertJsonValidationErrors('expiring_within_days');
 });
 
 it('does not expose the removed standalone value endpoints', function (): void {

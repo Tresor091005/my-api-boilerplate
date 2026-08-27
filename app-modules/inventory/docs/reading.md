@@ -44,8 +44,8 @@ All package routes use the `/v1/inventory` prefix and return resources or cursor
 |---|---|---|
 | GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
 | GET | `/movements` | Movement history, optionally filtered by item or location |
-| GET | `/stock/summary` | Global item/location summary |
-| GET | `/stock/expiring` | Expiring active lots |
+| GET | `/stocks/summary` | Global item/location summary |
+| GET | `/stocks?expiring_within_days=7` | Expiring active lots |
 | GET | `/transactions` | List transactions |
 | GET | `/transactions/{transaction}` | Retrieve one transaction |
 

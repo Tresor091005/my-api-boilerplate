@@ -21,7 +21,6 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
-use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Inventory\Services\Stock\ManageInventoryStockService;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
@@ -147,9 +146,7 @@ it('scopes descendant relations and rejects forged stock updates', function (): 
         ->and(fn () => app(ManageInventoryStockService::class)->updateMetadata($foreignStock, ['forged' => true]))
         ->toThrow(OrganizationScopeException::class);
 
-    expect($foreignStock->refresh()->metadata)->toBeNull()
-        ->and(app(InventoryQueryService::class)->retrieveItem($item->setAttribute('organization_id', $this->otherOrganizationId))->id)
-        ->toBe($item->id);
+    expect($foreignStock->refresh()->metadata)->toBeNull();
 });
 
 it('rejects inventory operations without an organization context', function (): void {

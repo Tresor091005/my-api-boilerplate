@@ -14,11 +14,4 @@ interface HasInventoryItem
     public function getUnitGroupId(): string;
 
     public function getSku(): string;
-
-    /**
-     * Return the lightweight representation exposed under item.itemable.
-     *
-     * @return array<string, mixed>
-     */
-    public function toInventoryItemSummary(): array;
 }
