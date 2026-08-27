@@ -30,6 +30,7 @@ final readonly class MovementData
         public ?array $stockIds,
         public ?array $metadata,
         public ?array $stockMetadata,
+        public ?array $exchangeMetadata,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -56,6 +57,31 @@ final readonly class MovementData
             stockIds: $data['stock_ids'] ?? null,
             metadata: $data['metadata'] ?? null,
             stockMetadata: $data['stock_metadata'] ?? null,
+            exchangeMetadata: $data['exchange_metadata'] ?? null,
+        );
+    }
+
+    /** @param array<string, mixed> $exchangeMetadata */
+    public function withConvertedCost(
+        int $totalCost,
+        string $currencyCode,
+        array $exchangeMetadata,
+    ): self {
+        return new self(
+            itemId: $this->itemId,
+            locationId: $this->locationId,
+            toLocationId: $this->toLocationId,
+            type: $this->type,
+            quantity: $this->quantity,
+            unitCode: $this->unitCode,
+            totalCost: $totalCost,
+            currencyCode: $currencyCode,
+            expirationDate: $this->expirationDate,
+            strategy: $this->strategy,
+            stockIds: $this->stockIds,
+            metadata: $this->metadata,
+            stockMetadata: $this->stockMetadata,
+            exchangeMetadata: $exchangeMetadata,
         );
     }
 }

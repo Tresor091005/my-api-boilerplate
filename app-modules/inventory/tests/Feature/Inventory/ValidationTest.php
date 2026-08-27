@@ -27,6 +27,7 @@ beforeEach(function (): void {
 
     // Setup Master Data
     $this->currency = Currency::factory()->create();
+    currentTestCase()->configureInventoryCurrency($this->currency->code);
     $this->group = UnitGroup::factory()->create();
     $this->unit = Unit::factory()->create(['ratio' => 1, 'group_id' => $this->group->id]);
 
@@ -35,7 +36,7 @@ beforeEach(function (): void {
     $this->location = InventoryLocation::factory()->create();
 });
 
-it('allows multiple currencies in one transaction', function (): void {
+it('rejects a transaction in a disabled currency', function (): void {
     $currency2 = Currency::factory()->create();
     $item2 = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
 
@@ -50,11 +51,8 @@ it('allows multiple currencies in one transaction', function (): void {
         ],
     ];
 
-    $transaction = $this->service->recordTransaction($payload);
-
-    expect($transaction->movements)->toHaveCount(2)
-        ->and($transaction->movements->pluck('currency_code')->all())
-        ->toBe([$this->currency->code, $currency2->code]);
+    expect(fn () => $this->service->recordTransaction($payload))
+        ->toThrow(ValidationException::class);
 });
 
 it('maps validation error keys when recording a transaction', function (): void {

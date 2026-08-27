@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\MovementType;
@@ -20,6 +21,7 @@ use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Organization\Models\ExchangeRate;
 
 uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
@@ -27,6 +29,7 @@ beforeEach(function (): void {
     $this->ensureInventoryTestTables();
     $this->service = app(InventoryService::class);
     $this->currency = Currency::factory()->create();
+    currentTestCase()->configureInventoryCurrency($this->currency->code);
     $this->group = UnitGroup::factory()->create(['is_builtin' => false]);
     $this->unit = Unit::factory()->create(['ratio' => 1, 'group_id' => $this->group->id]);
     $this->item = InventoryItem::factory()->create([
@@ -69,6 +72,40 @@ it('returns the original transaction without duplicating ledger entries on repla
         ->and(InventoryTransaction::query()->count())->toBe(1)
         ->and(InventoryMovement::query()->count())->toBe(1)
         ->and(InventoryStock::query()->count())->toBe(1);
+});
+
+it('keeps the original conversion snapshot when a converted transaction is replayed', function (): void {
+    $transactionCurrency = Currency::factory()->create();
+    DB::table('organization_settings')
+        ->where('organization_id', $this->organizationId)
+        ->update([
+            'enable_currencies' => json_encode([$this->currency->code, $transactionCurrency->code], JSON_THROW_ON_ERROR),
+        ]);
+    $rate = ExchangeRate::factory()->create([
+        'organization_id'      => $this->organizationId,
+        'source_currency_code' => $transactionCurrency->code,
+        'target_currency_code' => $this->currency->code,
+        'rate'                 => '2',
+        'effective_at'         => now()->subMinute(),
+    ]);
+    setPermissionsTeamId($this->organizationId);
+
+    $payload = idempotentTransactionPayload(
+        $this->item,
+        $this->location,
+        $this->unit,
+        $transactionCurrency,
+        'purchase-order-converted-123',
+    );
+
+    $first = $this->service->recordTransaction($payload);
+    $rate->update(['rate' => '3']);
+    $second = $this->service->recordTransaction($payload);
+    $movement = $first->movements->firstOrFail();
+
+    expect($second->id)->toBe($first->id)
+        ->and($movement->total_cost)->toBe(30000)
+        ->and($movement->exchange_metadata['exchange_rate'])->toBe('2.000000000000');
 });
 
 it('rejects reuse of an idempotency key with a different payload', function (): void {

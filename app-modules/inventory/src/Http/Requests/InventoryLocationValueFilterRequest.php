@@ -20,10 +20,8 @@ class InventoryLocationValueFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_id'         => ['nullable', 'array', 'min:1', 'max:100'],
-            'item_id.*'       => ['uuid'],
-            'currency_code'   => ['nullable', 'array', 'min:1', 'max:100'],
-            'currency_code.*' => ['string', 'size:3'],
+            'item_id'   => ['nullable', 'array', 'min:1', 'max:100'],
+            'item_id.*' => ['uuid'],
         ];
     }
 }

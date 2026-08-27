@@ -6,6 +6,9 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
+/**
+ * @method void configureInventoryCurrency(string $currencyCode)
+ */
 abstract class TestCase extends BaseTestCase
 {
     public function disableExceptionHandling(): void

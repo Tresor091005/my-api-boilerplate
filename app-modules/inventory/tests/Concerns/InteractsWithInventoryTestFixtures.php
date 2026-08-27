@@ -38,6 +38,23 @@ trait InteractsWithInventoryTestFixtures
             ],
         ]);
 
+        DB::table('organization_settings')->insert([
+            [
+                'id'                => (string) Str::uuid7(),
+                'organization_id'   => $this->organizationId,
+                'enable_currencies' => json_encode(['XOF'], JSON_THROW_ON_ERROR),
+                'created_at'        => $now,
+                'updated_at'        => $now,
+            ],
+            [
+                'id'                => (string) Str::uuid7(),
+                'organization_id'   => $this->otherOrganizationId,
+                'enable_currencies' => json_encode(['XOF'], JSON_THROW_ON_ERROR),
+                'created_at'        => $now,
+                'updated_at'        => $now,
+            ],
+        ]);
+
         setPermissionsTeamId($this->organizationId);
     }
 
@@ -73,6 +90,19 @@ trait InteractsWithInventoryTestFixtures
         }
 
         $this->initializeInventoryTenantContext();
+    }
+
+    protected function configureInventoryCurrency(string $currencyCode): void
+    {
+        $enabledCurrencies = DB::table('master_currencies')->pluck('code')->push($currencyCode)->unique()->values()->all();
+
+        DB::table('organization_organizations')
+            ->where('id', $this->organizationId)
+            ->update(['functional_currency_code' => $currencyCode]);
+
+        DB::table('organization_settings')
+            ->where('organization_id', $this->organizationId)
+            ->update(['enable_currencies' => json_encode($enabledCurrencies, JSON_THROW_ON_ERROR)]);
     }
 
     protected function createTestMaterial(array $attributes = []): TestInventoryMaterial

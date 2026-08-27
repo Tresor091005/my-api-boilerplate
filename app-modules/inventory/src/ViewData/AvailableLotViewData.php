@@ -13,6 +13,7 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
 {
     /**
      * @param  array<string, mixed>|null  $metadata
+     * @param  array<string, mixed>|null  $exchangeMetadata
      */
     public function __construct(
         public string $stockId,
@@ -24,29 +25,31 @@ readonly class AvailableLotViewData implements Arrayable, JsonSerializable
         public ?CarbonImmutable $expirationDate,
         public ?CarbonImmutable $createdAt,
         public ?array $metadata,
+        public ?array $exchangeMetadata,
     ) {}
 
     /**
-     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
+     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null, exchange_metadata: array<string, mixed>|null}
      */
     public function toArray(): array
     {
         return [
-            'stock_id'        => $this->stockId,
-            'remaining'       => $this->remaining,
-            'quantity'        => $this->quantity,
-            'unit_cost'       => $this->resolveUnitCost(),
-            'total_cost'      => $this->resolveTotalCost(),
-            'cost_remainder'  => $this->resolveCostRemainder(),
-            'currency_code'   => $this->currencyCode,
-            'expiration_date' => $this->expirationDate,
-            'created_at'      => $this->createdAt,
-            'metadata'        => $this->metadata,
+            'stock_id'          => $this->stockId,
+            'remaining'         => $this->remaining,
+            'quantity'          => $this->quantity,
+            'unit_cost'         => $this->resolveUnitCost(),
+            'total_cost'        => $this->resolveTotalCost(),
+            'cost_remainder'    => $this->resolveCostRemainder(),
+            'currency_code'     => $this->currencyCode,
+            'expiration_date'   => $this->expirationDate,
+            'created_at'        => $this->createdAt,
+            'metadata'          => $this->metadata,
+            'exchange_metadata' => $this->exchangeMetadata,
         ];
     }
 
     /**
-     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: ?string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null}
+     * @return array{stock_id: string, remaining: int, quantity: int, unit_cost: string|int, total_cost: string|int, cost_remainder: int, currency_code: string, expiration_date: ?CarbonImmutable, created_at: ?CarbonImmutable, metadata: array<string, mixed>|null, exchange_metadata: array<string, mixed>|null}
      */
     public function jsonSerialize(): array
     {

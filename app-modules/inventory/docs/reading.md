@@ -19,10 +19,10 @@ Lot reads include the stock ID, remaining and original quantity, base-unit cost,
 
 ## Value
 
-- `getItemValue($item, $filters)`: value by currency, optionally filtered by locations;
-- `getLocationValue($location, $filters)`: value by currency, optionally filtered by items.
+- `getItemValue($item, $filters)`: value for an item, optionally filtered by locations;
+- `getLocationValue($location, $filters)`: value for a location, optionally filtered by items.
 
-Values include the cost remainder and are converted from persisted minor units into the currency's display amount. Currencies are kept separate and are never averaged together.
+Values include the cost remainder and are converted from persisted minor units into the organization's functional currency display amount. Inventory does not aggregate different currencies together because internal stock costs are normalized at the inbound boundary.
 
 ## History
 
@@ -38,10 +38,10 @@ All package routes use the `/v1/inventory` prefix and return resources or cursor
 
 | Method | Endpoint | Read |
 |---|---|---|
-| GET | `/items/{item}/value` | Item value by currency |
+| GET | `/items/{item}/value` | Item value in the functional currency |
 | GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
 | GET | `/movements` | Movement history, optionally filtered by item or location |
-| GET | `/locations/{location}/value` | Location value by currency |
+| GET | `/locations/{location}/value` | Location value in the functional currency |
 | GET | `/stock/summary` | Global item/location summary |
 | GET | `/stock/expiring` | Expiring active lots |
 | GET | `/transactions` | List transactions |

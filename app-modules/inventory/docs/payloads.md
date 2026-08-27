@@ -21,13 +21,15 @@ The complete operation examples live in [Movements](movements.md). This page rec
 |---|---|---|---|---|
 | `item_id`, `location_id`, `quantity`, `unit_code` | required | required | required | required |
 | `to_location_id` | forbidden | forbidden | forbidden | required |
-| `total_cost`, `currency_code` | cost and currency required | forbidden | currency only for an increase; cost ignored | forbidden |
+| `total_cost`, `currency_code` | cost and currency required | forbidden | not used; cost is derived from functional-currency stock | forbidden |
 | `expiration_date` | required for expirable / absent for non-expirable | forbidden | required for increase; ignored for decrease | inherited from source lot |
 | `stock_metadata` | initializes the new lot | forbidden | initializes an increase lot; ignored for decrease | forbidden; copied from source lot |
 | `strategy`, `stock_ids` | forbidden | optional / manual selection | optional / manual selection for decrease | optional / manual selection |
 | `link_id` | caller must not send | caller must not send | caller must not send | generated internally |
 
-For `OUT`, total cost, currency, expiration, and stock metadata are derived from the consumed lots rather than supplied by the caller. For a negative adjustment, `quantity` remains the target final quantity.
+For `IN`, `currency_code` identifies the transaction currency. The service validates that the organization has enabled it, converts the cost to the organization's functional currency using the configured exchange rate, and stores the conversion snapshot in `exchange_metadata`.
+
+For `OUT`, total cost, currency, expiration, and stock metadata are derived from the consumed lots rather than supplied by the caller. For an adjustment, quantity remains the target final quantity and costing always uses the organization's functional currency. Transfers inherit cost and currency from the source lots.
 
 ## Reversal and preview
 

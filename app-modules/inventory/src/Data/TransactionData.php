@@ -39,4 +39,17 @@ final readonly class TransactionData
             metadata: $data['metadata'] ?? null,
         );
     }
+
+    /** @param Collection<int, MovementData> $movements */
+    public function withMovements(Collection $movements): self
+    {
+        return new self(
+            idempotencyKey: $this->idempotencyKey,
+            referenceType: $this->referenceType,
+            referenceId: $this->referenceId,
+            transactionType: $this->transactionType,
+            movements: $movements,
+            metadata: $this->metadata,
+        );
+    }
 }

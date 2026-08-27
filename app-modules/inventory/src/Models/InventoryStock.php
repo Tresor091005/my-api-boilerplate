@@ -23,12 +23,13 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $location_id
  * @property int $unit_cost
  * @property int $cost_remainder
- * @property string|null $currency_code
+ * @property string $currency_code
  * @property int $quantity
  * @property int $remaining
  * @property string $unit_code
  * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
+ * @property array|null $exchange_metadata
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -83,24 +84,26 @@ class InventoryStock extends Model
         'unit_code',
         'expiration_date',
         'metadata',
+        'exchange_metadata',
     ];
 
     protected $casts = [
-        'id'              => 'string',
-        'organization_id' => 'string',
-        'item_id'         => 'string',
-        'location_id'     => 'string',
-        'unit_cost'       => 'integer',
-        'cost_remainder'  => 'integer',
-        'currency_code'   => 'string',
-        'quantity'        => 'integer',
-        'remaining'       => 'integer',
-        'unit_code'       => 'string',
-        'expiration_date' => 'immutable_datetime',
-        'metadata'        => 'array',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
-        'deleted_at'      => 'immutable_datetime',
+        'id'                => 'string',
+        'organization_id'   => 'string',
+        'item_id'           => 'string',
+        'location_id'       => 'string',
+        'unit_cost'         => 'integer',
+        'cost_remainder'    => 'integer',
+        'currency_code'     => 'string',
+        'quantity'          => 'integer',
+        'remaining'         => 'integer',
+        'unit_code'         => 'string',
+        'expiration_date'   => 'immutable_datetime',
+        'metadata'          => 'array',
+        'exchange_metadata' => 'array',
+        'created_at'        => 'immutable_datetime',
+        'updated_at'        => 'immutable_datetime',
+        'deleted_at'        => 'immutable_datetime',
     ];
 
     public function item(): BelongsTo

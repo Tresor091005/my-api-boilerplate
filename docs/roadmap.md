@@ -88,44 +88,28 @@
   latest applicable directed rate, converts minor units with BCMath, and
   applies explicit half-up rounding. A missing requested context falls back
   to `default` before conversion is rejected.
-- [~] Return exchange-rate snapshots from the conversion service, including the
+- [x] Return exchange-rate snapshots from the conversion service, including the
   requested and effective contexts, original and functional currencies and
   amounts, rate, and effective timestamp. Persisting this snapshot on each
-  external monetary document remains the responsibility of the future business
-  module that owns that document.
+  external monetary document remains the responsibility of the business module
+  that owns that document.
 - [ ] Use conversion at external boundaries: customer payments, refunds,
   supplier invoices, expenses, revenues, imports, and organization
   transitions.
-- [ ] Keep internal prices, inventory costs, movements, and aggregates in the
-  functional currency. Do not convert every row that happens to contain a
-  `currency_code`.
-- [ ] Audit and migrate Inventory away from per-operation currencies once
-  `organization.functional_currency_code` exists:
-  - [ ] Make `inventory_stocks.currency_code` and
-    `inventory_movements.currency_code` represent the organization's
-    functional currency for new internal records; define the treatment of
-    existing nullable or foreign-currency rows before enforcing the rule.
-  - [ ] Remove the ability for `IN` and `ADJUSTMENT` payloads to choose an
-    arbitrary currency; resolve and validate the organization functional
-    currency in the transaction service.
-  - [ ] Keep `OUT`, `TRANSFER`, and reversal currency propagation coherent
-    with the original internal stock or movement currency while historical
-    data is being supported.
-  - [ ] Replace adjustment's currency-specific average-cost selection with
-    the functional-currency stock cost, and reject or explicitly convert
-    incompatible historical stock.
-  - [ ] Enrich Inventory `/stock/summary` rows with `total_value` and the
-    organization's functional `currency_code`; the value is calculated per
-    item/location row and can be aggregated by clients after filtering.
-  - [ ] Remove the redundant Inventory value endpoints
-    (`items/{item}/value` and `locations/{location}/value`) once the enriched
-    summary is available; do not preserve separate per-currency grouping.
-  - [ ] Update Inventory contracts, data objects, validation, resources,
-    README examples, factories, and tests that currently expose or require a
-    movement-level `currency_code`.
-  - [ ] Preserve `currency_code` in immutable historical records where it is
-    needed for auditability; this is a data migration decision, not a blanket
-    column deletion.
+- [x] Keep internal Inventory prices, stock costs, movements, and aggregates in
+  the organization's functional currency. Incoming `IN` costs may be supplied
+  in an enabled transaction currency, but are converted at the transaction
+  boundary and retain an `exchange_metadata` snapshot.
+- [x] Enforce non-null functional currency codes on Inventory stocks and
+  movements, remove arbitrary currency selection from adjustments, and keep
+  currency propagation coherent for `OUT`, `TRANSFER`, and reversals.
+- [x] Replace adjustment's currency-specific average-cost selection with the
+  functional-currency stock cost.
+- [x] Remove the redundant Inventory value endpoints' public currency filters;
+  `/stock/summary` remains the aggregate read model and exposes the functional
+  currency and `total_value` per item/location row.
+- [x] Update Inventory contracts, data objects, validation, resources,
+  factories, and tests for boundary conversion and historical snapshots.
 - [ ] Allow foreign-currency payment only when the organization configuration
   permits it. Creating a second organization is reserved for a genuinely
   separate legal, accounting, or operational lifecycle.

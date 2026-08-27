@@ -6,13 +6,9 @@ namespace Lahatre\Inventory\Data;
 
 final readonly class InventoryLocationValueFilterData
 {
-    /**
-     * @param  array<int, string>|null  $itemId
-     * @param  array<int, string>|null  $currencyCode
-     */
+    /** @param  array<int, string>|null  $itemId */
     private function __construct(
         public ?array $itemId,
-        public ?array $currencyCode,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -20,7 +16,6 @@ final readonly class InventoryLocationValueFilterData
     {
         return new self(
             itemId: $data['item_id'] ?? null,
-            currencyCode: $data['currency_code'] ?? null,
         );
     }
 }

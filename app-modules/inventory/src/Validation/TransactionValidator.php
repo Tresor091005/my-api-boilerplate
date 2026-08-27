@@ -103,6 +103,7 @@ class TransactionValidator
         foreach ($data['movements'] ?? [] as $index => $movement) {
             if (is_array($movement)) {
                 unset($data['movements'][$index]['total_cost']);
+                unset($data['movements'][$index]['currency_code']);
             }
         }
 

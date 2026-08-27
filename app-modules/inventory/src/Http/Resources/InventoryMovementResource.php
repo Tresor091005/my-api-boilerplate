@@ -38,6 +38,7 @@ class InventoryMovementResource extends JsonResource
             'currency_code'           => $this->currency_code,
             'expiration_date'         => $this->expiration_date,
             'metadata'                => $this->metadata,
+            'exchange_metadata'       => $this->exchange_metadata,
             'stock_metadata_snapshot' => $this->stock_metadata_snapshot,
             'created_at'              => $this->created_at,
             'updated_at'              => $this->updated_at,

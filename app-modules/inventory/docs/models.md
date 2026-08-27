@@ -43,14 +43,16 @@ or eagerly. Every joined inventory table applies its own qualified
 - `item_id` and `location_id`;
 - `quantity` and `remaining`, stored in the item's base unit;
 - `unit_code`, `unit_cost`, and `cost_remainder`;
-- `currency_code` and `expiration_date`;
+- `currency_code` (the organization's functional currency) and `expiration_date`;
+- optional `exchange_metadata`, preserving the conversion snapshot for an
+  inbound cost supplied in another enabled currency;
 - mutable `metadata`.
 
 Stock metadata is updated independently through the dedicated PATCH endpoint. Quantity and cost are changed only by transactions.
 
 ## Inventory movement
 
-`InventoryMovement` is one persisted stock event. It records its `movement_type`, transaction, item, stock, location, quantity, unit, exact `total_cost`, currency, expiration, optional `metadata`, optional transfer `link_id`, and outbound `stock_metadata_snapshot`.
+`InventoryMovement` is one persisted stock event. It records its `movement_type`, transaction, item, stock, location, quantity, unit, exact `total_cost`, functional currency, expiration, optional `metadata`, optional transfer `link_id`, outbound `stock_metadata_snapshot`, and optional `exchange_metadata` conversion snapshot. Inventory stocks and movements always store costs in the organization's functional currency; only an inbound payload may specify a transaction currency.
 
 ## Inventory transaction
 

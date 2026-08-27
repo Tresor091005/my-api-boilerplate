@@ -36,6 +36,9 @@ use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
 use Lahatre\Inventory\Services\Location\ManageInventoryLocationService;
 use Lahatre\Inventory\Validation\TransactionValidator;
 use Lahatre\Master\Contracts\MasterInterface;
+use Lahatre\Organization\Contracts\OrganizationInterface;
+use Lahatre\Organization\Enums\ExchangeRateContext;
+use Lahatre\Organization\Exceptions\OrganizationException;
 
 class InventoryService implements InventoryInterface
 {
@@ -51,6 +54,7 @@ class InventoryService implements InventoryInterface
         protected ManageInventoryLocationService $inventoryLocationService,
         protected TransactionPayloadHasher $transactionPayloadHasher,
         protected TransactionErrorKeyMapper $transactionErrorKeyMapper,
+        protected OrganizationInterface $organizationInterface,
     ) {}
 
     public function createLocation(HasInventoryLocation $model): InventoryLocation
@@ -107,7 +111,10 @@ class InventoryService implements InventoryInterface
         $this->transactionErrorKeyMapper->validate($errorKeyMap);
 
         try {
-            return DB::transaction(fn (): InventoryTransaction => $this->recordTransactionInternal($data, $with));
+            return DB::transaction(fn (): InventoryTransaction => $this->recordTransactionInternal(
+                data: $data,
+                with: $with,
+            ));
         } catch (ValidationException $exception) {
             throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
         }
@@ -147,12 +154,25 @@ class InventoryService implements InventoryInterface
                         throw ReversalException::alreadyReversed($original->id);
                     }
 
-                    return $this->recordTransactionInternal($payload, $with, null, true, false, true);
+                    return $this->recordTransactionInternal(
+                        data: $payload,
+                        with: $with,
+                        costsInMinor: true,
+                        allowLegacyExpiration: true,
+                        resolveConversions: false,
+                    );
                 }
 
                 $this->assertReversalItemsTrackStock($original);
 
-                return $this->recordTransactionInternal($payload, $with, $original->id, true, false, true);
+                return $this->recordTransactionInternal(
+                    data: $payload,
+                    with: $with,
+                    reversalOfTransactionId: $original->id,
+                    costsInMinor: true,
+                    allowLegacyExpiration: true,
+                    resolveConversions: false,
+                );
             });
         } catch (ValidationException $exception) {
             throw $this->transactionErrorKeyMapper->mapValidationException($exception, $errorKeyMap);
@@ -182,6 +202,7 @@ class InventoryService implements InventoryInterface
                     costsInMinor: true,
                     preview: true,
                     allowLegacyExpiration: true,
+                    resolveConversions: false,
                 );
             });
         } catch (ValidationException $exception) {
@@ -254,6 +275,7 @@ class InventoryService implements InventoryInterface
         bool $costsInMinor = false,
         bool $preview = false,
         bool $allowLegacyExpiration = false,
+        bool $resolveConversions = true,
     ): InventoryTransaction {
         $organizationId = currentOrganizationId();
 
@@ -269,7 +291,6 @@ class InventoryService implements InventoryInterface
         $items = $lookups['items'];
         $transaction = TransactionData::fromArray($validatedData, $this->masterInterface, $costsInMinor);
         $payloadHash = $this->transactionPayloadHasher->hash($transaction);
-        $movementContexts = $this->buildMovementContexts($transaction, $items);
 
         $tx = InventoryTransaction::query()->firstOrCreate(
             [
@@ -298,6 +319,12 @@ class InventoryService implements InventoryInterface
             return $tx->load($with);
         }
 
+        if ($resolveConversions) {
+            $transaction = $this->resolveInboundConversions($transaction);
+        }
+
+        $movementContexts = $this->buildMovementContexts($transaction, $items);
+
         match ($transaction->transactionType) {
             TransactionType::In       => $this->processInMovements($tx, $movementContexts),
             TransactionType::Out      => $this->processOutMovements($tx, $movementContexts),
@@ -308,6 +335,46 @@ class InventoryService implements InventoryInterface
         };
 
         return $tx->load($with);
+    }
+
+    protected function resolveInboundConversions(TransactionData $transaction): TransactionData
+    {
+        if ($transaction->transactionType !== TransactionType::In) {
+            return $transaction;
+        }
+
+        $errors = [];
+        $movements = $transaction->movements->map(
+            function (MovementData $movement, int $index) use (&$errors): MovementData {
+                if ($movement->totalCost === null || $movement->currencyCode === null) {
+                    return $movement;
+                }
+
+                try {
+                    $conversion = $this->organizationInterface->resolveMinorConversion(
+                        amountMinor: (string) $movement->totalCost,
+                        transactionCurrencyCode: $movement->currencyCode,
+                        context: ExchangeRateContext::Default,
+                    );
+                } catch (OrganizationException $exception) {
+                    $errors["movements.{$index}.currency_code"] = [$exception->getMessage()];
+
+                    return $movement;
+                }
+
+                return $movement->withConvertedCost(
+                    totalCost: (int) $conversion['amount_in_functional_currency'],
+                    currencyCode: $conversion['functional_currency_code'],
+                    exchangeMetadata: $conversion,
+                );
+            }
+        );
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $transaction->withMovements($movements);
     }
 
     protected function buildReversalPayload(InventoryTransaction $original, ?array $metadata): array
@@ -325,32 +392,30 @@ class InventoryService implements InventoryInterface
         $movements = $original->movements->map(function (InventoryMovement $movement) use ($original): array {
             if ($original->transaction_type === TransactionType::In) {
                 return [
-                    'item_id'     => $movement->item_id,
-                    'location_id' => $movement->location_id,
-                    'type'        => MovementType::Out->value,
-                    'quantity'    => $movement->quantity,
-                    'unit_code'   => $movement->unit_code,
-                    'strategy'    => DeductionStrategy::Manual->value,
-                    'stock_ids'   => [$movement->stock_id],
-                    'metadata'    => $movement->metadata,
+                    'item_id'           => $movement->item_id,
+                    'location_id'       => $movement->location_id,
+                    'type'              => MovementType::Out->value,
+                    'quantity'          => $movement->quantity,
+                    'unit_code'         => $movement->unit_code,
+                    'strategy'          => DeductionStrategy::Manual->value,
+                    'stock_ids'         => [$movement->stock_id],
+                    'metadata'          => $movement->metadata,
+                    'exchange_metadata' => $movement->exchange_metadata,
                 ];
             }
 
-            if ($movement->currency_code === null) {
-                throw ReversalException::inconsistentMovement($movement->id);
-            }
-
             return [
-                'item_id'         => $movement->item_id,
-                'location_id'     => $movement->location_id,
-                'type'            => MovementType::In->value,
-                'quantity'        => $movement->quantity,
-                'unit_code'       => $movement->unit_code,
-                'total_cost'      => $movement->total_cost,
-                'currency_code'   => $movement->currency_code,
-                'expiration_date' => $movement->expiration_date,
-                'metadata'        => $movement->metadata,
-                'stock_metadata'  => $movement->stock_metadata_snapshot,
+                'item_id'           => $movement->item_id,
+                'location_id'       => $movement->location_id,
+                'type'              => MovementType::In->value,
+                'quantity'          => $movement->quantity,
+                'unit_code'         => $movement->unit_code,
+                'total_cost'        => $movement->total_cost,
+                'currency_code'     => $movement->currency_code,
+                'expiration_date'   => $movement->expiration_date,
+                'metadata'          => $movement->metadata,
+                'stock_metadata'    => $movement->stock_metadata_snapshot,
+                'exchange_metadata' => $movement->exchange_metadata,
             ];
         })->values()->all();
 
@@ -403,27 +468,29 @@ class InventoryService implements InventoryInterface
             $batches[] = [
                 'link_id'  => $linkId,
                 'outbound' => $inbound->map(fn (InventoryMovement $movement): array => [
-                    'movement_id'   => $movement->id,
-                    'stock_id'      => $movement->stock_id,
-                    'item_id'       => $movement->item_id,
-                    'location_id'   => $movement->location_id,
-                    'quantity'      => $movement->quantity,
-                    'unit_code'     => $movement->unit_code,
-                    'total_cost'    => $movement->total_cost,
-                    'currency_code' => $movement->currency_code,
-                    'metadata'      => $movement->metadata,
+                    'movement_id'       => $movement->id,
+                    'stock_id'          => $movement->stock_id,
+                    'item_id'           => $movement->item_id,
+                    'location_id'       => $movement->location_id,
+                    'quantity'          => $movement->quantity,
+                    'unit_code'         => $movement->unit_code,
+                    'total_cost'        => $movement->total_cost,
+                    'currency_code'     => $movement->currency_code,
+                    'metadata'          => $movement->metadata,
+                    'exchange_metadata' => $movement->exchange_metadata,
                 ])->values()->all(),
                 'inbound' => $outbound->map(fn (InventoryMovement $movement): array => [
-                    'movement_id'     => $movement->id,
-                    'item_id'         => $movement->item_id,
-                    'location_id'     => $movement->location_id,
-                    'quantity'        => $movement->quantity,
-                    'unit_code'       => $movement->unit_code,
-                    'total_cost'      => $movement->total_cost,
-                    'currency_code'   => $movement->currency_code,
-                    'expiration_date' => $movement->expiration_date,
-                    'metadata'        => $movement->metadata,
-                    'stock_metadata'  => $movement->stock_metadata_snapshot,
+                    'movement_id'       => $movement->id,
+                    'item_id'           => $movement->item_id,
+                    'location_id'       => $movement->location_id,
+                    'quantity'          => $movement->quantity,
+                    'unit_code'         => $movement->unit_code,
+                    'total_cost'        => $movement->total_cost,
+                    'currency_code'     => $movement->currency_code,
+                    'expiration_date'   => $movement->expiration_date,
+                    'metadata'          => $movement->metadata,
+                    'stock_metadata'    => $movement->stock_metadata_snapshot,
+                    'exchange_metadata' => $movement->exchange_metadata,
                 ])->values()->all(),
             ];
         }
@@ -582,16 +649,13 @@ class InventoryService implements InventoryInterface
                     ]);
                 }
 
-                if ($movement->currencyCode === null) {
-                    throw AdjustmentAverageCostUnavailableException::currencyRequired(
-                        $movement->itemId,
-                        $movement->locationId
-                    );
-                }
+                $functionalCurrencyCode = $this->organizationInterface
+                    ->findOrganizationById(currentOrganizationId())
+                    ->functional_currency_code;
 
                 $averageCost = $this->resolveAdjustmentAverageCost(
                     stocks: $currentStocks,
-                    currencyCode: $movement->currencyCode,
+                    currencyCode: $functionalCurrencyCode,
                     quantityToAdd: $delta,
                     itemId: $movement->itemId,
                     locationId: $movement->locationId,
@@ -602,7 +666,7 @@ class InventoryService implements InventoryInterface
                     context: $context,
                     quantityOverrideInBase: $delta,
                     totalCost: $averageCost,
-                    currencyCode: $movement->currencyCode,
+                    currencyCode: $functionalCurrencyCode,
                     stockMetadata: $movement->stockMetadata,
                 );
             } elseif ($cmp < 0) {
@@ -642,6 +706,7 @@ class InventoryService implements InventoryInterface
                     totalCost: $deductedMovement->total_cost,
                     currencyCode: $deductedMovement->currency_code,
                     stockMetadata: $deductedMovement->stock_metadata_snapshot,
+                    exchangeMetadata: $deductedMovement->exchange_metadata,
                     linkId: $linkId,
                 );
             }
@@ -686,16 +751,17 @@ class InventoryService implements InventoryInterface
 
                 $context = MovementExecutionContextData::fromArray([
                     'movement' => MovementData::fromArray([
-                        'item_id'         => $movementData['item_id'],
-                        'location_id'     => $movementData['location_id'],
-                        'type'            => MovementType::In,
-                        'quantity'        => (string) $movementData['quantity'],
-                        'unit_code'       => $movementData['unit_code'],
-                        'total_cost'      => (int) $movementData['total_cost'],
-                        'currency_code'   => $movementData['currency_code'],
-                        'expiration_date' => $movementData['expiration_date'],
-                        'metadata'        => $movementData['metadata'],
-                        'stock_metadata'  => $movementData['stock_metadata'],
+                        'item_id'           => $movementData['item_id'],
+                        'location_id'       => $movementData['location_id'],
+                        'type'              => MovementType::In,
+                        'quantity'          => (string) $movementData['quantity'],
+                        'unit_code'         => $movementData['unit_code'],
+                        'total_cost'        => (int) $movementData['total_cost'],
+                        'currency_code'     => $movementData['currency_code'],
+                        'expiration_date'   => $movementData['expiration_date'],
+                        'metadata'          => $movementData['metadata'],
+                        'stock_metadata'    => $movementData['stock_metadata'],
+                        'exchange_metadata' => $movementData['exchange_metadata'] ?? null,
                     ], $this->masterInterface, costsInMinor: true),
                     'item'             => $template->item,
                     'quantity_in_base' => (string) $movementData['quantity'],
@@ -707,6 +773,7 @@ class InventoryService implements InventoryInterface
                     totalCost: (int) $movementData['total_cost'],
                     currencyCode: $movementData['currency_code'],
                     stockMetadata: $movementData['stock_metadata'],
+                    exchangeMetadata: $movementData['exchange_metadata'] ?? null,
                     linkId: $linkId,
                 );
             }
@@ -739,6 +806,7 @@ class InventoryService implements InventoryInterface
         ?int $totalCost = null,
         ?string $currencyCode = null,
         ?array $stockMetadata = null,
+        ?array $exchangeMetadata = null,
         ?string $linkId = null,
     ): InventoryStock {
         $organizationId = currentOrganizationId();
@@ -757,33 +825,35 @@ class InventoryService implements InventoryInterface
         $costRemainder = $resolvedTotalCost % $quantity;
 
         $stock = InventoryStock::create([
-            'organization_id' => $organizationId,
-            'item_id'         => $movement->itemId,
-            'location_id'     => $movement->locationId,
-            'unit_cost'       => $resolvedUnitCost,
-            'cost_remainder'  => $costRemainder,
-            'currency_code'   => $resolvedCurrencyCode,
-            'quantity'        => $quantity,
-            'remaining'       => $quantity,
-            'unit_code'       => $item->base_unit_code,
-            'expiration_date' => $movement->expirationDate,
-            'metadata'        => $stockMetadata,
+            'organization_id'   => $organizationId,
+            'item_id'           => $movement->itemId,
+            'location_id'       => $movement->locationId,
+            'unit_cost'         => $resolvedUnitCost,
+            'cost_remainder'    => $costRemainder,
+            'currency_code'     => $resolvedCurrencyCode,
+            'quantity'          => $quantity,
+            'remaining'         => $quantity,
+            'unit_code'         => $item->base_unit_code,
+            'expiration_date'   => $movement->expirationDate,
+            'metadata'          => $stockMetadata,
+            'exchange_metadata' => $exchangeMetadata ?? $movement->exchangeMetadata,
         ]);
 
         InventoryMovement::create([
-            'organization_id' => $organizationId,
-            'movement_type'   => MovementType::In,
-            'transaction_id'  => $tx->id,
-            'link_id'         => $linkId,
-            'item_id'         => $movement->itemId,
-            'location_id'     => $movement->locationId,
-            'stock_id'        => $stock->id,
-            'quantity'        => $quantity,
-            'unit_code'       => $item->base_unit_code,
-            'total_cost'      => $resolvedTotalCost,
-            'currency_code'   => $resolvedCurrencyCode,
-            'expiration_date' => $movement->expirationDate,
-            'metadata'        => $movement->metadata,
+            'organization_id'   => $organizationId,
+            'movement_type'     => MovementType::In,
+            'transaction_id'    => $tx->id,
+            'link_id'           => $linkId,
+            'item_id'           => $movement->itemId,
+            'location_id'       => $movement->locationId,
+            'stock_id'          => $stock->id,
+            'quantity'          => $quantity,
+            'unit_code'         => $item->base_unit_code,
+            'total_cost'        => $resolvedTotalCost,
+            'currency_code'     => $resolvedCurrencyCode,
+            'expiration_date'   => $movement->expirationDate,
+            'metadata'          => $movement->metadata,
+            'exchange_metadata' => $exchangeMetadata ?? $movement->exchangeMetadata,
         ]);
 
         return $stock;
@@ -857,6 +927,7 @@ class InventoryService implements InventoryInterface
                 'expiration_date'         => $stock->expiration_date,
                 'metadata'                => $movement->metadata,
                 'stock_metadata_snapshot' => $stockMetadataSnapshot,
+                'exchange_metadata'       => $stock->exchange_metadata,
             ]);
 
             $outMovement->setRelation('stock', $stock);
@@ -917,6 +988,7 @@ class InventoryService implements InventoryInterface
             'expiration_date'         => $stock->expiration_date,
             'metadata'                => $movementData['metadata'],
             'stock_metadata_snapshot' => $stock->metadata,
+            'exchange_metadata'       => $stock->exchange_metadata,
         ]);
 
         $outMovement->setRelation('stock', $stock);

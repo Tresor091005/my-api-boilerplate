@@ -21,6 +21,7 @@ beforeEach(function (): void {
     $this->ensureInventoryTestTables();
 
     $this->currency = Currency::factory()->create();
+    currentTestCase()->configureInventoryCurrency($this->currency->code);
     $this->group = UnitGroup::factory()->create(['is_builtin' => false]);
     $this->unit = Unit::factory()->create(['ratio' => 1, 'group_id' => $this->group->id]);
 });

@@ -4,7 +4,7 @@ Movements are grouped inside a transaction. The service supports incoming stock,
 
 ## Incoming stock
 
-An `IN` movement creates a new inventory stock lot. It accepts the quantity, total cost, currency, and optional `stock_metadata` used to populate that new lot. `expiration_date` is required for expirable items and rejected for non-expirable items.
+An `IN` movement creates a new inventory stock lot. It accepts the quantity, total cost in a transaction currency, that currency's code, and optional `stock_metadata` used to populate the new lot. The organization must have enabled the currency and configured a directed exchange rate when it differs from the functional currency. The service stores the resulting stock cost in the functional currency and persists the conversion snapshot in `exchange_metadata`. `expiration_date` is required for expirable items and rejected for non-expirable items.
 
 ```php
 $inventory->recordTransaction([
@@ -24,7 +24,7 @@ $inventory->recordTransaction([
 ]);
 ```
 
-`movement.metadata` describes the receipt event. `stock_metadata` describes the physical lot. They are stored independently. The service converts the input quantity to the item's base unit and derives `unit_cost` and `cost_remainder` from the total cost in minor units.
+`movement.metadata` describes the receipt event. `stock_metadata` describes the physical lot. They are stored independently. The service converts the input quantity to the item's base unit and derives `unit_cost` and `cost_remainder` from the converted total cost in minor units. A missing enabled currency or exchange rate rejects the transaction.
 
 ## Outgoing stock
 
@@ -50,7 +50,7 @@ The available strategies are `fifo` (default), `fefo`, and `manual`. Manual dedu
 
 An adjustment quantity is the target final quantity at the item/location level.
 
-For a positive adjustment, the service creates a new lot valued at the weighted average cost for the selected currency. Send `currency_code` and optional `stock_metadata`; a supplied `total_cost` is ignored.
+For a positive adjustment, the service creates a new lot valued at the weighted average cost in the organization's functional currency. `currency_code` and `total_cost` are not used for adjustments; the service derives the cost internally. Optional `stock_metadata` is preserved.
 
 ```php
 $inventory->recordTransaction([
@@ -61,7 +61,6 @@ $inventory->recordTransaction([
         'location_id' => $locationId,
         'quantity' => 80,
         'unit_code' => 'PCS',
-        'currency_code' => 'USD',
         'stock_metadata' => ['reason' => 'count correction'],
     ]],
 ]);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Tests\Feature\Inventory;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Inventory\Enums\MovementType;
@@ -18,6 +19,7 @@ use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Organization\Models\ExchangeRate;
 
 uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
 
@@ -28,6 +30,7 @@ beforeEach(function (): void {
 
     // Setup Master Data
     $this->currency = Currency::factory()->create();
+    currentTestCase()->configureInventoryCurrency($this->currency->code);
     $this->group = UnitGroup::factory()->create(['is_builtin' => false]);
     $this->unit = Unit::factory()->create(['ratio' => 1, 'group_id' => $this->group->id]);
 
@@ -79,6 +82,55 @@ it('successfully processes a simple IN transaction', function (): void {
         'quantity'       => 100,
         'total_cost'     => 155000,
     ]);
+});
+
+it('converts an enabled transaction currency and stores its functional snapshot', function (): void {
+    $transactionCurrency = Currency::factory()->create();
+    DB::table('organization_settings')
+        ->where('organization_id', $this->organizationId)
+        ->update([
+            'enable_currencies' => json_encode([$this->currency->code, $transactionCurrency->code], JSON_THROW_ON_ERROR),
+        ]);
+    ExchangeRate::factory()->create([
+        'organization_id'      => $this->organizationId,
+        'source_currency_code' => $transactionCurrency->code,
+        'target_currency_code' => $this->currency->code,
+        'rate'                 => '2.5',
+        'effective_at'         => now()->subMinute(),
+    ]);
+    setPermissionsTeamId($this->organizationId);
+
+    $transaction = $this->service->recordTransaction([
+        'reference_type'   => 'purchase_order',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'type'          => MovementType::In->value,
+            'quantity'      => 10,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => '10.00',
+            'currency_code' => $transactionCurrency->code,
+        ]],
+    ]);
+
+    $movement = $transaction->movements->firstOrFail();
+    $stock = $movement->stock;
+
+    expect($stock->currency_code)->toBe($this->currency->code)
+        ->and($stock->unit_cost)->toBe(250)
+        ->and($movement->currency_code)->toBe($this->currency->code)
+        ->and($movement->total_cost)->toBe(2500)
+        ->and($stock->exchange_metadata)->toMatchArray([
+            'currency_code'                  => $transactionCurrency->code,
+            'functional_currency_code'       => $this->currency->code,
+            'amount_in_transaction_currency' => '1000',
+            'amount_in_functional_currency'  => '2500',
+            'exchange_rate'                  => '2.500000000000',
+        ])
+        ->and($movement->exchange_metadata)->toEqual($stock->exchange_metadata);
 });
 
 it('derives unit cost and remainder from total cost', function (): void {

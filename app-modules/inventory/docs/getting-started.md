@@ -31,4 +31,11 @@ All transaction writes are idempotent when the same `idempotency_key` and equiva
 
 Transactions may use any unit in the item's unit group. Persistence uses the item's base unit. Monetary input is `total_cost`; the service converts it to minor units and stores the derived `unit_cost` and `cost_remainder` on the stock.
 
+For an `IN` transaction, `currency_code` is required and identifies the
+transaction currency. It must be enabled for the organization. When it differs
+from the organization's functional currency, a configured directed exchange
+rate is required; the service converts the amount at the boundary and stores
+the rate and converted amounts in `exchange_metadata`. `OUT`, `ADJUSTMENT`,
+`TRANSFER`, and `REVERSAL` do not accept a caller-supplied currency.
+
 See [Movements](movements.md) and [Complete payloads](payloads.md) for operation-specific contracts.

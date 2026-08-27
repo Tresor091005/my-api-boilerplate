@@ -29,6 +29,7 @@ beforeEach(function (): void {
 
     // Setup Master Data
     $this->currency = Currency::factory()->create();
+    currentTestCase()->configureInventoryCurrency($this->currency->code);
     $this->group = UnitGroup::factory()->create();
     $this->unit = Unit::factory()->create(['ratio' => 1, 'group_id' => $this->group->id]);
 
@@ -78,9 +79,7 @@ it('successfully processes an adjustment UP transaction', function (): void {
     expect((float) $this->location->stocks()->sum('remaining'))->toEqual(80.0);
 });
 
-it('uses the selected currency average when multiple currencies exist', function (): void {
-    $secondCurrency = Currency::factory()->create();
-
+it('uses the functional currency average for an adjustment', function (): void {
     InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'      => 50,
         'remaining'     => 50,
@@ -91,7 +90,7 @@ it('uses the selected currency average when multiple currencies exist', function
         'quantity'      => 50,
         'remaining'     => 50,
         'unit_cost'     => 2000,
-        'currency_code' => $secondCurrency->code,
+        'currency_code' => $this->currency->code,
     ]);
 
     $this->service->recordTransaction([
@@ -100,19 +99,18 @@ it('uses the selected currency average when multiple currencies exist', function
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [[
-            'item_id'       => $this->item->id,
-            'location_id'   => $this->location->id,
-            'quantity'      => 120,
-            'unit_code'     => $this->unit->code,
-            'total_cost'    => 1.00,
-            'currency_code' => $secondCurrency->code,
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'quantity'    => 120,
+            'unit_code'   => $this->unit->code,
+            'total_cost'  => 1.00,
         ]],
     ]);
 
     $this->assertDatabaseHas('inventory_stocks', [
         'quantity'      => 20,
-        'unit_cost'     => 2000,
-        'currency_code' => $secondCurrency->code,
+        'unit_cost'     => 1500,
+        'currency_code' => $this->currency->code,
     ]);
 });
 
@@ -131,11 +129,10 @@ it('uses the exact remaining value and rounds the added cost down', function ():
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [[
-            'item_id'       => $this->item->id,
-            'location_id'   => $this->location->id,
-            'quantity'      => 5,
-            'unit_code'     => $this->unit->code,
-            'currency_code' => $this->currency->code,
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'quantity'    => 5,
+            'unit_code'   => $this->unit->code,
         ]],
     ]);
 
@@ -151,23 +148,22 @@ it('uses the exact remaining value and rounds the added cost down', function ():
     ]);
 });
 
-it('rejects a positive adjustment when the selected currency has no stock', function (): void {
+it('rejects a positive adjustment when no stock exists for the functional currency', function (): void {
     expect(fn () => $this->service->recordTransaction([
         'reference_type'   => 'stock_take',
         'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
         'transaction_type' => TransactionType::Adjustment->value,
         'movements'        => [[
-            'item_id'       => $this->item->id,
-            'location_id'   => $this->location->id,
-            'quantity'      => 10,
-            'unit_code'     => $this->unit->code,
-            'currency_code' => $this->currency->code,
+            'item_id'     => $this->item->id,
+            'location_id' => $this->location->id,
+            'quantity'    => 10,
+            'unit_code'   => $this->unit->code,
         ]],
     ]))->toThrow(AdjustmentAverageCostUnavailableException::class);
 });
 
-it('requires a currency for a positive adjustment', function (): void {
+it('does not require a currency for a positive adjustment', function (): void {
     InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'      => 50,
         'remaining'     => 50,
@@ -175,7 +171,7 @@ it('requires a currency for a positive adjustment', function (): void {
         'currency_code' => $this->currency->code,
     ]);
 
-    expect(fn () => $this->service->recordTransaction([
+    $this->service->recordTransaction([
         'reference_type'   => 'stock_take',
         'idempotency_key'  => fake()->uuid(),
         'reference_id'     => Str::uuid7()->toString(),
@@ -186,7 +182,13 @@ it('requires a currency for a positive adjustment', function (): void {
             'quantity'    => 60,
             'unit_code'   => $this->unit->code,
         ]],
-    ]))->toThrow(AdjustmentAverageCostUnavailableException::class);
+    ]);
+
+    $this->assertDatabaseHas('inventory_stocks', [
+        'quantity'      => 10,
+        'unit_cost'     => 1200,
+        'currency_code' => $this->currency->code,
+    ]);
 });
 
 it('successfully processes an adjustment DOWN transaction', function (): void {

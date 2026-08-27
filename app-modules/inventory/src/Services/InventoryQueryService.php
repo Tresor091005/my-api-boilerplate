@@ -110,7 +110,6 @@ class InventoryQueryService
             scopeId: $item->id,
             groupColumn: 'location_id',
             groupIds: $filters->locationId,
-            currencyCodes: $filters->currencyCode,
         )->get();
 
         $totals = $this->sumValuesByCurrency($rows);
@@ -140,7 +139,6 @@ class InventoryQueryService
             scopeId: $location->id,
             groupColumn: 'item_id',
             groupIds: $filters->itemId,
-            currencyCodes: $filters->currencyCode,
         )->get();
 
         $totals = $this->sumValuesByCurrency($rows);
@@ -202,6 +200,7 @@ class InventoryQueryService
                 expirationDate: $stock->expiration_date,
                 createdAt: $stock->created_at,
                 metadata: $stock->metadata,
+                exchangeMetadata: $stock->exchange_metadata,
             ))->values()
         );
     }
@@ -309,7 +308,6 @@ class InventoryQueryService
 
     /**
      * @param  array<int, string>|null  $groupIds
-     * @param  array<int, string>|null  $currencyCodes
      * @return Builder<InventoryStock>
      */
     private function stockValueQuery(
@@ -317,7 +315,6 @@ class InventoryQueryService
         string $scopeId,
         string $groupColumn,
         ?array $groupIds = null,
-        ?array $currencyCodes = null,
     ): Builder {
         $query = InventoryStock::query()
             ->select([$groupColumn, 'currency_code'])
@@ -332,10 +329,6 @@ class InventoryQueryService
 
         if ($groupIds) {
             $query->whereIn($groupColumn, $groupIds);
-        }
-
-        if ($currencyCodes) {
-            $query->whereIn('currency_code', $currencyCodes);
         }
 
         return $query;

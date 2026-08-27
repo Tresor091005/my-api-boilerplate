@@ -65,6 +65,15 @@ $inventory->recordTransaction([
 
 The resolver ensures the inventory records exist, replaces the model references with internal IDs, and then runs the normal validation and transaction pipeline.
 
+Inbound costs must include `currency_code`. The currency must be enabled for
+the organization and, when different from the functional currency, have a
+configured directed exchange rate. Inventory converts the amount at the
+transaction boundary and stores stocks and movements in the functional
+currency, together with the conversion snapshot in `exchange_metadata`.
+Outgoing movements, adjustments, transfers, and reversals derive their
+currency from existing functional-currency stock and do not accept a caller-
+supplied currency.
+
 ## Batch registration
 
 Items and locations can be created one at a time or in batches. A batch may contain different model classes; the resolver groups them by morph type, performs the necessary lookups and inserts, and returns the resulting inventory records as a collection.

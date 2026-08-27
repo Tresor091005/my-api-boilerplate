@@ -41,6 +41,7 @@ class InventoryMovementFactory extends Factory
             'currency_code'           => Currency::factory(),
             'expiration_date'         => null,
             'metadata'                => null,
+            'exchange_metadata'       => null,
             'stock_metadata_snapshot' => null,
         ];
     }
