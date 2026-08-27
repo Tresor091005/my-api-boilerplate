@@ -97,12 +97,16 @@ class UnitAssertion
     /**
      * Asserts that a new unit can be added to an existing group.
      *
-     * @throws UnitException If the new unit has no ratio or conflicts with an existing ratio.
+     * @throws UnitException If the new unit has no ratio, exceeds the custom limit, or conflicts with an existing ratio.
      */
     protected function assertCanAddNewUnitToGroup(Collection $existingUnits, UnitData $newData, string $groupLabel): void
     {
         if ($newData->ratio === null) {
             throw UnitException::ratioRequired();
+        }
+
+        if ($newData->ratio > Unit::MAX_CUSTOM_RATIO) {
+            throw UnitException::ratioExceedsMaximum($newData->ratio, Unit::MAX_CUSTOM_RATIO);
         }
 
         if ($existingUnits->contains('ratio', $newData->ratio)) {

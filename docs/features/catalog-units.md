@@ -65,6 +65,9 @@ assertions:
   once (`UnitActiveLimitException`).
 - **Ratio uniqueness:** A group may have only one unit for each ratio value
   (`UnitRatioConflictException`).
+- **Custom ratio limit:** A new custom unit ratio cannot exceed `1,000,000`.
+  Built-in unit groups remain immutable and may contain larger historical
+  ratios.
 - **Base uniqueness:** Creation must contain exactly one unit with `ratio = 1`
   (`UnitBaseRequiredException`).
 - **Immutability:** The `ratio` and `code` of an existing unit cannot change,

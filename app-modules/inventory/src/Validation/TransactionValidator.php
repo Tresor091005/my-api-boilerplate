@@ -483,8 +483,51 @@ class TransactionValidator
 
         $this->checkUnitGroups($validator, $movements, $items, $lookups['units']);
 
+        if (!$validator->errors()->any()) {
+            $this->checkWholeBaseUnitQuantities($validator, $movements, $items, $lookups['units']);
+        }
+
         // Transfer quantities are validated per source-to-destination line and
         // therefore do not require a global IN/OUT balance.
+    }
+
+    /**
+     * @param  Collection<string, InventoryItem>  $items
+     * @param  Collection<string, Unit>  $units
+     */
+    protected function checkWholeBaseUnitQuantities(
+        Validator $validator,
+        Collection $movements,
+        Collection $items,
+        Collection $units,
+    ): void {
+        foreach ($movements as $index => $movement) {
+            $item = $items->get($movement['item_id']);
+            $providedUnit = $units->get($movement['unit_code']);
+
+            if (!$item || !$providedUnit) {
+                continue;
+            }
+
+            $quantityInBase = $this->masterInterface->convertUnit(
+                (string) $movement['quantity'],
+                $providedUnit->code,
+                $item->base_unit_code,
+            );
+            $wholeQuantityInBase = bcadd($quantityInBase, '0', 0);
+
+            if (bccomp($quantityInBase, $wholeQuantityInBase, 10) !== 0) {
+                $validator->errors()->add(
+                    "movements.{$index}.quantity",
+                    __('inventory::validation.quantity_must_resolve_to_whole_base_units', [
+                        'quantity'       => $movement['quantity'],
+                        'unit_code'      => $providedUnit->code,
+                        'quantity_base'  => $quantityInBase,
+                        'base_unit_code' => $item->base_unit_code,
+                    ]),
+                );
+            }
+        }
     }
 
     /**

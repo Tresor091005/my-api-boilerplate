@@ -37,7 +37,8 @@ class DatabaseSeeder extends Seeder
         );
 
         $organization = Organization::firstOrCreate(
-            ['name' => 'kouri']
+            ['name' => 'kouri'],
+            ['functional_currency_code' => 'XOF'],
         );
 
         $member = OrganizationMember::firstOrCreate([

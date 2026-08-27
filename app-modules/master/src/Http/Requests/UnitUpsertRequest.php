@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Rules\BulkExists;
 
 class UnitUpsertRequest extends FormRequest
@@ -54,7 +55,7 @@ class UnitUpsertRequest extends FormRequest
             'units.*.id'     => ['nullable', 'uuid'],
             'units.*.name'   => ['required', 'string', 'max:100'],
             'units.*.symbol' => ['nullable', 'string', 'max:10'],
-            'units.*.ratio'  => ['nullable', 'integer', 'gt:0'],
+            'units.*.ratio'  => ['nullable', 'integer', 'gt:0', 'max:'.Unit::MAX_CUSTOM_RATIO],
         ];
     }
 }

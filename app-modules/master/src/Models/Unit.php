@@ -50,6 +50,8 @@ class Unit extends Model
     use SharedTraits;
     use SoftDeletes;
 
+    public const int MAX_CUSTOM_RATIO = 1_000_000;
+
     protected $table = 'master_units';
 
     protected $fillable = [

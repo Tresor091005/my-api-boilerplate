@@ -41,6 +41,14 @@ final class UnitException extends AssertionException
         return self::message(__('master::exceptions.unit_ratio_required'));
     }
 
+    public static function ratioExceedsMaximum(int $ratio, int $maximum): self
+    {
+        return self::message(
+            __('master::exceptions.unit_ratio_exceeds_maximum', ['ratio' => $ratio, 'maximum' => $maximum]),
+            ['ratio' => $ratio, 'maximum' => $maximum],
+        );
+    }
+
     public static function ratioImmutable(): self
     {
         return self::message(__('master::exceptions.unit_ratio_immutable'));

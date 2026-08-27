@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Master\Data\UnitFilterData;
 use Lahatre\Master\Data\UnitUpsertData;
+use Lahatre\Master\Exceptions\UnitException;
 use Lahatre\Master\Http\Requests\UnitUpsertRequest;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -109,6 +110,35 @@ it('upserts unit groups and units strictly for the current tenant', function ():
         'group_id'   => $otherGroup->id,
         'group_name' => 'hacked-other-name',
     ], new UnitUpsertRequest()->rules())->validate())->toThrow(ValidationException::class);
+});
+
+it('limits custom unit ratios at request and service boundaries', function (): void {
+    $maximumRatioPayload = [
+        'group_name' => 'maximum-ratio-group',
+        'units'      => [
+            ['name' => 'Base unit', 'ratio' => 1],
+            ['name' => 'Maximum unit', 'ratio' => Unit::MAX_CUSTOM_RATIO],
+        ],
+    ];
+
+    expect(validator($maximumRatioPayload, new UnitUpsertRequest()->rules())->validate())
+        ->toMatchArray($maximumRatioPayload);
+
+    $invalidPayload = [
+        'group_name' => 'excessive-ratio-group',
+        'units'      => [
+            ['name' => 'Base unit', 'ratio' => 1],
+            ['name' => 'Excessive unit', 'ratio' => Unit::MAX_CUSTOM_RATIO + 1],
+        ],
+    ];
+    $validator = validator($invalidPayload, new UnitUpsertRequest()->rules());
+
+    expect(fn (): array => $validator->validate())
+        ->toThrow(ValidationException::class);
+    expect($validator->errors()->keys())->toContain('units.1.ratio');
+
+    expect(fn () => $this->service->upsert(UnitUpsertData::fromArray($invalidPayload)))
+        ->toThrow(UnitException::class, 'exceeds the maximum custom ratio');
 });
 
 it('reports every invalid synced unit at its original index', function (): void {

@@ -24,7 +24,7 @@ $inventory->recordTransaction([
 ]);
 ```
 
-`movement.metadata` describes the receipt event. `stock_metadata` describes the physical lot. They are stored independently. The service converts the input quantity to the item's base unit and derives `unit_cost` and `cost_remainder` from the converted total cost in minor units. A missing enabled currency or exchange rate rejects the transaction.
+`movement.metadata` describes the receipt event. `stock_metadata` describes the physical lot. They are stored independently. The service converts the input quantity to the item's base unit and derives `unit_cost` and `cost_remainder` from the converted total cost in minor units. Converted quantities must be whole base units; the service rejects sub-base fractions before any stock mutation. A missing enabled currency or exchange rate rejects the transaction.
 
 ## Outgoing stock
 

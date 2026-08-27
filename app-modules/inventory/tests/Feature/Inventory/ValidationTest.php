@@ -152,6 +152,55 @@ it('fails if unit does not belong to the same group as item base unit', function
         ->toThrow(ValidationException::class, "Unit {$otherUnit->code} belongs to a different group than item base unit {$this->item->base_unit_code}.");
 });
 
+it('rejects quantities that do not resolve to whole base units before any mutation', function (TransactionType $transactionType): void {
+    $providedUnit = Unit::factory()->create([
+        'ratio'    => 1_000,
+        'group_id' => $this->group->id,
+    ]);
+    $otherLocation = InventoryLocation::factory()->create();
+    $stock = InventoryStock::factory()
+        ->for($this->item, 'item')
+        ->for($this->location, 'location')
+        ->create([
+            'quantity'  => 10,
+            'remaining' => 10,
+        ]);
+    $movement = [
+        'item_id'     => $this->item->id,
+        'location_id' => $this->location->id,
+        'quantity'    => '0.0005',
+        'unit_code'   => $providedUnit->code,
+    ];
+
+    if ($transactionType === TransactionType::In) {
+        $movement += [
+            'type'          => 'in',
+            'total_cost'    => 10.00,
+            'currency_code' => $this->currency->code,
+        ];
+    } elseif ($transactionType === TransactionType::Out) {
+        $movement['type'] = 'out';
+    } elseif ($transactionType === TransactionType::Transfer) {
+        $movement['to_location_id'] = $otherLocation->id;
+    }
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => $transactionType->value,
+        'movements'        => [$movement],
+    ]))->toThrow(ValidationException::class, 'Stock quantities must be whole base units.');
+
+    expect($stock->refresh()->remaining)->toBe(10);
+    $this->assertDatabaseCount('inventory_movements', 0);
+})->with([
+    'inbound'    => TransactionType::In,
+    'outbound'   => TransactionType::Out,
+    'adjustment' => TransactionType::Adjustment,
+    'transfer'   => TransactionType::Transfer,
+]);
+
 it('fails if manual strategy is used without providing stock_ids', function (): void {
     $payload = [
         'reference_type'   => 'test',

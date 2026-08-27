@@ -31,6 +31,11 @@ All transaction writes are idempotent when the same `idempotency_key` and equiva
 
 Transactions may use any unit in the item's unit group. Persistence uses the item's base unit. Monetary input is `total_cost`; the service converts it to minor units and stores the derived `unit_cost` and `cost_remainder` on the stock.
 
+The base unit is indivisible. A transaction quantity may contain decimals only
+when conversion produces a whole number of base units. For example, `1.5 m` is
+valid when the base unit is `mm`, while `0.0005 m` is rejected because it would
+produce `0.5 mm`.
+
 For an `IN` transaction, `currency_code` is required and identifies the
 transaction currency. It must be enabled for the organization. When it differs
 from the organization's functional currency, a configured directed exchange
