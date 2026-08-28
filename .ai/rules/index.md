@@ -20,6 +20,7 @@ When sources conflict, stop and reconcile the appropriate rule file before recor
 | app/**, app-modules/*/resources/lang/**, app-modules/*/src/**, app-modules/*/database/**, routes/** | .ai/rules/localization.md |
 | app-modules/** | .ai/rules/module-architecture.md |
 | app/**, app-modules/*/src/**, app-modules/*/database/**, database/** | .ai/rules/persistence-tenancy.md |
+| app/**, app-modules/*/src/**, app-modules/*/database/**, database/** | .ai/rules/date-time-conventions.md |
 | tests/**, app-modules/*/tests/** | .ai/rules/testing.md |
 | app-modules/*/src/Rules/**, app-modules/*/src/Validation/**, app-modules/*/src/Http/Requests/** | .ai/rules/validation.md |
 | ** | .ai/rules/documentation-and-language.md |

@@ -26,8 +26,10 @@ migrations.
 - **Text:** Use `text()` for short and long text fields to benefit from
   PostgreSQL optimizations. For short, fixed-length identifiers, such as ISO
   4217 currency codes, `string(length)` is acceptable.
-- **Dates and times:** Use `timestamp()` by default. Avoid `date()` because
-  retaining time information, even at `00:00:00`, is more flexible.
+- **Dates and times:** Use `timestamp()` for instant values whose columns end
+  in `_at`. Use `date()` for civil calendar values whose columns end in
+  `_date`; do not add a fake time or timezone to a civil date. See the [date
+  and time conventions](../date-time-conventions.md).
 - **JSON:** Always use `jsonb()` for query performance.
 - **Numbers:** Use `integer`/`unsignedInteger` for standard integers,
   `bigInteger`/`unsignedBigInteger` for very large integers, and `decimal` for

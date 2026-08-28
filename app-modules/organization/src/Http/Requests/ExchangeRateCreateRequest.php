@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Organization\Enums\ExchangeRateContext;
+use Lahatre\Shared\Rules\Rfc3339Utc;
 
 class ExchangeRateCreateRequest extends FormRequest
 {
@@ -50,7 +51,7 @@ class ExchangeRateCreateRequest extends FormRequest
             ],
             'context'      => ['required', Rule::enum(ExchangeRateContext::class)],
             'rate'         => ['required', 'string', 'regex:/^[0-9]+(?:\.[0-9]{1,12})?$/', 'not_regex:/^0+(?:\.0{1,12})?$/'],
-            'effective_at' => ['required', 'date'],
+            'effective_at' => ['required', new Rfc3339Utc],
         ];
     }
 

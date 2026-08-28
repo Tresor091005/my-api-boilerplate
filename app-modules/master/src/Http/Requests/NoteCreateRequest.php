@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Lahatre\Master\Enums\NoteKind;
 use Lahatre\Master\Enums\NoteVisibility;
+use Lahatre\Shared\Rules\Rfc3339Utc;
 
 class NoteCreateRequest extends FormRequest
 {
@@ -22,7 +23,7 @@ class NoteCreateRequest extends FormRequest
             'body'         => ['required', 'string', 'min:1', 'max:10000'],
             'kind'         => ['required', Rule::enum(NoteKind::class)],
             'visibility'   => ['required', Rule::enum(NoteVisibility::class)],
-            'expires_at'   => ['nullable', 'date', 'after:now'],
+            'expires_at'   => ['nullable', new Rfc3339Utc, 'after:now'],
             'member_ids'   => [
                 'array',
                 'min:1',

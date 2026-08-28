@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'failed'                        => 'Validation failed',
+    'rfc3339_utc'                   => 'The :attribute must be a valid UTC date and time in RFC 3339 format.',
     'bulk_exists'                   => 'One or more selected :attribute are invalid.',
     'bulk_unique'                   => 'The :attribute contains duplicate or already used values.',
     'response_mode_invalid'         => 'The response mode must be either [none] or [resource].',

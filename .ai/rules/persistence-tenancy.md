@@ -34,7 +34,9 @@ Models, Jobs, Support classes, and other application code.
 ## Models
 
 - Declare the table name explicitly and limit `$fillable` to writable fields.
-- Cast all meaningful business columns explicitly. Cast `id` and foreign IDs to `string`, booleans to `boolean`, enums to their enum class, and dates to `immutable_datetime`.
+- Cast all meaningful business columns explicitly. Cast `id` and foreign IDs to
+  `string`, booleans to `boolean`, enums to their enum class, timestamps to
+  `immutable_datetime`, and civil dates with a date-only cast.
 - Type every relationship. Use `Attribute` for accessors and mutators.
 - Keep model organization predictable: traits, table and key metadata, fillable fields, casts, accessors/mutators, relationships, then scopes.
 

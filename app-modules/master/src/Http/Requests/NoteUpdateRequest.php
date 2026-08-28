@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Lahatre\Master\Enums\NoteKind;
+use Lahatre\Shared\Rules\Rfc3339Utc;
 
 class NoteUpdateRequest extends FormRequest
 {
@@ -17,7 +18,7 @@ class NoteUpdateRequest extends FormRequest
         return [
             'body'       => ['string', 'min:1', 'max:10000'],
             'kind'       => [Rule::enum(NoteKind::class)],
-            'expires_at' => ['nullable', 'date', 'after:now'],
+            'expires_at' => ['nullable', new Rfc3339Utc, 'after:now'],
         ];
     }
 }
