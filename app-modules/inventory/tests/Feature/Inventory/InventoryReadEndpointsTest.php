@@ -99,7 +99,7 @@ it('returns active lots for an item and location', function (): void {
         'unit_cost'       => 1500,
         'quantity'        => 120,
         'remaining'       => 120,
-        'expiration_date' => now()->addDays(10),
+        'expiration_date' => today()->addDays(10),
         'created_at'      => now()->subDays(2),
         'metadata'        => ['lot_number' => 'LOT-A1'],
     ]);
@@ -109,7 +109,7 @@ it('returns active lots for an item and location', function (): void {
         'unit_cost'       => 2500,
         'quantity'        => 80,
         'remaining'       => 80,
-        'expiration_date' => now()->addDays(5),
+        'expiration_date' => today()->addDays(5),
         'created_at'      => now()->subDay(),
         'metadata'        => ['lot_number' => 'LOT-A2'],
     ]);
@@ -156,7 +156,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         'quantity'        => 70,
         'remaining'       => 70,
         'unit_cost'       => 100,
-        'expiration_date' => now()->addDays(4),
+        'expiration_date' => today()->addDays(4),
     ]);
 
     InventoryStock::factory()->for($itemA, 'item')->for($locationA, 'location')->create([
@@ -172,7 +172,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         'currency_code'   => $this->currency->code,
         'quantity'        => 90,
         'remaining'       => 90,
-        'expiration_date' => now()->addDays(2),
+        'expiration_date' => today()->addDays(2),
     ]);
 
     InventoryStock::factory()->for($itemA, 'item')->for($locationB, 'location')->create([

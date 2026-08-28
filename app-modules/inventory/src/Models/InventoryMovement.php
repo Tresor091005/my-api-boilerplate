@@ -102,7 +102,7 @@ class InventoryMovement extends Model
         'unit_code'               => 'string',
         'total_cost'              => 'integer',
         'currency_code'           => 'string',
-        'expiration_date'         => 'immutable_datetime',
+        'expiration_date'         => 'immutable_date',
         'metadata'                => 'array',
         'exchange_metadata'       => 'array',
         'stock_metadata_snapshot' => 'array',

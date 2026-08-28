@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Lahatre\Inventory\Enums\DeductionStrategy;
+use Lahatre\Shared\Rules\YmdDate;
 
 class InventoryLotFilterRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ class InventoryLotFilterRequest extends FormRequest
     {
         return [
             'strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
-            'expiring_before' => ['nullable', 'date'],
+            'expiring_before' => ['nullable', new YmdDate],
         ];
     }
 }

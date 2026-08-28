@@ -51,7 +51,13 @@ class OrganizationSettingsService
         }
 
         $settings = $this->retrieve();
-        $settings->update(['enable_currencies' => $currencyCodes->all()]);
+        $updates = ['enable_currencies' => $currencyCodes->all()];
+
+        if ($data->timezone !== null) {
+            $updates['timezone'] = $data->timezone;
+        }
+
+        $settings->update($updates);
 
         return $settings->refresh();
     }

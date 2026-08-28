@@ -21,7 +21,9 @@ final readonly class InventoryLotFilterData
 
         return new self(
             strategy: is_string($strategy) ? DeductionStrategy::from($strategy) : $strategy,
-            expiringBefore: isset($data['expiring_before']) ? CarbonImmutable::parse($data['expiring_before']) : null,
+            expiringBefore: isset($data['expiring_before'])
+                ? CarbonImmutable::createFromFormat('!Y-m-d', $data['expiring_before'])
+                : null,
         );
     }
 }

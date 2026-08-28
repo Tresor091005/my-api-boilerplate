@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Lahatre\Shared\Rules\IanaTimezone;
 
 class OrganizationSettingsRequest extends FormRequest
 {
@@ -30,6 +31,10 @@ class OrganizationSettingsRequest extends FormRequest
                 'string',
                 'size:3',
                 'alpha',
+            ],
+            'timezone' => [
+                'string',
+                new IanaTimezone,
             ],
         ];
     }

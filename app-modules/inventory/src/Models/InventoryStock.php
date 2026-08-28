@@ -98,7 +98,7 @@ class InventoryStock extends Model
         'quantity'          => 'integer',
         'remaining'         => 'integer',
         'unit_code'         => 'string',
-        'expiration_date'   => 'immutable_datetime',
+        'expiration_date'   => 'immutable_date',
         'metadata'          => 'array',
         'exchange_metadata' => 'array',
         'created_at'        => 'immutable_datetime',

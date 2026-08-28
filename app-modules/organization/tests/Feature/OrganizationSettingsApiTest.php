@@ -28,7 +28,10 @@ beforeEach(function (): void {
     }
 
     $this->organization = Organization::factory()->create();
-    $this->organization->settings()->create(['enable_currencies' => ['XOF']]);
+    $this->organization->settings()->create([
+        'enable_currencies' => ['XOF'],
+        'timezone'          => 'Africa/Porto-Novo',
+    ]);
     setPermissionsTeamId($this->organization->id);
     $user = User::factory()->create();
     $member = OrganizationMember::create([
@@ -61,13 +64,28 @@ beforeEach(function (): void {
 it('reads and updates the organization currency whitelist', function (): void {
     $this->getJson('/v1/organization/settings')
         ->assertOk()
-        ->assertJsonPath('data.enable_currencies', ['XOF']);
+        ->assertJsonPath('data.enable_currencies', ['XOF'])
+        ->assertJsonPath('data.timezone', 'Africa/Porto-Novo');
 
     $this->patchJson('/v1/organization/settings?response=resource', [
         'enable_currencies' => ['xof', 'usd', 'usd'],
     ])
         ->assertOk()
         ->assertJsonPath('data.enable_currencies', ['XOF', 'USD']);
+
+    $this->patchJson('/v1/organization/settings?response=resource', [
+        'enable_currencies' => ['XOF'],
+        'timezone'          => 'Europe/Paris',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.timezone', 'Europe/Paris');
+});
+
+it('rejects invalid organization timezones', function (): void {
+    $this->patchJson('/v1/organization/settings', [
+        'enable_currencies' => ['XOF'],
+        'timezone'          => 'UTC+1',
+    ])->assertUnprocessable();
 });
 
 it('does not allow the functional currency to be removed', function (): void {

@@ -76,8 +76,8 @@ it('successfully processes an OUT transaction using FEFO strategy', function ():
     $this->item->update(['is_expirable' => true]);
 
     // GIVEN two stock lots, lot2 expires sooner
-    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(10)]);
-    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => now()->addDays(5)]);
+    $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => today()->addDays(10)]);
+    $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create(['quantity' => 50, 'remaining' => 50, 'expiration_date' => today()->addDays(5)]);
 
     // WHEN we deduct 70 units
     $payload = [
@@ -244,7 +244,7 @@ it('processes FEFO correctly with a mix of stocks having and not having expirati
     $lot1 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 20,
         'remaining'       => 20,
-        'expiration_date' => now()->addDays(10),
+        'expiration_date' => today()->addDays(10),
     ]);
     $lot2 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 20,
@@ -254,7 +254,7 @@ it('processes FEFO correctly with a mix of stocks having and not having expirati
     $lot3 = InventoryStock::factory()->for($this->item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 20,
         'remaining'       => 20,
-        'expiration_date' => now()->addDays(5),
+        'expiration_date' => today()->addDays(5),
     ]);
 
     $this->service->recordTransaction([

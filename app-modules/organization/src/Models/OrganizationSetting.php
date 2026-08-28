@@ -13,6 +13,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $organization_id
  * @property array<int, string> $enable_currencies
+ * @property string $timezone
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  *
@@ -31,12 +32,14 @@ class OrganizationSetting extends Model
     protected $fillable = [
         'organization_id',
         'enable_currencies',
+        'timezone',
     ];
 
     protected $casts = [
         'id'                => 'string',
         'organization_id'   => 'string',
         'enable_currencies' => 'array',
+        'timezone'          => 'string',
         'created_at'        => 'immutable_datetime',
         'updated_at'        => 'immutable_datetime',
     ];

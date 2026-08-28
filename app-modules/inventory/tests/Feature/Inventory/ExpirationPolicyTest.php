@@ -90,7 +90,7 @@ it('rejects expiration dates for inbound movements of non-expirable items', func
         'unit_code'       => $this->unit->code,
         'total_cost'      => 100,
         'currency_code'   => $this->currency->code,
-        'expiration_date' => now()->addDays(10),
+        'expiration_date' => today()->addDays(10),
     ])))->toThrow(ValidationException::class, 'prohibited for a non-expirable item');
 });
 
@@ -102,7 +102,7 @@ it('uses FEFO automatically for expirable items and puts undated legacy lots las
     $later = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 10,
         'remaining'       => 10,
-        'expiration_date' => now()->addDays(10),
+        'expiration_date' => today()->addDays(10),
     ]);
     $unknown = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 10,
@@ -112,7 +112,7 @@ it('uses FEFO automatically for expirable items and puts undated legacy lots las
     $earlier = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
         'quantity'        => 10,
         'remaining'       => 10,
-        'expiration_date' => now()->addDays(5),
+        'expiration_date' => today()->addDays(5),
     ]);
 
     $this->service->recordTransaction(expirationPayload([

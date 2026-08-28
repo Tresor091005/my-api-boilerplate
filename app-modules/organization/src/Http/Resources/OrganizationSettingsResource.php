@@ -21,6 +21,7 @@ class OrganizationSettingsResource extends JsonResource
         return [
             'id'                => $this->id,
             'enable_currencies' => $this->enable_currencies,
+            'timezone'          => $this->timezone,
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,
         ];

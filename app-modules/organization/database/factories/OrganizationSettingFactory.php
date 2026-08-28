@@ -21,6 +21,7 @@ class OrganizationSettingFactory extends Factory
         return [
             'organization_id'   => Organization::factory(),
             'enable_currencies' => ['XOF'],
+            'timezone'          => 'Africa/Porto-Novo',
         ];
     }
 }

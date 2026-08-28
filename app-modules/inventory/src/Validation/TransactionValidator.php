@@ -17,6 +17,7 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
+use Lahatre\Shared\Rules\YmdDate;
 
 class TransactionValidator
 {
@@ -143,7 +144,7 @@ class TransactionValidator
             // Basic format/type checks
             'movements.*.total_cost'      => ['nullable', 'numeric', 'min:0'],
             'movements.*.currency_code'   => ['nullable', 'string', 'size:3'],
-            'movements.*.expiration_date' => ['nullable', 'date'],
+            'movements.*.expiration_date' => ['nullable', new YmdDate],
             'movements.*.metadata'        => ['nullable', 'array'],
             'movements.*.strategy'        => ['nullable', Rule::enum(DeductionStrategy::class)],
             'movements.*.stock_ids'       => ['nullable', 'array'],

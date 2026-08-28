@@ -29,9 +29,9 @@ final readonly class InventoryStockFilterData
             itemId: $data['item_id'] ?? null,
             locationId: $data['location_id'] ?? null,
             expiringBefore: isset($data['expiring_before'])
-                ? CarbonImmutable::parse($data['expiring_before'])->endOfDay()
+                ? CarbonImmutable::createFromFormat('!Y-m-d', $data['expiring_before'])
                 : (isset($data['expiring_within_days'])
-                    ? CarbonImmutable::now()->addDays((int) $data['expiring_within_days'])->endOfDay()
+                    ? CarbonImmutable::today()->addDays((int) $data['expiring_within_days'])
                     : null),
         );
     }

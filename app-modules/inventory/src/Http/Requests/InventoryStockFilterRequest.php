@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Lahatre\Shared\Rules\YmdDate;
 
 class InventoryStockFilterRequest extends FormRequest
 {
@@ -21,7 +22,7 @@ class InventoryStockFilterRequest extends FormRequest
             'item_id.*'            => ['uuid'],
             'location_id'          => ['nullable', 'array', 'max:100'],
             'location_id.*'        => ['uuid'],
-            'expiring_before'      => ['nullable', 'date'],
+            'expiring_before'      => ['nullable', new YmdDate],
             'expiring_within_days' => ['nullable', 'integer', 'min:1', 'max:365'],
         ];
     }

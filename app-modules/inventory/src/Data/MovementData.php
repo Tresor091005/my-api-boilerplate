@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Data;
 
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Master\Contracts\MasterInterface;
@@ -38,6 +39,7 @@ final readonly class MovementData
     {
         $type = $data['type'] ?? null;
         $strategy = $data['strategy'] ?? null;
+        $expirationDate = $data['expiration_date'] ?? null;
 
         return new self(
             itemId: $data['item_id'],
@@ -52,7 +54,11 @@ final readonly class MovementData
                     : (int) $masterInterface->toMinor((string) $data['total_cost'], $data['currency_code']))
                 : ($data['total_cost'] ?? null),
             currencyCode: $data['currency_code'] ?? null,
-            expirationDate: isset($data['expiration_date']) ? CarbonImmutable::parse($data['expiration_date']) : null,
+            expirationDate: $expirationDate instanceof DateTimeInterface
+                ? CarbonImmutable::instance($expirationDate)->startOfDay()
+                : ($expirationDate !== null
+                    ? CarbonImmutable::createFromFormat('!Y-m-d', (string) $expirationDate)
+                    : null),
             strategy: is_string($strategy) ? DeductionStrategy::from($strategy) : $strategy,
             stockIds: $data['stock_ids'] ?? null,
             metadata: $data['metadata'] ?? null,

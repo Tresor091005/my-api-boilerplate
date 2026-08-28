@@ -194,9 +194,9 @@ Scheduler, every few hours or once per day:
 
 Expiration:
 
-- `expiring_soon`: active lots with `expiration_date <= now +
+- `expiring_soon`: active lots with `expiration_date <= today +
   expiring_soon_days`.
-- `expired`: active lots with `expiration_date < now`.
+- `expired`: active lots with `expiration_date < today`.
 
 Movement:
 

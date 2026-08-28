@@ -49,7 +49,7 @@ class InventoryQueryService
             ->where('remaining', '>', 0);
 
         if ($filters->expiringBefore instanceof CarbonImmutable) {
-            $query->where('expiration_date', '<=', $filters->expiringBefore->endOfDay());
+            $query->where('expiration_date', '<=', $filters->expiringBefore->toDateString());
         }
 
         /** @var Collection<int, InventoryStock> $lots */
@@ -88,7 +88,7 @@ class InventoryQueryService
         if ($filters->expiringBefore instanceof CarbonImmutable) {
             $query->where('remaining', '>', 0)
                 ->whereNotNull('expiration_date')
-                ->where('expiration_date', '<=', $filters->expiringBefore)
+                ->where('expiration_date', '<=', $filters->expiringBefore->toDateString())
                 ->whereHas('item', fn (Builder $itemQuery): Builder => $itemQuery->where('is_expirable', true))
                 ->whereHas('location')
                 ->orderBy('expiration_date')
