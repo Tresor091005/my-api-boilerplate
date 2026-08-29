@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 return [
+    'multiple_primary_addresses'                   => 'Only one address may be marked as primary.',
+    'multiple_primary_contacts'                    => 'Only one contact may be marked as primary.',
+    'invalid_address_ids'                          => 'Some address IDs are invalid or are not associated with the selected model.',
+    'invalid_contact_ids'                          => 'Some contact IDs are invalid or are not associated with the selected model.',
+    'model_missing_interacts_with_addresses_trait' => 'Model :model must use Lahatre\\Master\\Traits\\InteractsWithAddresses to use address operations.',
+    'model_missing_interacts_with_contacts_trait'  => 'Model :model must use Lahatre\\Master\\Traits\\InteractsWithContacts to use contact operations.',
+
     // Units
     'unit_duplicate_ratio'           => 'Duplicate ratios are not allowed in the same request.',
     'unit_base_required'             => 'A new unit group must have exactly one unit with ratio 1.',

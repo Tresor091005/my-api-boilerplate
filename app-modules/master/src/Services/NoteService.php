@@ -133,14 +133,8 @@ final readonly class NoteService
 
     public function update(Note $note, NoteUpdateData $data): NoteResource
     {
-        $organizationId = currentOrganizationId();
-
-        return DB::transaction(function () use ($note, $data, $organizationId): NoteResource {
-            $ownedNote = Note::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+        return DB::transaction(function () use ($note, $data): NoteResource {
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             $expiresAt = $data->expiresAt instanceof MissingValue ? $ownedNote->expires_at : $data->expiresAt;
             if ($ownedNote->parent_id !== null && $expiresAt !== null) {
@@ -172,11 +166,7 @@ final readonly class NoteService
     public function promoteVisibility(Note $note, NoteVisibilityUpdateData $data): void
     {
         DB::transaction(function () use ($note, $data): void {
-            $ownedNote = Note::query()
-                ->where('organization_id', currentOrganizationId())
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             if ($ownedNote->visibility === $data->visibility) {
                 return;
@@ -209,11 +199,7 @@ final readonly class NoteService
     public function delete(Note $note): void
     {
         DB::transaction(function () use ($note): void {
-            $ownedNote = Note::query()
-                ->where('organization_id', currentOrganizationId())
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             if ($ownedNote->parent_id === null && $ownedNote->replies()->exists()) {
                 throw NoteException::rootHasReplies();
@@ -227,12 +213,8 @@ final readonly class NoteService
     {
         $organizationId = currentOrganizationId();
 
-        DB::transaction(function () use ($note, $pinned, $organizationId): void {
-            $ownedNote = Note::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+        DB::transaction(function () use ($note, $pinned): void {
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             if ($pinned && $this->isExpired($ownedNote)) {
                 throw NoteException::expiredNoteCannotBePinned();
@@ -248,11 +230,7 @@ final readonly class NoteService
         $organizationId = currentOrganizationId();
 
         DB::transaction(function () use ($note, $data, $organizationId): void {
-            $ownedNote = Note::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             if ($ownedNote->visibility !== NoteVisibility::Mentioned) {
                 throw NoteException::mentionsRequireMentionedVisibility();
@@ -268,11 +246,7 @@ final readonly class NoteService
         $organizationId = currentOrganizationId();
 
         DB::transaction(function () use ($note, $data, $organizationId): void {
-            $ownedNote = Note::query()
-                ->where('organization_id', $organizationId)
-                ->whereKey($note->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
+            $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             if ($ownedNote->visibility !== NoteVisibility::Mentioned) {
                 throw NoteException::mentionsRequireMentionedVisibility();
@@ -373,6 +347,7 @@ final readonly class NoteService
             return null;
         }
 
+        /** @var Note $parent */
         $parent = Note::query()
             ->where('organization_id', currentOrganizationId())
             ->whereKey($parentId)
@@ -403,13 +378,17 @@ final readonly class NoteService
             ->max('position')) + 1;
     }
 
-    private function ownedNote(string $id): Note
+    private function ownedNote(string $id, bool $lockForUpdate = false): Note
     {
         $query = Note::query()
             ->where('organization_id', currentOrganizationId())
             ->whereKey($id);
 
         $this->applyVisibility($query);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
 
         return $query->firstOrFail();
     }
