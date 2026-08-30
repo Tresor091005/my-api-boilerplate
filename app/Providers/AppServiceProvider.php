@@ -31,11 +31,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureIdeHelper();
         $this->configureEloquent();
         $this->configureFactories();
         $this->configureScramble();
 
         $this->registerStrMacros();
+    }
+
+    /**
+     * Provide a technical organization context while ide-helper inspects relations.
+     */
+    private function configureIdeHelper(): void
+    {
+        if (app()->runningConsoleCommand('ide-helper:models')) {
+            setPermissionsTeamId('ide-helper');
+        }
     }
 
     /**

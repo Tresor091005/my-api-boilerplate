@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Shared\Http\Responses;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 final class ResponseContext
 {
@@ -60,11 +61,11 @@ final class ResponseContext
         return [];
     }
 
-    public function applyToQuery(Builder $query): Builder
+    public function applyToQuery(Builder|QueryBuilder $query): Builder|QueryBuilder
     {
         $relationsToLoad = $this->relationsToLoad();
 
-        if ($relationsToLoad !== []) {
+        if ($query instanceof Builder && $relationsToLoad !== []) {
             $query->with($relationsToLoad);
         }
 

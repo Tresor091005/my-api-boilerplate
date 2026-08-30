@@ -11,7 +11,7 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 final class LocalTime implements ValidationRule
 {
-    private const FORMATS = ['H:i', 'H:i:s'];
+    private const array FORMATS = ['H:i', 'H:i:s'];
 
     /**
      * @param  Closure(string): PotentiallyTranslatedString  $fail

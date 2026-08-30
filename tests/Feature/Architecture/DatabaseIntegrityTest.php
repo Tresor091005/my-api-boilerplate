@@ -58,7 +58,8 @@ it('ensures all foreign keys are indexed', function (): void {
 it('ensures indexes on soft-deletable tables have whereNull deleted_at', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);
-    $ignoredColumnsMap = config('model-integrity.ignored_soft_delete_partial_index', []);
+    $ignoredColumnsMap = config('model-integrity.ignored_soft_delete_partial_columns', []);
+    $ignoredIndexesMap = config('model-integrity.ignored_soft_delete_partial_indexes', []);
 
     $failures = [];
 
@@ -75,10 +76,15 @@ it('ensures indexes on soft-deletable tables have whereNull deleted_at', functio
 
         $indexes = Schema::getIndexes($tableName);
         $ignoredColumns = $ignoredColumnsMap[$tableName] ?? [];
+        $ignoredIndexes = $ignoredIndexesMap[$tableName] ?? [];
 
         foreach ($indexes as $index) {
             // Skip primary keys
             if ($index['primary']) {
+                continue;
+            }
+
+            if (in_array($index['name'], $ignoredIndexes, true)) {
                 continue;
             }
 

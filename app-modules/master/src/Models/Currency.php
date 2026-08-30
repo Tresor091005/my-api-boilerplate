@@ -19,6 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property int $precision
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  *
  * @method static Builder<static>|Currency newModelQuery()
  * @method static Builder<static>|Currency newQuery()
@@ -34,9 +35,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Currency onlyTrashed()
  * @method static Builder<static>|Currency withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Currency withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|Currency whereDeletedAt($value)
  *
  * @mixin \Eloquent

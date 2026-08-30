@@ -38,6 +38,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Note|null $parent
  * @property-read Collection<int, Note> $replies
  * @property-read Collection<int, NoteMention> $mentions
+ * @property-read int|null $mentions_count
+ * @property-read int|null $replies_count
  *
  * @method static Builder<static>|Note newModelQuery()
  * @method static Builder<static>|Note newQuery()

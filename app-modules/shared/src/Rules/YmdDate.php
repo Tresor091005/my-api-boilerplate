@@ -12,7 +12,7 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 final class YmdDate implements ValidationRule
 {
-    private const FORMAT = 'Y-m-d';
+    private const string FORMAT = 'Y-m-d';
 
     /**
      * @param  Closure(string): PotentiallyTranslatedString  $fail

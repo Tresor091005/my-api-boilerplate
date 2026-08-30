@@ -24,6 +24,8 @@
   `current-permissions`.
 - [x] `user`: Available in auth for login, me, logout, password reset, and
   member-role switching.
+- [x] `customer`: Identity CRUD API with organization-scoped polymorphic
+  addresses and contacts.
 
 ### Partially usable
 
@@ -38,7 +40,6 @@
 
 - [ ] `price`: The model and relations exist, but there is no generic service
   or API for assigning prices to any model.
-- [ ] `customer`
 - [ ] `supplier`
 - [ ] `procurement`
 - [ ] `order`
@@ -61,7 +62,6 @@
 
 ## TODO: partners and flows
 
-- [ ] Introduce `customer`.
 - [ ] Introduce `supplier`.
 - [ ] Introduce `procurement`.
 - [ ] Introduce `order`.

@@ -23,24 +23,13 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property string|null $parent_id
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Category> $children
  * @property-read int|null $children_count
  * @property-read Category|null $parent
  * @property-read ProductCategory|null $pivot
  * @property-read Collection<int, Product> $products
  * @property-read int|null $products_count
- *
- * @method static Builder<static>|Category newModelQuery()
- * @method static Builder<static>|Category newQuery()
- * @method static Builder<static>|Category query()
- * @method static Builder<static>|Category whereCreatedAt($value)
- * @method static Builder<static>|Category whereHandle($value)
- * @method static Builder<static>|Category whereId($value)
- * @method static Builder<static>|Category whereIsActive($value)
- * @method static Builder<static>|Category whereName($value)
- * @method static Builder<static>|Category whereParentId($value)
- * @method static Builder<static>|Category whereUpdatedAt($value)
- *
  * @property-read int $depth
  * @property-read string $path
  * @property-read \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection<int, Category> $ancestors The model's recursive parents.
@@ -63,6 +52,16 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @property-read \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection<int, Category> $siblingsAndSelf All the parent's children.
  * @property-read int|null $siblings_and_self_count
  *
+ * @method static Builder<static>|Category newModelQuery()
+ * @method static Builder<static>|Category newQuery()
+ * @method static Builder<static>|Category query()
+ * @method static Builder<static>|Category whereCreatedAt($value)
+ * @method static Builder<static>|Category whereHandle($value)
+ * @method static Builder<static>|Category whereId($value)
+ * @method static Builder<static>|Category whereIsActive($value)
+ * @method static Builder<static>|Category whereName($value)
+ * @method static Builder<static>|Category whereParentId($value)
+ * @method static Builder<static>|Category whereUpdatedAt($value)
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection<int, static> all($columns = ['*'])
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category breadthFirst()
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category depthFirst()
@@ -83,10 +82,18 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereOrganizationId($value)
  * @method static Builder<static>|Category withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Category withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereDeletedAt($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category newModelQuery()
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category newQuery()
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category query()
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category treeOf(Model|callable $constraint, $maxDepth = null)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereCreatedAt($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereHandle($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereId($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereIsActive($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereName($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereParentId($value)
+ * @method static \Staudenmeir\LaravelAdjacencyList\Eloquent\Builder<static>|Category whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

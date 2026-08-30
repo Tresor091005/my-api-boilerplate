@@ -25,6 +25,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Labelable> $labelables
+ * @property-read int|null $labelables_count
  *
  * @method static Builder<static>|Label newModelQuery()
  * @method static Builder<static>|Label newQuery()
@@ -42,8 +43,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Label withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Label withoutTrashed()
  * @method static LabelFactory factory($count = null, $state = [])
- *
- * @property-read int|null $labelables_count
  *
  * @mixin \Eloquent
  */

@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Data;
 
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Shared\Data\MissingValue;
+use Lahatre\Shared\Data\MissingValueReader;
 
 final readonly class InventoryItemConfigurationUpdateData
 {
@@ -20,15 +21,14 @@ final readonly class InventoryItemConfigurationUpdateData
      */
     public static function fromArray(array $data): self
     {
-        $stockTrackingEnabled = array_key_exists('stock_tracking_enabled', $data)
-            ? $data['stock_tracking_enabled']
-            : MissingValue::Instance;
-        $isExpirable = array_key_exists('is_expirable', $data)
-            ? $data['is_expirable']
-            : MissingValue::Instance;
-        $strategy = array_key_exists('deduction_strategy', $data)
-            ? $data['deduction_strategy']
-            : MissingValue::Instance;
+        $read = MissingValueReader::fromArray($data, [
+            'stock_tracking_enabled',
+            'is_expirable',
+            'deduction_strategy',
+        ]);
+        $stockTrackingEnabled = $read->get('stock_tracking_enabled');
+        $isExpirable = $read->get('is_expirable');
+        $strategy = $read->get('deduction_strategy');
 
         return new self(
             stockTrackingEnabled: $stockTrackingEnabled,

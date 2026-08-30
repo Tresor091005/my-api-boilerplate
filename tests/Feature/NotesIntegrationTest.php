@@ -520,6 +520,12 @@ it('rejects pinning an expired note after locking its current row state', functi
         'organization_id' => $this->organization->id,
         'expires_at'      => now()->subMinute(),
     ]);
+    authContext()->setContext($this->user, [
+        'organization_id' => $this->organization->id,
+        'member_id'       => $this->member->id,
+        'member_role_id'  => $this->memberRole->id,
+        'role_id'         => $this->role->id,
+    ]);
 
     DB::flushQueryLog();
     DB::enableQueryLog();

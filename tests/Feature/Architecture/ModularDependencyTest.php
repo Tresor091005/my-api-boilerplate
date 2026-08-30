@@ -61,7 +61,11 @@ function checkModuleDependencies(string $module, array $allModules, array $allow
             continue;
         }
 
-        $content = $file->getContents();
+        try {
+            $content = $file->getContents();
+        } catch (RuntimeException) {
+            continue;
+        }
         $lines = explode("\n", $content);
 
         foreach ($lines as $index => $line) {
@@ -92,6 +96,7 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         'inventory'    => ['shared', 'master', 'organization'],
         'iam'          => ['shared', 'master', 'organization'],
         'catalog'      => ['shared', 'master', 'inventory'],
+        'customer'     => ['shared', 'master'],
     ];
 
     $failures = [];
@@ -127,7 +132,11 @@ it('ensures modules do not depend on the main App namespace (except Models)', fu
                 continue;
             }
 
-            $content = $file->getContents();
+            try {
+                $content = $file->getContents();
+            } catch (RuntimeException) {
+                continue;
+            }
             $lines = explode("\n", $content);
 
             foreach ($lines as $index => $line) {

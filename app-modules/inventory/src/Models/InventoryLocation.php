@@ -28,6 +28,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $stocks_count
  * @property-read Collection<int, InventoryMovement> $movements
  * @property-read int|null $movements_count
+ * @property-read Model|\Eloquent $external
+ * @property-read int|null $active_stocks_count
+ * @property-read Collection<int, InventoryStock> $stockSummaries
+ * @property-read int|null $stock_summaries_count
  *
  * @method static Builder<static>|InventoryLocation newModelQuery()
  * @method static Builder<static>|InventoryLocation newQuery()
@@ -43,14 +47,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryLocation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryLocation withoutTrashed()
  * @method static Builder<static>|InventoryLocation whereIsActive($value)
- *
- * @property-read Model|\Eloquent $external
- *
  * @method static InventoryLocationFactory factory($count = null, $state = [])
- *
- * @property-read int|null $active_stocks_count
- * @property-read Collection<int, InventoryStock> $stockSummaries
- * @property-read int|null $stock_summaries_count
  *
  * @mixin \Eloquent
  */

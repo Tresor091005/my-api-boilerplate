@@ -251,7 +251,7 @@ it('remaps persisted inventory configuration errors during a partial update', fu
             $variant,
             ProductVariantUpdateData::fromArray(
                 ['inventory' => ['deduction_strategy' => DeductionStrategy::Fefo->value]],
-                missingFields: ['sku', 'is_active', 'options'],
+                missingFields: ['sku', 'is_active', 'options', 'inventory'],
             ),
         );
     } catch (ValidationException $exception) {
@@ -276,7 +276,7 @@ it('syncs only submitted label types when updating a variant', function (): void
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['labels' => ['status' => ['inactive']]],
-        missingFields: ['sku', 'is_active', 'options'],
+        missingFields: ['sku', 'is_active', 'options', 'inventory'],
     ));
 
     expect($variant->fresh()->labels->pluck('value')->all())
@@ -284,7 +284,7 @@ it('syncs only submitted label types when updating a variant', function (): void
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['labels' => ['status' => []]],
-        missingFields: ['sku', 'is_active', 'options'],
+        missingFields: ['sku', 'is_active', 'options', 'inventory'],
     ));
 
     expect($variant->fresh()->labels->pluck('value')->all())->toBe(['online']);

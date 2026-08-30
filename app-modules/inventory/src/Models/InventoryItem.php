@@ -35,6 +35,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, InventoryStock> $stockSummaries
  * @property-read Collection<int, InventoryMovement> $movements
  * @property-read int|null $movements_count
+ * @property-read int|null $active_stock_location_summaries_count
+ * @property-read int|null $active_stocks_count
+ * @property-read int|null $stock_summaries_count
  *
  * @method static Builder<static>|InventoryItem newModelQuery()
  * @method static Builder<static>|InventoryItem newQuery()
@@ -54,11 +57,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem whereSku($value)
  * @method static InventoryItemFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryItem whereDeductionStrategy($value)
- *
- * @property-read int|null $active_stock_location_summaries_count
- * @property-read int|null $active_stocks_count
- * @property-read int|null $stock_summaries_count
- *
  * @method static Builder<static>|InventoryItem whereIsExpirable($value)
  * @method static Builder<static>|InventoryItem whereStockTrackingEnabled($value)
  *

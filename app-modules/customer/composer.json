@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/customer",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Customer\\": "src/",
+			"Lahatre\\Customer\\Tests\\": "tests/",
+			"Lahatre\\Customer\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Customer\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Customer\\Providers\\CustomerServiceProvider"
+			]
+		}
+	}
+}

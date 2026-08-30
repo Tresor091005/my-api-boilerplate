@@ -20,6 +20,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $organization_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
  * @property-read User $user
@@ -36,9 +37,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OrganizationMember onlyTrashed()
  * @method static Builder<static>|OrganizationMember withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|OrganizationMember withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|OrganizationMember whereDeletedAt($value)
  *
  * @mixin \Eloquent

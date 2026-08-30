@@ -23,6 +23,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read VariantOptionValue|ProductCategory|null $pivot
  * @property-read Collection<int, Category> $categories
  * @property-read int|null $categories_count
@@ -46,9 +47,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Product whereOrganizationId($value)
  * @method static Builder<static>|Product withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Product withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|Product whereDeletedAt($value)
  *
  * @mixin \Eloquent

@@ -49,6 +49,7 @@ it('verifies that all Eloquent models have correct and explicit casts for all da
             $expectedCast = match (true) {
                 $dbType === 'uuid'                                                      => 'string',
                 $dbType === 'bool' || $dbType === 'boolean'                             => 'boolean',
+                $dbType === 'date'                                                      => 'immutable_date',
                 str_contains($dbType, 'timestamp') || str_contains($dbType, 'datetime') => 'immutable_datetime',
                 str_contains($dbType, 'int')                                            => 'integer',
                 str_contains($dbType, 'json')                                           => ['array', 'collection', 'json'],

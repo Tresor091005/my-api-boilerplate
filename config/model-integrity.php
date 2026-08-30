@@ -84,21 +84,43 @@ return [
     | Format: 'table_name' => ['column1', 'column2']
     |
     */
-    'ignored_soft_delete_partial_index' => [
+    'ignored_soft_delete_partial_columns' => [
         'users'                    => ['email'],
         'iam_users'                => ['email'],
-        'catalog_option_values'    => ['id'],
-        'catalog_options'          => ['id'],
         'inventory_items'          => ['sku'],
         'master_units'             => ['code'],
         'master_currencies'        => ['code'],
-        'catalog_product_variants' => ['id', 'sku'],
-        'catalog_categories'       => ['id', 'handle'],
-        'catalog_products'         => ['id', 'handle'],
+        'catalog_product_variants' => ['sku'],
+        'catalog_categories'       => ['handle'],
+        'catalog_products'         => ['handle'],
         'catalog_bundles'          => ['handle'],
-        'master_labels'            => ['organization_id'],
-        // Composite tenant foreign keys must keep historical identities addressable.
-        'iam_organization_members' => ['id'],
-        'master_notes'             => ['id'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Soft Delete Partial Index Exemptions
+    |--------------------------------------------------------------------------
+    |
+    | These indexes are required as targets for composite tenant foreign keys.
+    | PostgreSQL does not allow foreign keys to reference partial unique indexes.
+    | A unique index used as a foreign-key target may therefore be exempted
+    | from the required WHERE deleted_at IS NULL predicate.
+    |
+    */
+    'ignored_soft_delete_partial_indexes' => [
+        'catalog_option_values'    => ['catalog_option_values_organization_id_id_unique'],
+        'catalog_options'          => ['catalog_options_organization_id_id_unique'],
+        'catalog_product_variants' => ['catalog_product_variants_organization_id_id_unique'],
+        'catalog_categories'       => ['catalog_categories_organization_id_id_unique'],
+        'catalog_products'         => ['catalog_products_organization_id_id_unique'],
+        'iam_organization_members' => ['iam_organization_members_organization_id_id_unique'],
+        'master_notes'             => ['master_notes_organization_id_id_unique'],
+        'master_labels'            => ['master_labels_organization_id_id_unique'],
+        'inventory_items'          => ['inventory_items_organization_id_id_unique'],
+        'inventory_locations'      => ['inventory_locations_organization_id_id_unique'],
+        'inventory_stocks'         => [
+            'inventory_stocks_organization_id_id_unique',
+            'inventory_stocks_aggregate_identity_unique',
+        ],
     ],
 ];

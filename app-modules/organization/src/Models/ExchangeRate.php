@@ -26,6 +26,15 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ExchangeRate newQuery()
  * @method static Builder<static>|ExchangeRate query()
  * @method static ExchangeRateFactory factory($count = null, $state = [])
+ * @method static Builder<static>|ExchangeRate whereContext($value)
+ * @method static Builder<static>|ExchangeRate whereCreatedAt($value)
+ * @method static Builder<static>|ExchangeRate whereEffectiveAt($value)
+ * @method static Builder<static>|ExchangeRate whereId($value)
+ * @method static Builder<static>|ExchangeRate whereOrganizationId($value)
+ * @method static Builder<static>|ExchangeRate whereRate($value)
+ * @method static Builder<static>|ExchangeRate whereSourceCurrencyCode($value)
+ * @method static Builder<static>|ExchangeRate whereTargetCurrencyCode($value)
+ * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

@@ -15,8 +15,12 @@ class CurrencyFactory extends Factory
 {
     public function definition(): array
     {
+        do {
+            $code = Str::toUpper($this->faker->lexify('???'));
+        } while (Currency::query()->where('code', $code)->exists());
+
         return [
-            'code'      => Str::toUpper($this->faker->unique()->lexify('???')),
+            'code'      => $code,
             'name'      => $this->faker->word(),
             'symbol'    => $this->faker->lexify('??'),
             'precision' => 2,

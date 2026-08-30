@@ -62,6 +62,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock withoutTrashed()
  * @method static InventoryStockFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryStock whereCostRemainder($value)
+ * @method static Builder<static>|InventoryStock whereExchangeMetadata($value)
  *
  * @mixin \Eloquent
  */

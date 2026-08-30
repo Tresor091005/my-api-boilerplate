@@ -24,6 +24,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Unit> $units
  * @property-read Unit|null $baseUnit
+ * @property-read int|null $units_count
  *
  * @method static Builder<static>|UnitGroup newModelQuery()
  * @method static Builder<static>|UnitGroup newQuery()
@@ -35,9 +36,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|UnitGroup whereIsBuiltin($value)
  * @method static Builder<static>|UnitGroup whereUpdatedAt($value)
  * @method static UnitGroupFactory factory($count = null, $state = [])
- *
- * @property-read int|null $units_count
- *
  * @method static Builder<static>|UnitGroup onlyTrashed()
  * @method static Builder<static>|UnitGroup withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|UnitGroup withoutTrashed()

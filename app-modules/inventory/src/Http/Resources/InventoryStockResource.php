@@ -43,22 +43,22 @@ class InventoryStockResource extends JsonResource
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,
             'location'          => $this->includeWhenRequestedAndLoaded(
-                include: ['location', 'stocks.location'],
+                include: 'location',
                 relation: 'location',
                 resolver: fn ($location): mixed => InventoryLocationResource::make($location),
             ),
             'unit' => $this->includeWhenRequestedAndLoaded(
-                include: ['unit', 'stocks.unit'],
+                include: 'unit',
                 relation: 'unit',
                 resolver: fn ($unit): mixed => UnitResource::make($unit),
             ),
             'currency' => $this->includeWhenRequestedAndLoaded(
-                include: ['currency', 'stocks.currency'],
+                include: 'currency',
                 relation: 'currency',
                 resolver: fn ($currency): mixed => CurrencyResource::make($currency),
             ),
             'movements' => $this->includeWhenRequestedAndLoaded(
-                include: ['movements', 'stocks.movements'],
+                include: 'movements',
                 relation: 'movements',
                 resolver: fn ($movements): mixed => InventoryMovementResource::collection($movements),
             ),

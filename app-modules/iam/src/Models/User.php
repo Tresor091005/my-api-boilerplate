@@ -25,6 +25,7 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
  * @property-read Collection<int, OrganizationMember> $organizationMemberships
@@ -33,6 +34,10 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property-read int|null $permissions_count
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read Collection<int, PersonalAccessToken> $tokens
+ * @property-read int|null $tokens_count
  *
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
@@ -50,13 +55,6 @@ use Lahatre\Shared\Models\Authenticatable;
  * @method static Builder<static>|User whereUpdatedAt($value)
  * @method static Builder<static>|User withoutPermission($permissions)
  * @method static Builder<static>|User withoutRole($roles, ?string $guard = null)
- *
- * @property CarbonImmutable|null $deleted_at
- * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
- * @property-read Collection<int, PersonalAccessToken> $tokens
- * @property-read int|null $tokens_count
- *
  * @method static UserFactory factory($count = null, $state = [])
  * @method static Builder<static>|User onlyTrashed()
  * @method static Builder<static>|User whereDeletedAt($value)

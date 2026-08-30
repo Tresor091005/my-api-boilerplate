@@ -13,6 +13,7 @@
         "dedoc/scramble": "^0.13.10",
         "internachi/modular": "^3.0",
         "lahatre/catalog": "*",
+        "lahatre/customer": "*",
         "lahatre/iam": "*",
         "lahatre/inventory": "*",
         "lahatre/master": "*",
@@ -88,6 +89,7 @@
         ],
         "ide-helper": [
             "@php artisan ide-helper:models --write",
+            "@php artisan ide-helper:models:sort",
             "@php artisan ide-helper:generate",
             "@php artisan ide-helper:meta"
         ],

@@ -12,13 +12,13 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 final class Rfc3339Utc implements ValidationRule
 {
-    private const FORMAT_WITHOUT_MILLISECONDS_Z = 'Y-m-d\\TH:i:s\\Z';
+    private const string FORMAT_WITHOUT_MILLISECONDS_Z = 'Y-m-d\\TH:i:s\\Z';
 
-    private const FORMAT_WITHOUT_MILLISECONDS_OFFSET = 'Y-m-d\\TH:i:sP';
+    private const string FORMAT_WITHOUT_MILLISECONDS_OFFSET = 'Y-m-d\\TH:i:sP';
 
-    private const FORMAT_WITH_MILLISECONDS_Z = 'Y-m-d\\TH:i:s.v\\Z';
+    private const string FORMAT_WITH_MILLISECONDS_Z = 'Y-m-d\\TH:i:s.v\\Z';
 
-    private const FORMAT_WITH_MILLISECONDS_OFFSET = 'Y-m-d\\TH:i:s.vP';
+    private const string FORMAT_WITH_MILLISECONDS_OFFSET = 'Y-m-d\\TH:i:s.vP';
 
     /**
      * @param  Closure(string): PotentiallyTranslatedString  $fail

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('master_contacts', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->foreignUuid('organization_id')->index()->constrained('organization_organizations')->restrictOnDelete();
+            $table->foreignUuid('organization_id')->constrained('organization_organizations')->restrictOnDelete();
             $table->string('contactable_type');
             $table->uuid('contactable_id');
             $table->string('type', 50);
@@ -23,7 +23,8 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        DB::statement('CREATE INDEX master_contacts_contactable_index ON master_contacts (organization_id, contactable_type, contactable_id)');
+        DB::statement('CREATE INDEX master_contacts_organization_id_index ON master_contacts (organization_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX master_contacts_contactable_index ON master_contacts (organization_id, contactable_type, contactable_id) WHERE deleted_at IS NULL');
         DB::statement('CREATE UNIQUE INDEX master_contacts_one_primary_index ON master_contacts (organization_id, contactable_type, contactable_id) WHERE is_primary = true AND deleted_at IS NULL');
     }
 

@@ -22,7 +22,7 @@ final class ContactService
 {
     /**
      * @param  array<int, ContactCreateData>  $contacts
-     * @return Collection<string, Contact>
+     * @return Collection<int, Contact>
      */
     public function addMultiple(Model $contactable, array $contacts): Collection
     {
@@ -61,13 +61,12 @@ final class ContactService
 
             DB::table('master_contacts')->insert($contactRows);
 
-            /** @var Collection<string, Contact> $createdById */
-            $createdById = $this->contacts($lockedContactable)
+            /** @var Collection<int, Contact> $created */
+            $created = $this->contacts($lockedContactable)
                 ->whereIn('master_contacts.id', $contactIds)
-                ->get()
-                ->keyBy('id');
+                ->get();
 
-            return $createdById;
+            return $created;
         });
     }
 

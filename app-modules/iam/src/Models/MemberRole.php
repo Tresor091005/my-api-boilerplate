@@ -21,8 +21,13 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $role_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read OrganizationMember $organizationMember
  * @property-read Role $role
+ * @property-read Collection<int, Permission> $permissions
+ * @property-read int|null $permissions_count
+ * @property-read Collection<int, Role> $roles
+ * @property-read int|null $roles_count
  *
  * @method static Builder<static>|MemberRole newModelQuery()
  * @method static Builder<static>|MemberRole newQuery()
@@ -32,12 +37,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static>|MemberRole whereMemberId($value)
  * @method static Builder<static>|MemberRole whereRoleId($value)
  * @method static Builder<static>|MemberRole whereUpdatedAt($value)
- *
- * @property-read Collection<int, Permission> $permissions
- * @property-read int|null $permissions_count
- * @property-read Collection<int, Role> $roles
- * @property-read int|null $roles_count
- *
  * @method static Builder<static>|MemberRole permission($permissions, bool $without = false)
  * @method static Builder<static>|MemberRole role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|MemberRole withoutPermission($permissions)
@@ -47,9 +46,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static>|MemberRole onlyTrashed()
  * @method static Builder<static>|MemberRole withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|MemberRole withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|MemberRole whereDeletedAt($value)
  * @method static Builder<static>|MemberRole team($teams, bool $without = false)
  * @method static Builder<static>|MemberRole withoutTeam($teams)

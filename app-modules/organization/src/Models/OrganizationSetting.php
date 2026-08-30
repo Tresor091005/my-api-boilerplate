@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\Organization\Database\Factories\OrganizationSettingFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -20,6 +21,13 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OrganizationSetting newModelQuery()
  * @method static Builder<static>|OrganizationSetting newQuery()
  * @method static Builder<static>|OrganizationSetting query()
+ * @method static OrganizationSettingFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OrganizationSetting whereCreatedAt($value)
+ * @method static Builder<static>|OrganizationSetting whereEnableCurrencies($value)
+ * @method static Builder<static>|OrganizationSetting whereId($value)
+ * @method static Builder<static>|OrganizationSetting whereOrganizationId($value)
+ * @method static Builder<static>|OrganizationSetting whereTimezone($value)
+ * @method static Builder<static>|OrganizationSetting whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

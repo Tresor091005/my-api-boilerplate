@@ -16,6 +16,7 @@ use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
 use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
+use Lahatre\Master\Models\Label;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Traits\InteractsWithLabels;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -29,6 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read string $name
  * @property-read string $options_label
  * @property-read VariantOptionValue|null $pivot
@@ -36,6 +38,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $option_values_count
  * @property-read Product $product
  * @property-read UnitGroup|null $unitGroup
+ * @property-read InventoryItem|null $inventoryItem
+ * @property-read Collection<int, Label> $labels
+ * @property-read int|null $labels_count
  *
  * @method static Builder<static>|ProductVariant newModelQuery()
  * @method static Builder<static>|ProductVariant newQuery()
@@ -49,17 +54,15 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
  * @method static Builder<static>|ProductVariant whereUpdatedAt($value)
  * @method static ProductVariantFactory factory($count = null, $state = [])
- *
- * @property-read InventoryItem|null $inventoryItem
- *
  * @method static Builder<static>|ProductVariant onlyTrashed()
  * @method static Builder<static>|ProductVariant whereOrganizationId($value)
  * @method static Builder<static>|ProductVariant withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|ProductVariant withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|ProductVariant whereDeletedAt($value)
+ * @method static Builder<static>|ProductVariant toLabelOrganization()
+ * @method static Builder<static>|ProductVariant withAllLabelsOfGroup(string $group, array $labels)
+ * @method static Builder<static>|ProductVariant withAnyLabelsOfGroup(string $group, array $labels)
+ * @method static Builder<static>|ProductVariant withoutLabelsOfGroup(string $group, array $labels)
  *
  * @mixin \Eloquent
  */

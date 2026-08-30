@@ -19,6 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
+ * @property-read OrganizationSetting|null $settings
  *
  * @method static Builder<static>|Organization newModelQuery()
  * @method static Builder<static>|Organization newQuery()
@@ -33,8 +34,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Organization withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Organization withoutTrashed()
  * @method static OrganizationFactory factory($count = null, $state = [])
- *
- * @property-read OrganizationSetting|null $settings
  *
  * @mixin \Eloquent
  */

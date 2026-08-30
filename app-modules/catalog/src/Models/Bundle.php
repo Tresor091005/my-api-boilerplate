@@ -25,6 +25,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, BundleItem> $items
  * @property-read int|null $items_count
  * @property-read Unit|null $unit
@@ -45,9 +46,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Bundle whereOrganizationId($value)
  * @method static Builder<static>|Bundle withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Bundle withoutTrashed()
- *
- * @property CarbonImmutable|null $deleted_at
- *
  * @method static Builder<static>|Bundle whereDeletedAt($value)
  *
  * @mixin \Eloquent

@@ -6,6 +6,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Support\DeterministicCursorPagination;
@@ -35,7 +36,7 @@ if (!function_exists('currentOrganizationId')) {
 if (!function_exists('stableCursorPaginate')) {
     /** Paginate a query with the project's deterministic cursor conventions. */
     function stableCursorPaginate(
-        Builder|Illuminate\Database\Query\Builder|Relation $query,
+        Builder|QueryBuilder|Relation $query,
         object $filters,
         array $columns = ['*'],
         string $tieBreakerColumn = 'id',
@@ -52,8 +53,8 @@ if (!function_exists('stableCursorPaginate')) {
 }
 
 if (!function_exists('applyResponseContextToQuery')) {
-    /** Apply response-context relation loads to an Eloquent query. */
-    function applyResponseContextToQuery(Builder $query): Builder
+    /** Apply response-context relation loads to a query when it supports eager loading. */
+    function applyResponseContextToQuery(Builder|QueryBuilder $query): Builder|QueryBuilder
     {
         return app(ResponseContext::class)->applyToQuery($query);
     }

@@ -22,7 +22,7 @@ final class AddressService
 {
     /**
      * @param  array<int, AddressCreateData>  $addresses
-     * @return Collection<string, Address>
+     * @return Collection<int, Address>
      */
     public function addMultiple(Model $addressable, array $addresses): Collection
     {
@@ -62,13 +62,12 @@ final class AddressService
 
             DB::table('master_addresses')->insert($addressRows);
 
-            /** @var Collection<string, Address> $createdById */
-            $createdById = $this->addresses($lockedAddressable)
+            /** @var Collection<int, Address> $created */
+            $created = $this->addresses($lockedAddressable)
                 ->whereIn('master_addresses.id', $addressIds)
-                ->get()
-                ->keyBy('id');
+                ->get();
 
-            return $createdById;
+            return $created;
         });
     }
 

@@ -7,16 +7,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 ## Foundational Context
 
-This application is a modular Laravel application running on PHP 8.4. The
-currently installed versions are Laravel Framework 13.25.0, Pest 5.1.1,
-Pest Laravel 5.0.1, Pint 1.30.5, Laravel Boost 2.5.3, and InterNACHI Modular
-3.0.2. Always use APIs matching the installed major version; do not assume a
-different version from historical documentation.
-
-Before changing code, read `.ai/rules/index.md`, every rule matching the
-target path, `.agents/CODEBASE_RULES.md`, and the relevant sections of
-`.agents/PROJECT_MEMORY.md`. The indexed `.ai/rules` files are the project's
-current source of truth.
+This application is a Laravel application running on PHP 8.5. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
 
 Before relying on a package's API, confirm its installed version:
 - PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
@@ -36,11 +27,6 @@ Before relying on a package's API, confirm its installed version:
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
-- Keep domain code inside `app-modules/*`; module code must not depend on the
-  core `App` namespace except for explicitly approved framework boundaries.
-- Use `FormRequest` for HTTP validation and `Data` classes for service input;
-  do not introduce DTO terminology or combine the two responsibilities.
-- Use module-aware Artisan commands with `--module=<module>` for module files.
 
 ## Frontend Bundling
 
@@ -96,12 +82,7 @@ Before relying on a package's API, confirm its installed version:
 # Test Enforcement
 
 - Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum affected test scope with Pest 5 TIA in parallel by default:
-  docker compose exec -T app ./vendor/bin/pest --parallel --tia <path-or-filter>
-  (or make test-fast). If TIA fails, its dependency graph is unavailable, or
-  parallel workers cannot start, fall back immediately to
-  docker compose exec -T app php artisan test --compact <path-or-filter>.
-  Use the normal command without a path when a complete suite run is required.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
 
 === laravel/core rules ===
 
@@ -125,8 +106,6 @@ Before relying on a package's API, confirm its installed version:
 
 ## Testing
 
-- This project uses Pest 5 and PHPUnit 12. Prefer Pest tests in
-  `tests/Feature`, `tests/Unit`, or the corresponding module test directory.
 - When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
 - When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
@@ -144,14 +123,11 @@ Before relying on a package's API, confirm its installed version:
 
 === pest/core rules ===
 
-## Pest 5
+## Pest
 
 - This project uses Pest for testing. Create tests: `php artisan make:test --pest {name}`.
 - The `{name}` argument should not include the test suite directory. Use `php artisan make:test --pest SomeFeatureTest` instead of `php artisan make:test --pest Feature/SomeFeatureTest`.
-- Run affected tests by default with Pest 5 TIA in parallel:
-  docker compose exec -T app ./vendor/bin/pest --parallel --tia.
-- If TIA cannot run reliably, use php artisan test --compact or
-  php artisan test --compact --filter=testName.
+- Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>

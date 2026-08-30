@@ -76,7 +76,7 @@ class ProductVariantController
 
         $data = ProductVariantUpdateData::fromArray(
             $request->validated(),
-            missingFields: ['sku', 'is_active', 'options'],
+            missingFields: ['sku', 'is_active', 'options', 'inventory'],
         );
 
         $variant = $this->productVariantService->update($product, $variant, $data);

@@ -30,9 +30,7 @@ final readonly class ProductVariantUpdateData
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
         $isActive = $read->get('is_active');
-        $inventory = array_key_exists('inventory', $data)
-            ? $data['inventory']
-            : MissingValue::Instance;
+        $inventory = $read->get('inventory');
 
         return new self(
             sku: $read->get('sku'),
