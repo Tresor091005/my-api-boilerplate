@@ -9,7 +9,6 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Models\Currency;
-use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
@@ -25,15 +24,17 @@ class InventoryStockFactory extends Factory
         $organizationId = $this->resolveOrganizationId();
 
         return [
-            'organization_id'   => $organizationId,
-            'item_id'           => InventoryItem::factory(['organization_id' => $organizationId]),
-            'location_id'       => InventoryLocation::factory(['organization_id' => $organizationId]),
-            'unit_cost'         => fake()->numberBetween(100, 5000),
-            'cost_remainder'    => 0,
-            'currency_code'     => Currency::factory()->create()->code,
-            'quantity'          => $quantity,
-            'remaining'         => $quantity,
-            'unit_code'         => Unit::factory()->create()->code,
+            'organization_id' => $organizationId,
+            'item_id'         => InventoryItem::factory(['organization_id' => $organizationId]),
+            'location_id'     => InventoryLocation::factory(['organization_id' => $organizationId]),
+            'unit_cost'       => fake()->numberBetween(100, 5000),
+            'cost_remainder'  => 0,
+            'currency_code'   => Currency::factory()->create()->code,
+            'quantity'        => $quantity,
+            'remaining'       => $quantity,
+            'base_unit_code'  => fn (array $attributes): string => (string) InventoryItem::query()
+                ->findOrFail($attributes['item_id'])
+                ->base_unit_code,
             'expiration_date'   => null,
             'metadata'          => null,
             'exchange_metadata' => null,

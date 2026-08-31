@@ -24,7 +24,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $stock_id
  * @property string $location_id
  * @property int $quantity
- * @property string $unit_code
+ * @property string $base_unit_code
  * @property int $total_cost
  * @property string $currency_code
  * @property CarbonImmutable|null $expiration_date
@@ -54,7 +54,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryMovement whereLocationId($value)
  * @method static Builder<static>|InventoryMovement whereExpirationDate($value)
  * @method static Builder<static>|InventoryMovement whereQuantity($value)
- * @method static Builder<static>|InventoryMovement whereUnitCode($value)
+ * @method static Builder<static>|InventoryMovement whereBaseUnitCode($value)
  * @method static Builder<static>|InventoryMovement whereUpdatedAt($value)
  * @method static InventoryMovementFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryMovement whereMetadata($value)
@@ -80,7 +80,7 @@ class InventoryMovement extends Model
         'stock_id',
         'location_id',
         'quantity',
-        'unit_code',
+        'base_unit_code',
         'total_cost',
         'currency_code',
         'expiration_date',
@@ -99,7 +99,7 @@ class InventoryMovement extends Model
         'stock_id'                => 'string',
         'location_id'             => 'string',
         'quantity'                => 'integer',
-        'unit_code'               => 'string',
+        'base_unit_code'          => 'string',
         'total_cost'              => 'integer',
         'currency_code'           => 'string',
         'expiration_date'         => 'immutable_date',
@@ -136,7 +136,7 @@ class InventoryMovement extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_code', 'code')->withTrashed();
+        return $this->belongsTo(Unit::class, 'base_unit_code', 'code')->withTrashed();
     }
 
     public function currency(): BelongsTo

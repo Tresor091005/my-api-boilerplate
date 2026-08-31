@@ -60,7 +60,7 @@ class InventoryQueryService
             'location_id'        => $location->id,
             'deduction_strategy' => $strategy->value,
             'total_remaining'    => (int) $lots->sum('remaining'),
-            'unit_code'          => $item->base_unit_code,
+            'base_unit_code'     => $item->base_unit_code,
             'lots'               => $lots->values(),
         ];
     }
@@ -117,7 +117,7 @@ class InventoryQueryService
                 'stocks.item_id',
                 'stocks.location_id',
                 'items.sku',
-                DB::raw('items.base_unit_code as unit_code'),
+                'items.base_unit_code',
                 DB::raw('SUM(stocks.remaining) as remaining'),
                 'stocks.currency_code',
                 DB::raw('SUM((stocks.remaining::numeric * stocks.unit_cost::numeric) + stocks.cost_remainder::numeric) as total_value_minor'),

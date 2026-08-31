@@ -207,12 +207,13 @@ it('processes an IN transaction with unit conversion', function (): void {
     // Assert stock is created with base unit quantity (2.5 kg = 2500 base units)
     $stock = InventoryStock::first();
     expect($stock->quantity)->toBe(2500)
-        ->and($stock->unit_code)->toBe($this->item->base_unit_code)
+        ->and($stock->base_unit_code)->toBe($this->item->base_unit_code)
         ->and($stock->unit_cost)->toBe(1500);
 
     // Assert movement is recorded with base unit quantity
     $movement = InventoryMovement::first();
-    expect($movement->quantity)->toBe(2500);
+    expect($movement->quantity)->toBe(2500)
+        ->and($movement->base_unit_code)->toBe($this->item->base_unit_code);
 });
 
 it('resolves inventory contracts passed in item_id and location_id before recording the transaction', function (): void {

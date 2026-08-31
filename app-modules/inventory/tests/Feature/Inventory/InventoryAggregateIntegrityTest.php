@@ -41,7 +41,7 @@ it('rejects a stock whose item belongs to another organization', function (): vo
         'cost_remainder'    => 0,
         'quantity'          => 10,
         'remaining'         => 10,
-        'unit_code'         => $this->unit->code,
+        'base_unit_code'    => $this->unit->code,
         'currency_code'     => $this->currency->code,
         'expiration_date'   => null,
         'metadata'          => null,
@@ -87,7 +87,7 @@ it('rejects a movement whose item and location do not match its stock', function
         'location_id'             => $location->id,
         'stock_id'                => $stock->id,
         'quantity'                => 1,
-        'unit_code'               => $stock->unit_code,
+        'base_unit_code'          => $stock->base_unit_code,
         'total_cost'              => $stock->unit_cost,
         'currency_code'           => $stock->currency_code,
         'expiration_date'         => null,
@@ -117,7 +117,7 @@ it('creates factory movements with the item and location of their stock', functi
         'organization_id' => $this->organizationId,
         'transaction_id'  => $transaction->id,
         'stock_id'        => $stock->id,
-        'unit_code'       => $stock->unit_code,
+        'base_unit_code'  => $stock->base_unit_code,
         'currency_code'   => $stock->currency_code,
     ]);
 
@@ -143,7 +143,7 @@ it('rejects a movement linked to a transaction from another organization', funct
         'organization_id' => $this->organizationId,
         'transaction_id'  => $transaction->id,
         'stock_id'        => $stock->id,
-        'unit_code'       => $stock->unit_code,
+        'base_unit_code'  => $stock->base_unit_code,
         'currency_code'   => $stock->currency_code,
     ]))->toThrow(QueryException::class);
 });

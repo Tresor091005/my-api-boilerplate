@@ -10,7 +10,6 @@ use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Master\Models\Currency;
-use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
@@ -37,8 +36,10 @@ class InventoryMovementFactory extends Factory
             'location_id' => fn (array $attributes): string => (string) InventoryStock::query()
                 ->findOrFail($attributes['stock_id'])
                 ->location_id,
-            'quantity'                => $quantity,
-            'unit_code'               => Unit::factory(),
+            'quantity'       => $quantity,
+            'base_unit_code' => fn (array $attributes): string => (string) InventoryStock::query()
+                ->findOrFail($attributes['stock_id'])
+                ->base_unit_code,
             'total_cost'              => $quantity * $unitCost,
             'currency_code'           => Currency::factory(),
             'expiration_date'         => null,

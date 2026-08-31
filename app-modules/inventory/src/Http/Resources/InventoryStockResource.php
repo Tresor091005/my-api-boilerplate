@@ -35,7 +35,7 @@ class InventoryStockResource extends JsonResource
             'currency_code'     => $this->currency_code,
             'quantity'          => $this->quantity,
             'remaining'         => $this->remaining,
-            'unit_code'         => $this->unit_code,
+            'base_unit_code'    => $this->base_unit_code,
             'expiration_date'   => $this->expiration_date?->toDateString(),
             'days_remaining'    => $this->resolveDaysRemaining(),
             'metadata'          => $this->metadata,

@@ -33,7 +33,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE inventory_stocks DROP CONSTRAINT inventory_stocks_cost_remainder_check_non_negative');
 
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->bigInteger('unit_cost')->default(0)->after('unit_code');
+            $table->bigInteger('unit_cost')->default(0)->after('base_unit_code');
         });
 
         DB::statement('UPDATE inventory_movements SET unit_cost = total_cost / NULLIF(quantity, 0)');

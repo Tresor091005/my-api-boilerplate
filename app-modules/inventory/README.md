@@ -22,6 +22,9 @@ Inventory items expose the important operational fields `sku`, `base_unit_code`,
 locations expose their polymorphic `external_type`, `external_id`, and
 `is_active`. The persisted records keep the link to the application model while
 inventory stocks, movements, and transactions remain independent ledger data.
+Persisted stocks and movements expose `base_unit_code`; their quantities are
+always stored in that ratio-1 unit. Transaction input continues to use
+`unit_code` because callers may choose another unit from the same group.
 
 An inventory item may exist for any inventory-capable domain model while
 `stock_tracking_enabled` is false. Enabling tracking is allowed without

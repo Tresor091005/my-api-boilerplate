@@ -26,7 +26,7 @@ class InventoryItemLocationLotsResource extends JsonResource
             'location_id'        => $this->resource['location_id'],
             'deduction_strategy' => $this->resource['deduction_strategy'],
             'total_remaining'    => $this->resource['total_remaining'],
-            'unit_code'          => $this->resource['unit_code'],
+            'base_unit_code'     => $this->resource['base_unit_code'],
             'lots'               => InventoryStockResource::collection($lots)->resolve($request),
         ];
     }

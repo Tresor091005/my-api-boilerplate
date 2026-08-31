@@ -26,7 +26,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $currency_code
  * @property int $quantity
  * @property int $remaining
- * @property string $unit_code
+ * @property string $base_unit_code
  * @property CarbonImmutable|null $expiration_date
  * @property array|null $metadata
  * @property array|null $exchange_metadata
@@ -56,7 +56,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryStock whereExpirationDate($value)
  * @method static Builder<static>|InventoryStock whereQuantity($value)
  * @method static Builder<static>|InventoryStock whereUnitCost($value)
- * @method static Builder<static>|InventoryStock whereUnitCode($value)
+ * @method static Builder<static>|InventoryStock whereBaseUnitCode($value)
  * @method static Builder<static>|InventoryStock whereUpdatedAt($value)
  * @method static Builder<static>|InventoryStock withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryStock withoutTrashed()
@@ -82,7 +82,7 @@ class InventoryStock extends Model
         'currency_code',
         'quantity',
         'remaining',
-        'unit_code',
+        'base_unit_code',
         'expiration_date',
         'metadata',
         'exchange_metadata',
@@ -98,7 +98,7 @@ class InventoryStock extends Model
         'currency_code'     => 'string',
         'quantity'          => 'integer',
         'remaining'         => 'integer',
-        'unit_code'         => 'string',
+        'base_unit_code'    => 'string',
         'expiration_date'   => 'immutable_date',
         'metadata'          => 'array',
         'exchange_metadata' => 'array',
@@ -121,7 +121,7 @@ class InventoryStock extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_code', 'code')->withTrashed();
+        return $this->belongsTo(Unit::class, 'base_unit_code', 'code')->withTrashed();
     }
 
     public function currency(): BelongsTo

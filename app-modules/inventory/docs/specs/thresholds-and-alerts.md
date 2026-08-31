@@ -203,7 +203,7 @@ Movement:
 - `last_movement_at`: `MAX(inventory_movements.created_at)` per scope.
 - `movement_count` and `moved_quantity` over a window:
   - Window: `created_at >= now - movement_window_days`.
-  - Quantity: ideally in base units; otherwise in `unit_code` (v1: count only,
+  - Quantity: in `base_unit_code` (v1: count only,
     v1.1: base-unit quantity).
 
 Debounce:

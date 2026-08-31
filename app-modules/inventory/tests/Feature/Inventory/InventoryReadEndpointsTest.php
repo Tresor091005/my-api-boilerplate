@@ -94,7 +94,7 @@ it('returns active lots for an item and location', function (): void {
     $locationB = InventoryLocation::factory()->create();
 
     $lot1 = InventoryStock::factory()->for($item, 'item')->for($locationA, 'location')->create([
-        'unit_code'       => $this->unit->code,
+        'base_unit_code'  => $this->unit->code,
         'currency_code'   => $this->currency->code,
         'unit_cost'       => 1500,
         'quantity'        => 120,
@@ -104,7 +104,7 @@ it('returns active lots for an item and location', function (): void {
         'metadata'        => ['lot_number' => 'LOT-A1'],
     ]);
     $lot2 = InventoryStock::factory()->for($item, 'item')->for($locationA, 'location')->create([
-        'unit_code'       => $this->unit->code,
+        'base_unit_code'  => $this->unit->code,
         'currency_code'   => $this->currency->code,
         'unit_cost'       => 2500,
         'quantity'        => 80,
@@ -114,10 +114,10 @@ it('returns active lots for an item and location', function (): void {
         'metadata'        => ['lot_number' => 'LOT-A2'],
     ]);
     InventoryStock::factory()->for($item, 'item')->for($locationB, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'quantity'      => 40,
-        'remaining'     => 40,
+        'base_unit_code' => $this->unit->code,
+        'currency_code'  => $this->currency->code,
+        'quantity'       => 40,
+        'remaining'      => 40,
     ]);
 
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots")
@@ -126,7 +126,9 @@ it('returns active lots for an item and location', function (): void {
         ->assertJsonPath('location_id', $locationA->id)
         ->assertJsonPath('deduction_strategy', DeductionStrategy::Fefo->value)
         ->assertJsonPath('total_remaining', 200)
+        ->assertJsonPath('base_unit_code', $this->unit->code)
         ->assertJsonPath('lots.0.id', $lot2->id)
+        ->assertJsonPath('lots.0.base_unit_code', $this->unit->code)
         ->assertJsonPath('lots.0.unit_cost', '25.00')
         ->assertJsonPath('lots.1.id', $lot1->id);
 
@@ -151,7 +153,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
     $locationB = InventoryLocation::factory()->create();
 
     $expiringLot = InventoryStock::factory()->for($itemA, 'item')->for($locationA, 'location')->create([
-        'unit_code'       => $this->unit->code,
+        'base_unit_code'  => $this->unit->code,
         'currency_code'   => $this->currency->code,
         'quantity'        => 70,
         'remaining'       => 70,
@@ -160,15 +162,15 @@ it('returns stock summary and expiring lots with pagination metadata', function 
     ]);
 
     InventoryStock::factory()->for($itemA, 'item')->for($locationA, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'quantity'      => 30,
-        'remaining'     => 30,
-        'unit_cost'     => 200,
+        'base_unit_code' => $this->unit->code,
+        'currency_code'  => $this->currency->code,
+        'quantity'       => 30,
+        'remaining'      => 30,
+        'unit_cost'      => 200,
     ]);
 
     InventoryStock::factory()->for($itemB, 'item')->for($locationA, 'location')->create([
-        'unit_code'       => $this->unit->code,
+        'base_unit_code'  => $this->unit->code,
         'currency_code'   => $this->currency->code,
         'quantity'        => 90,
         'remaining'       => 90,
@@ -176,10 +178,10 @@ it('returns stock summary and expiring lots with pagination metadata', function 
     ]);
 
     InventoryStock::factory()->for($itemA, 'item')->for($locationB, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
-        'quantity'      => 30,
-        'remaining'     => 30,
+        'base_unit_code' => $this->unit->code,
+        'currency_code'  => $this->currency->code,
+        'quantity'       => 30,
+        'remaining'      => 30,
     ]);
 
     $this->getJson("/v1/inventory/stocks/summary?per_page=1&location_id[]={$locationA->id}")
@@ -193,6 +195,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         ->assertJsonPath('data.0.item_id', $itemA->id)
         ->assertJsonPath('data.0.location_id', $locationA->id)
         ->assertJsonPath('data.0.remaining', 100)
+        ->assertJsonPath('data.0.base_unit_code', $this->unit->code)
         ->assertJsonPath('data.0.total_value', '130.00')
         ->assertJsonPath('data.0.currency_code', $this->currency->code);
 
@@ -211,6 +214,7 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         ->assertJsonPath('data.0.item_id', $itemA->id)
         ->assertJsonPath('data.0.location_id', $locationA->id)
         ->assertJsonPath('data.0.remaining', 70)
+        ->assertJsonPath('data.0.base_unit_code', $this->unit->code)
         ->assertJsonPath('data.0.unit_cost', '1.00')
         ->assertJsonPath('data.0.total_cost', '70.00')
         ->assertJsonPath('data.0.days_remaining', 4);
@@ -245,8 +249,8 @@ it('does not expose inventory item and location registry endpoints', function ()
         'external_id'   => $org->id,
     ]);
     $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create([
-        'unit_code'     => $this->unit->code,
-        'currency_code' => $this->currency->code,
+        'base_unit_code' => $this->unit->code,
+        'currency_code'  => $this->currency->code,
     ]);
 
     $this->getJson('/v1/inventory/items')->assertNotFound();
@@ -301,7 +305,8 @@ it('returns movements filtered by item, location, and transaction reference plus
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.transaction_id', $outTransaction->id)
         ->assertJsonPath('data.0.movement_type', MovementType::Out->value)
-        ->assertJsonPath('data.0.quantity', 35);
+        ->assertJsonPath('data.0.quantity', 35)
+        ->assertJsonPath('data.0.base_unit_code', $this->unit->code);
 
     $this->getJson("/v1/inventory/movements?location_id[]={$location->id}")
         ->assertOk()
@@ -313,7 +318,9 @@ it('returns movements filtered by item, location, and transaction reference plus
         ->assertJsonPath('data.id', $inTransaction->id)
         ->assertJsonPath('data.transaction_type', TransactionType::In->value)
         ->assertJsonPath('data.movements.0.transaction_id', $inTransaction->id)
+        ->assertJsonPath('data.movements.0.base_unit_code', $this->unit->code)
         ->assertJsonPath('data.movements.0.total_cost', '450.00')
+        ->assertJsonPath('data.movements.0.stock.base_unit_code', $this->unit->code)
         ->assertJsonPath('data.movements.0.stock.unit_cost', '4.50')
         ->assertJsonPath('data.movements.0.metadata.batch', 'IN-001');
 

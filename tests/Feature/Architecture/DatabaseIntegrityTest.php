@@ -8,6 +8,24 @@ use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
+it('forbids ambiguous unit_code columns', function (): void {
+    $failures = [];
+
+    foreach (Schema::getTables() as $table) {
+        $tableName = $table['name'];
+
+        if (Schema::hasColumn($tableName, 'unit_code')) {
+            $failures[] = "Table [{$tableName}] has a forbidden [unit_code] column. Use [base_unit_code] or [display_unit_code].";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Ambiguous Unit Code Columns:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
 it('ensures all foreign keys are indexed', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);

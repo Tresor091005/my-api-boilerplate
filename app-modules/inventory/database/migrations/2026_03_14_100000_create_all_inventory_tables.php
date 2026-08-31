@@ -48,7 +48,7 @@ return new class extends Migration
             $table->bigInteger('unit_cost');
             $table->bigInteger('quantity');
             $table->bigInteger('remaining');
-            $table->string('unit_code');
+            $table->string('base_unit_code');
             $table->string('currency_code', 3)->nullable();
             $table->timestamp('expiration_date')->nullable();
             $table->jsonb('metadata')->nullable();
@@ -58,14 +58,14 @@ return new class extends Migration
             $table->foreign('item_id')->references('id')->on('inventory_items')->onDelete('restrict');
             $table->foreign('location_id')->references('id')->on('inventory_locations')->onDelete('restrict');
             $table->foreign('currency_code')->references('code')->on('master_currencies')->onDelete('restrict');
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
 
         DB::statement('ALTER TABLE inventory_stocks ADD CONSTRAINT inventory_stocks_remaining_check_non_negative CHECK (remaining >= 0)');
         DB::statement('CREATE INDEX inventory_stocks_item_id_index ON inventory_stocks (item_id) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX inventory_stocks_location_id_index ON inventory_stocks (location_id) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX inventory_stocks_currency_code_index ON inventory_stocks (currency_code) WHERE deleted_at IS NULL');
-        DB::statement('CREATE INDEX inventory_stocks_unit_code_index ON inventory_stocks (unit_code) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX inventory_stocks_base_unit_code_index ON inventory_stocks (base_unit_code) WHERE deleted_at IS NULL');
 
         Schema::create('inventory_transactions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -86,7 +86,7 @@ return new class extends Migration
             $table->uuid('location_id')->index();
             $table->uuid('stock_id')->index();
             $table->bigInteger('quantity');
-            $table->string('unit_code')->index();
+            $table->string('base_unit_code')->index();
             $table->bigInteger('unit_cost');
             $table->string('currency_code', 3)->nullable()->index();
             $table->timestamp('expiration_date')->nullable();
@@ -97,7 +97,7 @@ return new class extends Migration
             $table->foreign('item_id')->references('id')->on('inventory_items')->onDelete('restrict');
             $table->foreign('location_id')->references('id')->on('inventory_locations')->onDelete('restrict');
             $table->foreign('stock_id')->references('id')->on('inventory_stocks')->onDelete('no action');
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
             $table->foreign('currency_code')->references('code')->on('master_currencies')->onDelete('restrict');
         });
     }
