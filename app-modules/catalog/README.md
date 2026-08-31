@@ -8,6 +8,17 @@ their named static methods from assertions.
 
 See the [general business exception convention](../../docs/architecture/coding-rules/exceptions.md).
 
+## Catalog item identity
+
+CatalogItem is the internal operational identity for a concrete catalog item.
+Product variants keep their presentation data, while the variant UUID is also
+the CatalogItem UUID. SKU, unit group, and active state belong to CatalogItem
+and remain flattened in the existing variant API response.
+CatalogItem.item_type identifies the referenced business type and currently uses
+the `product_variant` value.
+CatalogItem intentionally has no type-specific reverse relation; callers use
+the enum mapping when they need to resolve its target model.
+
 ## Product variant labels
 
 `ProductVariant` uses the Master `InteractsWithLabels` trait. Variant creation accepts

@@ -6,6 +6,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -192,27 +193,35 @@ it('enforces tenancy matrix for products and variants', function (): void {
         'name'            => 'Other Product',
     ]);
 
-    $variant = ProductVariant::factory()->create([
+    $catalogItem = CatalogItem::factory()->create([
         'organization_id' => $this->organization->id,
-        'product_id'      => $product->id,
         'unit_group_id'   => $unitGroup->id,
     ]);
-    app(InventoryInterface::class)->createItem($variant);
+    $variant = ProductVariant::factory()->forCatalogItem($catalogItem)->create([
+        'product_id' => $product->id,
+    ]);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    app(InventoryInterface::class)->createItem($catalogItem);
     $productCategory = Category::factory()->create([
         'organization_id' => $this->organization->id,
     ]);
     $product->categories()->attach($productCategory, [
         'organization_id' => $this->organization->id,
     ]);
-    ProductVariant::factory()->create([
+    $otherCatalogItem = CatalogItem::factory()->create([
         'organization_id' => $this->organization->id,
-        'product_id'      => $product->id,
         'unit_group_id'   => $unitGroup->id,
     ]);
-    $otherVariant = ProductVariant::factory()->create([
+    ProductVariant::factory()->forCatalogItem($otherCatalogItem)->create([
+        'product_id' => $product->id,
+    ]);
+    $otherCatalogItem = CatalogItem::factory()->create([
         'organization_id' => $this->otherOrganization->id,
-        'product_id'      => $otherProduct->id,
         'unit_group_id'   => $unitGroup->id,
+    ]);
+    $otherVariant = ProductVariant::factory()->forCatalogItem($otherCatalogItem)->create([
+        'product_id' => $otherProduct->id,
     ]);
 
     $this->getJson('/v1/catalog/products')
@@ -391,10 +400,12 @@ it('rejects nested catalog bindings when child does not belong to parent', funct
         'name'            => 'Product B',
     ]);
 
-    $variantOfB = ProductVariant::factory()->create([
+    $catalogItemOfB = CatalogItem::factory()->create([
         'organization_id' => $this->organization->id,
-        'product_id'      => $productB->id,
         'unit_group_id'   => $unitGroup->id,
+    ]);
+    $variantOfB = ProductVariant::factory()->forCatalogItem($catalogItemOfB)->create([
+        'product_id' => $productB->id,
     ]);
 
     $optionA = Option::factory()->create([

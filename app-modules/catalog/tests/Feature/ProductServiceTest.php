@@ -9,7 +9,6 @@ use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Http\Requests\ProductRequest;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\ProductService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Master\Models\Unit;
@@ -172,7 +171,7 @@ it('rejects duplicate variant skus in the same tenant', function (): void {
     expect(fn () => $request->validateResolved())
         ->toThrow(ValidationException::class);
 
-    ProductVariant::factory()->create([
+    createCatalogProductVariant([], [
         'organization_id' => $this->organizationId,
         'sku'             => 'EXISTING-SKU',
     ]);
@@ -235,7 +234,7 @@ it('reports bulk variant validation errors at each original index', function ():
 });
 
 it('keeps soft-deleted variant skus reserved', function (): void {
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([], [
         'organization_id' => $this->organizationId,
         'sku'             => 'RESERVED-SKU',
     ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Master\Models\Note;
@@ -24,6 +25,8 @@ it('uses morph aliases as model permission namespaces', function (): void {
 
     expect($registry->getAlias(Product::class))->toBe('catalog_product')
         ->and($policy->resolve('retrieve', Product::class))->toBe('catalog_product.retrieve')
+        ->and($registry->getAlias(CatalogItem::class))->toBe('catalog_item')
+        ->and($policy->resolve('retrieve', CatalogItem::class))->toBe('catalog_item.retrieve')
         ->and($registry->getModel('catalog_product'))->toBe(Product::class);
 });
 
@@ -31,6 +34,7 @@ it('discovers namespaced permissions without basename collisions', function (): 
     Artisan::call('permissions:discover');
 
     expect(Permission::query()->where('name', 'catalog_product.retrieve')->exists())->toBeTrue()
+        ->and(Permission::query()->where('name', 'catalog_item.retrieve')->exists())->toBeTrue()
         ->and(Permission::query()->where('name', 'products.retrieve')->exists())->toBeFalse()
         ->and(Permission::query()->where('name', 'master_note.pin')->exists())->toBeTrue()
         ->and(Permission::query()->where('name', 'master_note.mention')->exists())->toBeTrue()

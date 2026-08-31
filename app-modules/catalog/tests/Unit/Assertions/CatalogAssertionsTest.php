@@ -13,7 +13,6 @@ use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 
 uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
@@ -62,9 +61,10 @@ it('rejects an option value attached to another option', function (): void {
 it('rejects a product variant attached to another product', function (): void {
     $product = Product::factory()->create(['organization_id' => $this->organizationId]);
     $otherProduct = Product::factory()->create(['organization_id' => $this->organizationId]);
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
+        'product_id' => $otherProduct->id,
+    ], [
         'organization_id' => $this->organizationId,
-        'product_id'      => $otherProduct->id,
     ]);
 
     expect(fn () => app(ProductVariantAssertion::class)->assertBelongsToProduct($product, $variant))

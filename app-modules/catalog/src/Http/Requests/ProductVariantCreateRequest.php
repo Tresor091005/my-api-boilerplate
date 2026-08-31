@@ -45,7 +45,7 @@ class ProductVariantCreateRequest extends FormRequest
                 new BulkExists('master_unit_groups', 'id', 'unit_group_id', 'uuid', true, [
                     fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', $organizationId),
                 ]),
-                new BulkUnique('catalog_product_variants', 'sku', 'sku', false, [
+                new BulkUnique('catalog_items', 'sku', 'sku', false, [
                     'organization_id' => $organizationId,
                 ]),
             ],

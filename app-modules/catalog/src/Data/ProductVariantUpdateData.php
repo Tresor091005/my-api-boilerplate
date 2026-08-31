@@ -15,7 +15,7 @@ final readonly class ProductVariantUpdateData
      * @param  MissingValue|array<string, array<int, string>>  $labels
      */
     private function __construct(
-        public MissingValue|string|null $sku,
+        public MissingValue|string $sku,
         public MissingValue|bool $isActive,
         public MissingValue|array $options,
         public MissingValue|array $labels,
@@ -40,6 +40,15 @@ final readonly class ProductVariantUpdateData
             inventory: $inventory instanceof MissingValue
                 ? $inventory
                 : InventoryItemConfigurationUpdateData::fromArray($inventory),
+        );
+    }
+
+    public function catalogItem(): CatalogItemUpdateData
+    {
+        return new CatalogItemUpdateData(
+            sku: $this->sku,
+            isActive: $this->isActive,
+            inventory: $this->inventory,
         );
     }
 }

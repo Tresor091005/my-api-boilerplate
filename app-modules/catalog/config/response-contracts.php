@@ -66,7 +66,7 @@ $productContracts = array_fill_keys(
             'includes' => [
                 'categories' => ['loads' => ['categories']],
                 'options'    => ['loads' => ['optionValues.option']],
-                'variants'   => ['loads' => ['variants.product', 'variants.optionValues.option']],
+                'variants'   => ['loads' => ['variants.product', 'variants.catalogItem', 'variants.optionValues.option']],
             ],
         ]],
     ],
@@ -82,12 +82,12 @@ $variantContracts = array_fill_keys(
     [
         'default_shape' => 'default',
         'shapes'        => ['default' => [
-            'required_loads' => ['product', 'optionValues.option'],
+            'required_loads' => ['product', 'catalogItem', 'optionValues.option'],
             'includes'       => [
-                'unit_group' => ['loads' => ['unitGroup']],
-                'units'      => ['loads' => ['unitGroup.units']],
+                'unit_group' => ['loads' => ['catalogItem.unitGroup']],
+                'units'      => ['loads' => ['catalogItem.unitGroup.units']],
                 'labels'     => ['loads' => ['labels']],
-                'inventory'  => ['loads' => ['inventoryItem.stockSummaries']],
+                'inventory'  => ['loads' => ['catalogItem.inventoryItem.stockSummaries']],
             ],
         ]],
     ],

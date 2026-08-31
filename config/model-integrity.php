@@ -85,15 +85,15 @@ return [
     |
     */
     'ignored_soft_delete_partial_columns' => [
-        'users'                    => ['email'],
-        'iam_users'                => ['email'],
-        'inventory_items'          => ['sku'],
-        'master_units'             => ['code'],
-        'master_currencies'        => ['code'],
-        'catalog_product_variants' => ['sku'],
-        'catalog_categories'       => ['handle'],
-        'catalog_products'         => ['handle'],
-        'catalog_bundles'          => ['handle'],
+        'users'              => ['email'],
+        'iam_users'          => ['email'],
+        'inventory_items'    => ['sku'],
+        'master_units'       => ['code'],
+        'master_currencies'  => ['code'],
+        'catalog_items'      => ['sku'],
+        'catalog_categories' => ['handle'],
+        'catalog_products'   => ['handle'],
+        'catalog_bundles'    => ['handle'],
     ],
 
     /*
@@ -110,6 +110,7 @@ return [
     'ignored_soft_delete_partial_indexes' => [
         'catalog_option_values'    => ['catalog_option_values_organization_id_id_unique'],
         'catalog_options'          => ['catalog_options_organization_id_id_unique'],
+        'catalog_items'            => ['catalog_items_organization_id_id_unique'],
         'catalog_product_variants' => ['catalog_product_variants_organization_id_id_unique'],
         'catalog_categories'       => ['catalog_categories_organization_id_id_unique'],
         'catalog_products'         => ['catalog_products_organization_id_id_unique'],

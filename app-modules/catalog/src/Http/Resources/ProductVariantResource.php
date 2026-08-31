@@ -29,9 +29,9 @@ class ProductVariantResource extends JsonResource
             'id'            => $this->id,
             'name'          => $this->name,
             'product_id'    => $this->product_id,
-            'sku'           => $this->sku,
-            'unit_group_id' => $this->unit_group_id,
-            'is_active'     => $this->is_active,
+            'sku'           => $this->catalogItem->sku,
+            'unit_group_id' => $this->catalogItem->unit_group_id,
+            'is_active'     => $this->catalogItem->is_active,
             'created_at'    => $this->created_at,
             'updated_at'    => $this->updated_at,
             'options'       => $this->whenLoaded('optionValues', function ($optionValues): mixed {
@@ -47,8 +47,14 @@ class ProductVariantResource extends JsonResource
             }),
             'unit_group' => $this->includeWhenRequestedAndLoaded(
                 include: 'unit_group',
-                relation: 'unitGroup',
-                resolver: fn ($unitGroup): mixed => UnitGroupResource::make($unitGroup),
+                relation: 'catalogItem',
+                resolver: function ($catalogItem): mixed {
+                    if ($catalogItem === null || !$catalogItem->relationLoaded('unitGroup')) {
+                        return new MissingValue;
+                    }
+
+                    return UnitGroupResource::make($catalogItem->unitGroup);
+                },
             ),
             'labels' => $this->includeWhenRequestedAndLoaded(
                 include: 'labels',
@@ -57,8 +63,14 @@ class ProductVariantResource extends JsonResource
             ),
             'inventory' => $this->includeWhenRequestedAndLoaded(
                 include: 'inventory',
-                relation: 'inventoryItem',
-                resolver: fn ($inventoryItem) => InventoryItemResource::make($inventoryItem),
+                relation: 'catalogItem',
+                resolver: function ($catalogItem): mixed {
+                    if ($catalogItem === null || !$catalogItem->relationLoaded('inventoryItem')) {
+                        return new MissingValue;
+                    }
+
+                    return InventoryItemResource::make($catalogItem->inventoryItem);
+                },
             ),
         ];
     }

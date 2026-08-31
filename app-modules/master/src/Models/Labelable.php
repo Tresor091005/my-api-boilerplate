@@ -41,8 +41,6 @@ class Labelable extends Pivot
 
     protected $table = 'master_labelables';
 
-    public $incrementing = false;
-
     protected $fillable = [
         'organization_id',
         'label_id',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -85,9 +86,11 @@ it('enforces catalog permissions at http layer', function (): void {
         'option_id'       => $option->id,
     ]);
     $product = Product::factory()->create(['organization_id' => $this->organization->id]);
-    $variant = ProductVariant::factory()->create([
+    $catalogItem = CatalogItem::factory()->create([
         'organization_id' => $this->organization->id,
-        'product_id'      => $product->id,
+    ]);
+    $variant = ProductVariant::factory()->forCatalogItem($catalogItem)->create([
+        'product_id' => $product->id,
     ]);
     $unitGroup = UnitGroup::factory()->create();
 

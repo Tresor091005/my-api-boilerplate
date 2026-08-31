@@ -13,11 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductVariantFactory;
-use Lahatre\Inventory\Contracts\HasInventoryItem;
-use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Master\Models\Label;
-use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Traits\InteractsWithLabels;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -25,9 +22,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $organization_id
  * @property string $product_id
- * @property string $sku
- * @property string $unit_group_id
- * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -37,8 +31,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, OptionValue> $optionValues
  * @property-read int|null $option_values_count
  * @property-read Product $product
- * @property-read UnitGroup|null $unitGroup
- * @property-read InventoryItem|null $inventoryItem
+ * @property-read CatalogItem $catalogItem
  * @property-read Collection<int, Label> $labels
  * @property-read int|null $labels_count
  *
@@ -47,11 +40,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ProductVariant query()
  * @method static Builder<static>|ProductVariant whereCreatedAt($value)
  * @method static Builder<static>|ProductVariant whereId($value)
- * @method static Builder<static>|ProductVariant whereIsActive($value)
- * @method static Builder<static>|ProductVariant whereShouldManageStock($value)
  * @method static Builder<static>|ProductVariant whereProductId($value)
- * @method static Builder<static>|ProductVariant whereSku($value)
- * @method static Builder<static>|ProductVariant whereUnitGroupId($value)
  * @method static Builder<static>|ProductVariant whereUpdatedAt($value)
  * @method static ProductVariantFactory factory($count = null, $state = [])
  * @method static Builder<static>|ProductVariant onlyTrashed()
@@ -66,9 +55,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class ProductVariant extends Model implements HasInventoryItem
+class ProductVariant extends Model
 {
-    use InteractsWithInventoryItem;
     use InteractsWithLabels;
     use SharedTraits;
     use SoftDeletes;
@@ -78,32 +66,16 @@ class ProductVariant extends Model implements HasInventoryItem
     protected $fillable = [
         'organization_id',
         'product_id',
-        'sku',
-        'unit_group_id',
-        'is_active',
     ];
 
     protected $casts = [
         'id'              => 'string',
         'organization_id' => 'string',
         'product_id'      => 'string',
-        'sku'             => 'string',
-        'unit_group_id'   => 'string',
-        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
     ];
-
-    public function getUnitGroupId(): string
-    {
-        return $this->unit_group_id;
-    }
-
-    public function getSku(): string
-    {
-        return $this->sku;
-    }
 
     protected function optionsLabel(): Attribute
     {
@@ -133,9 +105,11 @@ class ProductVariant extends Model implements HasInventoryItem
             ->where('catalog_products.organization_id', currentOrganizationId());
     }
 
-    public function unitGroup(): BelongsTo
+    public function catalogItem(): BelongsTo
     {
-        return $this->belongsTo(UnitGroup::class, 'unit_group_id', 'id');
+        return $this->belongsTo(CatalogItem::class, 'id', 'id')
+            ->where('catalog_items.item_type', CatalogItemType::ProductVariant->value)
+            ->where('catalog_items.organization_id', currentOrganizationId());
     }
 
     public function optionValues(): BelongsToMany

@@ -35,4 +35,14 @@ final readonly class ProductVariantData
             inventory: InventoryItemConfigurationData::fromArray($data['inventory'] ?? []),
         );
     }
+
+    public function catalogItem(): CatalogItemData
+    {
+        return new CatalogItemData(
+            sku: $this->sku,
+            unitGroupId: $this->unitGroupId,
+            isActive: $this->isActive,
+            inventory: $this->inventory,
+        );
+    }
 }

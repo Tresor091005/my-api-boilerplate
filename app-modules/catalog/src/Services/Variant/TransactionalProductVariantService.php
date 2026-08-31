@@ -7,18 +7,19 @@ namespace Lahatre\Catalog\Services\Variant;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Lahatre\Catalog\Data\CatalogItemData;
 use Lahatre\Catalog\Data\ProductVariantData;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
-use Lahatre\Inventory\Contracts\InventoryInterface;
-use Lahatre\Shared\Support\SkuGenerator;
+use Lahatre\Catalog\Services\TransactionalCatalogItemService;
 
 class TransactionalProductVariantService
 {
     public function __construct(
-        protected InventoryInterface $inventoryService,
+        protected TransactionalCatalogItemService $transactionalCatalogItemService,
         protected TransactionalOptionService $transactionalOptionService
     ) {}
 
@@ -32,44 +33,56 @@ class TransactionalProductVariantService
             return new EloquentCollection;
         }
 
-        $now = now();
+        $catalogItems = $this->transactionalCatalogItemService->createManyProductVariants(
+            $product->organization_id,
+            $product->name,
+            $variantsData->map(
+                fn (ProductVariantData $variantData): CatalogItemData => $variantData->catalogItem(),
+            ),
+        );
 
-        $variantRows = $variantsData->map(fn (ProductVariantData $variantData): array => [
-            'id'              => (string) Str::uuid7(),
-            'organization_id' => $product->organization_id,
-            'product_id'      => $product->id,
-            'sku'             => $variantData->sku ?? SkuGenerator::generate($product->name),
-            'unit_group_id'   => $variantData->unitGroupId,
-            'is_active'       => $variantData->isActive,
-            'created_at'      => $now,
-            'updated_at'      => $now,
-        ]);
+        $variantRows = collect();
+        $variantOptions = collect();
+        $variantDataWithCatalogItems = $variantsData->values()->zip($catalogItems->values());
+
+        foreach ($variantDataWithCatalogItems as $pair) {
+            /** @var ProductVariantData $variantData */
+            $variantData = $pair[0];
+            /** @var CatalogItem $catalogItem */
+            $catalogItem = $pair[1];
+
+            $variantRows->push([
+                'id'              => $catalogItem->id,
+                'organization_id' => $product->organization_id,
+                'product_id'      => $product->id,
+                'created_at'      => $catalogItem->created_at,
+                'updated_at'      => $catalogItem->updated_at,
+            ]);
+            $variantOptions->put($catalogItem->id, $variantData->options);
+        }
 
         ProductVariant::insert($variantRows->all());
 
         /** @var EloquentCollection<int, ProductVariant> $variants */
-        $variants = ProductVariant::whereIn('id', $variantRows->pluck('id')->all())->get();
-        $inventoryConfigurations = $variantsData->mapWithKeys(
-            fn (ProductVariantData $variantData, int $index): array => [
-                (string) $variantRows[$index]['id'] => $variantData->inventory,
-            ]
-        );
-        $this->inventoryService->createManyItems($variants->all(), $inventoryConfigurations);
+        $variants = ProductVariant::query()
+            ->where('organization_id', $product->organization_id)
+            ->whereIn('id', $variantRows->pluck('id')->all())
+            ->get();
 
-        $this->attachOptions(
-            $product,
-            $variantsData->mapWithKeys(
-                fn (ProductVariantData $variantData, int $index): array => [$variantRows[$index]['id'] => $variantData->options]
-            )
-        );
+        $this->attachOptions($product, $variantOptions);
 
         $variantsById = $variants->keyBy('id');
-        foreach ($variantsData as $index => $variantData) {
+        foreach ($variantDataWithCatalogItems as $pair) {
+            /** @var ProductVariantData $variantData */
+            $variantData = $pair[0];
+            /** @var CatalogItem $catalogItem */
+            $catalogItem = $pair[1];
+
             if ($variantData->labels === []) {
                 continue;
             }
 
-            $variantsById->get($variantRows[$index]['id'])?->attachLabels($variantData->labels);
+            $variantsById->get($catalogItem->id)?->attachLabels($variantData->labels);
         }
 
         return $variants;
@@ -99,9 +112,11 @@ class TransactionalProductVariantService
             ->where('variant_id', $variant->id)
             ->delete();
 
-        $this->inventoryService->deleteItem($variant);
+        /** @var CatalogItem $catalogItem */
+        $catalogItem = $variant->catalogItem()->firstOrFail();
 
         $variant->delete();
+        $this->transactionalCatalogItemService->delete($catalogItem);
     }
 
     /**

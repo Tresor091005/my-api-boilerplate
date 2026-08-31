@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
 use Tests\TestCase;
@@ -64,4 +66,29 @@ function currentTestCase(): TestCase
     }
 
     return $testCase;
+}
+
+/**
+ * Create the explicit CatalogItem/ProductVariant identity pair used by catalog tests.
+ *
+ * @param  array<string, mixed>  $variantAttributes
+ * @param  array<string, mixed>  $catalogItemAttributes
+ */
+function createCatalogProductVariant(
+    array $variantAttributes = [],
+    array $catalogItemAttributes = [],
+): ProductVariant {
+    $organizationId = $catalogItemAttributes['organization_id']
+        ?? $variantAttributes['organization_id']
+        ?? currentOrganizationId();
+
+    $catalogItem = CatalogItem::factory()->create([
+        ...$catalogItemAttributes,
+        'organization_id' => $organizationId,
+    ]);
+
+    return ProductVariant::factory()->forCatalogItem($catalogItem)->create([
+        ...$variantAttributes,
+        'organization_id' => $organizationId,
+    ]);
 }

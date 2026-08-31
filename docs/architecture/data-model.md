@@ -36,8 +36,11 @@ Unit quantities use ratio-based decimal conversion with BCMath precision.
 - `catalog_categories` is hierarchical and soft-deletable.
 - `catalog_products` is the product root and may belong to many categories and
   options.
-- `catalog_product_variants` belongs to a product and can implement the
-  inventory item contract.
+- `catalog_items` stores the organization-scoped operational identity, SKU,
+  unit group, active state, and lifecycle for concrete catalog items.
+- `catalog_product_variants` belongs to a product and shares its UUID with one
+  `catalog_items` row. It stores presentation, options, labels, and the
+  calculated name, but no operational SKU or inventory configuration.
 - `catalog_options` owns `catalog_option_values`.
 - Product/variant option selections use explicit pivot models so product and
   option ownership can be validated.
@@ -51,7 +54,15 @@ parent/child ownership.
 ## Inventory ledger
 
 - `inventory_items` and `inventory_locations` are morph-linked adapters around
-  host application models.
+  host application models. Product inventory items point to CatalogItem, not
+  ProductVariant.
+- InventoryItem.sku is a denormalized cache. CatalogItem.sku is the source of
+  truth.
+- CatalogItem.item_type is an explicit discriminator. It currently contains
+  `product_variant`, so the referenced business type remains identifiable even
+  when the CatalogItem is read without a type-specific relation. The enum maps
+  the discriminator to its model class; a batch target loader can be added when
+  a cross-type read projection needs eager loading.
 - `inventory_items.stock_tracking_enabled` is the inventory-owned switch that
   allows new movements. Catalog variants do not duplicate this setting.
 - `inventory_stocks` stores the current lot-level quantity, unit, currency,

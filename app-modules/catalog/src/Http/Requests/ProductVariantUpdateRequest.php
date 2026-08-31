@@ -49,12 +49,11 @@ class ProductVariantUpdateRequest extends FormRequest
 
         return [
             'sku' => [
-                'nullable',
                 'string',
                 'max:100',
-                Rule::unique('catalog_product_variants', 'sku')
+                Rule::unique('catalog_items', 'sku')
                     ->where('organization_id', currentOrganizationId())
-                    ->ignore($variant instanceof ProductVariant ? $variant : null),
+                    ->ignore($variant instanceof ProductVariant ? $variant->id : null),
             ],
             'unit_group_id'   => ['prohibited'],
             'is_active'       => ['boolean'],

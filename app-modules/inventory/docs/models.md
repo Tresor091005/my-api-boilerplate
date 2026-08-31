@@ -17,8 +17,9 @@ When no item strategy is configured, expirable items default to FEFO and non-exp
 
 If an item becomes expirable while it has older undated lots, those lots remain valid legacy stock. FEFO orders dated lots first and undated lots last; future expiration alerts can report them as having an unknown date.
 
-The application model supplies `getSku()`, `getUnitGroupId()`, the persisted
-`organization_id` attribute.
+The inventoryable application model supplies getSku(), getUnitGroupId(), and
+the persisted organization_id attribute. Catalog uses CatalogItem as that
+application model for product variant inventory.
 
 ## Inventory location
 

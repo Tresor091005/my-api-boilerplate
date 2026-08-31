@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -185,13 +187,23 @@ class ProductSeeder extends Seeder
                 unset($variantData['option_values']);
 
                 /** @var ProductVariant $variant */
-                $variant = $product->variants()->firstOrCreate(
+                $catalogItem = CatalogItem::firstOrCreate(
                     [
                         'sku'             => $variantData['sku'],
                         'organization_id' => $organizationId,
                     ],
-                    array_merge($variantData, ['organization_id' => $organizationId])
+                    [
+                        'item_type'     => CatalogItemType::ProductVariant,
+                        'unit_group_id' => $variantData['unit_group_id'],
+                        'is_stockable'  => CatalogItemType::ProductVariant->isStockable(),
+                        'is_active'     => $variantData['is_active'],
+                    ],
                 );
+                $variant = $product->variants()->firstOrCreate(
+                    ['id' => $catalogItem->id],
+                    ['organization_id' => $organizationId],
+                );
+                /** @var ProductVariant $variant */
 
                 // Attach option values to the variant
                 $attachments = [];

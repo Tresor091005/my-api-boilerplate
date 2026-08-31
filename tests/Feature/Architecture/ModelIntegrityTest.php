@@ -191,6 +191,39 @@ it('verifies that all models with UUID primary keys use the HasUuids trait', fun
     expect(true)->toBeTrue();
 });
 
+it('does not duplicate HasUuids key configuration in models', function (): void {
+    $models = getAllModels();
+    $ignoredModels = config('model-integrity.ignored_models', []);
+    $failures = [];
+
+    foreach ($models as $modelClass) {
+        if (in_array($modelClass, $ignoredModels, true)) {
+            continue;
+        }
+
+        $traits = class_uses_recursive($modelClass);
+
+        if (!in_array(HasUuids::class, $traits, true)) {
+            continue;
+        }
+
+        $reflection = new ReflectionClass($modelClass);
+
+        foreach (['incrementing', 'keyType'] as $propertyName) {
+            if ($reflection->hasProperty($propertyName)
+                && $reflection->getProperty($propertyName)->getDeclaringClass()->getName() === $modelClass) {
+                $failures[] = "[{$modelClass}] redeclares \${$propertyName}; HasUuids configures this automatically.";
+            }
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("HasUuids Key Configuration Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
 it('ensures all models use $fillable instead of $guarded', function (): void {
     $models = getAllModels();
     $ignoredModels = config('model-integrity.ignored_models', []);

@@ -20,11 +20,25 @@ class BundleSeeder extends Seeder
         $bundleUnit = Unit::where('code', 'bundle')->first();
 
         // Get some product variants to add to bundles
-        $variantIphoneBlack128 = ProductVariant::where('organization_id', $organizationId)->where('sku', 'IP15P-BLA-128')->first();
-        $variantUsbCHubSilver = ProductVariant::where('organization_id', $organizationId)->where('sku', 'USB-C-HUB-SIL')->first();
-        $variantMacbookSpaceGray16GB512GB = ProductVariant::where('organization_id', $organizationId)->where('sku', 'MBP16-SG-16-512')->first();
-        $variantSamsungWhite256GB = ProductVariant::where('organization_id', $organizationId)->where('sku', 'SGS24-WHI-256')->first();
-        $variantDiningTableOak = ProductVariant::where('organization_id', $organizationId)->where('sku', 'WDT-OAK')->first();
+        $variantSkus = [
+            'IP15P-BLA-128',
+            'USB-C-HUB-SIL',
+            'MBP16-SG-16-512',
+            'SGS24-WHI-256',
+            'WDT-OAK',
+        ];
+        $variantsBySku = ProductVariant::query()
+            ->where('catalog_product_variants.organization_id', $organizationId)
+            ->whereHas('catalogItem', fn ($query) => $query->whereIn('sku', $variantSkus))
+            ->with('catalogItem')
+            ->get()
+            ->keyBy(fn (ProductVariant $variant): string => $variant->catalogItem->sku);
+
+        $variantIphoneBlack128 = $variantsBySku->get('IP15P-BLA-128');
+        $variantUsbCHubSilver = $variantsBySku->get('USB-C-HUB-SIL');
+        $variantMacbookSpaceGray16GB512GB = $variantsBySku->get('MBP16-SG-16-512');
+        $variantSamsungWhite256GB = $variantsBySku->get('SGS24-WHI-256');
+        $variantDiningTableOak = $variantsBySku->get('WDT-OAK');
 
         // Bundle 1: iPhone Starter Pack
         if ($variantIphoneBlack128 && $variantUsbCHubSilver && $bundleUnit) {

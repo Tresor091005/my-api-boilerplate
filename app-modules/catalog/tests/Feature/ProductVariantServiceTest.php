@@ -9,9 +9,11 @@ use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantUpdateRequest;
+use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
@@ -19,7 +21,9 @@ use Lahatre\Catalog\Services\ProductVariantService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Enums\DeductionStrategy;
+use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Models\InventoryItem;
+use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Models\Label;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -50,22 +54,23 @@ beforeEach(function (): void {
 });
 
 it('manages product variants through service methods', function (): void {
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
         'unit_group_id'   => $this->unitGroup->id,
         'sku'             => 'IP15P-BLA-128',
     ]);
-    ProductVariant::factory()->create([
-        'organization_id' => $this->organizationId,
-        'product_id'      => $this->product->id,
-        'unit_group_id'   => $this->unitGroup->id,
-    ]);
-    app(InventoryInterface::class)->createItem($variant);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    app(InventoryInterface::class)->createItem($catalogItem);
 
-    $otherVariant = ProductVariant::factory()->create([
+    $otherVariant = createCatalogProductVariant([
         'organization_id' => $this->otherOrganizationId,
         'product_id'      => $this->otherProduct->id,
+    ], [
+        'organization_id' => $this->otherOrganizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
 
@@ -102,8 +107,9 @@ it('manages product variants through service methods', function (): void {
 
     $createdVariant = ProductVariant::query()
         ->where('product_id', $this->product->id)
-        ->where('sku', 'NEW-VARIANT-SKU')
+        ->whereHas('catalogItem', fn ($query) => $query->where('sku', 'NEW-VARIANT-SKU'))
         ->firstOrFail();
+    $createdCatalogItem = CatalogItem::query()->findOrFail($createdVariant->id);
     $createdVariantPivotCount = VariantOptionValue::query()
         ->where('product_id', $this->product->id)
         ->where('variant_id', $createdVariant->id)
@@ -111,6 +117,9 @@ it('manages product variants through service methods', function (): void {
 
     expect($createdVariant->labels()->pluck('value')->all())
         ->toEqualCanonicalizing(['active', 'online', 'store'])
+        ->and($createdCatalogItem->id)->toBe($createdVariant->id)
+        ->and($createdCatalogItem->item_type)->toBe(CatalogItemType::ProductVariant)
+        ->and($createdVariant->getAttributes())->not->toHaveKeys(['sku', 'unit_group_id', 'is_active'])
         ->and(Label::query()->where('organization_id', $this->organizationId)->count())->toBe(3)
         ->and(InventoryItem::query()->where('itemable_id', $createdVariant->id)->firstOrFail()->only([
             'stock_tracking_enabled',
@@ -134,8 +143,11 @@ it('manages product variants through service methods', function (): void {
         missingFields: ['is_active', 'options'],
     ));
 
-    expect($updated->sku)->toBe('UPDATED-SKU')
-        ->and($variant->inventoryItem()->firstOrFail()->only([
+    /** @var CatalogItem $updatedCatalogItem */
+    $updatedCatalogItem = $updated->catalogItem()->firstOrFail();
+
+    expect($updatedCatalogItem->sku)->toBe('UPDATED-SKU')
+        ->and($updatedCatalogItem->inventoryItem()->firstOrFail()->only([
             'stock_tracking_enabled',
             'is_expirable',
             'deduction_strategy',
@@ -148,15 +160,48 @@ it('manages product variants through service methods', function (): void {
     $this->service->delete($this->product, $createdVariant);
     expect(ProductVariant::query()->whereKey($createdVariant->id)->exists())->toBeFalse()
         ->and(ProductVariant::withTrashed()->whereKey($createdVariant->id)->exists())->toBeTrue()
+        ->and(CatalogItem::query()->whereKey($createdVariant->id)->exists())->toBeFalse()
+        ->and(CatalogItem::withTrashed()->whereKey($createdVariant->id)->exists())->toBeTrue()
         ->and(ProductVariant::withTrashed()->findOrFail($createdVariant->id)->deleted_at)->not->toBeNull()
         ->and($createdVariantPivotCount)->toBeGreaterThan(0)
         ->and(VariantOptionValue::query()->where('variant_id', $createdVariant->id)->exists())->toBeFalse();
 });
 
-it('does not load response relations without an active response shape', function (): void {
-    $variant = ProductVariant::factory()->create([
+it('refuses coordinated deletion when the catalog item has active stock', function (): void {
+    $variant = createCatalogProductVariant([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+    createCatalogProductVariant([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    $inventoryItem = app(InventoryInterface::class)->createItem($catalogItem);
+    InventoryStock::factory()->for($inventoryItem, 'item')->create(['remaining' => 5]);
+
+    expect(fn () => $this->service->delete($this->product, $variant))
+        ->toThrow(InventoryItemException::class);
+
+    expect(ProductVariant::query()->whereKey($variant->id)->exists())->toBeTrue()
+        ->and(CatalogItem::query()->whereKey($catalogItem->id)->exists())->toBeTrue()
+        ->and(InventoryItem::query()->whereKey($inventoryItem->id)->exists())->toBeTrue();
+});
+
+it('does not load response relations without an active response shape', function (): void {
+    $variant = createCatalogProductVariant([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
 
@@ -164,7 +209,7 @@ it('does not load response relations without an active response shape', function
 
     expect($retrievedVariant->relationLoaded('product'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('optionValues'))->toBeFalse()
-        ->and($retrievedVariant->relationLoaded('unitGroup'))->toBeFalse()
+        ->and($retrievedVariant->relationLoaded('catalogItem'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('labels'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
 });
@@ -237,12 +282,16 @@ it('propagates inventory configuration errors to their nested payload path', fun
 });
 
 it('remaps persisted inventory configuration errors during a partial update', function (): void {
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
-    app(InventoryInterface::class)->createItem($variant);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    app(InventoryInterface::class)->createItem($catalogItem);
 
     $errors = [];
     try {
@@ -262,12 +311,16 @@ it('remaps persisted inventory configuration errors during a partial update', fu
 });
 
 it('syncs only submitted label types when updating a variant', function (): void {
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
-    app(InventoryInterface::class)->createItem($variant);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    app(InventoryInterface::class)->createItem($catalogItem);
 
     $variant->attachLabels([
         'status'  => ['active'],
@@ -294,9 +347,11 @@ it('validates variant payload and blocks deletion of the last variant', function
     expect(fn (): array => validator([], new ProductVariantCreateRequest()->rules())->validate())
         ->toThrow(ValidationException::class);
 
-    $singleVariant = ProductVariant::factory()->create([
+    $singleVariant = createCatalogProductVariant([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
 
@@ -304,10 +359,19 @@ it('validates variant payload and blocks deletion of the last variant', function
         ->toThrow(ProductVariantException::class);
 });
 
+it('rejects a null sku during a partial variant update', function (): void {
+    expect(fn (): array => validator(
+        ['sku' => null],
+        new ProductVariantUpdateRequest()->rules(),
+    )->validate())->toThrow(ValidationException::class);
+});
+
 it('rejects a variant that does not belong to the selected product', function (): void {
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
         'organization_id' => $this->otherOrganizationId,
         'product_id'      => $this->otherProduct->id,
+    ], [
+        'organization_id' => $this->otherOrganizationId,
         'unit_group_id'   => $this->unitGroup->id,
     ]);
 

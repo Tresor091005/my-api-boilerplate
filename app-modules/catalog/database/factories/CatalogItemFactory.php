@@ -6,26 +6,21 @@ namespace Lahatre\Catalog\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\CatalogItem;
-use Lahatre\Catalog\Models\Product;
-use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
- * @extends Factory<ProductVariant>
+ * @extends Factory<CatalogItem>
  */
-class ProductVariantFactory extends Factory
+class CatalogItemFactory extends Factory
 {
     use ResolvesOrganizationId;
 
-    public function forCatalogItem(CatalogItem $catalogItem): static
-    {
-        return $this->state([
-            'id'              => $catalogItem->id,
-            'organization_id' => $catalogItem->organization_id,
-        ]);
-    }
-
+    /**
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         $organizationId = $this->resolveOrganizationId();
@@ -33,7 +28,11 @@ class ProductVariantFactory extends Factory
         return [
             'id'              => (string) Str::uuid7(),
             'organization_id' => $organizationId,
-            'product_id'      => Product::factory(['organization_id' => $organizationId]),
+            'item_type'       => CatalogItemType::ProductVariant,
+            'sku'             => fake()->unique()->bothify('SKU-####-????'),
+            'unit_group_id'   => UnitGroup::factory(),
+            'is_stockable'    => true,
+            'is_active'       => true,
         ];
     }
 }

@@ -49,7 +49,7 @@ it('applies the same default shape to catalog variant contracts', function (): v
 
     $showShape = $show->shapes['default'];
 
-    expect($showShape->requiredLoads)->toBe(['product', 'optionValues.option'])
+    expect($showShape->requiredLoads)->toBe(['product', 'catalogItem', 'optionValues.option'])
         ->and(array_keys($showShape->includes))->toBe(['unit_group', 'units', 'labels', 'inventory'])
         ->and($store->shapes['default']->requiredLoads)->toBe($showShape->requiredLoads)
         ->and($store->shapes['default']->includes)->toEqual($showShape->includes)
@@ -90,7 +90,7 @@ it('maps every relation-backed resource operation to required loads or includes'
         'lahatre.catalog.categories.show'        => ['bloodline' => ['bloodline']],
         'lahatre.catalog.options.show'           => ['values' => ['values']],
         'lahatre.catalog.options.values.show'    => ['option' => ['option']],
-        'lahatre.catalog.products.variants.show' => ['unit_group' => ['unitGroup']],
+        'lahatre.catalog.products.variants.show' => ['unit_group' => ['catalogItem.unitGroup']],
         'lahatre.inventory.movements.index'      => ['location' => ['location']],
         'lahatre.inventory.transactions.show'    => ['movements' => ['movements']],
         'lahatre.inventory.stocks.update'        => ['unit' => ['unit']],

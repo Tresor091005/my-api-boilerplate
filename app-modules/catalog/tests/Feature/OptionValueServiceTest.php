@@ -9,7 +9,6 @@ use Lahatre\Catalog\Exceptions\OptionValueException;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
 use Lahatre\Catalog\Services\OptionValueService;
@@ -73,9 +72,10 @@ it('prevents deleting an option value that is in use', function (): void {
     $product = Product::factory()->create([
         'organization_id' => $this->organizationId,
     ]);
-    $variant = ProductVariant::factory()->create([
+    $variant = createCatalogProductVariant([
+        'product_id' => $product->id,
+    ], [
         'organization_id' => $this->organizationId,
-        'product_id'      => $product->id,
     ]);
 
     VariantOptionValue::factory()->create([

@@ -43,8 +43,6 @@ class ProductCategory extends Pivot
         'category_id',
     ];
 
-    public $incrementing = false;
-
     protected $casts = [
         'id'              => 'string',
         'organization_id' => 'string',
