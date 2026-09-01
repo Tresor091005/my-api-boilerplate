@@ -122,21 +122,21 @@ it('returns active lots for an item and location', function (): void {
 
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots")
         ->assertOk()
-        ->assertJsonPath('item_id', $item->id)
-        ->assertJsonPath('location_id', $locationA->id)
-        ->assertJsonPath('deduction_strategy', DeductionStrategy::Fefo->value)
-        ->assertJsonPath('total_remaining', 200)
-        ->assertJsonPath('base_unit_code', $this->unit->code)
-        ->assertJsonPath('lots.0.id', $lot2->id)
-        ->assertJsonPath('lots.0.base_unit_code', $this->unit->code)
-        ->assertJsonPath('lots.0.unit_cost', '25.00')
-        ->assertJsonPath('lots.1.id', $lot1->id);
+        ->assertJsonPath('data.item_id', $item->id)
+        ->assertJsonPath('data.location_id', $locationA->id)
+        ->assertJsonPath('data.deduction_strategy', DeductionStrategy::Fefo->value)
+        ->assertJsonPath('data.total_remaining', 200)
+        ->assertJsonPath('data.base_unit_code', $this->unit->code)
+        ->assertJsonPath('data.lots.0.id', $lot2->id)
+        ->assertJsonPath('data.lots.0.base_unit_code', $this->unit->code)
+        ->assertJsonPath('data.lots.0.unit_cost', '25.00')
+        ->assertJsonPath('data.lots.1.id', $lot1->id);
 
     $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots?strategy=fifo")
         ->assertOk()
-        ->assertJsonPath('deduction_strategy', DeductionStrategy::Fifo->value)
-        ->assertJsonPath('lots.0.id', $lot1->id)
-        ->assertJsonPath('lots.1.id', $lot2->id);
+        ->assertJsonPath('data.deduction_strategy', DeductionStrategy::Fifo->value)
+        ->assertJsonPath('data.lots.0.id', $lot1->id)
+        ->assertJsonPath('data.lots.1.id', $lot2->id);
 });
 
 it('returns stock summary and expiring lots with pagination metadata', function (): void {

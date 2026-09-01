@@ -11,13 +11,10 @@ use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Master\Contracts\MasterInterface;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /** @mixin BundleItem */
 class BundleItemResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * Transform the resource into an array.
      *
@@ -33,10 +30,9 @@ class BundleItemResource extends JsonResource
             'unit_code'  => $this->display_unit_code,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'component'  => $this->includeWhenRequestedAndLoaded(
-                include: ['component', 'items'],
-                relation: 'component',
-                resolver: fn (mixed $component): JsonResource|MissingValue => $this->componentResource($component),
+            'component'  => $this->whenLoaded(
+                'component',
+                fn (mixed $component): JsonResource|MissingValue => $this->componentResource($component),
             ),
         ];
     }

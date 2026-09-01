@@ -7,13 +7,10 @@ namespace Lahatre\Master\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Master\Models\Note;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /** @mixin Note */
 class NoteResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
@@ -47,15 +44,13 @@ class NoteResource extends JsonResource
                 array_key_exists('replies_count', $this->resource->getAttributes()),
                 fn (): int => $this->replies_count,
             ),
-            'replies' => $this->includeWhenRequestedAndLoaded(
-                include: 'children',
-                relation: 'replies',
-                resolver: fn ($replies): mixed => self::collection($replies),
+            'replies' => $this->whenLoaded(
+                'replies',
+                fn ($replies): mixed => self::collection($replies),
             ),
-            'mentions' => $this->includeWhenRequestedAndLoaded(
-                include: 'mentions',
-                relation: 'mentions',
-                resolver: fn ($mentions): array => $mentions->map(fn ($mention): array => [
+            'mentions' => $this->whenLoaded(
+                'mentions',
+                fn ($mentions): array => $mentions->map(fn ($mention): array => [
                     'member_id'    => $mention->member_id,
                     'mentioned_at' => $mention->mentioned_at,
                     'read_at'      => $mention->read_at,

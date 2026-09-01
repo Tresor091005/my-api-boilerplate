@@ -28,10 +28,9 @@ class BundleResource extends JsonResource
             ...$this->catalogItemFields(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'items'      => $this->includeWhenRequestedAndLoaded(
-                include: 'items',
-                relation: 'items',
-                resolver: fn ($items): JsonResource => BundleItemResource::collection($items),
+            'items'      => $this->whenLoaded(
+                'items',
+                fn ($items): JsonResource => BundleItemResource::collection($items),
             ),
             ...$this->catalogItemRelations(),
         ];

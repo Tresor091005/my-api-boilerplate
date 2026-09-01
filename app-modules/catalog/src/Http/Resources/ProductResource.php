@@ -8,15 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\Product;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin Product
  */
 class ProductResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * @return array<string, mixed>
      */
@@ -30,10 +27,9 @@ class ProductResource extends JsonResource
             'is_active'   => $this->is_active,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
-            'options'     => $this->includeWhenRequestedAndLoaded(
-                include: 'options',
-                relation: 'optionValues',
-                resolver: function ($optionValues): mixed {
+            'options'     => $this->whenLoaded(
+                'optionValues',
+                function ($optionValues): mixed {
                     if ($optionValues->contains(
                         fn ($optionValue): bool => !$optionValue->relationLoaded('option')
                     )) {
@@ -49,15 +45,13 @@ class ProductResource extends JsonResource
                         ->values();
                 },
             ),
-            'variants' => $this->includeWhenRequestedAndLoaded(
-                include: 'variants',
-                relation: 'variants',
-                resolver: fn ($variants): mixed => ProductVariantResource::collection($variants),
+            'variants' => $this->whenLoaded(
+                'variants',
+                fn ($variants): mixed => ProductVariantResource::collection($variants),
             ),
-            'categories' => $this->includeWhenRequestedAndLoaded(
-                include: 'categories',
-                relation: 'categories',
-                resolver: fn ($categories): mixed => CategoryResource::collection($categories),
+            'categories' => $this->whenLoaded(
+                'categories',
+                fn ($categories): mixed => CategoryResource::collection($categories),
             ),
         ];
     }

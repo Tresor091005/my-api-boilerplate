@@ -11,8 +11,6 @@ use Lahatre\Inventory\Models\InventoryStock;
 
 class InventoryItemLocationLotsResource extends JsonResource
 {
-    public static $wrap = null;
-
     /**
      * @return array<string, mixed>
      */

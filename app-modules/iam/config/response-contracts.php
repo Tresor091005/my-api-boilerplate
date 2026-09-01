@@ -13,9 +13,21 @@ $resourceModeContracts = array_fill_keys(
 
 $authResourceContracts = array_fill_keys(
     [
-        'lahatre.iam.auth.me', // GET here for the required_loads
         'lahatre.iam.auth.login',
         'lahatre.iam.auth.register',
+    ],
+    [
+        'default_mode'  => 'resource',
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'required_loads' => ['organizationMemberships.memberRoles.role'],
+        ]],
+    ],
+);
+
+$userResourceContracts = array_fill_keys(
+    [
+        'lahatre.iam.auth.me',
         'lahatre.iam.auth.switch-member-role',
     ],
     [
@@ -30,6 +42,7 @@ $authResourceContracts = array_fill_keys(
 return [
     ...$resourceModeContracts,
     ...$authResourceContracts,
+    ...$userResourceContracts,
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
     'lahatre.iam.auth.current-permissions' => [],
 ];

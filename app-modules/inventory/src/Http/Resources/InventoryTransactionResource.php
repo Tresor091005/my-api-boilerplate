@@ -7,15 +7,12 @@ namespace Lahatre\Inventory\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Inventory\Models\InventoryTransaction;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin InventoryTransaction
  */
 class InventoryTransactionResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * @return array<string, mixed>
      */
@@ -31,10 +28,9 @@ class InventoryTransactionResource extends JsonResource
             'reversal_of_transaction_id' => $this->reversal_of_transaction_id,
             'created_at'                 => $this->created_at,
             'updated_at'                 => $this->updated_at,
-            'movements'                  => $this->includeWhenRequestedAndLoaded(
-                include: 'movements',
-                relation: 'movements',
-                resolver: fn ($movements): mixed => InventoryMovementResource::collection($movements),
+            'movements'                  => $this->whenLoaded(
+                'movements',
+                fn ($movements): mixed => InventoryMovementResource::collection($movements),
             ),
         ];
     }

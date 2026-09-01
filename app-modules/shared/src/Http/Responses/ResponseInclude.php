@@ -14,9 +14,11 @@ final readonly class ResponseInclude
 
     public static function fromArray(string $name, mixed $definition): self
     {
+        $loads = is_array($definition) ? array_values($definition['loads'] ?? []) : [$name];
+
         return new self(
             name: $name,
-            loads: is_array($definition) ? array_values($definition['loads'] ?? []) : [$name],
+            loads: $loads,
         );
     }
 }

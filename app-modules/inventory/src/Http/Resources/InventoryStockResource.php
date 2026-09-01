@@ -11,15 +11,12 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Http\Resources\CurrencyResource;
 use Lahatre\Master\Http\Resources\UnitResource;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin InventoryStock
  */
 class InventoryStockResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * @return array<string, mixed>
      */
@@ -42,25 +39,21 @@ class InventoryStockResource extends JsonResource
             'exchange_metadata' => $this->exchange_metadata,
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,
-            'location'          => $this->includeWhenRequestedAndLoaded(
-                include: 'location',
-                relation: 'location',
-                resolver: fn ($location): mixed => InventoryLocationResource::make($location),
+            'location'          => $this->whenLoaded(
+                'location',
+                fn ($location): mixed => InventoryLocationResource::make($location),
             ),
-            'unit' => $this->includeWhenRequestedAndLoaded(
-                include: 'unit',
-                relation: 'unit',
-                resolver: fn ($unit): mixed => UnitResource::make($unit),
+            'unit' => $this->whenLoaded(
+                'unit',
+                fn ($unit): mixed => UnitResource::make($unit),
             ),
-            'currency' => $this->includeWhenRequestedAndLoaded(
-                include: 'currency',
-                relation: 'currency',
-                resolver: fn ($currency): mixed => CurrencyResource::make($currency),
+            'currency' => $this->whenLoaded(
+                'currency',
+                fn ($currency): mixed => CurrencyResource::make($currency),
             ),
-            'movements' => $this->includeWhenRequestedAndLoaded(
-                include: 'movements',
-                relation: 'movements',
-                resolver: fn ($movements): mixed => InventoryMovementResource::collection($movements),
+            'movements' => $this->whenLoaded(
+                'movements',
+                fn ($movements): mixed => InventoryMovementResource::collection($movements),
             ),
         ];
     }

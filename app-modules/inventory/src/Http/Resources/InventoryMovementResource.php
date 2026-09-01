@@ -10,15 +10,12 @@ use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Http\Resources\CurrencyResource;
 use Lahatre\Master\Http\Resources\UnitResource;
-use Lahatre\Shared\Http\Resources\Concerns\RendersResponseIncludes;
 
 /**
  * @mixin InventoryMovement
  */
 class InventoryMovementResource extends JsonResource
 {
-    use RendersResponseIncludes;
-
     /**
      * @return array<string, mixed>
      */
@@ -42,25 +39,21 @@ class InventoryMovementResource extends JsonResource
             'stock_metadata_snapshot' => $this->stock_metadata_snapshot,
             'created_at'              => $this->created_at,
             'updated_at'              => $this->updated_at,
-            'location'                => $this->includeWhenRequestedAndLoaded(
-                include: ['location', 'movements.location'],
-                relation: 'location',
-                resolver: fn ($location): mixed => InventoryLocationResource::make($location),
+            'location'                => $this->whenLoaded(
+                'location',
+                fn ($location): mixed => InventoryLocationResource::make($location),
             ),
-            'stock' => $this->includeWhenRequestedAndLoaded(
-                include: ['stock', 'movements.stock'],
-                relation: 'stock',
-                resolver: fn ($stock): mixed => InventoryStockResource::make($stock),
+            'stock' => $this->whenLoaded(
+                'stock',
+                fn ($stock): mixed => InventoryStockResource::make($stock),
             ),
-            'unit' => $this->includeWhenRequestedAndLoaded(
-                include: ['unit', 'movements.unit'],
-                relation: 'unit',
-                resolver: fn ($unit): mixed => UnitResource::make($unit),
+            'unit' => $this->whenLoaded(
+                'unit',
+                fn ($unit): mixed => UnitResource::make($unit),
             ),
-            'currency' => $this->includeWhenRequestedAndLoaded(
-                include: ['currency', 'movements.currency'],
-                relation: 'currency',
-                resolver: fn ($currency): mixed => CurrencyResource::make($currency),
+            'currency' => $this->whenLoaded(
+                'currency',
+                fn ($currency): mixed => CurrencyResource::make($currency),
             ),
         ];
     }

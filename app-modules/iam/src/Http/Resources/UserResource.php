@@ -35,38 +35,51 @@ class UserResource extends JsonResource
         /** @var OrganizationInterface $organizationService */
         $organizationService = app(OrganizationInterface::class);
 
-        $memberRoles = [];
-
-        foreach ($user->organizationMemberships as $membership) {
-            foreach ($membership->memberRoles as $memberRole) {
-                $organization = $organizationService->findOrganizationById($memberRole->organization_id);
-
-                $memberRoles[] = [
-                    'id'              => $memberRole->id,
-                    'member_id'       => $memberRole->member_id,
-                    'organization_id' => $memberRole->organization_id,
-                    'role_id'         => $memberRole->role_id,
-                    'role'            => [
-                        'id'          => $memberRole->role->id,
-                        'name'        => $memberRole->role->name,
-                        'description' => $memberRole->role->description,
-                        'is_builtin'  => $memberRole->role->is_builtin,
-                    ],
-                    'organization' => [
-                        'id'   => $organization->id,
-                        'name' => $organization->name,
-                    ],
-                ];
-            }
-        }
-
         return [
             'id'                     => $user->id,
             'first_name'             => $user->first_name,
             'last_name'              => $user->last_name,
             'email'                  => $user->email,
             'current_member_role_id' => $this->currentMemberRoleId,
-            'member_roles'           => $memberRoles,
+            'member_roles'           => $this->whenLoaded(
+                'organizationMemberships',
+                function ($memberships) use ($organizationService): array {
+                    $memberRoles = [];
+
+                    foreach ($memberships as $membership) {
+                        if (!$membership->relationLoaded('memberRoles')) {
+                            continue;
+                        }
+
+                        $organization = $organizationService->findOrganizationById($membership->organization_id);
+
+                        foreach ($membership->memberRoles as $memberRole) {
+                            if (!$memberRole->relationLoaded('role')) {
+                                continue;
+                            }
+
+                            $memberRoles[] = [
+                                'id'              => $memberRole->id,
+                                'member_id'       => $memberRole->member_id,
+                                'organization_id' => $memberRole->organization_id,
+                                'role_id'         => $memberRole->role_id,
+                                'role'            => [
+                                    'id'          => $memberRole->role->id,
+                                    'name'        => $memberRole->role->name,
+                                    'description' => $memberRole->role->description,
+                                    'is_builtin'  => $memberRole->role->is_builtin,
+                                ],
+                                'organization' => [
+                                    'id'   => $organization->id,
+                                    'name' => $organization->name,
+                                ],
+                            ];
+                        }
+                    }
+
+                    return $memberRoles;
+                },
+            ),
         ];
     }
 }

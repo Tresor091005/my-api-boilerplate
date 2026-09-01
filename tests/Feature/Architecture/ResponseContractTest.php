@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Lahatre\Shared\Http\Responses\ResponseMode;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 it('ensures every application api route has a response contract', function (): void {
@@ -50,55 +50,32 @@ it('ensures response contracts point to existing application api routes', functi
     expect($staleContracts)->toBe([]);
 });
 
-it('ensures resource include aliases are declared by response contracts', function (): void {
+it('keeps payload-producing IAM endpoints resource responses by default', function (): void {
     $registry = app(ResponseContractRegistry::class);
-    $declaredIncludes = [];
 
-    foreach ($registry->routeNames() as $routeName) {
-        $contract = $registry->forRoute($routeName);
-
-        if ($contract === null) {
-            continue;
-        }
-
-        foreach ($contract->shapes as $shape) {
-            $declaredIncludes = array_merge($declaredIncludes, array_keys($shape->includes));
-        }
+    foreach ([
+        'lahatre.iam.auth.forgot-password',
+        'lahatre.iam.auth.login',
+        'lahatre.iam.auth.logout',
+        'lahatre.iam.auth.reset-password',
+        'lahatre.iam.auth.switch-member-role',
+    ] as $routeName) {
+        expect($registry->forRoute($routeName)?->resolveMode(null, 'POST'))
+            ->toBe(ResponseMode::Resource);
     }
+});
 
-    $declaredIncludes = array_unique($declaredIncludes);
-    $failures = [];
+it('declares the user relationships required by IAM resources', function (): void {
+    $registry = app(ResponseContractRegistry::class);
 
-    foreach (File::allFiles(base_path('app-modules')) as $resourceFile) {
-        if (!str_ends_with($resourceFile->getFilename(), 'Resource.php')) {
-            continue;
-        }
-
-        preg_match_all(
-            "/include:\s*(?:'([^']+)'|\[([^\]]*)\])/",
-            $resourceFile->getContents(),
-            $matches,
-            PREG_SET_ORDER,
-        );
-
-        foreach ($matches as $match) {
-            $includes = ($match[1] ?? '') !== ''
-                ? [$match[1]]
-                : (preg_match_all("/'([^']+)'/", $match[2] ?? '', $arrayMatches)
-                    ? $arrayMatches[1]
-                    : []);
-
-            foreach ($includes as $include) {
-                if (!in_array($include, $declaredIncludes, true)) {
-                    $failures[] = sprintf(
-                        '%s declares include [%s], but no response contract declares that include.',
-                        $resourceFile->getRelativePathname(),
-                        $include,
-                    );
-                }
-            }
-        }
+    foreach ([
+        'lahatre.iam.auth.login',
+        'lahatre.iam.auth.me',
+        'lahatre.iam.auth.switch-member-role',
+    ] as $routeName) {
+        expect($registry->forRoute($routeName)?->resolveShape(null))
+            ->not->toBeNull()
+            ->and($registry->forRoute($routeName)?->resolveShape(null)->relationsToLoad([]))
+            ->toContain('organizationMemberships.memberRoles.role');
     }
-
-    expect($failures)->toBe([]);
 });

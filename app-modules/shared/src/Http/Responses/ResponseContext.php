@@ -42,11 +42,6 @@ final class ResponseContext
         return $this->requestedIncludes;
     }
 
-    public function hasRequestedInclude(string $include): bool
-    {
-        return in_array($include, $this->requestedIncludes, true);
-    }
-
     /** @return list<string> */
     public function relationsToLoad(): array
     {

@@ -101,7 +101,7 @@ php artisan response-contracts:cache
 
 Every application API route must have a contract. Resource-producing routes
 declare their shape, required loads, and allowed includes. An empty definition
-is reserved for an endpoint with no response representation, such as a
+is reserved for an endpoint with no response body, such as a
 deletion, and must have an inline explanation in the owning module config. An
 empty contract still supplies the method-derived response policy:
 GET returns a resource, POST/PUT/PATCH return no content by default, and DELETE

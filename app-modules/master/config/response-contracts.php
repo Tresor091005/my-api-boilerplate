@@ -2,18 +2,11 @@
 
 declare(strict_types=1);
 
-// These routes intentionally rely on method-derived response modes and define no response relations or shapes.
+// These routes intentionally return no body and therefore use the method default 204.
 $emptyContracts = array_fill_keys(
     [
-        'lahatre.master.currencies.index',
-        'lahatre.master.labels.index',
-        'lahatre.master.labels.store',
-        'lahatre.master.labels.update',
         'lahatre.master.labels.destroy',
         'lahatre.master.labels.reorder',
-        'lahatre.master.notes.index',
-        'lahatre.master.notes.store',
-        'lahatre.master.notes.update',
         'lahatre.master.notes.visibility.update',
         'lahatre.master.notes.destroy',
         'lahatre.master.notes.pin',
@@ -25,8 +18,49 @@ $emptyContracts = array_fill_keys(
     [],
 );
 
+$currencyContracts = array_fill_keys(
+    ['lahatre.master.currencies.index'],
+    [
+    ],
+);
+
+$labelCollectionContracts = array_fill_keys(
+    [
+        'lahatre.master.labels.index',
+        'lahatre.master.labels.store',
+    ],
+    [
+    ],
+);
+
+$labelResourceContracts = array_fill_keys(
+    ['lahatre.master.labels.update'],
+    [
+    ],
+);
+
+$noteCollectionContracts = array_fill_keys(
+    ['lahatre.master.notes.index'],
+    [
+    ],
+);
+
+$noteResourceContracts = array_fill_keys(
+    [
+        'lahatre.master.notes.store',
+        'lahatre.master.notes.update',
+    ],
+    [
+    ],
+);
+
 return [
     ...$emptyContracts,
+    ...$currencyContracts,
+    ...$labelCollectionContracts,
+    ...$labelResourceContracts,
+    ...$noteCollectionContracts,
+    ...$noteResourceContracts,
     'lahatre.master.units.index' => [
         'default_shape' => 'default',
         'shapes'        => ['default' => [

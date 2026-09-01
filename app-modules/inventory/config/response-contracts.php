@@ -19,20 +19,32 @@ $movementContracts = array_fill_keys(
     ],
 );
 
-$emptyContracts = array_fill_keys(
+$locationLotsContracts = array_fill_keys(
     [
         'lahatre.inventory.items.locations.lots.index',
+    ],
+    [
+    ],
+);
+
+$stockCollectionContracts = array_fill_keys(
+    [
         'lahatre.inventory.stocks.index',
+    ],
+    [
+    ],
+);
+
+$summaryCollectionContracts = array_fill_keys(
+    [
         'lahatre.inventory.stocks.summary.index',
     ],
-    [],
+    [
+    ],
 );
 
 $transactionContracts = array_fill_keys(
-    [
-        'lahatre.inventory.transactions.index',
-        'lahatre.inventory.transactions.show',
-    ],
+    ['lahatre.inventory.transactions.index'],
     [
         'default_shape' => 'transaction',
         'shapes'        => ['transaction' => [
@@ -46,6 +58,19 @@ $transactionContracts = array_fill_keys(
         ]],
     ],
 );
+
+$transactionShowContract = [
+    'default_shape' => 'transaction',
+    'shapes'        => ['transaction' => [
+        'includes' => [
+            'movements'          => ['loads' => ['movements']],
+            'movements.stock'    => ['loads' => ['movements.stock']],
+            'movements.location' => ['loads' => ['movements.location']],
+            'movements.unit'     => ['loads' => ['movements.unit']],
+            'movements.currency' => ['loads' => ['movements.currency']],
+        ],
+    ]],
+];
 
 $stockContracts = array_fill_keys(
     ['lahatre.inventory.stocks.update'],
@@ -64,8 +89,11 @@ $stockContracts = array_fill_keys(
 );
 
 return [
-    ...$emptyContracts,
+    ...$locationLotsContracts,
+    ...$stockCollectionContracts,
+    ...$summaryCollectionContracts,
     ...$movementContracts,
     ...$stockContracts,
     ...$transactionContracts,
+    'lahatre.inventory.transactions.show' => $transactionShowContract,
 ];

@@ -41,10 +41,9 @@ class ProductVariantResource extends JsonResource
                     fn ($optionValue): array => [$optionValue->option->name => $optionValue->value]
                 );
             }),
-            'labels' => $this->includeWhenRequestedAndLoaded(
-                include: 'labels',
-                relation: 'labels',
-                resolver: fn ($labels) => LabelResource::collection($labels),
+            'labels' => $this->whenLoaded(
+                'labels',
+                fn ($labels) => LabelResource::collection($labels),
             ),
             ...$this->catalogItemRelations(),
         ];
