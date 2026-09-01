@@ -50,10 +50,9 @@ the complete `auth.api` group.
 ## Morph-map lifecycle
 
 `MorphMapRegistry` discovers concrete models in the application and modules,
-generates aliases such as `catalog_product`, and registers them with Eloquent.
-For a model in the configured `Lahatre` module namespace, the alias combines
-the module and model names in snake case. This prevents collisions between
-models with the same basename in different modules.
+generates each alias from the model's singular table name, and registers the
+aliases with Eloquent. For example, `catalog_products` maps to
+`catalog_product`. Table names must therefore remain unique across models.
 
 `AppServiceProvider` enables `Relation::requireMorphMap(true)`, so every
 polymorphic relation must resolve through this registry. Alias collisions are
@@ -65,7 +64,8 @@ other non-production environments, the cache is ignored and the registry
 always discovers models through `ModelFinder`. Without a production cache, it
 also discovers models and registers the generated map. The cache is deployment
 state, not business data: regenerate it after adding, removing, renaming, or
-moving a model.
+moving a model. Renaming a table also renames its morph alias and requires
+updating persisted morph types and generated permissions.
 
 Use these commands after adding or renaming a model:
 

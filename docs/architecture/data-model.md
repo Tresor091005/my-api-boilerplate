@@ -44,8 +44,13 @@ Unit quantities use ratio-based decimal conversion with BCMath precision.
 - `catalog_options` owns `catalog_option_values`.
 - Product/variant option selections use explicit pivot models so product and
   option ownership can be validated.
-- Bundles and bundle items are persisted but do not currently have public API
-  routes.
+- `catalog_bundles` shares its UUID with a stockable CatalogItem and its own
+  InventoryItem. Detailed bundle stock operations are not implemented yet.
+  Bundle items reference component CatalogItems, store the target type as a
+  string, and expose a public nested mutation API. They do not define
+  type-specific target relations. Their quantity is stored in the component's
+  ratio-1 base unit, while `display_unit_code` selects a compatible
+  presentation unit.
 
 Catalog business records are organization-scoped and soft-deletable where the
 model supports lifecycle deletion. Nested routes use scoped bindings for
@@ -59,19 +64,20 @@ parent/child ownership.
 - InventoryItem.sku is a denormalized cache. CatalogItem.sku is the source of
   truth.
 - CatalogItem.item_type is an explicit discriminator. It currently contains
-  `product_variant`, so the referenced business type remains identifiable even
+  `catalog_product_variant` and `catalog_bundle`, so the referenced business type remains identifiable even
   when the CatalogItem is read without a type-specific relation. The enum maps
   the discriminator to its model class; a batch target loader can be added when
   a cross-type read projection needs eager loading.
 - `inventory_items.stock_tracking_enabled` is the inventory-owned switch that
   allows new movements. Catalog variants do not duplicate this setting.
-- `inventory_stocks` stores the current lot-level quantity, unit, currency,
-  exact cost, expiration, and metadata snapshot.
+- `inventory_stocks` stores the current lot-level quantity with its
+  `base_unit_code`, currency, exact cost, expiration, and metadata snapshot.
 - `inventory_transactions` is the immutable operation header. It carries the
   transaction type, idempotency key, reference morph, reversal link, and
   metadata snapshot.
-- `inventory_movements` stores the individual item/location movements and
-  links to stock, units, currencies, and related transfer movements.
+- `inventory_movements` stores individual item/location movements in
+  `base_unit_code` and links them to stock, units, currencies, and related
+  transfer movements.
 
 Transactions are the source of truth for quantity changes. Stock rows are the
 current materialized state used for fast reads. Mutations run inside database

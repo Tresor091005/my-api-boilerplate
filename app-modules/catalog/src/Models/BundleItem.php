@@ -20,11 +20,13 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $item_id
  * @property string $bundle_id
  * @property int $quantity
+ * @property string $display_unit_code
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Bundle $bundle
- * @property-read Model|\Eloquent $item
+ * @property-read CatalogItem $catalogItem
+ * @property-read Bundle|ProductVariant $component
  *
  * @method static Builder<static>|BundleItem newModelQuery()
  * @method static Builder<static>|BundleItem newQuery()
@@ -58,23 +60,31 @@ class BundleItem extends Model
         'item_id',
         'bundle_id',
         'quantity',
+        'display_unit_code',
     ];
 
     protected $casts = [
-        'id'              => 'string',
-        'organization_id' => 'string',
-        'item_type'       => 'string',
-        'item_id'         => 'string',
-        'bundle_id'       => 'string',
-        'quantity'        => 'integer',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
-        'deleted_at'      => 'immutable_datetime',
+        'id'                => 'string',
+        'organization_id'   => 'string',
+        'item_type'         => 'string',
+        'item_id'           => 'string',
+        'bundle_id'         => 'string',
+        'quantity'          => 'integer',
+        'display_unit_code' => 'string',
+        'created_at'        => 'immutable_datetime',
+        'updated_at'        => 'immutable_datetime',
+        'deleted_at'        => 'immutable_datetime',
     ];
 
-    public function item(): MorphTo
+    public function catalogItem(): BelongsTo
     {
-        return $this->morphTo('item', 'item_type', 'item_id')
+        return $this->belongsTo(CatalogItem::class, 'item_id', 'id')
+            ->where('catalog_items.organization_id', currentOrganizationId());
+    }
+
+    public function component(): MorphTo
+    {
+        return $this->morphTo('component', 'item_type', 'item_id')
             ->where('organization_id', currentOrganizationId());
     }
 

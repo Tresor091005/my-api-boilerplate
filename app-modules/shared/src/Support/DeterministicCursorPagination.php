@@ -12,6 +12,10 @@ use InvalidArgumentException;
 
 class DeterministicCursorPagination
 {
+    private const int MIN_PER_PAGE = 1;
+
+    private const int MAX_PER_PAGE = 100;
+
     /**
      * Apply the standard sortable cursor filter quartet:
      * sortBy, sortOrder, perPage, cursor.
@@ -26,14 +30,13 @@ class DeterministicCursorPagination
         string $cursorName = 'cursor'
     ): CursorPaginator {
         self::assertFilterContract($filters);
+        $sortOrder = self::normalizeSortOrder($filters->sortOrder);
+        $perPage = max(self::MIN_PER_PAGE, min(self::MAX_PER_PAGE, $filters->perPage));
 
-        $query->orderBy($filters->sortBy, $filters->sortOrder);
+        $query->orderBy($filters->sortBy, $sortOrder);
+        self::appendTieBreakerAsFinalOrder($query, $tieBreakerColumn, $sortOrder);
 
-        if (!self::hasBasicOrderBy($query, $tieBreakerColumn)) {
-            $query->orderBy($tieBreakerColumn, self::lastDirection($query, $filters->sortOrder));
-        }
-
-        return $query->cursorPaginate($filters->perPage, $columns, $cursorName, $filters->cursor);
+        return $query->cursorPaginate($perPage, $columns, $cursorName, $filters->cursor);
     }
 
     /**
@@ -56,6 +59,12 @@ class DeterministicCursorPagination
             );
         }
 
+        if (trim($filters->sortBy) === '') {
+            throw new InvalidArgumentException(
+                'DeterministicCursorPagination expects sortBy to be a non-empty string.'
+            );
+        }
+
         if ($filters->cursor !== null && !is_string($filters->cursor)) {
             throw new InvalidArgumentException(
                 'DeterministicCursorPagination expects cursor to be null or string.'
@@ -63,44 +72,39 @@ class DeterministicCursorPagination
         }
     }
 
-    protected static function hasBasicOrderBy(
-        EloquentBuilder|QueryBuilder|Relation $query,
-        string $column
-    ): bool {
-        $normalizedColumn = self::normalizeColumn($column);
+    protected static function normalizeSortOrder(string $sortOrder): string
+    {
+        $normalizedSortOrder = strtolower($sortOrder);
 
-        foreach (self::orders($query) as $order) {
-            if (($order['type'] ?? 'Basic') !== 'Basic') {
-                continue;
-            }
-
-            $orderedColumn = $order['column'] ?? null;
-
-            if (!is_string($orderedColumn)) {
-                continue;
-            }
-
-            if (self::normalizeColumn($orderedColumn) === $normalizedColumn) {
-                return true;
-            }
+        if (!in_array($normalizedSortOrder, ['asc', 'desc'], true)) {
+            throw new InvalidArgumentException(
+                'DeterministicCursorPagination expects sortOrder to be asc or desc.'
+            );
         }
 
-        return false;
+        return $normalizedSortOrder;
     }
 
-    protected static function lastDirection(
+    protected static function appendTieBreakerAsFinalOrder(
         EloquentBuilder|QueryBuilder|Relation $query,
-        string $fallback
-    ): string {
-        foreach (array_reverse(self::orders($query)) as $order) {
-            $direction = strtolower((string) ($order['direction'] ?? ''));
-
-            if (in_array($direction, ['asc', 'desc'], true)) {
-                return $direction;
-            }
+        string $column,
+        string $direction,
+    ): void {
+        if (trim($column) === '') {
+            throw new InvalidArgumentException(
+                'DeterministicCursorPagination expects tieBreakerColumn to be a non-empty string.'
+            );
         }
 
-        return strtolower($fallback);
+        $baseQuery = self::toBaseQuery($query);
+        $normalizedColumn = self::normalizeColumn($column);
+        $baseQuery->orders = array_values(array_filter(
+            self::orders($query),
+            fn (array $order): bool => !is_string($order['column'] ?? null)
+                || self::normalizeColumn($order['column']) !== $normalizedColumn,
+        ));
+
+        $query->orderBy($column, $direction);
     }
 
     /**

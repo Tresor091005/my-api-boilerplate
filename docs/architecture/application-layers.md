@@ -46,9 +46,9 @@ persisting ledger changes.
 ## Query and response conventions
 
 Lists use typed filter Data objects and deterministic cursor pagination. The
-shared cursor helper requires `sortBy`, `sortOrder`, `perPage`, and `cursor`,
-and adds a stable ID tie-breaker when the requested sort does not already have
-one.
+shared cursor helper requires `sortBy`, `sortOrder`, `perPage`, and `cursor`.
+It clamps page sizes to 1–100, accepts only ascending or descending sort
+directions, and always places a stable tie-breaker last in the ordering.
 
 Services return Resources/Resource Collections for model-backed endpoints and
 ViewData for computed aggregates. Resources should use conditional relation

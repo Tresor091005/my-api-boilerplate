@@ -108,9 +108,13 @@ return [
     |
     */
     'ignored_soft_delete_partial_indexes' => [
-        'catalog_option_values'    => ['catalog_option_values_organization_id_id_unique'],
-        'catalog_options'          => ['catalog_options_organization_id_id_unique'],
-        'catalog_items'            => ['catalog_items_organization_id_id_unique'],
+        'catalog_option_values' => ['catalog_option_values_organization_id_id_unique'],
+        'catalog_options'       => ['catalog_options_organization_id_id_unique'],
+        'catalog_items'         => [
+            'catalog_items_organization_id_id_unique',
+            'catalog_items_organization_id_id_item_type_unique',
+        ],
+        'catalog_bundles'          => ['catalog_bundles_organization_id_id_unique'],
         'catalog_product_variants' => ['catalog_product_variants_organization_id_id_unique'],
         'catalog_categories'       => ['catalog_categories_organization_id_id_unique'],
         'catalog_products'         => ['catalog_products_organization_id_id_unique'],

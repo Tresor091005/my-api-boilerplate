@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Lahatre\Iam\Models\User;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 
@@ -40,6 +41,17 @@ it('registers models via auto-discovery when cache is missing', function (): voi
     expect($map)->not->toBeEmpty()
         ->and($map)->toHaveKey('iam_user')
         ->and($map['iam_user'])->toBe(User::class);
+});
+
+it('generates aliases from singular model table names', function (): void {
+    Relation::morphMap([], false);
+
+    $registry = new MorphMapRegistry;
+    $registry->discover();
+
+    foreach ($registry->getMap() as $alias => $class) {
+        expect($alias)->toBe(Str::singular((new $class)->getTable()));
+    }
 });
 
 it('ignores a cache file outside production and runs discovery', function (): void {

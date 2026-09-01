@@ -112,16 +112,15 @@ class MorphMapRegistry
     }
 
     /**
-     * Discover all models and register them with smart aliases.
+     * Discover all models and register them with table-based aliases.
      */
     protected function discoverAndRegister(): void
     {
         $models = ModelFinder::getAllModels();
-        $modulesNamespace = config('app-modules.modules_namespace', 'Lahatre');
         $newMap = [];
 
         foreach ($models as $class) {
-            $alias = $this->generateAlias($class, $modulesNamespace);
+            $alias = $this->generateAlias($class);
 
             if (isset($newMap[$alias]) && $newMap[$alias] !== $class) {
                 throw new InvalidArgumentException(
@@ -137,27 +136,14 @@ class MorphMapRegistry
     }
 
     /**
-     * Generate a smart alias for a model class.
+     * Generate an alias from the model's singular table name.
      */
-    protected function generateAlias(string $class, string $modulesNamespace): string
+    protected function generateAlias(string $class): string
     {
-        $parts = explode('\\', $class);
+        /** @var Model $model */
+        $model = new $class;
 
-        // If it's a module model (e.g., Lahatre\Catalog\Models\Product)
-        if ($parts[0] === $modulesNamespace && isset($parts[1])) {
-            $module = Str::snake($parts[1]);
-            $className = Str::snake(end($parts));
-
-            // Avoid redundant prefix if the class name already starts with the module name
-            if (Str::startsWith($className, "{$module}_")) {
-                return $className;
-            }
-
-            return "{$module}_{$className}";
-        }
-
-        // Default: use snake_case of the class name
-        return Str::snake(end($parts));
+        return Str::singular($model->getTable());
     }
 
     /**

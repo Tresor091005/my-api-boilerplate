@@ -6,18 +6,27 @@ namespace Lahatre\Catalog\Enums;
 
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\ProductVariant;
 
 enum CatalogItemType: string
 {
-    case ProductVariant = 'product_variant';
+    case ProductVariant = 'catalog_product_variant';
+    case Bundle = 'catalog_bundle';
 
     public function isStockable(): bool
     {
         return match ($this->value) {
+            self::Bundle->value,
             self::ProductVariant->value => true,
             default                     => false,
         };
+    }
+
+    /** @return list<self> */
+    public static function allowedBundleComponentTypes(): array
+    {
+        return [self::ProductVariant];
     }
 
     /**
@@ -27,7 +36,13 @@ enum CatalogItemType: string
     {
         return match ($this) {
             self::ProductVariant => ProductVariant::class,
+            self::Bundle         => Bundle::class,
         };
+    }
+
+    public function morphAlias(): string
+    {
+        return (new ($this->modelClass()))->getMorphClass();
     }
 
     /**
@@ -47,9 +62,10 @@ enum CatalogItemType: string
             }
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Unsupported CatalogItem target model [%s].',
-            $modelClass,
-        ));
+        throw new InvalidArgumentException(
+            __('catalog::exceptions.unsupported_catalog_item_target_model', [
+                'class' => $modelClass,
+            ])
+        );
     }
 }

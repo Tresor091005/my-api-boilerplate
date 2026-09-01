@@ -13,6 +13,7 @@ use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantUpdateRequest;
+use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -212,6 +213,20 @@ it('does not load response relations without an active response shape', function
         ->and($retrievedVariant->relationLoaded('catalogItem'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('labels'))->toBeFalse()
         ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
+});
+
+it('omits catalog item fields when the relation is not loaded', function (): void {
+    $variant = ProductVariant::factory()->make([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ]);
+    $variant->setRelation('product', $this->product);
+    $variant->setRelation('optionValues', collect());
+
+    $resource = ProductVariantResource::make($variant)->resolve();
+
+    expect($resource)
+        ->not->toHaveKeys(['sku', 'unit_group_id', 'is_active']);
 });
 
 it('validates labels inside each bulk variant payload', function (): void {

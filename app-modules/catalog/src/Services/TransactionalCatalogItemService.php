@@ -10,8 +10,11 @@ use Illuminate\Support\Str;
 use Lahatre\Catalog\Data\CatalogItemData;
 use Lahatre\Catalog\Data\CatalogItemUpdateData;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Exceptions\CatalogItemException;
+use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\withoutMissing;
@@ -23,6 +26,38 @@ class TransactionalCatalogItemService
     public function __construct(
         protected InventoryInterface $inventoryService,
     ) {}
+
+    /**
+     * Create a CatalogItem and its type-dependent operational representation.
+     *
+     * The caller owns the surrounding transaction.
+     */
+    public function createItem(
+        CatalogItemType $type,
+        string $organizationId,
+        string $skuSource,
+        ?string $sku,
+        string $unitGroupId,
+        bool $isActive,
+        ?InventoryItemConfigurationData $inventory = null,
+    ): CatalogItem {
+        $catalogItem = new CatalogItem;
+        $catalogItem->forceFill([
+            'id'              => (string) Str::uuid7(),
+            'organization_id' => $organizationId,
+            'item_type'       => $type,
+            'sku'             => $sku ?? SkuGenerator::generate($skuSource),
+            'unit_group_id'   => $unitGroupId,
+            'is_stockable'    => $type->isStockable(),
+            'is_active'       => $isActive,
+        ])->save();
+
+        if ($type->isStockable()) {
+            $this->inventoryService->createItem($catalogItem, $inventory);
+        }
+
+        return $catalogItem;
+    }
 
     /**
      * @param  Collection<int, CatalogItemData>  $itemsData
@@ -112,6 +147,15 @@ class TransactionalCatalogItemService
      */
     public function delete(CatalogItem $catalogItem): void
     {
+        $usedByBundle = BundleItem::query()
+            ->where('organization_id', $catalogItem->organization_id)
+            ->where('item_id', $catalogItem->id)
+            ->exists();
+
+        if ($usedByBundle) {
+            throw CatalogItemException::usedByBundle($catalogItem);
+        }
+
         if ($catalogItem->item_type->isStockable()) {
             $this->inventoryService->deleteItem($catalogItem);
         }

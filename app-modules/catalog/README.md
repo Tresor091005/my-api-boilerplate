@@ -14,8 +14,20 @@ CatalogItem is the internal operational identity for a concrete catalog item.
 Product variants keep their presentation data, while the variant UUID is also
 the CatalogItem UUID. SKU, unit group, and active state belong to CatalogItem
 and remain flattened in the existing variant API response.
-CatalogItem.item_type identifies the referenced business type and currently uses
-the `product_variant` value.
+CatalogItem.item_type identifies the referenced business type and currently
+uses `catalog_product_variant` and `catalog_bundle`. A Bundle shares its UUID with CatalogItem,
+uses the built-in `bundle` unit group, and is stockable through its own
+`InventoryItem`. Detailed bundle stock operations are not implemented yet.
+Bundle components reference CatalogItems and currently accept product variants
+only.
+BundleItem keeps item_type as a string discriminator and does not define a
+type-specific target relation. A batch target loader can resolve components
+when a read projection needs their models.
+BundleItem quantities are stored in the referenced item's ratio-1 base unit.
+Bundle item API payloads use `unit_code`; the service converts the submitted
+quantity to the base unit for persistence and stores that code internally as
+`display_unit_code`. Resources convert the persisted quantity back to
+`unit_code` for the API response.
 CatalogItem intentionally has no type-specific reverse relation; callers use
 the enum mapping when they need to resolve its target model.
 

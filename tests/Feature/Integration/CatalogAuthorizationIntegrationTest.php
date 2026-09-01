@@ -55,6 +55,8 @@ beforeEach(function (): void {
         'catalog_option_value.list', 'catalog_option_value.retrieve', 'catalog_option_value.create', 'catalog_option_value.update', 'catalog_option_value.delete',
         'catalog_product.list', 'catalog_product.retrieve', 'catalog_product.create', 'catalog_product.update', 'catalog_product.delete',
         'catalog_product_variant.list', 'catalog_product_variant.retrieve', 'catalog_product_variant.create', 'catalog_product_variant.update', 'catalog_product_variant.delete',
+        'catalog_bundle.list', 'catalog_bundle.retrieve', 'catalog_bundle.create', 'catalog_bundle.update', 'catalog_bundle.delete',
+        'catalog_bundle_item.create', 'catalog_bundle_item.update', 'catalog_bundle_item.delete',
     ];
 
     collect($permissions)->each(function (string $permissionName): void {
@@ -97,6 +99,7 @@ it('enforces catalog permissions at http layer', function (): void {
     $this->memberRole->revokePermissionTo(Permission::query()->pluck('name')->all());
 
     $this->getJson('/v1/catalog/categories')->assertForbidden();
+    $this->getJson('/v1/catalog/bundles')->assertForbidden();
     $this->postJson('/v1/catalog/categories', [
         'name'      => 'x',
         'is_active' => true,

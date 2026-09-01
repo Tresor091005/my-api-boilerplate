@@ -28,6 +28,7 @@ return new class extends Migration
 
             $table->unique(['organization_id', 'sku'], 'catalog_items_organization_id_sku_unique');
             $table->unique(['organization_id', 'id'], 'catalog_items_organization_id_id_unique');
+            $table->unique(['organization_id', 'id', 'item_type'], 'catalog_items_organization_id_id_item_type_unique');
         });
 
         DB::statement('CREATE INDEX catalog_items_organization_id_index ON catalog_items (organization_id) WHERE deleted_at IS NULL');
@@ -45,6 +46,25 @@ return new class extends Migration
                 ->on('catalog_items')
                 ->cascadeOnDelete();
         });
+
+        Schema::table('catalog_bundles', function (Blueprint $table): void {
+            $table->foreign(['organization_id', 'id'], 'catalog_bundles_catalog_item_foreign')
+                ->references(['organization_id', 'id'])
+                ->on('catalog_items')
+                ->cascadeOnDelete();
+        });
+
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->dropForeign(['bundle_id']);
+            $table->foreign(['organization_id', 'bundle_id'], 'catalog_bundle_items_bundle_foreign')
+                ->references(['organization_id', 'id'])
+                ->on('catalog_bundles')
+                ->cascadeOnDelete();
+            $table->foreign(['organization_id', 'item_id', 'item_type'], 'catalog_bundle_items_catalog_item_foreign')
+                ->references(['organization_id', 'id', 'item_type'])
+                ->on('catalog_items')
+                ->restrictOnDelete();
+        });
     }
 
     public function down(): void
@@ -54,6 +74,19 @@ return new class extends Migration
                 'Cannot reverse CatalogItem identity migration while catalog records exist.'
             );
         }
+
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->dropForeign('catalog_bundle_items_catalog_item_foreign');
+            $table->dropForeign('catalog_bundle_items_bundle_foreign');
+            $table->foreign('bundle_id')
+                ->references('id')
+                ->on('catalog_bundles')
+                ->cascadeOnDelete();
+        });
+
+        Schema::table('catalog_bundles', function (Blueprint $table): void {
+            $table->dropForeign('catalog_bundles_catalog_item_foreign');
+        });
 
         Schema::table('catalog_product_variants', function (Blueprint $table): void {
             $table->dropForeign('catalog_product_variants_catalog_item_foreign');

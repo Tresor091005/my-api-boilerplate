@@ -46,8 +46,9 @@ migration customizes Spatie's base structure:
 Morph aliases are the stable model identifiers used by both polymorphic
 relations and generated permissions. The complete lifecycle is:
 
-1. `MorphMapRegistry` discovers concrete module models and registers aliases
-   such as `catalog_product`.
+1. `MorphMapRegistry` discovers concrete models and registers aliases from
+   their singular table names, such as `catalog_products` becoming
+   `catalog_product`.
 2. `morph-map:cache` writes the immutable deployment cache used by normal
    application boots.
 3. `permissions:discover` resolves every model through that registry and
@@ -69,9 +70,9 @@ registered module models.
        Administrator receives all permissions and Readonly receives only
        `list` and `retrieve` permissions.
 
-The morph namespace prevents collisions when two modules contain models with
-the same basename, such as `Catalog\\Models\\Product` and
-`Inventory\\Models\\Product`.
+The table-based alias prevents collisions when models have distinct prefixed
+tables. Two models must not share a table unless they intentionally share the
+same morph identity.
 
 Policies should call `BasePolicy::canModel()` or `canOnModel()` so permission
 names are resolved from the same morph registry. If a permission is missing,

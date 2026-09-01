@@ -118,3 +118,6 @@
   synchronization.
 - [ ] Implement backend-controlled field selection for response shapes,
   including resource serialization and required relation dependencies.
+- [ ] devrais je laisser les models passer entre differentes packages pour les
+  relations eloquent et qu'est ce qui est autorisé à passer
+- [ ] prendre le temps de faire les tests d'architecture a partir des rules

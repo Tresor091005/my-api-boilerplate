@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\BundleFactory;
-use Lahatre\Master\Models\Unit;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -20,15 +20,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $organization_id
  * @property string $handle
  * @property string $name
- * @property string|null $unit_code
- * @property int $step
- * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, BundleItem> $items
  * @property-read int|null $items_count
- * @property-read Unit|null $unit
+ * @property-read CatalogItem $catalogItem
  *
  * @method static Builder<static>|Bundle newModelQuery()
  * @method static Builder<static>|Bundle newQuery()
@@ -36,10 +33,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Bundle whereCreatedAt($value)
  * @method static Builder<static>|Bundle whereHandle($value)
  * @method static Builder<static>|Bundle whereId($value)
- * @method static Builder<static>|Bundle whereIsActive($value)
  * @method static Builder<static>|Bundle whereName($value)
- * @method static Builder<static>|Bundle whereStep($value)
- * @method static Builder<static>|Bundle whereUnitCode($value)
  * @method static Builder<static>|Bundle whereUpdatedAt($value)
  * @method static BundleFactory factory($count = null, $state = [])
  * @method static Builder<static>|Bundle onlyTrashed()
@@ -61,9 +55,6 @@ class Bundle extends Model
         'organization_id',
         'handle',
         'name',
-        'unit_code',
-        'step',
-        'is_active',
     ];
 
     protected $casts = [
@@ -71,17 +62,16 @@ class Bundle extends Model
         'organization_id' => 'string',
         'handle'          => 'string',
         'name'            => 'string',
-        'unit_code'       => 'string',
-        'step'            => 'integer',
-        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
     ];
 
-    public function unit(): BelongsTo
+    public function catalogItem(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'unit_code', 'code');
+        return $this->belongsTo(CatalogItem::class, 'id', 'id')
+            ->where('catalog_items.item_type', CatalogItemType::Bundle->value)
+            ->where('catalog_items.organization_id', currentOrganizationId());
     }
 
     public function items(): HasMany

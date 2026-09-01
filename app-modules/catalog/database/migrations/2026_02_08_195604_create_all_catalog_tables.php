@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -86,18 +87,10 @@ return new class extends Migration
                 ->onDelete('restrict');
             $table->text('handle')->index();
             $table->text('name');
-            $table->string('unit_code')
-                ->nullable()
-                ->index();
-            $table->foreign('unit_code')
-                ->references('code')
-                ->on('master_units')
-                ->onDelete('restrict');
-            $table->integer('step')->default(1);
-            $table->boolean('is_active')->default(false);
             $table->timestamps();
 
             $table->unique(['organization_id', 'handle'], 'catalog_bundles_organization_id_handle_unique');
+            $table->unique(['organization_id', 'id'], 'catalog_bundles_organization_id_id_unique');
         });
 
         Schema::create('catalog_bundle_items', function (Blueprint $table): void {
@@ -106,14 +99,25 @@ return new class extends Migration
                 ->index()
                 ->constrained('organization_organizations')
                 ->onDelete('restrict');
-            $table->uuidMorphs('item', 'catalog_bundle_items_item_type_item_id_index');
+            $table->string('item_type', 50);
+            $table->uuid('item_id');
             $table->foreignUuid('bundle_id')
                 ->index()
                 ->constrained('catalog_bundles')
                 ->onDelete('cascade');
-            $table->integer('quantity')->default(1);
+            $table->unsignedInteger('quantity');
+            $table->string('display_unit_code')->index();
+            $table->foreign('display_unit_code')
+                ->references('code')
+                ->on('master_units')
+                ->restrictOnDelete();
             $table->timestamps();
         });
+
+        DB::statement(<<<'SQL'
+            ALTER TABLE catalog_bundle_items
+            ADD CONSTRAINT catalog_bundle_items_quantity_positive CHECK (quantity > 0)
+            SQL);
 
         Schema::create('catalog_product_categories', function (Blueprint $table): void {
             $table->uuid('id')->primary();

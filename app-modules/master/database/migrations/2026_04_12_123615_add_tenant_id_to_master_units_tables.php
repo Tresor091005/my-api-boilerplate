@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Drop dependent foreign keys
-        Schema::table('catalog_bundles', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->dropForeign(['display_unit_code']);
         });
         Schema::table('inventory_items', function (Blueprint $table): void {
             $table->dropForeign(['base_unit_code']);
         });
         Schema::table('inventory_stocks', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+            $table->dropForeign(['base_unit_code']);
         });
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+            $table->dropForeign(['base_unit_code']);
         });
 
         // 2. Update master_unit_groups
@@ -54,34 +54,34 @@ return new class extends Migration
         DB::statement('CREATE UNIQUE INDEX master_units_group_id_ratio_organization_id_unique ON master_units (group_id, ratio, organization_id) WHERE organization_id IS NOT NULL AND deleted_at IS NULL');
 
         // 4. Recreate foreign keys
-        Schema::table('catalog_bundles', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->foreign('display_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_items', function (Blueprint $table): void {
             $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_stocks', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
     }
 
     public function down(): void
     {
         // 1. Drop foreign keys
-        Schema::table('catalog_bundles', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->dropForeign(['display_unit_code']);
         });
         Schema::table('inventory_items', function (Blueprint $table): void {
             $table->dropForeign(['base_unit_code']);
         });
         Schema::table('inventory_stocks', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+            $table->dropForeign(['base_unit_code']);
         });
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->dropForeign(['unit_code']);
+            $table->dropForeign(['base_unit_code']);
         });
 
         // 2. Revert master_units
@@ -110,17 +110,17 @@ return new class extends Migration
         });
 
         // 4. Recreate foreign keys
-        Schema::table('catalog_bundles', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+        Schema::table('catalog_bundle_items', function (Blueprint $table): void {
+            $table->foreign('display_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_items', function (Blueprint $table): void {
             $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_stocks', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
         Schema::table('inventory_movements', function (Blueprint $table): void {
-            $table->foreign('unit_code')->references('code')->on('master_units')->onDelete('restrict');
+            $table->foreign('base_unit_code')->references('code')->on('master_units')->onDelete('restrict');
         });
     }
 };

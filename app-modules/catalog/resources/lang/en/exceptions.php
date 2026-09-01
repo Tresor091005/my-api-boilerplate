@@ -12,4 +12,13 @@ return [
     'product_variant_is_last'                 => 'Cannot delete the last variant of a product.',
     'product_variant_not_attached_to_product' => 'The product variant does not belong to the selected product.',
     'label_in_use'                            => 'Cannot delete a label that is currently in use by products: :products.',
+    'bundle_system_unit_group_missing'        => 'The system bundle unit group is unavailable.',
+    'bundle_items_unavailable'                => 'One or more selected bundle items are unavailable.',
+    'bundle_duplicate_item'                   => 'A bundle cannot contain the same item more than once.',
+    'bundle_item_type_not_allowed'            => 'The selected item type cannot be used in a bundle.',
+    'bundle_item_unit_mismatch'               => 'The selected unit does not belong to the item unit group.',
+    'bundle_requires_two_items'               => 'A bundle must contain at least two items.',
+    'bundle_quantity_must_be_positive'        => 'A bundle item quantity must be greater than zero.',
+    'catalog_item_used_by_bundle'             => 'Cannot delete an item that is used by a bundle.',
+    'unsupported_catalog_item_target_model'   => 'Unsupported CatalogItem target model [:class].',
 ];

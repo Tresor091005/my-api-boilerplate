@@ -66,7 +66,7 @@ $productContracts = array_fill_keys(
             'includes' => [
                 'categories' => ['loads' => ['categories']],
                 'options'    => ['loads' => ['optionValues.option']],
-                'variants'   => ['loads' => ['variants.product', 'variants.catalogItem', 'variants.optionValues.option']],
+                'variants'   => ['loads' => ['variants.catalogItem', 'variants.product', 'variants.optionValues.option']],
             ],
         ]],
     ],
@@ -82,12 +82,49 @@ $variantContracts = array_fill_keys(
     [
         'default_shape' => 'default',
         'shapes'        => ['default' => [
-            'required_loads' => ['product', 'catalogItem', 'optionValues.option'],
+            'required_loads' => ['catalogItem', 'product', 'optionValues.option'],
             'includes'       => [
+                'labels'     => ['loads' => ['labels']],
                 'unit_group' => ['loads' => ['catalogItem.unitGroup']],
                 'units'      => ['loads' => ['catalogItem.unitGroup.units']],
-                'labels'     => ['loads' => ['labels']],
                 'inventory'  => ['loads' => ['catalogItem.inventoryItem.stockSummaries']],
+            ],
+        ]],
+    ],
+);
+
+$bundleResourceContracts = array_fill_keys(
+    [
+        'lahatre.catalog.bundles.index',
+        'lahatre.catalog.bundles.show',
+        'lahatre.catalog.bundles.store',
+        'lahatre.catalog.bundles.update',
+    ],
+    [
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'required_loads' => ['catalogItem'],
+            'includes'       => [
+                'items'      => ['loads' => ['items.component']],
+                'unit_group' => ['loads' => ['catalogItem.unitGroup']],
+                'units'      => ['loads' => ['catalogItem.unitGroup.units']],
+                'inventory'  => ['loads' => ['catalogItem.inventoryItem.stockSummaries']],
+            ],
+        ]],
+    ],
+);
+
+$bundleItemContracts = array_fill_keys(
+    [
+        'lahatre.catalog.bundles.items.store',
+        'lahatre.catalog.bundles.items.update',
+    ],
+    [
+        'default_mode'  => 'resource',
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'includes' => [
+                'component' => ['loads' => ['component']],
             ],
         ]],
     ],
@@ -101,6 +138,8 @@ $noContentContracts = array_fill_keys(
         'lahatre.catalog.options.values.destroy',
         'lahatre.catalog.products.destroy',
         'lahatre.catalog.products.variants.destroy',
+        'lahatre.catalog.bundles.destroy',
+        'lahatre.catalog.bundles.items.destroy',
     ],
     [],
 );
@@ -111,5 +150,7 @@ return [
     ...$optionValueContracts,
     ...$productContracts,
     ...$variantContracts,
+    ...$bundleResourceContracts,
+    ...$bundleItemContracts,
     ...$noContentContracts,
 ];
