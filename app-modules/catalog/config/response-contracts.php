@@ -70,6 +70,15 @@ $bundleCollection = [
 
 $bundleResource = $bundleCollection;
 
+$stockLocationCollection = [
+    'default_shape' => 'default',
+    'shapes'        => ['default' => ['includes' => [
+        'address' => ['loads' => ['address']],
+    ]]],
+];
+
+$stockLocationResource = $stockLocationCollection;
+
 return [
     'lahatre.catalog.categories.index'         => $categoryCollection,
     'lahatre.catalog.categories.show'          => $categoryResource,
@@ -95,6 +104,10 @@ return [
     'lahatre.catalog.bundles.show'             => $bundleResource,
     'lahatre.catalog.bundles.store'            => $bundleResource,
     'lahatre.catalog.bundles.update'           => $bundleResource,
+    'lahatre.catalog.stock-locations.index'    => $stockLocationCollection,
+    'lahatre.catalog.stock-locations.show'     => $stockLocationResource,
+    'lahatre.catalog.stock-locations.store'    => $stockLocationResource,
+    'lahatre.catalog.stock-locations.update'   => $stockLocationResource,
     'lahatre.catalog.bundles.items.store'      => [
         'default_mode'  => 'resource',
         'default_shape' => 'default',
@@ -114,6 +127,7 @@ return [
     'lahatre.catalog.options.values.destroy'    => [],
     'lahatre.catalog.products.destroy'          => [],
     'lahatre.catalog.products.variants.destroy' => [],
-    'lahatre.catalog.bundles.destroy'           => [],
-    'lahatre.catalog.bundles.items.destroy'     => [],
+    'lahatre.catalog.bundles.destroy'                   => [],
+    'lahatre.catalog.stock-locations.destroy'           => [],
+    'lahatre.catalog.bundles.items.destroy'             => [],
 ];

@@ -42,6 +42,10 @@ Unit quantities use ratio-based decimal conversion with BCMath precision.
   `catalog_items` row. It stores presentation, options, labels, and the
   calculated name, but no operational SKU or inventory configuration.
 - `catalog_options` owns `catalog_option_values`.
+- `catalog_stock_locations` stores the organization-owned, flat stock locations
+  used by the Catalog domain. Each location implements `HasInventoryLocation`,
+  which keeps the Inventory ledger independent of business naming. A location
+  may have one primary Master address.
 - Product/variant option selections use explicit pivot models so product and
   option ownership can be validated.
 - `catalog_bundles` shares its UUID with a stockable CatalogItem and its own

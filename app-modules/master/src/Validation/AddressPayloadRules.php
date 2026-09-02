@@ -9,16 +9,27 @@ use Illuminate\Validation\Validator;
 final class AddressPayloadRules
 {
     /** @return array<string, array<int, mixed>> */
+    public static function singleRules(string $basePath = 'address', bool $required = false): array
+    {
+        return [
+            $basePath             => $required ? ['required', 'array'] : ['nullable', 'array'],
+            "{$basePath}.line"    => ["required_with:{$basePath}", 'string', 'max:500'],
+            "{$basePath}.city"    => ["required_with:{$basePath}", 'string', 'max:100'],
+            "{$basePath}.country" => ["required_with:{$basePath}", 'string', 'max:100'],
+        ];
+    }
+
+    /** @return array<string, array<int, mixed>> */
     public static function rules(string $basePath = 'addresses'): array
     {
         return [
-            $basePath                  => ['sometimes', 'array', 'max:50'],
+            $basePath                  => ['array', 'max:50'],
             "{$basePath}.*"            => ['required', 'array'],
-            "{$basePath}.*.id"         => ['sometimes', 'uuid'],
+            "{$basePath}.*.id"         => ['uuid'],
             "{$basePath}.*.line"       => ['required', 'string', 'max:500'],
             "{$basePath}.*.city"       => ['required', 'string', 'max:100'],
             "{$basePath}.*.country"    => ['required', 'string', 'max:100'],
-            "{$basePath}.*.is_primary" => ['sometimes', 'boolean'],
+            "{$basePath}.*.is_primary" => ['boolean'],
         ];
     }
 

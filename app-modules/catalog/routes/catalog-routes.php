@@ -10,6 +10,7 @@ use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
 use Lahatre\Catalog\Http\Controllers\ProductVariantController;
+use Lahatre\Catalog\Http\Controllers\StockLocationController;
 
 /* -----------------------------------------------------------------
  | Catalog endpoints
@@ -24,10 +25,11 @@ Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
         Route::apiResources([
-            'bundles'    => BundleController::class,
-            'categories' => CategoryController::class,
-            'options'    => OptionController::class,
-            'products'   => ProductController::class,
+            'bundles'         => BundleController::class,
+            'categories'      => CategoryController::class,
+            'options'         => OptionController::class,
+            'products'        => ProductController::class,
+            'stock-locations' => StockLocationController::class,
         ]);
 
         Route::apiResource('products.variants', ProductVariantController::class)->scoped();

@@ -14,6 +14,7 @@ use Lahatre\Inventory\Contracts\HasInventoryItem;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Data\InventoryItemConfigurationData;
+use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
 use Lahatre\Inventory\Data\MovementData;
 use Lahatre\Inventory\Data\MovementExecutionContextData;
 use Lahatre\Inventory\Data\TransactionData;
@@ -57,17 +58,18 @@ class InventoryService implements InventoryInterface
         protected OrganizationInterface $organizationInterface,
     ) {}
 
-    public function createLocation(HasInventoryLocation $model): InventoryLocation
+    public function createLocation(HasInventoryLocation $model, ?InventoryLocationConfigurationData $configuration = null): InventoryLocation
     {
-        return $this->inventoryLocationService->create($model);
+        return $this->inventoryLocationService->create($model, $configuration);
     }
 
     /**
      * @param  array<int, HasInventoryLocation>|Collection<int, HasInventoryLocation>  $models
+     * @param  array<string, InventoryLocationConfigurationData>|Collection<string, InventoryLocationConfigurationData>  $configurations
      */
-    public function createManyLocations(array|Collection $models): Collection
+    public function createManyLocations(array|Collection $models, array|Collection $configurations = []): Collection
     {
-        return $this->inventoryLocationService->createMany($models);
+        return $this->inventoryLocationService->createMany($models, $configurations);
     }
 
     public function createItem(HasInventoryItem $model, ?InventoryItemConfigurationData $configuration = null): InventoryItem

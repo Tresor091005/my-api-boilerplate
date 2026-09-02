@@ -83,18 +83,14 @@
   conversion, inbound and outbound directions, rounding, rate validity, rate
   snapshots, historical reproducibility, and transition opening balances.
 
-## TODO: stock location
+## Stock location
 
-- [ ] Name the business concept correctly.
-- [ ] Compare naming options: `warehouse`, `store`, `location`, `site`, `depot`,
-  and `stock_location`.
-- [ ] Avoid `store` if confusion with shop, POS, or storefront is too likely.
-- [ ] Avoid `warehouse` if the concept must also cover smaller places such as a
-  shelf, van, reserve, pickup point, workshop, or shop.
-- [ ] If the concept remains generic, prefer a neutral business term such as
-  `stock location`.
-- [ ] Once named, create the business domain that cleanly implements
-  `HasInventoryLocation` above the Inventory engine.
+- [x] Use the neutral `stock location` business concept in Catalog, backed by
+  Inventory's technical `InventoryLocation` adapter.
+- [x] Keep the first version flat and organization-scoped; hierarchy can be
+  introduced later if warehouse, shelf, van, or shop workflows require it.
+- [x] Allow one optional primary address per stock location.
+- [ ] Add stock transfers and bundle stock operations against stock locations.
 
 ## Already identified in the code
 

@@ -8,6 +8,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
+use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
+use Lahatre\Inventory\Exceptions\InventoryLocationException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Shared\Support\OrganizationScopeResolver;
@@ -18,20 +20,24 @@ class ManageInventoryLocationService
         protected OrganizationScopeResolver $organizationScopeResolver,
     ) {}
 
-    public function create(HasInventoryLocation $model): InventoryLocation
+    public function create(HasInventoryLocation $model, ?InventoryLocationConfigurationData $configuration = null): InventoryLocation
     {
         return DB::transaction(
-            fn (): InventoryLocation => $this->ensure(collect([$model]))->firstOrFail()
+            fn (): InventoryLocation => $this->ensure(
+                collect([$model]),
+                $configuration === null ? [] : [(string) $model->getKey() => $configuration],
+            )->firstOrFail()
         );
     }
 
     /**
      * @param  array<int, HasInventoryLocation>|Collection<int, HasInventoryLocation>  $models
+     * @param  array<string, InventoryLocationConfigurationData>|Collection<string, InventoryLocationConfigurationData>  $configurations
      */
-    public function createMany(array|Collection $models): Collection
+    public function createMany(array|Collection $models, array|Collection $configurations = []): Collection
     {
         return DB::transaction(
-            fn (): Collection => $this->ensure(collect($models))
+            fn (): Collection => $this->ensure(collect($models), $configurations)
         );
     }
 
@@ -57,7 +63,13 @@ class ManageInventoryLocationService
     public function delete(HasInventoryLocation $model): void
     {
         DB::transaction(function () use ($model): void {
-            $this->resolve($model)->delete();
+            $location = $this->resolve($model);
+
+            if ($location->stocks()->where('remaining', '>', 0)->exists()) {
+                throw InventoryLocationException::cannotDeleteWithActiveStock($location->id);
+            }
+
+            $location->delete();
         });
     }
 
@@ -78,13 +90,15 @@ class ManageInventoryLocationService
      * @param  Collection<int, HasInventoryLocation>  $models
      * @return Collection<int, InventoryLocation>
      */
-    public function ensure(Collection $models): Collection
+    public function ensure(Collection $models, array|Collection $configurations = []): Collection
     {
         $organizationId = currentOrganizationId();
 
         if ($models->isEmpty()) {
             return collect();
         }
+
+        $configurations = collect($configurations);
 
         $models = $models
             ->map(fn (HasInventoryLocation $model): HasInventoryLocation => $this->resolveAndValidateModel($model));
@@ -116,15 +130,20 @@ class ManageInventoryLocationService
 
                 InventoryLocation::query()->insert(
                     $missingModels
-                        ->map(fn (HasInventoryLocation $model): array => [
-                            'id'              => (string) Str::uuid7(),
-                            'organization_id' => $organizationId,
-                            'external_type'   => $model->getMorphClass(),
-                            'external_id'     => (string) $model->getKey(),
-                            'is_active'       => true,
-                            'created_at'      => $now,
-                            'updated_at'      => $now,
-                        ])
+                        ->map(function (HasInventoryLocation $model) use ($configurations, $organizationId, $now): array {
+                            $configuration = $configurations->get((string) $model->getKey())
+                                ?? new InventoryLocationConfigurationData;
+
+                            return [
+                                'id'              => (string) Str::uuid7(),
+                                'organization_id' => $organizationId,
+                                'external_type'   => $model->getMorphClass(),
+                                'external_id'     => (string) $model->getKey(),
+                                'is_active'       => $configuration->isActive,
+                                'created_at'      => $now,
+                                'updated_at'      => $now,
+                            ];
+                        })
                         ->all()
                 );
 

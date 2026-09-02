@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Contracts;
 
 use Illuminate\Support\Collection;
 use Lahatre\Inventory\Data\InventoryItemConfigurationData;
+use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -13,13 +14,14 @@ use Lahatre\Inventory\Models\InventoryTransaction;
 
 interface InventoryInterface
 {
-    public function createLocation(HasInventoryLocation $model): InventoryLocation;
+    public function createLocation(HasInventoryLocation $model, ?InventoryLocationConfigurationData $configuration = null): InventoryLocation;
 
     /**
      * @param  array<int, HasInventoryLocation>|Collection<int, HasInventoryLocation>  $models
+     * @param  array<string, InventoryLocationConfigurationData>|Collection<string, InventoryLocationConfigurationData>  $configurations
      * @return Collection<int, InventoryLocation>
      */
-    public function createManyLocations(array|Collection $models): Collection;
+    public function createManyLocations(array|Collection $models, array|Collection $configurations = []): Collection;
 
     public function createItem(HasInventoryItem $model, ?InventoryItemConfigurationData $configuration = null): InventoryItem;
 

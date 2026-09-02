@@ -62,6 +62,7 @@ beforeEach(function (): void {
         'catalog_option_value.list', 'catalog_option_value.retrieve', 'catalog_option_value.create', 'catalog_option_value.update', 'catalog_option_value.delete',
         'catalog_product.list', 'catalog_product.retrieve', 'catalog_product.create', 'catalog_product.update', 'catalog_product.delete',
         'catalog_product_variant.list', 'catalog_product_variant.retrieve', 'catalog_product_variant.create', 'catalog_product_variant.update', 'catalog_product_variant.delete',
+        'catalog_stock_location.list', 'catalog_stock_location.retrieve', 'catalog_stock_location.create', 'catalog_stock_location.update', 'catalog_stock_location.delete',
     ];
 
     collect($permissions)->each(function (string $permissionName): void {
@@ -173,6 +174,42 @@ it('enforces tenancy matrix for categories', function (): void {
     $this->getJson("/v1/catalog/categories/{$createdId}")->assertNotFound();
     expect(Category::withTrashed()->whereKey($createdId)->exists())->toBeTrue();
     $this->deleteJson("/v1/catalog/categories/{$otherCategory->id}")->assertForbidden();
+});
+
+it('renders stock locations and their optional address through the catalog api', function (): void {
+    $created = $this->postJson('/v1/catalog/stock-locations?response=resource&include=address', [
+        'name'      => 'Main Warehouse',
+        'is_active' => true,
+        'address'   => [
+            'line'    => '1 Main Street',
+            'city'    => 'Cotonou',
+            'country' => 'Benin',
+        ],
+    ])->assertCreated()
+        ->assertJsonPath('data.handle', 'main-warehouse')
+        ->assertJsonPath('data.address.line', '1 Main Street')
+        ->assertJsonPath('data.address.city', 'Cotonou');
+
+    $locationId = (string) $created->json('data.id');
+
+    $this->getJson('/v1/catalog/stock-locations?include=address')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $locationId)
+        ->assertJsonPath('data.0.address.country', 'Benin');
+
+    $this->patchJson("/v1/catalog/stock-locations/{$locationId}?response=resource&include=address", [
+        'is_active' => false,
+        'address'   => [
+            'line'    => '2 Reserve Street',
+            'city'    => 'Porto-Novo',
+            'country' => 'Benin',
+        ],
+    ])->assertOk()
+        ->assertJsonPath('data.is_active', false)
+        ->assertJsonPath('data.address.line', '2 Reserve Street');
+
+    $this->deleteJson("/v1/catalog/stock-locations/{$locationId}")
+        ->assertNoContent();
 });
 
 it('enforces tenancy matrix for products and variants', function (): void {

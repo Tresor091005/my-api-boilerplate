@@ -15,6 +15,7 @@ use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
 use Lahatre\Inventory\Exceptions\InventoryItemException;
+use Lahatre\Inventory\Exceptions\InventoryLocationException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -274,6 +275,21 @@ it('deleteItem and deleteLocation perform a soft delete and preserve stock histo
         ->and(InventoryLocation::withTrashed()->find($location->id)?->trashed())->toBeTrue()
         ->and(InventoryStock::query()->find($stock->id)?->item_id)->toBe($item->id)
         ->and(InventoryStock::query()->find($stock->id)?->location_id)->toBe($location->id);
+});
+
+it('prevents deleting an inventory location while active stock remains', function (): void {
+    $item = $this->service->createItem($this->createTestMaterial());
+    $locationModel = $this->createTestWarehouse();
+    $location = $this->service->createLocation($locationModel);
+
+    InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create([
+        'remaining' => 1,
+    ]);
+
+    expect(fn () => $this->service->deleteLocation($locationModel))
+        ->toThrow(InventoryLocationException::class);
+
+    expect(InventoryLocation::query()->whereKey($location->id)->exists())->toBeTrue();
 });
 
 it('ensures all stock records are locked for update during a transaction', function (): void {
