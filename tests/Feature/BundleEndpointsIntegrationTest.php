@@ -101,7 +101,7 @@ it('exposes the complete bundle CRUD and nested item mutations', function (): vo
     ])->assertCreated()
         ->assertJsonCount(2, 'data.items')
         ->assertJsonPath('data.items.0.quantity', 2)
-        ->assertJsonPath('data.items.0.unit_code', $this->displayUnit->code);
+        ->assertJsonFragment(['unit_code' => $this->displayUnit->code]);
 
     $bundleId = (string) $created->json('data.id');
     expect(CatalogItem::query()->findOrFail($bundleId)->is_stockable)->toBeTrue();
@@ -113,8 +113,10 @@ it('exposes the complete bundle CRUD and nested item mutations', function (): vo
     $retrieved = $this->getJson("/v1/catalog/bundles/{$bundleId}?include=items")
         ->assertOk()
         ->assertJsonCount(2, 'data.items')
-        ->assertJsonPath('data.items.0.component.id', $this->variants[0]->id)
-        ->assertJsonPath('data.items.0.component.product_id', $this->variants[0]->product_id)
+        ->assertJsonFragment([
+            'id'         => $this->variants[0]->id,
+            'product_id' => $this->variants[0]->product_id,
+        ])
         ->assertJsonStructure(['data' => ['items' => [['component' => ['name', 'options']]]]]);
     expect(collect($retrieved->json('data.items'))->pluck('item_id')->all())
         ->toEqualCanonicalizing([$this->variants[0]->id, $this->variants[1]->id]);

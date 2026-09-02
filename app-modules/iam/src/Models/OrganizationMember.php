@@ -69,7 +69,7 @@ class OrganizationMember extends Model
 
     public function memberRoles(): HasMany
     {
-        return $this->hasMany(MemberRole::class, 'member_id')
-            ->where('iam_member_roles.organization_id', currentOrganizationId());
+        /** Callers must enforce organization authorization when using this cross-organization relation. */
+        return $this->hasMany(MemberRole::class, 'member_id');
     }
 }

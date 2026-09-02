@@ -66,12 +66,13 @@ paths:
 ## Resources
 
 - Resources transform output only. Add `@mixin`, use `whenLoaded()` for relations, and load required relations before creating the Resource.
-- Define scalar fields first, then required loaded relations, then optional
-  relations rendered through `includeWhenRequestedAndLoaded()` (or the
-  equivalent shared helper). A Resource must never access a relation directly
-  to make it available; response shapes and the response context own relation
-  loading. Keep every relation guarded by `whenLoaded()` so a loading mistake
-  omits the relation instead of causing a lazy-loading query or exception.
+- Define scalar fields first, then required and optional relations rendered
+  through native `whenLoaded()`. A Resource must never access a relation
+  directly to make it available; response shapes and the response context own
+  relation loading. The contract controls which relations may be loaded, and
+  the Resource renders any relation that is actually loaded. Keep every
+  relation guarded by `whenLoaded()` so a loading mistake omits the relation
+  instead of causing a lazy-loading query or exception.
 - The response context is lifecycle-scoped but not HTTP-only. Middleware
   configures it from query parameters, and the active response shape is the
   only source of required and optional response relation loads. Without an

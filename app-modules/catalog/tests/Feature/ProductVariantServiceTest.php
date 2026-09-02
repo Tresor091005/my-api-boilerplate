@@ -229,6 +229,30 @@ it('omits catalog item fields when the relation is not loaded', function (): voi
         ->not->toHaveKeys(['sku', 'unit_group_id', 'is_active']);
 });
 
+it('renders catalog item fields when the relation is loaded', function (): void {
+    $variant = ProductVariant::factory()->make([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ]);
+    $variant->setRelation('product', $this->product);
+    $variant->setRelation('optionValues', collect());
+    $variant->setRelation('catalogItem', CatalogItem::factory()->make([
+        'organization_id' => $this->organizationId,
+        'sku'             => 'LOADED-SKU',
+        'unit_group_id'   => $this->unitGroup->id,
+        'is_active'       => true,
+    ]));
+
+    $resource = ProductVariantResource::make($variant)->resolve();
+
+    expect($resource)
+        ->toMatchArray([
+            'sku'           => 'LOADED-SKU',
+            'unit_group_id' => $this->unitGroup->id,
+            'is_active'     => true,
+        ]);
+});
+
 it('validates labels inside each bulk variant payload', function (): void {
     $request = ProductVariantCreateRequest::create('/', 'POST', [
         'variants' => [[

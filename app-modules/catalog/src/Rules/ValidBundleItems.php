@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Rules;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\ValidatorAwareRule;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Translation\PotentiallyTranslatedString;
@@ -40,8 +41,8 @@ final class ValidBundleItems implements ValidationRule, ValidatorAwareRule
 
         $items = collect($value)->filter(fn (mixed $item): bool => is_array($item));
         $itemIds = $items->pluck('item_id')->filter(fn (mixed $id): bool => is_string($id) && Str::isUuid($id));
+        /** @var Collection<int, string> $unitCodes */
         $unitCodes = $items->pluck('unit_code')->filter(fn (mixed $code): bool => is_string($code) && $code !== '');
-
         $catalogItems = DB::table('catalog_items')
             ->select(['id', 'item_type', 'unit_group_id', 'is_active'])
             ->where('organization_id', $this->organizationId)

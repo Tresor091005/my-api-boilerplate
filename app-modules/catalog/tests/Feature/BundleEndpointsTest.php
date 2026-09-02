@@ -151,6 +151,27 @@ it('omits catalog item fields when the relation is not loaded', function (): voi
         ->not->toHaveKeys(['sku', 'unit_group_id', 'is_active']);
 });
 
+it('renders catalog item fields when the relation is loaded', function (): void {
+    $bundle = Bundle::factory()->make([
+        'organization_id' => $this->organizationId,
+    ]);
+    $bundle->setRelation('catalogItem', CatalogItem::factory()->bundle()->make([
+        'organization_id' => $this->organizationId,
+        'sku'             => 'LOADED-BUNDLE-SKU',
+        'unit_group_id'   => $this->unitGroup->id,
+        'is_active'       => true,
+    ]));
+
+    $resource = BundleResource::make($bundle)->resolve();
+
+    expect($resource)
+        ->toMatchArray([
+            'sku'           => 'LOADED-BUNDLE-SKU',
+            'unit_group_id' => $this->unitGroup->id,
+            'is_active'     => true,
+        ]);
+});
+
 it('enforces component uniqueness units and the two-item minimum', function (): void {
     $payload = bundleItemPayload($this->variants[0], $this->unit, 1);
 

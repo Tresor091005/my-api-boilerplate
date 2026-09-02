@@ -16,10 +16,9 @@ enum CatalogItemType: string
 
     public function isStockable(): bool
     {
-        return match ($this->value) {
-            self::Bundle->value,
-            self::ProductVariant->value => true,
-            default                     => false,
+        return match ($this) {
+            self::Bundle,
+            self::ProductVariant => true,
         };
     }
 

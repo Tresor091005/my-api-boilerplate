@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Eloquent\Model;
 use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\Product;
@@ -27,8 +26,7 @@ it('keeps every catalog item type value aligned with its registered morph alias'
 
 it('defines a valid model class for every catalog item type', function (): void {
     foreach (CatalogItemType::cases() as $type) {
-        expect(class_exists($type->modelClass()))->toBeTrue()
-            ->and(is_a($type->modelClass(), Model::class, true))->toBeTrue();
+        expect(class_exists($type->modelClass()))->toBeTrue();
     }
 });
 

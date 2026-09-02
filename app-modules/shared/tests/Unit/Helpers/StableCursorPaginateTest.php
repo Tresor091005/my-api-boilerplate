@@ -88,13 +88,11 @@ it('keeps duplicate sort values on separate cursor pages without gaps or duplica
         'updated_at'               => now(),
     ]);
 
-    $categories = collect(range(1, 5))->map(function (int $index) use ($organizationId): Category {
-        return Category::factory()->create([
-            'organization_id' => $organizationId,
-            'name'            => 'Duplicate Name',
-            'handle'          => "duplicate-name-{$index}",
-        ]);
-    });
+    $categories = collect(range(1, 5))->map(fn (int $index): Category => Category::factory()->create([
+        'organization_id' => $organizationId,
+        'name'            => 'Duplicate Name',
+        'handle'          => "duplicate-name-{$index}",
+    ]));
     $filters = (object) [
         'sortBy'    => 'name',
         'sortOrder' => 'asc',
