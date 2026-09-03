@@ -60,6 +60,41 @@ final class BundleException extends AssertionException
         return new self(__('catalog::exceptions.bundle_quantity_must_be_positive'));
     }
 
+    /** @param list<array{code: string, context: array<string, string>}> $errors */
+    public static function stockOperationInvalidState(array $errors): self
+    {
+        return new self(
+            __('catalog::exceptions.bundle_stock_operation_invalid_state'),
+            ['errors' => $errors],
+        );
+    }
+
+    public static function stockOperationCompositionChanged(string $operationId): self
+    {
+        return new self(
+            __('catalog::exceptions.bundle_stock_operation_composition_changed'),
+            ['operation_id' => $operationId],
+        );
+    }
+
+    public static function stockOperationCurrencyMismatch(): self
+    {
+        return new self(__('catalog::exceptions.bundle_stock_operation_currency_mismatch'));
+    }
+
+    public static function stockOperationCostAllocationMismatch(): self
+    {
+        return new self(__('catalog::exceptions.bundle_stock_operation_cost_allocation_mismatch'));
+    }
+
+    public static function cannotChangeCompositionWithActiveStock(Bundle $bundle): self
+    {
+        return new self(
+            __('catalog::exceptions.bundle_cannot_change_composition_with_active_stock'),
+            ['bundle_id' => $bundle->id],
+        );
+    }
+
     private function __construct(string $message, array $context = [])
     {
         parent::__construct($message, $context);

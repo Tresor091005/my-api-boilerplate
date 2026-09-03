@@ -117,3 +117,4 @@
 - [ ] devrais je laisser les models passer entre differentes packages pour les
   relations eloquent et qu'est ce qui est autorisé à passer
 - [ ] prendre le temps de faire les tests d'architecture a partir des rules
+- [ ] controller a double gate. soupcon sur les scoped et solution de mettre les permissions sur le parent

@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Validator;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Http\Requests\BundleStockOperationCreateRequest;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
+use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -38,7 +42,7 @@ beforeEach(function (): void {
         'name'       => 'bundle-api-admin',
         'guard_name' => 'sanctum',
     ]);
-    $memberRole = MemberRole::create([
+    $this->memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,
         'member_id'       => $member->id,
         'role_id'         => $role->id,
@@ -50,20 +54,19 @@ beforeEach(function (): void {
         'catalog_bundle.create',
         'catalog_bundle.update',
         'catalog_bundle.delete',
-        'catalog_bundle_item.create',
-        'catalog_bundle_item.update',
-        'catalog_bundle_item.delete',
+        'catalog_bundle.assemble',
+        'catalog_bundle.manage_composition',
     ];
     foreach ($permissions as $permission) {
         Permission::query()->firstOrCreate(['name' => $permission, 'guard_name' => 'sanctum']);
     }
-    $memberRole->givePermissionTo($permissions);
+    $this->memberRole->givePermissionTo($permissions);
 
     $token = $this->user->createToken('bundle-api-token');
     $token->accessToken->update(['metadata' => [
         'organization_id' => $this->organization->id,
         'member_id'       => $member->id,
-        'member_role_id'  => $memberRole->id,
+        'member_role_id'  => $this->memberRole->id,
         'role_id'         => $role->id,
     ]]);
     $this->withToken($token->plainTextToken);
@@ -232,6 +235,101 @@ it('persists bundle inventory configuration on create and update', function (): 
     expect($inventoryItem->stock_tracking_enabled)->toBeTrue()
         ->and($inventoryItem->is_expirable)->toBeFalse()
         ->and($inventoryItem->deduction_strategy->value)->toBe('fifo');
+});
+
+it('creates and exposes bundle stock operation history through nested endpoints', function (): void {
+    $created = $this->postJson('/v1/catalog/bundles?response=resource&include=items', [
+        'name'      => 'HTTP Stock Operation Pack',
+        'is_active' => true,
+        'items'     => [
+            httpBundleItem($this->variants[0], $this->unit, 1),
+            httpBundleItem($this->variants[1], $this->unit, 1),
+        ],
+    ])->assertCreated();
+
+    $bundleId = (string) $created->json('data.id');
+    $bundleItemIds = BundleItem::query()
+        ->where('bundle_id', $bundleId)
+        ->orderBy('created_at')
+        ->pluck('id');
+
+    foreach ($this->variants->take(2) as $variant) {
+        app(InventoryInterface::class)->createItem(
+            CatalogItem::query()->findOrFail($variant->id),
+        );
+    }
+
+    $stockLocation = StockLocation::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    app(InventoryInterface::class)->createLocation($stockLocation);
+
+    $operation = $this->postJson("/v1/catalog/bundles/{$bundleId}/stock-operations?response=resource", [
+        'type'        => 'attach',
+        'quantity'    => 2,
+        'location_id' => $stockLocation->id,
+        'components'  => $bundleItemIds->map(fn (string $id): array => [
+            'bundle_item_id' => $id,
+        ])->all(),
+    ])->assertCreated()
+        ->assertJsonPath('data.type', 'attach')
+        ->assertJsonPath('data.status', 'draft')
+        ->assertJsonPath('data.quantity', 2);
+
+    $operationId = (string) $operation->json('data.id');
+
+    $this->getJson("/v1/catalog/bundles/{$bundleId}/stock-operations")
+        ->assertOk()
+        ->assertJsonFragment(['id' => $operationId])
+        ->assertJsonFragment(['status' => 'draft']);
+
+    $this->getJson("/v1/catalog/bundles/{$bundleId}/stock-operations/{$operationId}")
+        ->assertOk()
+        ->assertJsonPath('data.id', $operationId)
+        ->assertJsonPath('data.bundle_id', $bundleId);
+
+    $this->memberRole->revokePermissionTo('catalog_bundle.assemble');
+
+    $this->getJson("/v1/catalog/bundles/{$bundleId}/stock-operations")
+        ->assertForbidden();
+});
+
+it('validates stock operation locations and type-specific stock fields', function (): void {
+    $location = StockLocation::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    $request = new BundleStockOperationCreateRequest;
+    $componentId = (string) str()->uuid7();
+    $stockId = (string) str()->uuid7();
+
+    $attach = [
+        'type'        => 'attach',
+        'quantity'    => 1,
+        'location_id' => $location->id,
+        'components'  => [['bundle_item_id' => $componentId]],
+    ];
+
+    expect(Validator::make($attach, $request->rules())->passes())->toBeTrue()
+        ->and(Validator::make([...$attach, 'location_id' => (string) str()->uuid7()], $request->rules())->fails())->toBeTrue()
+        ->and(Validator::make([...$attach, 'stock_ids' => [$stockId]], $request->rules())->fails())->toBeTrue()
+        ->and(Validator::make([
+            ...$attach,
+            'components' => [['bundle_item_id' => $componentId, 'expiration_date' => '2026-01-01']],
+        ], $request->rules())->fails())->toBeTrue();
+
+    $detach = [
+        'type'        => 'detach',
+        'quantity'    => 1,
+        'location_id' => $location->id,
+        'components'  => [['bundle_item_id' => $componentId]],
+    ];
+
+    expect(Validator::make($detach, $request->rules())->passes())->toBeTrue()
+        ->and(Validator::make([...$detach, 'expiration_date' => '2026-01-01'], $request->rules())->fails())->toBeTrue()
+        ->and(Validator::make([
+            ...$detach,
+            'components' => [['bundle_item_id' => $componentId, 'stock_ids' => [$stockId]]],
+        ], $request->rules())->fails())->toBeTrue();
 });
 
 it('scopes bundle item bindings to their parent bundle', function (): void {

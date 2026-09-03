@@ -85,15 +85,16 @@ return [
     |
     */
     'ignored_soft_delete_partial_columns' => [
-        'users'              => ['email'],
-        'iam_users'          => ['email'],
-        'inventory_items'    => ['sku'],
-        'master_units'       => ['code'],
-        'master_currencies'  => ['code'],
-        'catalog_items'      => ['sku'],
-        'catalog_categories' => ['handle'],
-        'catalog_products'   => ['handle'],
-        'catalog_bundles'    => ['handle'],
+        'users'                   => ['email'],
+        'iam_users'               => ['email'],
+        'inventory_items'         => ['sku'],
+        'master_units'            => ['code'],
+        'master_currencies'       => ['code'],
+        'catalog_items'           => ['sku'],
+        'catalog_categories'      => ['handle'],
+        'catalog_products'        => ['handle'],
+        'catalog_bundles'         => ['handle'],
+        'catalog_stock_locations' => ['handle'],
     ],
 
     /*
@@ -122,6 +123,7 @@ return [
         'master_notes'             => ['master_notes_organization_id_id_unique'],
         'master_labels'            => ['master_labels_organization_id_id_unique'],
         'inventory_items'          => ['inventory_items_organization_id_id_unique'],
+        'catalog_stock_locations'  => ['catalog_stock_locations_organization_id_id_unique'],
         'inventory_locations'      => ['inventory_locations_organization_id_id_unique'],
         'inventory_stocks'         => [
             'inventory_stocks_organization_id_id_unique',

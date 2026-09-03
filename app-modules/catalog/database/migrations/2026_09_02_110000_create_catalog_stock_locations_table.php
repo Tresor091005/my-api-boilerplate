@@ -23,6 +23,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        DB::statement('CREATE UNIQUE INDEX catalog_stock_locations_organization_id_id_unique ON catalog_stock_locations (organization_id, id)');
         DB::statement('CREATE UNIQUE INDEX catalog_stock_locations_organization_handle_unique ON catalog_stock_locations (organization_id, handle)');
         DB::statement('CREATE INDEX catalog_stock_locations_organization_id_index ON catalog_stock_locations (organization_id) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX catalog_stock_locations_deleted_at_index ON catalog_stock_locations (deleted_at)');

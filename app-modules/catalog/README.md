@@ -17,7 +17,9 @@ and remain flattened in the existing variant API response.
 CatalogItem.item_type identifies the referenced business type and currently
 uses `catalog_product_variant` and `catalog_bundle`. A Bundle shares its UUID with CatalogItem,
 uses the built-in `bundle` unit group, and is stockable through its own
-`InventoryItem`. Detailed bundle stock operations are not implemented yet.
+`InventoryItem`. Stock locations are Catalog-owned business models backed by
+Inventory's `InventoryLocation` adapter; the first version is flat and may have
+one primary address.
 Bundle components reference CatalogItems and currently accept product variants
 only.
 BundleItem keeps item_type as a string discriminator and does not define a

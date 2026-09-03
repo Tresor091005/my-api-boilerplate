@@ -49,7 +49,7 @@ Unit quantities use ratio-based decimal conversion with BCMath precision.
 - Product/variant option selections use explicit pivot models so product and
   option ownership can be validated.
 - `catalog_bundles` shares its UUID with a stockable CatalogItem and its own
-  InventoryItem. Detailed bundle stock operations are not implemented yet.
+  InventoryItem. Bundle stock operations use the Catalog stock-location domain.
   Bundle items reference component CatalogItems, store the target type as a
   string, and expose a public nested mutation API. They do not define
   type-specific target relations. Their quantity is stored in the component's

@@ -158,6 +158,7 @@ final readonly class BundleService
 
         $items = DB::transaction(function () use ($bundle, $itemsData, $organizationId): EloquentCollection {
             $lockedBundle = $this->lockBundle($bundle, $organizationId);
+            $this->assertCompositionCanChange($lockedBundle);
             [$catalogItems, $units] = $this->resolveItemEvidence($organizationId, $itemsData);
             $existingItemIds = $lockedBundle->items()
                 ->whereIn('item_id', $itemsData->pluck('itemId')->all())
@@ -186,6 +187,7 @@ final readonly class BundleService
 
         $bundleItem = DB::transaction(function () use ($bundle, $bundleItem, $data, $organizationId): BundleItem {
             $lockedBundle = $this->lockBundle($bundle, $organizationId);
+            $this->assertCompositionCanChange($lockedBundle);
 
             /** @var BundleItem $lockedItem */
             $lockedItem = BundleItem::query()
@@ -227,6 +229,7 @@ final readonly class BundleService
 
         DB::transaction(function () use ($bundle, $itemIds, $organizationId): void {
             $lockedBundle = $this->lockBundle($bundle, $organizationId);
+            $this->assertCompositionCanChange($lockedBundle);
             $bundleItems = $lockedBundle->items()->lockForUpdate()->get(['id']);
 
             $requestedItemIds = collect($itemIds)->unique()->values();
@@ -428,6 +431,17 @@ final readonly class BundleService
     {
         if ($bundle->organization_id !== currentOrganizationId()) {
             throw (new ModelNotFoundException)->setModel(Bundle::class, [$bundle->id]);
+        }
+    }
+
+    private function assertCompositionCanChange(Bundle $bundle): void
+    {
+        $bundle->loadMissing('catalogItem.inventoryItem');
+        $catalogItem = $bundle->getRelation('catalogItem');
+        $inventoryItem = $catalogItem?->getRelation('inventoryItem');
+
+        if ($inventoryItem?->stocks()->where('remaining', '>', 0)->exists()) {
+            throw BundleException::cannotChangeCompositionWithActiveStock($bundle);
         }
     }
 }

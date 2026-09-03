@@ -26,6 +26,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, BundleItem> $items
  * @property-read int|null $items_count
  * @property-read CatalogItem $catalogItem
+ * @property-read Collection<int, BundleStockOperation> $stockOperations
  *
  * @method static Builder<static>|Bundle newModelQuery()
  * @method static Builder<static>|Bundle newQuery()
@@ -78,5 +79,11 @@ class Bundle extends Model
     {
         return $this->hasMany(BundleItem::class, 'bundle_id', 'id')
             ->where('catalog_bundle_items.organization_id', currentOrganizationId());
+    }
+
+    public function stockOperations(): HasMany
+    {
+        return $this->hasMany(BundleStockOperation::class, 'bundle_id', 'id')
+            ->where('catalog_bundle_stock_operations.organization_id', currentOrganizationId());
     }
 }

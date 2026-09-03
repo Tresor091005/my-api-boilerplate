@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Lahatre\Catalog\Http\Controllers\BundleController;
 use Lahatre\Catalog\Http\Controllers\BundleItemController;
+use Lahatre\Catalog\Http\Controllers\BundleStockOperationController;
 use Lahatre\Catalog\Http\Controllers\CategoryController;
 use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
@@ -42,5 +43,16 @@ Route::group([
             ->name('bundles.items.update');
         Route::delete('bundles/{bundle}/items', [BundleItemController::class, 'destroy'])
             ->name('bundles.items.destroy');
+
+        Route::get('bundles/{bundle}/stock-operations', [BundleStockOperationController::class, 'index'])
+            ->name('bundles.stock-operations.index');
+        Route::post('bundles/{bundle}/stock-operations', [BundleStockOperationController::class, 'store'])
+            ->name('bundles.stock-operations.store');
+        Route::get('bundles/{bundle}/stock-operations/{stockOperation}', [BundleStockOperationController::class, 'show'])
+            ->scopeBindings()
+            ->name('bundles.stock-operations.show');
+        Route::post('bundles/{bundle}/stock-operations/{stockOperation}/complete', [BundleStockOperationController::class, 'complete'])
+            ->scopeBindings()
+            ->name('bundles.stock-operations.complete');
     });
 });

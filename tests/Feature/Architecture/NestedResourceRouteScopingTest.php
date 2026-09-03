@@ -6,15 +6,17 @@ use Illuminate\Support\Facades\Route;
 
 it('classifies every route with multiple implicit bindings', function (): void {
     $expectedScopedRoutes = [
-        'lahatre.catalog.products.variants.show'      => 'variant',
-        'lahatre.catalog.products.variants.update'    => 'variant',
-        'lahatre.catalog.products.variants.destroy'   => 'variant',
-        'lahatre.catalog.options.values.show'         => 'value',
-        'lahatre.catalog.options.values.update'       => 'value',
-        'lahatre.catalog.options.values.destroy'      => 'value',
-        'lahatre.catalog.bundles.items.update'        => 'item',
-        'lahatre.customer.customers.addresses.update' => 'address',
-        'lahatre.customer.customers.contacts.update'  => 'contact',
+        'lahatre.catalog.products.variants.show'            => 'variant',
+        'lahatre.catalog.products.variants.update'          => 'variant',
+        'lahatre.catalog.products.variants.destroy'         => 'variant',
+        'lahatre.catalog.options.values.show'               => 'value',
+        'lahatre.catalog.options.values.update'             => 'value',
+        'lahatre.catalog.options.values.destroy'            => 'value',
+        'lahatre.catalog.bundles.items.update'              => 'item',
+        'lahatre.catalog.bundles.stock-operations.show'     => 'stockOperation',
+        'lahatre.catalog.bundles.stock-operations.complete' => 'stockOperation',
+        'lahatre.customer.customers.addresses.update'       => 'address',
+        'lahatre.customer.customers.contacts.update'        => 'contact',
     ];
 
     /**
