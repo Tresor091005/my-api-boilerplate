@@ -52,11 +52,10 @@ beforeEach(function (): void {
     $permissions = [
         'catalog_category.list', 'catalog_category.retrieve', 'catalog_category.create', 'catalog_category.update', 'catalog_category.delete',
         'catalog_option.list', 'catalog_option.retrieve', 'catalog_option.create', 'catalog_option.update', 'catalog_option.delete',
-        'catalog_option_value.list', 'catalog_option_value.retrieve', 'catalog_option_value.create', 'catalog_option_value.update', 'catalog_option_value.delete',
         'catalog_product.list', 'catalog_product.retrieve', 'catalog_product.create', 'catalog_product.update', 'catalog_product.delete',
-        'catalog_product_variant.list', 'catalog_product_variant.retrieve', 'catalog_product_variant.create', 'catalog_product_variant.update', 'catalog_product_variant.delete',
+        'catalog_product.create_variant', 'catalog_product.update_variant', 'catalog_product.delete_variant',
         'catalog_bundle.list', 'catalog_bundle.retrieve', 'catalog_bundle.create', 'catalog_bundle.update', 'catalog_bundle.delete',
-        'catalog_bundle_item.create', 'catalog_bundle_item.update', 'catalog_bundle_item.delete',
+        'catalog_bundle.manage_composition',
     ];
 
     collect($permissions)->each(function (string $permissionName): void {

@@ -28,8 +28,7 @@ final readonly class BundleItemController
 
     public function store(BundleItemCreateRequest $request, Bundle $bundle): JsonResponse|Response
     {
-        Gate::authorize('update', $bundle);
-        Gate::authorize('create', BundleItem::class);
+        Gate::authorize('manageComposition', $bundle);
         $itemsData = collect($request->validated('items'))->map(BundleItemData::fromArray(...));
         $items = $this->bundleService->addItems($bundle, $itemsData);
 
@@ -44,8 +43,7 @@ final readonly class BundleItemController
         Bundle $bundle,
         BundleItem $item,
     ): JsonResponse|Response {
-        Gate::authorize('update', $bundle);
-        Gate::authorize('update', $item);
+        Gate::authorize('manageComposition', $bundle);
         $item = $this->bundleService->updateItem(
             $bundle,
             $item,
@@ -59,8 +57,7 @@ final readonly class BundleItemController
 
     public function destroy(BundleItemDeleteRequest $request, Bundle $bundle): Response
     {
-        Gate::authorize('update', $bundle);
-        Gate::authorize('deleteMany', BundleItem::class);
+        Gate::authorize('manageComposition', $bundle);
         $this->bundleService->removeItems($bundle, $request->validated('ids'));
 
         return response()->noContent();

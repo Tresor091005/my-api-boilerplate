@@ -25,7 +25,6 @@ final readonly class CustomerAddressController
     public function store(Customer $customer, AddressCreateRequest $request): JsonResponse|Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('create', Address::class);
 
         $addresses = array_map(
             AddressCreateData::fromArray(...),
@@ -42,7 +41,6 @@ final readonly class CustomerAddressController
     public function update(Customer $customer, Address $address, AddressUpdateRequest $request): JsonResponse|Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('update', $address);
 
         $validated = $request->validated();
         $data = AddressUpdateData::fromArray(
@@ -57,7 +55,6 @@ final readonly class CustomerAddressController
     public function destroy(Customer $customer, AddressDeleteRequest $request): Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('deleteMany', Address::class);
         $customer->removeAddresses($request->validated('ids'));
 
         return response()->noContent();

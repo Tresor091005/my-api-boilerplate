@@ -42,6 +42,21 @@ class ProductPolicy extends BasePolicy
         return $this->canOnModel('update', $model);
     }
 
+    public function createVariant(Authorizable $user, Product $model): bool
+    {
+        return $this->canOnModel('create_variant', $model);
+    }
+
+    public function updateVariant(Authorizable $user, Product $model): bool
+    {
+        return $this->canOnModel('update_variant', $model);
+    }
+
+    public function deleteVariant(Authorizable $user, Product $model): bool
+    {
+        return $this->canOnModel('delete_variant', $model);
+    }
+
     /**
      * Determine whether the user can delete the model.
      */

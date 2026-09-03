@@ -42,6 +42,16 @@ final class BundlePolicy extends BasePolicy
         return $this->canOnModel('update', $model);
     }
 
+    public function assemble(Authorizable $user, Bundle $model): bool
+    {
+        return $this->canOnModel('assemble', $model);
+    }
+
+    public function manageComposition(Authorizable $user, Bundle $model): bool
+    {
+        return $this->canOnModel('manage_composition', $model);
+    }
+
     /**
      * Determine whether the user can delete the model.
      */

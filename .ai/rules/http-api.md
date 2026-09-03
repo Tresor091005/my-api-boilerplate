@@ -44,7 +44,13 @@ paths:
 ## Controllers
 
 - Keep Controllers limited to HTTP orchestration: authorize, construct Data from validated input, call a service, and return a response.
-- Authorize before the service call. For nested reads, authorize the parent with `retrieve`; for nested mutations, authorize the parent with `update`; then authorize the child model or target class for the requested action.
+- Authorize before the service call. For nested reads, authorize the parent with
+  `retrieve`; for nested mutations, authorize the parent with `update` or with
+  the parent capability that owns the nested operation. A child model or target
+  class receives a separate authorization only when it is an autonomous
+  business resource with its own permission boundary. Sub-resources that are
+  extensions, projections, or technical records of the parent use the parent's
+  authorization alone.
 - Do not place business logic or manual validation in Controllers.
 - Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Use `response()->noContent()` for responses without a body; do not serialize `null` as JSON for a `204` response.
 

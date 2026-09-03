@@ -28,15 +28,22 @@ class DiscoverSysPermissions extends Command
         $guardName = config('auth.defaults.guard');
         $baseActions = ['list', 'retrieve', 'create', 'update', 'delete'];
         $additionalActions = config('iam.system_permissions.additional_actions', []);
+        $skippedModels = config('iam.system_permissions.skip_models', []);
         $morphMapRegistry = app(MorphMapRegistry::class);
-        $skippedModels = [];
+        $unregisteredModels = [];
         $this->info(__('iam::console.discovery.scanning', ['path' => 'configured model namespaces']));
 
         foreach (ModelFinder::getAllModels() as $class) {
             $modelName = $morphMapRegistry->getAlias($class);
 
             if ($modelName === null) {
-                $skippedModels[] = $class;
+                $unregisteredModels[] = $class;
+
+                continue;
+            }
+
+            if (in_array($modelName, $skippedModels, true)) {
+                $this->line(__('iam::console.discovery.skipped_model', ['model' => $modelName]));
 
                 continue;
             }
@@ -64,10 +71,10 @@ class DiscoverSysPermissions extends Command
             }
         }
 
-        if ($skippedModels !== []) {
+        if ($unregisteredModels !== []) {
             $this->warn(__('iam::console.discovery.skipped_models_summary', [
-                'count'   => count($skippedModels),
-                'classes' => implode(', ', $skippedModels),
+                'count'   => count($unregisteredModels),
+                'classes' => implode(', ', $unregisteredModels),
             ]));
         }
 

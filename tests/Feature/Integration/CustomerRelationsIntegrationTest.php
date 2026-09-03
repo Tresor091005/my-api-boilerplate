@@ -40,8 +40,6 @@ beforeEach(function (): void {
 
     $permissions = [
         'customer_customer.update',
-        'master_address.create', 'master_address.update', 'master_address.delete',
-        'master_contact.create', 'master_contact.update', 'master_contact.delete',
     ];
     foreach ($permissions as $permission) {
         Permission::query()->firstOrCreate(['name' => $permission, 'guard_name' => 'sanctum']);

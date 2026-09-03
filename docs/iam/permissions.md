@@ -61,11 +61,13 @@ registered module models.
 -   **Process:**
     1. It scans Eloquent models in `app-modules/*/src/Models`.
     2. It resolves each model through `MorphMapRegistry` and creates five
-       permissions: `list`, `retrieve`, `create`, `update`, and `delete`.
+       permissions: `list`, `retrieve`, `create`, `update`, and `delete`, unless
+       the model alias is listed in `iam.system_permissions.skip_models`.
     3. Permission names use the registered morph alias, for example
        `catalog_product.retrieve`, `inventory_item.update`, or
        `master_label.delete`.
-    4. Models without a registered morph alias are skipped and reported.
+    4. Models listed in `skip_models`, or without a registered morph alias, are
+       skipped and reported.
     5. It creates or updates the built-in Administrator and Readonly roles;
        Administrator receives all permissions and Readonly receives only
        `list` and `retrieve` permissions.
@@ -106,6 +108,20 @@ discovery. The Master notes module currently defines:
 - `master_note.pin`
 - `master_note.mention`
 - `master_note.visibility_organization`
+
+The same configuration can skip CRUD permission generation for models that are
+only extensions or technical records of another resource. The current skipped
+models are:
+
+- `catalog_bundle_item`, managed through `catalog_bundle.manage_composition`;
+- `catalog_option_value`, managed through the parent option's permissions;
+- `catalog_product_variant`, managed through `catalog_product.create_variant`,
+  `catalog_product.update_variant`, and `catalog_product.delete_variant`;
+- `master_address` and `master_contact`, managed through
+  `customer_customer.update` on customer-owned endpoints.
+
+The Catalog bundle and product capabilities are declared as additional actions
+on their parent model in `iam.system_permissions.additional_actions`.
 
 Note policies may intentionally bypass standard CRUD permissions for
 author-owned operations while retaining these explicit permissions for

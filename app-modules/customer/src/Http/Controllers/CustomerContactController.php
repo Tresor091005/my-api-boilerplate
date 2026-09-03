@@ -25,7 +25,6 @@ final readonly class CustomerContactController
     public function store(Customer $customer, ContactCreateRequest $request): JsonResponse|Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('create', Contact::class);
 
         $contacts = array_map(
             ContactCreateData::fromArray(...),
@@ -42,7 +41,6 @@ final readonly class CustomerContactController
     public function update(Customer $customer, Contact $contact, ContactUpdateRequest $request): JsonResponse|Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('update', $contact);
 
         $validated = $request->validated();
         $data = ContactUpdateData::fromArray(
@@ -57,7 +55,6 @@ final readonly class CustomerContactController
     public function destroy(Customer $customer, ContactDeleteRequest $request): Response
     {
         Gate::authorize('update', $customer);
-        Gate::authorize('deleteMany', Contact::class);
         $customer->removeContacts($request->validated('ids'));
 
         return response()->noContent();

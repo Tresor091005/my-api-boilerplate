@@ -7,6 +7,7 @@ return [
         'starting'               => 'Starting permission discovery...',
         'scanning'               => 'Scanning for models in: :path.',
         'discovered_model'       => 'Discovered model: :class -> :model.',
+        'skipped_model'          => 'Skipped permission discovery for model: :model.',
         'skipped_models_summary' => 'Skipped :count model(s) without a registered morph alias: :classes.',
         'created_permission'     => '✔ Created permission: :name.',
         'completed_syncing'      => 'Model permissions discovery completed. Syncing roles...',

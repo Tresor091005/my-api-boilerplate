@@ -29,7 +29,6 @@ class OptionValueController
     public function index(OptionValueFilterRequest $request, Option $option): JsonResponse|Response
     {
         Gate::authorize('retrieve', $option);
-        Gate::authorize('list', OptionValue::class);
 
         $filters = OptionValueFilterData::fromArray($request->validated());
 
@@ -41,7 +40,6 @@ class OptionValueController
     public function show(Option $option, OptionValue $value): JsonResponse|Response
     {
         Gate::authorize('retrieve', $option);
-        Gate::authorize('retrieve', $value);
 
         $response = $this->optionValueService->retrieve($option, $value);
 
@@ -51,7 +49,6 @@ class OptionValueController
     public function store(StoreOptionValueRequest $request, Option $option): JsonResponse|Response
     {
         Gate::authorize('update', $option);
-        Gate::authorize('create', OptionValue::class);
 
         $data = OptionValueData::fromArray([
             ...$request->validated(),
@@ -69,7 +66,6 @@ class OptionValueController
     public function update(UpdateOptionValueRequest $request, Option $option, OptionValue $value): JsonResponse|Response
     {
         Gate::authorize('update', $option);
-        Gate::authorize('update', $value);
 
         $data = OptionValueData::fromArray(
             [
@@ -87,7 +83,6 @@ class OptionValueController
     public function destroy(Option $option, OptionValue $value): Response
     {
         Gate::authorize('update', $option);
-        Gate::authorize('delete', $value);
 
         $this->optionValueService->delete($option, $value);
 

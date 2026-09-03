@@ -39,5 +39,10 @@ it('discovers namespaced permissions without basename collisions', function (): 
         ->and(Permission::query()->where('name', 'master_note.pin')->exists())->toBeTrue()
         ->and(Permission::query()->where('name', 'master_note.mention')->exists())->toBeTrue()
         ->and(Permission::query()->where('name', 'master_note.visibility_organization')->exists())->toBeTrue()
+        ->and(Permission::query()->where('name', 'catalog_bundle_item.create')->exists())->toBeFalse()
+        ->and(Permission::query()->where('name', 'catalog_option_value.create')->exists())->toBeFalse()
+        ->and(Permission::query()->where('name', 'catalog_product_variant.create')->exists())->toBeFalse()
+        ->and(Permission::query()->where('name', 'master_address.create')->exists())->toBeFalse()
+        ->and(Permission::query()->where('name', 'master_contact.create')->exists())->toBeFalse()
         ->and(app(MorphMapRegistry::class)->getAlias(Note::class))->toBe('master_note');
 });
