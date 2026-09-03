@@ -13,9 +13,14 @@ The module stores inventory records separately from the application's business m
 - `stock_tracking_enabled`: whether the item can participate in new stock
   movements.
 
-When no item strategy is configured, expirable items default to FEFO and non-expirable items default to FIFO. FIFO is not valid for expirable items, and FEFO is not valid for non-expirable items. Changing `is_expirable` never rewrites existing stock dates.
+When no item strategy is configured, expirable items default to FEFO and non-expirable items default to FIFO. FIFO is not valid for expirable items, and FEFO is not valid for non-expirable items.
 
-If an item becomes expirable while it has older undated lots, those lots remain valid legacy stock. FEFO orders dated lots first and undated lots last; future expiration alerts can report them as having an unknown date.
+Changing `is_expirable` is strict for active stock. Changing an item from
+expirable to non-expirable is rejected when active lots have expiration dates;
+changing it from non-expirable to expirable is rejected when active lots do not
+have expiration dates. Exhausted lots (`remaining = 0`) do not block the
+change. Existing stock dates are never rewritten, and the toggle does not
+create an inventory transaction or movement.
 
 The inventoryable application model supplies getSku(), getUnitGroupId(), and
 the persisted organization_id attribute. Catalog uses CatalogItem as that

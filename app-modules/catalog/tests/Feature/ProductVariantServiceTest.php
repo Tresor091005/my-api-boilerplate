@@ -21,10 +21,12 @@ use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\ProductVariantService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Master\Models\Label;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -347,6 +349,84 @@ it('remaps persisted inventory configuration errors during a partial update', fu
     }
 
     expect($errors)->toHaveKey('inventory.deduction_strategy');
+});
+
+it('rejects an incompatible expiration toggle and rolls back the variant update', function (): void {
+    $variant = createCatalogProductVariant([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    $inventoryItem = app(InventoryInterface::class)->createItem($catalogItem, new InventoryItemConfigurationData(isExpirable: true));
+    InventoryStock::factory()->for($inventoryItem, 'item')->create([
+        'remaining'       => 5,
+        'expiration_date' => today()->addDays(10),
+    ]);
+
+    $errors = [];
+    try {
+        $this->service->update(
+            $this->product,
+            $variant,
+            ProductVariantUpdateData::fromArray(
+                [
+                    'sku'       => 'SHOULD-NOT-PERSIST',
+                    'inventory' => ['is_expirable' => false],
+                ],
+                missingFields: ['is_active', 'options', 'labels'],
+            ),
+        );
+    } catch (ValidationException $exception) {
+        $errors = $exception->errors();
+    }
+
+    expect($errors)->toHaveKey('inventory.is_expirable')
+        ->and($catalogItem->refresh()->sku)->not->toBe('SHOULD-NOT-PERSIST')
+        ->and($inventoryItem->refresh()->is_expirable)->toBeTrue()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
+});
+
+it('rejects enabling expiration and rolls back the variant update', function (): void {
+    $variant = createCatalogProductVariant([
+        'organization_id' => $this->organizationId,
+        'product_id'      => $this->product->id,
+    ], [
+        'organization_id' => $this->organizationId,
+        'unit_group_id'   => $this->unitGroup->id,
+    ]);
+    /** @var CatalogItem $catalogItem */
+    $catalogItem = $variant->catalogItem()->firstOrFail();
+    $inventoryItem = app(InventoryInterface::class)->createItem($catalogItem);
+    InventoryStock::factory()->for($inventoryItem, 'item')->create([
+        'remaining'       => 5,
+        'expiration_date' => null,
+    ]);
+
+    $errors = [];
+    try {
+        $this->service->update(
+            $this->product,
+            $variant,
+            ProductVariantUpdateData::fromArray(
+                [
+                    'sku'       => 'SHOULD-NOT-PERSIST',
+                    'inventory' => ['is_expirable' => true],
+                ],
+                missingFields: ['is_active', 'options', 'labels'],
+            ),
+        );
+    } catch (ValidationException $exception) {
+        $errors = $exception->errors();
+    }
+
+    expect($errors)->toHaveKey('inventory.is_expirable')
+        ->and($catalogItem->refresh()->sku)->not->toBe('SHOULD-NOT-PERSIST')
+        ->and($inventoryItem->refresh()->is_expirable)->toBeFalse()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
 });
 
 it('syncs only submitted label types when updating a variant', function (): void {

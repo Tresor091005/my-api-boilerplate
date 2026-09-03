@@ -7,12 +7,14 @@ namespace Lahatre\Inventory\Tests\Feature\Inventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
@@ -152,21 +154,62 @@ it('rejects incompatible explicit deduction strategies', function (): void {
         ->toThrow(ValidationException::class, 'FEFO is not available');
 });
 
-it('allows expiration toggles without rewriting existing lots', function (): void {
+it('rejects disabling expiration while active stock has expiration dates', function (): void {
+    $material = $this->createTestMaterial();
+    $item = $this->service->createItem($material, new InventoryItemConfigurationData(isExpirable: true));
+    $stock = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
+        'remaining'       => 5,
+        'expiration_date' => today()->addDays(10),
+    ]);
+
+    expect(fn () => $this->service->updateItem($material, ['is_expirable' => false]))
+        ->toThrow(ValidationException::class, 'active stock has expiration dates');
+
+    expect($item->refresh()->is_expirable)->toBeTrue()
+        ->and($stock->refresh()->expiration_date)->not->toBeNull()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
+});
+
+it('rejects enabling expiration while active stock is missing expiration dates', function (): void {
     $material = $this->createTestMaterial();
     $item = $this->service->createItem($material);
-    InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
+    $stock = InventoryStock::factory()->for($item, 'item')->for($this->location, 'location')->create([
+        'remaining'       => 5,
         'expiration_date' => null,
     ]);
 
-    $item->update(['deduction_strategy' => DeductionStrategy::Fifo]);
-    $updated = $this->service->updateItem($material, ['is_expirable' => true]);
+    expect(fn () => $this->service->updateItem($material, ['is_expirable' => true]))
+        ->toThrow(ValidationException::class, 'active stock is missing expiration dates');
 
-    expect($updated->is_expirable)->toBeTrue()
-        ->and($updated->deduction_strategy)->toBeNull()
-        ->and($item->stocks()->firstOrFail()->refresh()->expiration_date)->toBeNull();
+    expect($item->refresh()->is_expirable)->toBeFalse()
+        ->and($stock->refresh()->expiration_date)->toBeNull()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
+});
 
-    $updated = $this->service->updateItem($material, ['is_expirable' => false]);
+it('allows expiration toggles when only exhausted stock violates the target configuration', function (): void {
+    $expirableMaterial = $this->createTestMaterial();
+    $expirableItem = $this->service->createItem(
+        $expirableMaterial,
+        new InventoryItemConfigurationData(isExpirable: true),
+    );
+    $datedStock = InventoryStock::factory()->for($expirableItem, 'item')->for($this->location, 'location')->create([
+        'remaining'       => 0,
+        'expiration_date' => today()->addDays(10),
+    ]);
 
-    expect($updated->is_expirable)->toBeFalse();
+    $nonExpirableMaterial = $this->createTestMaterial();
+    $nonExpirableItem = $this->service->createItem($nonExpirableMaterial);
+    $undatedStock = InventoryStock::factory()->for($nonExpirableItem, 'item')->for($this->location, 'location')->create([
+        'remaining'       => 0,
+        'expiration_date' => null,
+    ]);
+
+    $this->service->updateItem($expirableMaterial, ['is_expirable' => false]);
+    $this->service->updateItem($nonExpirableMaterial, ['is_expirable' => true]);
+
+    expect($expirableItem->refresh()->is_expirable)->toBeFalse()
+        ->and($nonExpirableItem->refresh()->is_expirable)->toBeTrue()
+        ->and($datedStock->refresh()->expiration_date)->not->toBeNull()
+        ->and($undatedStock->refresh()->expiration_date)->toBeNull()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
 });

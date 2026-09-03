@@ -72,6 +72,23 @@ class ManageInventoryItemService
         }
 
         $isExpirable = (bool) ($validated['is_expirable'] ?? $item->is_expirable);
+
+        if ($item->is_expirable !== $isExpirable) {
+            $activeStocks = $item->stocks()->where('remaining', '>', 0);
+
+            $hasIncompatibleActiveStock = $isExpirable
+                ? $activeStocks->whereNull('expiration_date')->exists()
+                : $activeStocks->whereNotNull('expiration_date')->exists();
+
+            if ($hasIncompatibleActiveStock) {
+                throw ValidationException::withMessages([
+                    'is_expirable' => __($isExpirable
+                        ? 'inventory::validation.expirable_toggle_requires_expiration_dates'
+                        : 'inventory::validation.non_expirable_toggle_prohibits_expiration_dates'),
+                ]);
+            }
+        }
+
         $strategyWasProvided = array_key_exists('deduction_strategy', $validated);
         $strategy = $strategyWasProvided
                 ? $validated['deduction_strategy']

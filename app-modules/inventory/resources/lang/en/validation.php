@@ -27,6 +27,8 @@ return [
     'out_expiration_date_prohibited'                    => "The expiration date is prohibited for 'out' movements.",
     'expiration_date_required_for_expirable_item'       => 'An expiration date is required for an expirable item.',
     'expiration_date_prohibited_for_non_expirable_item' => 'An expiration date is prohibited for a non-expirable item.',
+    'expirable_toggle_requires_expiration_dates'        => 'An item cannot become expirable while active stock is missing expiration dates.',
+    'non_expirable_toggle_prohibits_expiration_dates'   => 'An item cannot become non-expirable while active stock has expiration dates.',
     'fifo_expirable_prohibited'                         => 'FIFO is not available for expirable items.',
     'fefo_non_expirable_prohibited'                     => 'FEFO is not available for non-expirable items.',
     'total_cost_precision'                              => 'The total cost for currency :currency_code must have at most :precision decimal places.',

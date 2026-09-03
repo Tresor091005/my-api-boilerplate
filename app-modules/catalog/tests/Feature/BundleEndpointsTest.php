@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Data\BundleData;
 use Lahatre\Catalog\Data\BundleFilterData;
 use Lahatre\Catalog\Data\BundleItemData;
@@ -22,6 +23,8 @@ use Lahatre\Catalog\Services\BundleService;
 use Lahatre\Catalog\Services\TransactionalCatalogItemService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Models\InventoryItem;
+use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 
@@ -126,6 +129,70 @@ it('manages a bundle and its CatalogItem as one aggregate', function (): void {
         ->and(Bundle::withTrashed()->whereKey($updated->id)->exists())->toBeTrue()
         ->and(BundleItem::query()->where('bundle_id', $updated->id)->exists())->toBeFalse()
         ->and(CatalogItem::query()->whereKey($updated->id)->exists())->toBeFalse();
+});
+
+it('rejects an incompatible expiration toggle and rolls back the bundle update', function (): void {
+    $bundle = $this->service->create(BundleData::fromArray([
+        'name'      => 'Expirable Bundle',
+        'is_active' => true,
+        'items'     => [
+            bundleItemPayload($this->variants[0], $this->unit, 1),
+            bundleItemPayload($this->variants[1], $this->unit, 1),
+        ],
+        'inventory' => ['is_expirable' => true],
+    ]));
+    $catalogItem = $bundle->catalogItem()->firstOrFail();
+    $inventoryItem = $catalogItem->inventoryItem()->firstOrFail();
+    InventoryStock::factory()->for($inventoryItem, 'item')->create([
+        'remaining'       => 5,
+        'expiration_date' => today()->addDays(10),
+    ]);
+
+    $errors = [];
+    try {
+        $this->service->update($bundle, BundleData::fromArray([
+            'name'      => 'SHOULD-NOT-PERSIST',
+            'inventory' => ['is_expirable' => false],
+        ], missingFields: ['sku', 'is_active', 'items']));
+    } catch (ValidationException $exception) {
+        $errors = $exception->errors();
+    }
+
+    expect($errors)->toHaveKey('inventory.is_expirable')
+        ->and($bundle->refresh()->name)->toBe('Expirable Bundle')
+        ->and($inventoryItem->refresh()->is_expirable)->toBeTrue()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
+});
+
+it('rejects enabling expiration and rolls back the bundle update', function (): void {
+    $bundle = $this->service->create(BundleData::fromArray([
+        'name'  => 'Non-expirable Bundle',
+        'items' => [
+            bundleItemPayload($this->variants[0], $this->unit, 1),
+            bundleItemPayload($this->variants[1], $this->unit, 1),
+        ],
+    ]));
+    $catalogItem = $bundle->catalogItem()->firstOrFail();
+    $inventoryItem = $catalogItem->inventoryItem()->firstOrFail();
+    InventoryStock::factory()->for($inventoryItem, 'item')->create([
+        'remaining'       => 5,
+        'expiration_date' => null,
+    ]);
+
+    $errors = [];
+    try {
+        $this->service->update($bundle, BundleData::fromArray([
+            'name'      => 'SHOULD-NOT-PERSIST',
+            'inventory' => ['is_expirable' => true],
+        ], missingFields: ['sku', 'is_active', 'items']));
+    } catch (ValidationException $exception) {
+        $errors = $exception->errors();
+    }
+
+    expect($errors)->toHaveKey('inventory.is_expirable')
+        ->and($bundle->refresh()->name)->toBe('Non-expirable Bundle')
+        ->and($inventoryItem->refresh()->is_expirable)->toBeFalse()
+        ->and(InventoryTransaction::query()->count())->toBe(0);
 });
 
 it('resolves a bundle item component through its morph type and id', function (): void {

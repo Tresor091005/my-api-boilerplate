@@ -43,22 +43,14 @@
 - [ ] `supplier`
 - [ ] `procurement`
 - [ ] `order`
-- [ ] Stock-location business concept: the Inventory engine supports
-  `HasInventoryLocation`, but the concrete business domain is not exposed yet.
+- [x] Stock-location business concept: Catalog exposes organization-scoped stock
+  locations backed by Inventory's `InventoryLocation` adapter.
 
-## TODO: product and pricing structure
+## Deferred: pricing
 
-- [ ] Create a reusable pricing component following the `inventory` pattern so
-  prices can be attached to any model.
-- [ ] Define the technical contract for a “priceable” model: interface, trait,
-  relations, and cross-cutting service.
-- [ ] Support multiple prices per model according to a clear type or business
-  purpose.
-- [ ] Clarify the pricing scope: sale price, purchase price, promotional price,
-  channel price, currency price, and dated prices when needed.
-- [ ] Decide whether the price repository belongs in `catalog`, `master`, or a
-  dedicated module.
-- [ ] Add the API and tests for this component before consuming it elsewhere.
+Pricing remains handled on the fly for now. A reusable pricing component will
+be designed only once the concrete sales and purchasing requirements are
+clear.
 
 ## TODO: partners and flows
 
@@ -90,7 +82,8 @@
 - [x] Keep the first version flat and organization-scoped; hierarchy can be
   introduced later if warehouse, shelf, van, or shop workflows require it.
 - [x] Allow one optional primary address per stock location.
-- [ ] Add stock transfers and bundle stock operations against stock locations.
+- [x] Add bundle stock operations against stock locations.
+- [ ] Add stock transfers between stock locations.
 
 ## Already identified in the code
 
