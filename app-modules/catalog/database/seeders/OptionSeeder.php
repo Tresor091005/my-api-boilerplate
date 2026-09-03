@@ -63,7 +63,7 @@ class OptionSeeder extends Seeder
             $optionValues = $optionData['values'];
             unset($optionData['values']);
 
-            $option = Option::firstOrCreate(
+            $option = Option::updateOrCreate(
                 [
                     'name'            => $optionData['name'],
                     'organization_id' => $organizationId,
@@ -72,7 +72,7 @@ class OptionSeeder extends Seeder
             );
 
             foreach ($optionValues as $optionValueData) {
-                OptionValue::firstOrCreate(
+                OptionValue::updateOrCreate(
                     [
                         'organization_id' => $organizationId,
                         'option_id'       => $option->id,

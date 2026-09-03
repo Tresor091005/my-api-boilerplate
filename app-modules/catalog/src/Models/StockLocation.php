@@ -23,7 +23,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $organization_id
  * @property string $handle
  * @property string $name
- * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -37,7 +36,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|StockLocation whereDeletedAt($value)
  * @method static Builder<static>|StockLocation whereHandle($value)
  * @method static Builder<static>|StockLocation whereId($value)
- * @method static Builder<static>|StockLocation whereIsActive($value)
  * @method static Builder<static>|StockLocation whereName($value)
  * @method static Builder<static>|StockLocation whereOrganizationId($value)
  * @method static Builder<static>|StockLocation whereUpdatedAt($value)
@@ -64,7 +62,6 @@ class StockLocation extends Model implements HasInventoryLocation
         'organization_id',
         'handle',
         'name',
-        'is_active',
     ];
 
     protected $casts = [
@@ -72,7 +69,6 @@ class StockLocation extends Model implements HasInventoryLocation
         'organization_id' => 'string',
         'handle'          => 'string',
         'name'            => 'string',
-        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',

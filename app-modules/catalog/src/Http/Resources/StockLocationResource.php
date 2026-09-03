@@ -19,7 +19,7 @@ class StockLocationResource extends JsonResource
             'id'         => $this->id,
             'handle'     => $this->handle,
             'name'       => $this->name,
-            'is_active'  => $this->is_active,
+            'is_active'  => $this->inventoryLocation->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'address'    => $this->whenLoaded(

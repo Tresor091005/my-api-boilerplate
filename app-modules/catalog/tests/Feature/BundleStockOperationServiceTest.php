@@ -90,6 +90,23 @@ it('prevents operations from referencing a location in another organization', fu
     ]))->toThrow(QueryException::class);
 });
 
+it('prevents operations from using an inactive stock location', function (): void {
+    $bundle = createBundle($this->bundleService, $this->variants, $this->unit);
+    $this->location->update(['is_active' => false]);
+
+    expect(fn (): BundleStockOperation => $this->operationService->create(
+        $bundle,
+        BundleStockOperationData::fromArray([
+            'type'        => BundleStockOperationType::Attach->value,
+            'quantity'    => 1,
+            'location_id' => $this->stockLocation->id,
+            'components'  => $bundle->items->map(fn (BundleItem $item): array => [
+                'bundle_item_id' => $item->id,
+            ])->all(),
+        ]),
+    ))->toThrow(BundleException::class);
+});
+
 it('attaches component stock into bundle stock and records the operation', function (): void {
     $bundle = createBundle($this->bundleService, $this->variants, $this->unit);
     /** @var Collection<int, BundleItem> $bundleItems */

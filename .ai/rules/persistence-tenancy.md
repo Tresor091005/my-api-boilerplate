@@ -51,6 +51,20 @@ Models, Jobs, Support classes, and other application code.
 - Apply production corrections through new migrations.
 - Mandatory production reference data may be introduced by a migration; development and demo data belongs in seeders.
 
+## Schema Audits
+
+- When reviewing the current database structure, inspect the application
+  database through Docker before relying on migration history:
+  `docker compose exec -T app php artisan migrate:status`,
+  `docker compose exec -T app php artisan db:show --counts --views`, and
+  `docker compose exec -T app php artisan db:table <table>`.
+- Treat applied migrations and the live database schema as separate evidence:
+  use Artisan database commands to establish what exists now, and migration
+  files to explain how it got there or where a correction belongs.
+- Do not infer a current column, index, foreign key, or constraint from an old
+  migration, a migration `down()` method, model PHPDoc, or an un-applied
+  migration.
+
 ## Factories and Seeders
 
 - Factories generate coherent test states and must resolve to their module models.

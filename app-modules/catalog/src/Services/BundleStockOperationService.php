@@ -423,6 +423,13 @@ final readonly class BundleStockOperationService
             throw (new ModelNotFoundException)->setModel(InventoryLocation::class, [$stockLocationId]);
         }
 
+        if (!$stockLocation->inventoryLocation->is_active) {
+            throw BundleException::stockOperationInvalidState([[
+                'code'    => 'stock_location_inactive',
+                'context' => ['location_id' => $stockLocationId],
+            ]]);
+        }
+
         return $stockLocation;
     }
 

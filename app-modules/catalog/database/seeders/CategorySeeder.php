@@ -96,7 +96,7 @@ class CategorySeeder extends Seeder
             $children = $categoryData['children'] ?? [];
             unset($categoryData['children']);
 
-            $category = Category::firstOrCreate(
+            $category = Category::updateOrCreate(
                 [
                     'handle'          => $categoryData['handle'],
                     'organization_id' => $organizationId,

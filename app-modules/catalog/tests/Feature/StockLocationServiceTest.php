@@ -46,8 +46,7 @@ it('creates the inventory location with the requested activity in one configurat
         'is_active' => false,
     ]));
 
-    expect($location->is_active)->toBeFalse()
-        ->and($location->inventoryLocation->is_active)->toBeFalse();
+    expect($location->inventoryLocation->is_active)->toBeFalse();
 });
 
 it('replaces or removes the optional address and synchronizes activity', function (): void {

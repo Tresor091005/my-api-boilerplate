@@ -9,8 +9,11 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Lahatre\Catalog\Database\Seeders\BundleSeeder;
 use Lahatre\Catalog\Database\Seeders\CategorySeeder;
+use Lahatre\Catalog\Database\Seeders\InventoryDemoSeeder;
 use Lahatre\Catalog\Database\Seeders\OptionSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
+use Lahatre\Catalog\Database\Seeders\StockLocationSeeder;
+use Lahatre\Customer\Database\Seeders\CustomerSeeder;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
@@ -55,6 +58,9 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             ProductSeeder::class,
             BundleSeeder::class,
+            StockLocationSeeder::class,
+            InventoryDemoSeeder::class,
+            CustomerSeeder::class,
         ]);
 
         foreach (SysRole::cases() as $sysRole) {

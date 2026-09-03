@@ -25,7 +25,6 @@ final class BundleStockOperationCreateRequest extends FormRequest
                 'uuid',
                 Rule::exists('catalog_stock_locations', 'id')
                     ->where('organization_id', currentOrganizationId())
-                    ->where('is_active', true)
                     ->whereNull('deleted_at'),
             ],
             'expiration_date' => [

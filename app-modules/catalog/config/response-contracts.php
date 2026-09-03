@@ -72,9 +72,12 @@ $bundleResource = $bundleCollection;
 
 $stockLocationCollection = [
     'default_shape' => 'default',
-    'shapes'        => ['default' => ['includes' => [
-        'address' => ['loads' => ['address']],
-    ]]],
+    'shapes'        => ['default' => [
+        'required_loads' => ['inventoryLocation'],
+        'includes'       => [
+            'address' => ['loads' => ['address']],
+        ],
+    ]],
 ];
 
 $stockLocationResource = $stockLocationCollection;

@@ -28,6 +28,7 @@ When asked to review a file or directory:
    - architectural compliance
    - authorization and nested binding rules for HTTP code
    - query boundaries for tenancy and soft deletes
+   - current database schema for persistence-related findings
    - exception and translation contract for business code
    - minimum style expectations
 6. List each violation with:
@@ -60,3 +61,22 @@ When asked to review a file or directory:
   the applicable rule or label the concern as an unverified gap.
 - Run the smallest relevant test or static check available and report what was
   and was not verified. Do not claim total compliance from a narrow command.
+
+## Current Database Schema
+
+For reviews involving tables, columns, indexes, foreign keys, or constraints,
+inspect the database currently used by the application before drawing schema
+conclusions from migration source:
+
+```bash
+docker compose exec -T app php artisan migrate:status
+docker compose exec -T app php artisan db:show --counts --views
+docker compose exec -T app php artisan db:table <table>
+```
+
+Use `migrate:status` to establish which migrations are applied, `db:show` to
+inventory the installed database, and `db:table` to verify the actual columns,
+indexes, and foreign keys of relevant tables. Use migration files afterward to
+explain schema history or identify the migration that should correct the
+current database. Never treat a column present only in an old migration, a
+down method, or model PHPDoc as part of the current schema.

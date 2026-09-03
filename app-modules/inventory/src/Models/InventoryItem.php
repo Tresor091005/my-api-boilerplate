@@ -53,7 +53,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|InventoryItem withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|InventoryItem withoutTrashed()
  * @method static Builder<static>|InventoryItem whereBaseUnitCode($value)
- * @method static Builder<static>|InventoryItem whereIsActive($value)
  * @method static Builder<static>|InventoryItem whereSku($value)
  * @method static InventoryItemFactory factory($count = null, $state = [])
  * @method static Builder<static>|InventoryItem whereDeductionStrategy($value)

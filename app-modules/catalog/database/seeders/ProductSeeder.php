@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Lahatre\Catalog\Enums\CatalogItemType;
-use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Data\ProductData;
+use Lahatre\Catalog\Data\ProductVariantBatchData;
+use Lahatre\Catalog\Data\ProductVariantUpdateData;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Catalog\Services\ProductService;
+use Lahatre\Catalog\Services\ProductVariantService;
+use Lahatre\Master\Contracts\MasterInterface;
 
 class ProductSeeder extends Seeder
 {
@@ -22,15 +25,20 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $organizationId = currentOrganizationId();
+        $productService = app(ProductService::class);
+        $productVariantService = app(ProductVariantService::class);
+        $masterInterface = app(MasterInterface::class);
 
-        // Fetch common unit groups needed for variants
-        $massGroup = UnitGroup::where('name', 'mass')->first();
-        $packagingGroup = UnitGroup::where('name', 'packaging')->first();
+        $massGroupId = $masterInterface->unit('g')->group_id;
 
         // Fetch product options and values
         $colorOption = Option::where('organization_id', $organizationId)->where('name', 'color')->first();
         $storageOption = Option::where('organization_id', $organizationId)->where('name', 'storage')->first();
         $ramOption = Option::where('organization_id', $organizationId)->where('name', 'ram')->first();
+        $optionNames = Option::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('name', ['color', 'storage', 'ram'])
+            ->pluck('name', 'id');
 
         // Color Option Values
         $blackColor = OptionValue::where('organization_id', $organizationId)->where('option_id', $colorOption?->id)->where('value', 'black')->first();
@@ -59,13 +67,13 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'IP15P-BLA-128',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$blackColor, $storage128GB, $ram8GB],
                     ],
                     [
                         'sku'           => 'IP15P-SIL-256',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$silverColor, $storage256GB, $ram16GB],
                     ],
@@ -79,13 +87,13 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'SGS24-WHI-256',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$whiteColor, $storage256GB],
                     ],
                     [
                         'sku'           => 'SGS24-BLU-512',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$blueColor, $storage512GB],
                     ],
@@ -99,13 +107,13 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'MBP16-SG-16-512',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$spaceGrayColor, $ram16GB, $storage512GB],
                     ],
                     [
                         'sku'           => 'MBP16-SG-32-1TB',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$spaceGrayColor, $ram32GB, $storage1TB],
                     ],
@@ -119,7 +127,7 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'AW-M18-BLA-32-1TB',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$blackColor, $ram32GB, $storage1TB],
                     ],
@@ -133,7 +141,7 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'USB-C-HUB-SIL',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [$silverColor],
                     ],
@@ -147,7 +155,7 @@ class ProductSeeder extends Seeder
                 'variants'    => [
                     [
                         'sku'           => 'WDT-OAK',
-                        'unit_group_id' => $massGroup?->id,
+                        'unit_group_id' => $massGroupId,
                         'is_active'     => true,
                         'option_values' => [],
                     ],
@@ -160,58 +168,69 @@ class ProductSeeder extends Seeder
             $variantsData = $productData['variants'];
             unset($productData['categories'], $productData['variants']);
 
-            $product = Product::firstOrCreate(
-                [
-                    'handle'          => $productData['handle'],
-                    'organization_id' => $organizationId,
-                ],
-                array_merge($productData, ['organization_id' => $organizationId])
-            );
-
-            // Attach categories
             $categoryIds = Category::where('organization_id', $organizationId)->whereIn('handle', $categoriesToAttach)->pluck('id');
-            $product->categories()->syncWithPivotValues(
-                $categoryIds,
-                ['organization_id' => $organizationId],
+
+            $variantsPayload = collect($variantsData)->map(
+                fn (array $variantData): array => [
+                    'sku'           => $variantData['sku'],
+                    'unit_group_id' => $massGroupId,
+                    'is_active'     => $variantData['is_active'],
+                    'options'       => collect($variantData['option_values'])
+                        ->filter()
+                        ->map(fn (OptionValue $optionValue): array => [
+                            'name'  => $optionNames->get($optionValue->option_id),
+                            'value' => $optionValue->value,
+                        ])->values()->all(),
+                    'inventory' => [
+                        'stock_tracking_enabled' => true,
+                        'is_expirable'           => false,
+                    ],
+                ],
+            )->all();
+
+            $payload = [
+                'name'        => $productData['name'],
+                'description' => $productData['description'],
+                'categories'  => $categoryIds->all(),
+                'variants'    => $variantsPayload,
+            ];
+
+            $product = Product::query()
+                ->where('organization_id', $organizationId)
+                ->where('handle', $productData['handle'])
+                ->first();
+
+            if (!$product instanceof Product) {
+                $productService->create(ProductData::fromArray($payload));
+
+                continue;
+            }
+
+            $productService->update(
+                $product,
+                ProductData::fromArray($payload, missingFields: ['variants']),
             );
 
-            // Create and attach variants
-            foreach ($variantsData as $variantData) {
-                $optionValuesToAttach = array_filter($variantData['option_values']);
-                unset($variantData['option_values']);
+            foreach ($variantsPayload as $variantPayload) {
+                /** @var ProductVariant|null $variant */
+                $variant = $product->variants()
+                    ->whereHas('catalogItem', fn ($query) => $query->where('sku', $variantPayload['sku']))
+                    ->first();
 
-                /** @var ProductVariant $variant */
-                $catalogItem = CatalogItem::firstOrCreate(
-                    [
-                        'sku'             => $variantData['sku'],
-                        'organization_id' => $organizationId,
-                    ],
-                    [
-                        'item_type'     => CatalogItemType::ProductVariant,
-                        'unit_group_id' => $variantData['unit_group_id'],
-                        'is_stockable'  => CatalogItemType::ProductVariant->isStockable(),
-                        'is_active'     => $variantData['is_active'],
-                    ],
-                );
-                $variant = $product->variants()->firstOrCreate(
-                    ['id' => $catalogItem->id],
-                    ['organization_id' => $organizationId],
-                );
-                /** @var ProductVariant $variant */
+                if ($variant === null) {
+                    $productVariantService->create(
+                        $product,
+                        ProductVariantBatchData::fromArray(['variants' => [$variantPayload]]),
+                    );
 
-                // Attach option values to the variant
-                $attachments = [];
-                foreach ($optionValuesToAttach as $optionValue) {
-                    $attachments[$optionValue->id] = [
-                        'organization_id' => $organizationId,
-                        'product_id'      => $product->id,
-                        'option_id'       => $optionValue->option_id,
-                    ];
+                    continue;
                 }
 
-                if ($attachments !== []) {
-                    $variant->optionValues()->sync($attachments);
-                }
+                $productVariantService->update(
+                    $product,
+                    $variant,
+                    ProductVariantUpdateData::fromArray($variantPayload),
+                );
             }
         }
     }

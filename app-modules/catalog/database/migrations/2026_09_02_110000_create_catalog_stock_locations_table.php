@@ -18,7 +18,6 @@ return new class extends Migration
                 ->restrictOnDelete();
             $table->string('handle', 100);
             $table->string('name', 100);
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });

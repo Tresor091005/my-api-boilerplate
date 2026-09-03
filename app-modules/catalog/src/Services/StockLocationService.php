@@ -12,6 +12,7 @@ use Lahatre\Catalog\Data\StockLocationFilterData;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
+use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Master\Data\AddressCreateData;
 use Lahatre\Master\Data\AddressUpdateData;
 use Lahatre\Master\Models\Address;
@@ -49,7 +50,6 @@ final class StockLocationService
         $stockLocation->fill([
             'organization_id' => currentOrganizationId(),
             'name'            => required($data->name),
-            'is_active'       => required($data->isActive),
         ]);
         $stockLocation->handle = HandleGenerator::generate(
             required($data->name),
@@ -74,10 +74,7 @@ final class StockLocationService
 
     public function update(StockLocation $stockLocation, StockLocationData $data): StockLocation
     {
-        $stockLocation->fill(withoutMissing([
-            'name'      => $data->name,
-            'is_active' => $data->isActive,
-        ]));
+        $stockLocation->fill(withoutMissing(['name' => $data->name]));
 
         DB::transaction(function () use ($stockLocation, $data): void {
             $stockLocation->save();
@@ -113,7 +110,27 @@ final class StockLocationService
             ->where('organization_id', currentOrganizationId())
             ->when($filters->handle, fn (Builder $query, string $handle): Builder => $query->where('handle', 'like', "{$handle}%"))
             ->when($filters->name, fn (Builder $query, string $name): Builder => $query->where('name', 'like', "{$name}%"))
-            ->when($filters->isActive !== null, fn (Builder $query): Builder => $query->where('is_active', $filters->isActive));
+            ->when(
+                $filters->isActive !== null,
+                fn (Builder $query): Builder => $query->whereHas(
+                    'inventoryLocation',
+                    fn (Builder $inventoryLocationQuery): Builder => $inventoryLocationQuery->where(
+                        'inventory_locations.is_active',
+                        $filters->isActive,
+                    ),
+                ),
+            )
+            ->when(
+                $filters->sortBy === 'is_active',
+                fn (Builder $query): Builder => $query->addSelect([
+                    'is_active' => InventoryLocation::query()
+                        ->select('is_active')
+                        ->whereColumn('inventory_locations.external_id', 'catalog_stock_locations.id')
+                        ->where('inventory_locations.external_type', (new StockLocation)->getMorphClass())
+                        ->where('inventory_locations.organization_id', currentOrganizationId())
+                        ->limit(1),
+                ]),
+            );
     }
 
     private function synchronizeAddress(

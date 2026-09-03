@@ -21,7 +21,6 @@ class StockLocationFactory extends Factory
             'organization_id' => null,
             'handle'          => fake()->unique()->slug(2),
             'name'            => fake()->unique()->city().' Stock Location',
-            'is_active'       => true,
         ];
     }
 }

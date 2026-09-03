@@ -6,32 +6,20 @@ namespace Lahatre\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Data\BundleData;
+use Lahatre\Catalog\Data\BundleItemData;
+use Lahatre\Catalog\Data\BundleItemQuantityData;
 use Lahatre\Catalog\Models\Bundle;
-use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Master\Models\Unit;
-use Lahatre\Master\Models\UnitGroup;
-use Lahatre\Shared\Support\SkuGenerator;
+use Lahatre\Catalog\Services\BundleService;
 
 final class BundleSeeder extends Seeder
 {
     public function run(): void
     {
         $organizationId = currentOrganizationId();
-        $bundleUnit = Unit::query()
-            ->whereNull('organization_id')
-            ->where('code', 'bundle')
-            ->whereHas('group', fn ($query) => $query
-                ->whereNull('organization_id')
-                ->where('is_builtin', true))
-            ->with('group')
-            ->first();
-
-        if (!$bundleUnit instanceof Unit) {
-            return;
-        }
+        $bundleService = app(BundleService::class);
 
         $variantSkus = [
             'IP15P-BLA-128',
@@ -67,8 +55,8 @@ final class BundleSeeder extends Seeder
             }
 
             $this->seedBundle(
+                $bundleService,
                 $organizationId,
-                $bundleUnit->group,
                 $handle,
                 $name,
                 $variants,
@@ -78,8 +66,8 @@ final class BundleSeeder extends Seeder
 
     /** @param Collection<string, array{variant: ProductVariant, quantity: int}> $variants */
     private function seedBundle(
+        BundleService $bundleService,
         string $organizationId,
-        UnitGroup $bundleUnitGroup,
         string $handle,
         string $name,
         Collection $variants,
@@ -89,44 +77,75 @@ final class BundleSeeder extends Seeder
             ->where('handle', $handle)
             ->first();
 
-        if (!$bundle instanceof Bundle) {
-            $catalogItem = new CatalogItem;
-            $catalogItem->forceFill([
-                'id'              => (string) Str::uuid7(),
-                'organization_id' => $organizationId,
-                'item_type'       => CatalogItemType::Bundle,
-                'sku'             => SkuGenerator::generate($name),
-                'unit_group_id'   => $bundleUnitGroup->id,
-                'is_stockable'    => CatalogItemType::Bundle->isStockable(),
-                'is_active'       => true,
-            ])->save();
+        $items = $variants->map(
+            fn (array $item): array => $this->bundleItemPayload($item),
+        )->values()->all();
 
-            $bundle = new Bundle;
-            $bundle->forceFill([
-                'id'              => $catalogItem->id,
-                'organization_id' => $organizationId,
-                'handle'          => $handle,
-                'name'            => $name,
-            ])->save();
+        if (!$bundle instanceof Bundle) {
+            $bundleService->create(BundleData::fromArray([
+                'name'      => $name,
+                'is_active' => true,
+                'items'     => $items,
+                'inventory' => [
+                    'stock_tracking_enabled' => true,
+                    'is_expirable'           => false,
+                ],
+            ]));
+
+            return;
         }
 
-        foreach ($variants as $item) {
-            $variant = $item['variant'];
-            $baseUnit = $variant->catalogItem->unitGroup->baseUnit;
+        $bundleService->update(
+            $bundle,
+            BundleData::fromArray([
+                'name'      => $name,
+                'is_active' => true,
+            ], missingFields: ['sku', 'items', 'inventory']),
+        );
 
-            if ($baseUnit === null) {
+        $desiredItems = $variants->mapWithKeys(
+            fn (array $item): array => [$item['variant']->id => $this->bundleItemPayload($item)],
+        );
+        /** @var Collection<string, BundleItem> $existingItems */
+        $existingItems = $bundle->items()->get()->keyBy('item_id');
+
+        foreach ($desiredItems as $itemId => $payload) {
+            $existingItem = $existingItems->get($itemId);
+
+            if ($existingItem === null) {
+                $bundleService->addItems($bundle, collect([BundleItemData::fromArray($payload)]));
+
                 continue;
             }
 
-            $bundle->items()->updateOrCreate(
-                ['item_id' => $variant->id],
-                [
-                    'organization_id'   => $organizationId,
-                    'item_type'         => CatalogItemType::ProductVariant->value,
-                    'quantity'          => $item['quantity'],
-                    'display_unit_code' => $baseUnit->code,
-                ],
-            );
+            if ($existingItem->quantity !== $payload['quantity'] || $existingItem->display_unit_code !== $payload['unit_code']) {
+                $bundleService->updateItem(
+                    $bundle,
+                    $existingItem,
+                    BundleItemQuantityData::fromArray([
+                        'quantity'  => $payload['quantity'],
+                        'unit_code' => $payload['unit_code'],
+                    ]),
+                );
+            }
         }
+
+        $staleItemIds = $existingItems->keys()->diff($desiredItems->keys())->values()->all();
+        if ($staleItemIds !== []) {
+            $bundleService->removeItems($bundle, $staleItemIds);
+        }
+    }
+
+    /** @param array{variant: ProductVariant, quantity: int} $item */
+    private function bundleItemPayload(array $item): array
+    {
+        $baseUnit = $item['variant']->catalogItem->unitGroup->baseUnit;
+
+        return [
+            'item_type' => 'catalog_product_variant',
+            'item_id'   => $item['variant']->id,
+            'quantity'  => $item['quantity'],
+            'unit_code' => $baseUnit->code,
+        ];
     }
 }
