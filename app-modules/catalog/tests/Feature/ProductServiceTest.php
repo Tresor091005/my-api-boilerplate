@@ -50,9 +50,8 @@ it('manages products through service methods and scopes by tenant', function ():
     expect($productIds->contains($otherProduct->id))->toBeFalse();
 
     $created = $this->service->create(ProductData::fromArray([
-        'name'      => 'Samsung Galaxy S24',
-        'is_active' => true,
-        'variants'  => [
+        'name'     => 'Samsung Galaxy S24',
+        'variants' => [
             [
                 'sku'           => 'SGS24-123',
                 'unit_group_id' => $this->unitGroup->id,
@@ -69,8 +68,7 @@ it('manages products through service methods and scopes by tenant', function ():
 
     $updated = $this->service->update($product, ProductData::fromArray(
         [
-            'name'      => 'iPhone 15 Pro Updated',
-            'is_active' => true,
+            'name' => 'iPhone 15 Pro Updated',
         ],
         missingFields: ['description', 'categories', 'variants'],
     ));
@@ -115,7 +113,6 @@ it('rejects soft-deleted category ids in product requests', function (): void {
 
     expect(fn (): array => validator([
         'name'       => 'Product with deleted category',
-        'is_active'  => true,
         'categories' => [$deletedCategory->id],
         'variants'   => [
             [

@@ -7,9 +7,11 @@ namespace Lahatre\Catalog\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
+use Lahatre\Catalog\Data\ProductVariantActivationData;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
+use Lahatre\Catalog\Http\Requests\ProductVariantActivationRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantFilterRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantUpdateRequest;
@@ -39,6 +41,18 @@ class ProductVariantController
         return $this->responseResponder->respond(
             fn (): JsonResource => ProductVariantCollection::make($variants),
         );
+    }
+
+    public function updateActivation(ProductVariantActivationRequest $request, Product $product): Response
+    {
+        Gate::authorize('updateVariant', $product);
+
+        $this->productVariantService->updateActivation(
+            $product,
+            ProductVariantActivationData::fromArray($request->validated()),
+        );
+
+        return response()->noContent();
     }
 
     public function show(Product $product, ProductVariant $variant): JsonResponse|Response

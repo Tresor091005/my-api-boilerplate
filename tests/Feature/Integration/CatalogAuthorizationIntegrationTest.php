@@ -113,6 +113,7 @@ it('enforces catalog permissions at http layer', function (): void {
     ])->assertForbidden();
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertForbidden();
     $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}", ['sku' => 'ANY'])->assertForbidden();
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/activation", ['is_active' => false])->assertForbidden();
     $this->deleteJson("/v1/catalog/options/{$option->id}/values/{$optionValue->id}")->assertForbidden();
     $this->deleteJson("/v1/catalog/categories/{$category->id}")->assertForbidden();
 });

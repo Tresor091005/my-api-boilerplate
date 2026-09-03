@@ -20,7 +20,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $handle
  * @property string $name
  * @property string|null $description
- * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -39,7 +38,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Product whereDescription($value)
  * @method static Builder<static>|Product whereHandle($value)
  * @method static Builder<static>|Product whereId($value)
- * @method static Builder<static>|Product whereIsActive($value)
  * @method static Builder<static>|Product whereName($value)
  * @method static Builder<static>|Product whereUpdatedAt($value)
  * @method static ProductFactory factory($count = null, $state = [])
@@ -63,7 +61,6 @@ class Product extends Model
         'handle',
         'name',
         'description',
-        'is_active',
     ];
 
     protected $casts = [
@@ -72,7 +69,6 @@ class Product extends Model
         'handle'          => 'string',
         'name'            => 'string',
         'description'     => 'string',
-        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',

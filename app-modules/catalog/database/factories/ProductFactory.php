@@ -24,7 +24,6 @@ class ProductFactory extends Factory
             'handle'          => fake()->unique()->slug(),
             'name'            => fake()->words(3, true),
             'description'     => fake()->paragraph(),
-            'is_active'       => true,
         ];
     }
 }

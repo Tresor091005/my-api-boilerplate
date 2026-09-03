@@ -11,9 +11,11 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Catalog\Assertions\ProductVariantAssertion;
+use Lahatre\Catalog\Data\ProductVariantActivationData;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
 use Lahatre\Catalog\Data\ProductVariantFilterData;
 use Lahatre\Catalog\Data\ProductVariantUpdateData;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -91,6 +93,23 @@ class ProductVariantService
         });
 
         return $variant->load(responseRelationsToLoad());
+    }
+
+    public function updateActivation(Product $product, ProductVariantActivationData $data): void
+    {
+        DB::transaction(function () use ($product, $data): void {
+            CatalogItem::query()
+                ->where('organization_id', $product->organization_id)
+                ->where('item_type', CatalogItemType::ProductVariant)
+                ->whereIn(
+                    'id',
+                    ProductVariant::query()
+                        ->select('id')
+                        ->where('organization_id', $product->organization_id)
+                        ->where('product_id', $product->id),
+                )
+                ->update(['is_active' => $data->isActive]);
+        });
     }
 
     public function delete(Product $product, ProductVariant $variant): void

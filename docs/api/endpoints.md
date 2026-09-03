@@ -21,7 +21,9 @@ and the global API rate limiter. Business module routes additionally use
 
 `categories`, `options`, and `products` expose standard API resource actions
 (index, store, show, update, destroy). Variants are nested and scoped under
-`products/{product}/variants`; option values are nested and scoped under
+`products/{product}/variants`. Their activation can be changed in bulk with
+`PATCH /v1/catalog/products/{product}/variants/activation`, authorized by the
+product's `update_variant` permission. Option values are nested and scoped under
 `options/{option}/values`.
 
 All catalog routes require `auth.api`. Nested scoped binding prevents a child

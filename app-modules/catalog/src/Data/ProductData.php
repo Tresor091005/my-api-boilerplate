@@ -17,7 +17,6 @@ final readonly class ProductData
     private function __construct(
         public MissingValue|string $name,
         public MissingValue|string|null $description,
-        public MissingValue|bool $isActive,
         public MissingValue|array|null $categories,
         public MissingValue|Collection $variants,
     ) {}
@@ -29,13 +28,11 @@ final readonly class ProductData
     public static function fromArray(array $data, array $missingFields = []): self
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
-        $isActive = $read->get('is_active', default: false);
         $variants = $read->get('variants');
 
         return new self(
             name: $read->get('name'),
             description: $read->get('description', default: null),
-            isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             categories: $read->get('categories', default: null),
             variants: $variants instanceof MissingValue
                 ? $variants

@@ -14,7 +14,7 @@ final readonly class ProductFilterData
         public ?string $handle,
         public ?string $name,
         public ?string $description,
-        public ?bool $isActive,
+        public ?bool $hasActiveVariant,
     ) {}
 
     /**
@@ -30,8 +30,8 @@ final readonly class ProductFilterData
             handle: $data['handle'] ?? null,
             name: $data['name'] ?? null,
             description: $data['description'] ?? null,
-            isActive: array_key_exists('is_active', $data) && $data['is_active'] !== null
-                ? (bool) $data['is_active']
+            hasActiveVariant: array_key_exists('has_active_variant', $data) && $data['has_active_variant'] !== null
+                ? (bool) $data['has_active_variant']
                 : null,
         );
     }

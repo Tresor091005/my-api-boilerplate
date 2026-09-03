@@ -16,14 +16,14 @@ class ProductFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page'    => ['integer', 'min:1', 'max:100'],
-            'cursor'      => ['nullable', 'string'],
-            'sort_by'     => ['string', Rule::in(['handle', 'name', 'created_at', 'updated_at'])],
-            'sort_order'  => ['string', Rule::in(['asc', 'desc'])],
-            'handle'      => ['nullable', 'string', 'max:100'],
-            'name'        => ['nullable', 'string', 'max:150'],
-            'description' => ['nullable', 'string'],
-            'is_active'   => ['nullable', 'boolean'],
+            'per_page'           => ['integer', 'min:1', 'max:100'],
+            'cursor'             => ['nullable', 'string'],
+            'sort_by'            => ['string', Rule::in(['handle', 'name', 'created_at', 'updated_at'])],
+            'sort_order'         => ['string', Rule::in(['asc', 'desc'])],
+            'handle'             => ['nullable', 'string', 'max:100'],
+            'name'               => ['nullable', 'string', 'max:150'],
+            'description'        => ['nullable', 'string'],
+            'has_active_variant' => ['nullable', 'boolean'],
         ];
     }
 }

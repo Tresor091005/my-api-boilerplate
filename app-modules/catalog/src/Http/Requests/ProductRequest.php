@@ -48,7 +48,6 @@ class ProductRequest extends FormRequest
                 'max:150',
             ],
             'description' => ['nullable', 'string'],
-            'is_active'   => ['boolean'],
             'categories'  => [
                 'nullable',
                 'array',

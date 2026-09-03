@@ -261,14 +261,35 @@ it('enforces tenancy matrix for products and variants', function (): void {
     $otherVariant = ProductVariant::factory()->forCatalogItem($otherCatalogItem)->create([
         'product_id' => $otherProduct->id,
     ]);
+    $inactiveProduct = Product::factory()->create([
+        'organization_id' => $this->organization->id,
+        'name'            => 'Inactive Product',
+    ]);
+    $inactiveCatalogItem = CatalogItem::factory()->create([
+        'organization_id' => $this->organization->id,
+        'unit_group_id'   => $unitGroup->id,
+        'is_active'       => false,
+    ]);
+    ProductVariant::factory()->forCatalogItem($inactiveCatalogItem)->create([
+        'product_id' => $inactiveProduct->id,
+    ]);
 
     $this->getJson('/v1/catalog/products')
         ->assertOk()
         ->assertJsonFragment(['id' => $product->id])
         ->assertJsonMissing(['id' => $otherProduct->id]);
+    $this->getJson('/v1/catalog/products?has_active_variant=1')
+        ->assertOk()
+        ->assertJsonFragment(['id' => $product->id])
+        ->assertJsonMissing(['id' => $inactiveProduct->id]);
+    $this->getJson('/v1/catalog/products?has_active_variant=0')
+        ->assertOk()
+        ->assertJsonFragment(['id' => $inactiveProduct->id])
+        ->assertJsonMissing(['id' => $product->id]);
 
     $this->getJson("/v1/catalog/products/{$product->id}")
         ->assertOk()
+        ->assertJsonMissingPath('data.is_active')
         ->assertJsonMissingPath('data.categories')
         ->assertJsonMissingPath('data.options')
         ->assertJsonMissingPath('data.variants');
@@ -285,9 +306,8 @@ it('enforces tenancy matrix for products and variants', function (): void {
     $this->getJson("/v1/catalog/products/{$otherProduct->id}")->assertForbidden();
 
     $createdProduct = $this->postJson('/v1/catalog/products?response=resource', [
-        'name'      => 'Created Product',
-        'is_active' => true,
-        'variants'  => [[
+        'name'     => 'Created Product',
+        'variants' => [[
             'sku'           => 'CREATED-001',
             'unit_group_id' => $unitGroup->id,
             'is_active'     => true,
@@ -304,12 +324,10 @@ it('enforces tenancy matrix for products and variants', function (): void {
         ->assertJsonMissingPath('data.variants');
 
     $this->putJson("/v1/catalog/products/{$product->id}?response=resource", [
-        'name'      => 'Updated Product',
-        'is_active' => true,
+        'name' => 'Updated Product',
     ])->assertOk();
     $this->putJson("/v1/catalog/products/{$otherProduct->id}", [
-        'name'      => 'Hacked',
-        'is_active' => true,
+        'name' => 'Hacked',
     ])->assertForbidden();
 
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertOk();
@@ -336,6 +354,14 @@ it('enforces tenancy matrix for products and variants', function (): void {
 
     $createdVariantId = (string) $createdVariant->json('data.0.id');
     expect(ProductVariant::query()->findOrFail($createdVariantId)->organization_id)->toBe($this->organization->id);
+
+    $this->patchJson("/v1/catalog/products/{$product->id}/variants/activation", [
+        'is_active' => false,
+    ])->assertNoContent();
+
+    expect(CatalogItem::query()->whereKey($variant->id)->value('is_active'))->toBeFalse()
+        ->and(CatalogItem::query()->whereKey($createdVariantId)->value('is_active'))->toBeFalse()
+        ->and(CatalogItem::query()->whereKey($otherVariant->id)->value('is_active'))->toBeTrue();
 
     $this->patchJson("/v1/catalog/products/{$product->id}/variants/{$variant->id}?response=resource", [
         'sku' => 'UPDATED-VAR-SKU',

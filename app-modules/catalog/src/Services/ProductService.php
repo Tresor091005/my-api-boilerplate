@@ -48,8 +48,17 @@ class ProductService
         if ($filters->description) {
             $query->where('description', 'like', "$filters->description%");
         }
-        if ($filters->isActive !== null) {
-            $query->where('is_active', $filters->isActive);
+        if ($filters->hasActiveVariant === true) {
+            $query->whereHas(
+                'variants.catalogItem',
+                fn (Builder $query): Builder => $query->where('catalog_items.is_active', true),
+            );
+        }
+        if ($filters->hasActiveVariant === false) {
+            $query->whereDoesntHave(
+                'variants.catalogItem',
+                fn (Builder $query): Builder => $query->where('catalog_items.is_active', true),
+            );
         }
 
         return $query;
@@ -70,7 +79,6 @@ class ProductService
             'organization_id' => currentOrganizationId(),
             'name'            => required($data->name),
             'description'     => required($data->description),
-            'is_active'       => required($data->isActive),
         ]);
 
         $product->handle = HandleGenerator::generate(
@@ -98,7 +106,6 @@ class ProductService
         $product->fill(withoutMissing([
             'name'        => $data->name,
             'description' => $data->description,
-            'is_active'   => $data->isActive,
         ]));
 
         DB::transaction(function () use ($product, $data): void {

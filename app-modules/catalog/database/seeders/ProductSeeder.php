@@ -55,7 +55,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'iphone-15-pro',
                 'name'        => 'iPhone 15 Pro',
                 'description' => 'The latest iPhone model with advanced features.',
-                'is_active'   => true,
                 'categories'  => ['smartphones'],
                 'variants'    => [
                     [
@@ -76,7 +75,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'samsung-galaxy-s24',
                 'name'        => 'Samsung Galaxy S24',
                 'description' => 'Flagship Android smartphone from Samsung.',
-                'is_active'   => true,
                 'categories'  => ['smartphones'],
                 'variants'    => [
                     [
@@ -97,7 +95,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'macbook-pro-16-inch',
                 'name'        => 'MacBook Pro 16-inch',
                 'description' => 'Powerful laptop for professionals.',
-                'is_active'   => true,
                 'categories'  => ['laptops', 'business-laptops'],
                 'variants'    => [
                     [
@@ -118,7 +115,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'dell-alienware-m18',
                 'name'        => 'Dell Alienware m18',
                 'description' => 'High-performance gaming laptop.',
-                'is_active'   => true,
                 'categories'  => ['laptops', 'gaming-laptops'],
                 'variants'    => [
                     [
@@ -133,7 +129,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'usb-c-hub',
                 'name'        => 'USB-C Hub',
                 'description' => 'Multi-port adapter for USB-C devices.',
-                'is_active'   => true,
                 'categories'  => ['accessories'],
                 'variants'    => [
                     [
@@ -148,7 +143,6 @@ class ProductSeeder extends Seeder
                 'handle'      => 'wooden-dining-table',
                 'name'        => 'Wooden Dining Table',
                 'description' => 'Elegant solid wood dining table.',
-                'is_active'   => true,
                 'categories'  => ['home-garden', 'furniture'],
                 'variants'    => [
                     [

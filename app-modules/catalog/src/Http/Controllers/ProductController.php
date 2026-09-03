@@ -65,7 +65,7 @@ class ProductController
 
         $data = ProductData::fromArray(
             $request->validated(),
-            missingFields: ['name', 'description', 'is_active', 'categories', 'variants'],
+            missingFields: ['name', 'description', 'categories', 'variants'],
         );
 
         $response = $this->productService->update($product, $data);

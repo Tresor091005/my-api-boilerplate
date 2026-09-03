@@ -25,6 +25,9 @@ Route::group([
     Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
+        Route::patch('products/{product}/variants/activation', [ProductVariantController::class, 'updateActivation'])
+            ->name('products.variants.activation.update');
+
         Route::apiResources([
             'bundles'         => BundleController::class,
             'categories'      => CategoryController::class,
