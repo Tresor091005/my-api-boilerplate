@@ -69,6 +69,8 @@ class InventoryMovement extends Model
 {
     use SharedTraits;
 
+    public const int MAX_QUANTITY = 1_000_000_000_000;
+
     protected $table = 'inventory_movements';
 
     protected $fillable = [

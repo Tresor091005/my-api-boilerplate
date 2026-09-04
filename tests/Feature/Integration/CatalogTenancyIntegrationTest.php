@@ -12,12 +12,14 @@ use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
@@ -64,6 +66,7 @@ beforeEach(function (): void {
         'catalog_bundle.assemble',
         'catalog_bundle.manage_composition',
         'catalog_stock_location.list', 'catalog_stock_location.retrieve', 'catalog_stock_location.create', 'catalog_stock_location.update', 'catalog_stock_location.delete',
+        'catalog_stock_transfer.list', 'catalog_stock_transfer.retrieve', 'catalog_stock_transfer.create', 'catalog_stock_transfer.update', 'catalog_stock_transfer.delete', 'catalog_stock_transfer.complete', 'catalog_stock_transfer.cancel',
     ];
 
     collect($permissions)->each(function (string $permissionName): void {
@@ -211,6 +214,82 @@ it('renders stock locations and their optional address through the catalog api',
 
     $this->deleteJson("/v1/catalog/stock-locations/{$locationId}")
         ->assertNoContent();
+});
+
+it('transfers tracked catalog stock through the catalog api', function (): void {
+    $unitGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    $unit = Unit::factory()->create([
+        'organization_id' => null,
+        'group_id'        => $unitGroup->id,
+        'ratio'           => 1,
+    ]);
+    app(UnitCache::class)->rewarmUnits();
+
+    $sourceResponse = $this->postJson('/v1/catalog/stock-locations?response=resource', [
+        'name'      => 'Transfer Source',
+        'is_active' => true,
+    ])->assertCreated();
+    $destinationResponse = $this->postJson('/v1/catalog/stock-locations?response=resource', [
+        'name'      => 'Transfer Destination',
+        'is_active' => true,
+    ])->assertCreated();
+
+    $source = StockLocation::query()->findOrFail($sourceResponse->json('data.id'));
+    $destination = StockLocation::query()->findOrFail($destinationResponse->json('data.id'));
+    $inventory = app(InventoryInterface::class);
+    $inventory->createLocation($source);
+    $inventory->createLocation($destination);
+
+    $variant = createCatalogProductVariant([], [
+        'organization_id' => $this->organization->id,
+        'unit_group_id'   => $unitGroup->id,
+        'sku'             => 'HTTP-TRANSFER-ITEM',
+    ]);
+    $catalogItem = CatalogItem::query()->findOrFail($variant->id);
+    $inventoryItem = $inventory->createItem($catalogItem);
+    $sourceInventoryLocation = $source->inventoryLocation()->firstOrFail();
+    InventoryStock::factory()->create([
+        'organization_id' => $this->organization->id,
+        'item_id'         => $inventoryItem->id,
+        'location_id'     => $sourceInventoryLocation->id,
+        'quantity'        => 3,
+        'remaining'       => 3,
+        'unit_cost'       => 1_500,
+        'currency_code'   => 'XOF',
+        'base_unit_code'  => $unit->code,
+    ]);
+
+    $draft = $this->postJson('/v1/catalog/stock-transfers?response=resource&include=item', [
+        'source_location_id'      => $source->id,
+        'destination_location_id' => $destination->id,
+        'lines'                   => [[
+            'catalog_item_id' => $variant->id,
+            'quantity'        => 2,
+            'unit_code'       => $unit->code,
+        ]],
+    ])->assertCreated()
+        ->assertJsonPath('data.status', 'draft')
+        ->assertJsonCount(1, 'data.lines')
+        ->assertJsonPath('data.lines.0.item.id', $variant->id);
+
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/complete?response=resource')
+        ->assertOk()
+        ->assertJsonPath('data.status', 'completed')
+        ->assertJsonPath('data.inventory_transaction_id', fn (mixed $value): bool => is_string($value))
+        ->assertJsonMissingPath('data.lines');
+
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/complete?response=resource&include=item')
+        ->assertOk()
+        ->assertJsonPath('data.lines.0.item.id', $variant->id);
+
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/cancel?response=resource')
+        ->assertOk()
+        ->assertJsonPath('data.status', 'cancelled')
+        ->assertJsonMissingPath('data.lines');
+
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/cancel?response=resource&include=item')
+        ->assertOk()
+        ->assertJsonPath('data.lines.0.item.id', $variant->id);
 });
 
 it('enforces tenancy matrix for products and variants', function (): void {

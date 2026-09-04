@@ -11,6 +11,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
@@ -200,6 +201,32 @@ it('rejects quantities that do not resolve to whole base units before any mutati
     'adjustment' => TransactionType::Adjustment,
     'transfer'   => TransactionType::Transfer,
 ]);
+
+it('rejects quantities exceeding the application maximum after base-unit conversion', function (): void {
+    $providedUnit = Unit::factory()->create([
+        'ratio'    => Unit::MAX_CUSTOM_RATIO,
+        'group_id' => $this->group->id,
+    ]);
+
+    expect(fn () => $this->service->recordTransaction([
+        'reference_type'   => 'test',
+        'idempotency_key'  => fake()->uuid(),
+        'reference_id'     => Str::uuid7()->toString(),
+        'transaction_type' => TransactionType::In->value,
+        'movements'        => [[
+            'type'          => 'in',
+            'item_id'       => $this->item->id,
+            'location_id'   => $this->location->id,
+            'quantity'      => (InventoryMovement::MAX_QUANTITY / Unit::MAX_CUSTOM_RATIO) + 1,
+            'unit_code'     => $providedUnit->code,
+            'total_cost'    => 10,
+            'currency_code' => $this->currency->code,
+        ]],
+    ]))->toThrow(ValidationException::class, 'exceeds the maximum');
+
+    $this->assertDatabaseCount('inventory_movements', 0);
+    $this->assertDatabaseCount('inventory_stocks', 0);
+});
 
 it('fails if manual strategy is used without providing stock_ids', function (): void {
     $payload = [

@@ -12,6 +12,7 @@ use Lahatre\Catalog\Http\Controllers\OptionValueController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
 use Lahatre\Catalog\Http\Controllers\ProductVariantController;
 use Lahatre\Catalog\Http\Controllers\StockLocationController;
+use Lahatre\Catalog\Http\Controllers\StockTransferController;
 
 /* -----------------------------------------------------------------
  | Catalog endpoints
@@ -34,6 +35,7 @@ Route::group([
             'options'         => OptionController::class,
             'products'        => ProductController::class,
             'stock-locations' => StockLocationController::class,
+            'stock-transfers' => StockTransferController::class,
         ]);
 
         Route::apiResource('products.variants', ProductVariantController::class)->scoped();
@@ -57,5 +59,10 @@ Route::group([
         Route::post('bundles/{bundle}/stock-operations/{stockOperation}/complete', [BundleStockOperationController::class, 'complete'])
             ->scopeBindings()
             ->name('bundles.stock-operations.complete');
+
+        Route::post('stock-transfers/{stockTransfer}/complete', [StockTransferController::class, 'complete'])
+            ->name('stock-transfers.complete');
+        Route::post('stock-transfers/{stockTransfer}/cancel', [StockTransferController::class, 'cancel'])
+            ->name('stock-transfers.cancel');
     });
 });

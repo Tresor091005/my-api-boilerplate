@@ -10,13 +10,11 @@ $customerCollection = [
     ]]],
 ];
 
-$customerResource = $customerCollection;
-
 return [
     'lahatre.customer.customers.index'           => $customerCollection,
-    'lahatre.customer.customers.show'            => $customerResource,
-    'lahatre.customer.customers.store'           => $customerResource,
-    'lahatre.customer.customers.update'          => $customerResource,
+    'lahatre.customer.customers.show'            => $customerCollection,
+    'lahatre.customer.customers.store'           => $customerCollection,
+    'lahatre.customer.customers.update'          => $customerCollection,
     'lahatre.customer.customers.addresses.store' => [
         'default_mode' => 'resource',
     ],

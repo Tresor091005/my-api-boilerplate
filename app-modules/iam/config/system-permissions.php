@@ -7,6 +7,7 @@ return [
         'catalog_bundle_item',
         'catalog_option_value',
         'catalog_product_variant',
+        'catalog_stock_transfer_line',
         'master_address',
         'master_contact',
     ],
@@ -19,6 +20,10 @@ return [
             'create_variant',
             'update_variant',
             'delete_variant',
+        ],
+        'catalog_stock_transfer' => [
+            'complete',
+            'cancel',
         ],
         'master_note' => [
             'pin',

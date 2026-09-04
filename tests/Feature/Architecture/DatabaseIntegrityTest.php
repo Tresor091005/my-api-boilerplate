@@ -260,6 +260,37 @@ it('ensures all JSON columns use jsonb for better performance', function (): voi
     expect(true)->toBeTrue();
 });
 
+it('ensures persisted quantity columns use bigint', function (): void {
+    $ignoredTables = config('model-integrity.ignored_tables', []);
+    $exceptions = config('model-integrity.quantity_bigint_exceptions', []);
+    $failures = [];
+
+    $quantityColumns = DB::select('
+        SELECT table_name, udt_name
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND column_name = \'quantity\'
+    ');
+
+    foreach ($quantityColumns as $column) {
+        if (in_array($column->table_name, $ignoredTables, true)
+            || in_array($column->table_name, $exceptions, true)
+        ) {
+            continue;
+        }
+
+        if ($column->udt_name !== 'int8') {
+            $failures[] = "Table [{$column->table_name}]: Column [quantity] uses [{$column->udt_name}]. Expected PostgreSQL [bigint].";
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("Quantity Type Integrity Failures:\n\n".implode("\n", $failures));
+    }
+
+    expect(true)->toBeTrue();
+});
+
 it('ensures boolean columns follow naming conventions', function (): void {
     $tables = Schema::getTables();
     $ignoredTables = config('model-integrity.ignored_tables', []);

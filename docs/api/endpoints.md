@@ -29,6 +29,21 @@ product's `update_variant` permission. Option values are nested and scoped under
 All catalog routes require `auth.api`. Nested scoped binding prevents a child
 from being addressed through a parent that does not own it.
 
+| Method | URI | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
+| GET | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.list` | List stock transfers. |
+| POST | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.create` | Create a draft stock transfer. |
+| GET | `/v1/catalog/stock-transfers/{stockTransfer}` | `catalog_stock_transfer.retrieve` | Retrieve one stock transfer. |
+| PUT/PATCH | `/v1/catalog/stock-transfers/{stockTransfer}` | `catalog_stock_transfer.update` | Edit a draft stock transfer. |
+| DELETE | `/v1/catalog/stock-transfers/{stockTransfer}` | `catalog_stock_transfer.delete` | Delete a draft stock transfer. |
+| POST | `/v1/catalog/stock-transfers/{stockTransfer}/complete` | `catalog_stock_transfer.complete` | Execute a draft as one Inventory transfer. |
+| POST | `/v1/catalog/stock-transfers/{stockTransfer}/cancel` | `catalog_stock_transfer.cancel` | Reverse a completed transfer exactly. |
+
+Transfers are created as drafts. Completion executes one atomic Inventory
+transaction. Cancellation uses Inventory's exact reversal support and fails
+atomically if any stock created by the transfer has already been consumed.
+
 ## Master data
 
 | Method | URI | Purpose |

@@ -50,6 +50,10 @@ return [
         'catalog_variant_option_value',
     ],
 
+    'quantity_bigint_exceptions' => [
+        // Tables with a quantity column that intentionally do not store stock quantities.
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Global Uniqueness Exemptions
@@ -124,6 +128,7 @@ return [
         'master_labels'            => ['master_labels_organization_id_id_unique'],
         'inventory_items'          => ['inventory_items_organization_id_id_unique'],
         'catalog_stock_locations'  => ['catalog_stock_locations_organization_id_id_unique'],
+        'catalog_stock_transfers'  => ['catalog_stock_transfers_org_id_unique'],
         'inventory_locations'      => ['inventory_locations_organization_id_id_unique'],
         'inventory_stocks'         => [
             'inventory_stocks_organization_id_id_unique',

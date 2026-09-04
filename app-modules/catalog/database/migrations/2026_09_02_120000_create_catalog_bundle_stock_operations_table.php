@@ -19,7 +19,7 @@ return new class extends Migration
             $table->uuid('bundle_id');
             $table->string('type', 20);
             $table->string('status', 20);
-            $table->unsignedInteger('quantity');
+            $table->bigInteger('quantity');
             $table->uuid('location_id');
             $table->jsonb('payload');
             $table->jsonb('composition_snapshot');

@@ -9,8 +9,6 @@ $categoryCollection = [
     ]]],
 ];
 
-$categoryResource = $categoryCollection;
-
 $optionCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => ['includes' => [
@@ -18,16 +16,12 @@ $optionCollection = [
     ]]],
 ];
 
-$optionResource = $optionCollection;
-
 $optionValueCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => ['includes' => [
         'option' => ['loads' => ['option']],
     ]]],
 ];
-
-$optionValueResource = $optionValueCollection;
 
 $productCollection = [
     'default_shape' => 'default',
@@ -37,8 +31,6 @@ $productCollection = [
         'variants'   => ['loads' => ['variants.catalogItem', 'variants.product', 'variants.optionValues.option']],
     ]]],
 ];
-
-$productResource = $productCollection;
 
 $variantCollection = [
     'default_shape' => 'default',
@@ -53,8 +45,6 @@ $variantCollection = [
     ]],
 ];
 
-$variantResource = $variantCollection;
-
 $bundleCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => [
@@ -68,8 +58,6 @@ $bundleCollection = [
     ]],
 ];
 
-$bundleResource = $bundleCollection;
-
 $stockLocationCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => [
@@ -80,38 +68,51 @@ $stockLocationCollection = [
     ]],
 ];
 
-$stockLocationResource = $stockLocationCollection;
+$stockTransferResource = [
+    'default_shape' => 'default',
+    'shapes'        => ['default' => ['includes' => [
+        'lines' => ['loads' => ['lines']],
+        'item'  => ['loads' => ['lines.item']],
+    ]]],
+];
 
 return [
     'lahatre.catalog.categories.index'                    => $categoryCollection,
-    'lahatre.catalog.categories.show'                     => $categoryResource,
-    'lahatre.catalog.categories.store'                    => $categoryResource,
-    'lahatre.catalog.categories.update'                   => $categoryResource,
+    'lahatre.catalog.categories.show'                     => $categoryCollection,
+    'lahatre.catalog.categories.store'                    => $categoryCollection,
+    'lahatre.catalog.categories.update'                   => $categoryCollection,
     'lahatre.catalog.options.index'                       => $optionCollection,
-    'lahatre.catalog.options.show'                        => $optionResource,
-    'lahatre.catalog.options.store'                       => $optionResource,
-    'lahatre.catalog.options.update'                      => $optionResource,
+    'lahatre.catalog.options.show'                        => $optionCollection,
+    'lahatre.catalog.options.store'                       => $optionCollection,
+    'lahatre.catalog.options.update'                      => $optionCollection,
     'lahatre.catalog.options.values.index'                => $optionValueCollection,
     'lahatre.catalog.options.values.store'                => $optionValueCollection,
-    'lahatre.catalog.options.values.show'                 => $optionValueResource,
-    'lahatre.catalog.options.values.update'               => $optionValueResource,
+    'lahatre.catalog.options.values.show'                 => $optionValueCollection,
+    'lahatre.catalog.options.values.update'               => $optionValueCollection,
     'lahatre.catalog.products.index'                      => $productCollection,
-    'lahatre.catalog.products.show'                       => $productResource,
-    'lahatre.catalog.products.store'                      => $productResource,
-    'lahatre.catalog.products.update'                     => $productResource,
+    'lahatre.catalog.products.show'                       => $productCollection,
+    'lahatre.catalog.products.store'                      => $productCollection,
+    'lahatre.catalog.products.update'                     => $productCollection,
     'lahatre.catalog.products.variants.index'             => $variantCollection,
     'lahatre.catalog.products.variants.activation.update' => [],
     'lahatre.catalog.products.variants.store'             => $variantCollection,
-    'lahatre.catalog.products.variants.show'              => $variantResource,
-    'lahatre.catalog.products.variants.update'            => $variantResource,
+    'lahatre.catalog.products.variants.show'              => $variantCollection,
+    'lahatre.catalog.products.variants.update'            => $variantCollection,
     'lahatre.catalog.bundles.index'                       => $bundleCollection,
-    'lahatre.catalog.bundles.show'                        => $bundleResource,
-    'lahatre.catalog.bundles.store'                       => $bundleResource,
-    'lahatre.catalog.bundles.update'                      => $bundleResource,
+    'lahatre.catalog.bundles.show'                        => $bundleCollection,
+    'lahatre.catalog.bundles.store'                       => $bundleCollection,
+    'lahatre.catalog.bundles.update'                      => $bundleCollection,
     'lahatre.catalog.stock-locations.index'               => $stockLocationCollection,
-    'lahatre.catalog.stock-locations.show'                => $stockLocationResource,
-    'lahatre.catalog.stock-locations.store'               => $stockLocationResource,
-    'lahatre.catalog.stock-locations.update'              => $stockLocationResource,
+    'lahatre.catalog.stock-locations.show'                => $stockLocationCollection,
+    'lahatre.catalog.stock-locations.store'               => $stockLocationCollection,
+    'lahatre.catalog.stock-locations.update'              => $stockLocationCollection,
+    'lahatre.catalog.stock-transfers.index'               => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.show'                => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.store'               => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.update'              => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.complete'            => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.cancel'              => $stockTransferResource,
+    'lahatre.catalog.stock-transfers.destroy'             => [],
     'lahatre.catalog.bundles.items.store'                 => [
         'default_mode'  => 'resource',
         'default_shape' => 'default',

@@ -26,7 +26,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $deleted_at
  * @property-read Bundle $bundle
  * @property-read CatalogItem $catalogItem
- * @property-read Bundle|ProductVariant $component
+ * @property-read Model|null $component
  *
  * @method static Builder<static>|BundleItem newModelQuery()
  * @method static Builder<static>|BundleItem newQuery()

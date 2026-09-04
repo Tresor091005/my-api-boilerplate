@@ -83,7 +83,7 @@ clear.
   introduced later if warehouse, shelf, van, or shop workflows require it.
 - [x] Allow one optional primary address per stock location.
 - [x] Add bundle stock operations against stock locations.
-- [ ] Add stock transfers between stock locations.
+- [x] Add draft, complete, and cancel stock transfers between stock locations.
 
 ## Already identified in the code
 
@@ -107,6 +107,14 @@ clear.
   synchronization.
 - [ ] Implement backend-controlled field selection for response shapes,
   including resource serialization and required relation dependencies.
+- [ ] Audit all migrations together and formalize the tenant-aware foreign-key
+  convention: use composite `organization_id` plus identifier constraints
+  where cross-tenant references must be impossible, and replace verbose or
+  redundant definitions with equivalent project-standard helpers where safe.
+- [ ] Define a rule for bounded child collections: request-level `max` limits
+  individual payloads, while aggregate-level cardinality limits must also be
+  enforced by the owning service (and safely under concurrent writes), taking
+  soft-deleted children into account.
 - [ ] devrais je laisser les models passer entre differentes packages pour les
   relations eloquent et qu'est ce qui est autorisé à passer
 - [ ] prendre le temps de faire les tests d'architecture a partir des rules

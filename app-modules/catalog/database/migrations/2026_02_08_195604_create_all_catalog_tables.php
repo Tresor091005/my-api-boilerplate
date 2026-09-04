@@ -105,7 +105,7 @@ return new class extends Migration
                 ->index()
                 ->constrained('catalog_bundles')
                 ->onDelete('cascade');
-            $table->unsignedInteger('quantity');
+            $table->bigInteger('quantity');
             $table->string('display_unit_code')->index();
             $table->foreign('display_unit_code')
                 ->references('code')

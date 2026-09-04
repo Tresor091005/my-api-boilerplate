@@ -26,4 +26,6 @@ return [
     'bundle_stock_operation_currency_mismatch'           => 'The stock operation produced incompatible inventory currencies.',
     'bundle_stock_operation_cost_allocation_mismatch'    => 'The stock operation cost could not be allocated exactly across the bundle components.',
     'bundle_cannot_change_composition_with_active_stock' => 'The bundle composition cannot change while the bundle has active stock.',
+    'stock_transfer_invalid_state'                       => 'Every stock transfer location and item must be active and have stock tracking enabled.',
+    'stock_transfer_invalid_transition'                  => 'A stock transfer with status :status cannot be :action.',
 ];

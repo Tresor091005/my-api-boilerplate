@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Services;
 
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -703,7 +704,10 @@ class InventoryService implements InventoryInterface
             foreach ($deductedMovements as $deductedMovement) {
                 $this->applyInbound(
                     tx: $tx,
-                    context: $destinationContext,
+                    context: $this->withTransferExpiration(
+                        $destinationContext,
+                        $deductedMovement->expiration_date,
+                    ),
                     quantityOverrideInBase: (string) $deductedMovement->quantity,
                     totalCost: $deductedMovement->total_cost,
                     currencyCode: $deductedMovement->currency_code,
@@ -796,6 +800,27 @@ class InventoryService implements InventoryInterface
 
         return MovementExecutionContextData::fromArray([
             'movement'         => $destinationMovement,
+            'item'             => $context->item,
+            'quantity_in_base' => $context->quantityInBase,
+        ]);
+    }
+
+    protected function withTransferExpiration(
+        MovementExecutionContextData $context,
+        ?CarbonImmutable $expirationDate,
+    ): MovementExecutionContextData {
+        $movement = $context->movement;
+
+        return MovementExecutionContextData::fromArray([
+            'movement' => MovementData::fromArray([
+                'item_id'         => $movement->itemId,
+                'location_id'     => $movement->locationId,
+                'type'            => $movement->type,
+                'quantity'        => $movement->quantity,
+                'unit_code'       => $movement->unitCode,
+                'expiration_date' => $expirationDate,
+                'metadata'        => $movement->metadata,
+            ], $this->masterInterface),
             'item'             => $context->item,
             'quantity_in_base' => $context->quantityInBase,
         ]);

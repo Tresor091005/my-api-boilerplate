@@ -48,6 +48,10 @@ Models, Jobs, Support classes, and other application code.
   schema contract. Keep the two columns adjacent, in either order, in at least
   one composite index; tenant or domain identity columns may precede the pair.
 - Use `jsonb` for structured data and `text` for free text.
+- Persist stock and inventory quantities in base units as PostgreSQL
+  `bigint`, with a positive check and an explicit application-level maximum.
+  Any exception must be documented in `config/model-integrity.php` and covered
+  by the database integrity test.
 - Apply production corrections through new migrations.
 - Mandatory production reference data may be introduced by a migration; development and demo data belongs in seeders.
 

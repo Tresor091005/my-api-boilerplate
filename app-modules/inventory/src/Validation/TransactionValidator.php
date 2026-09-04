@@ -14,6 +14,7 @@ use Lahatre\Inventory\Exceptions\BaseUnitNotFoundException;
 use Lahatre\Inventory\Exceptions\BaseUnitRatioIntegrityException;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
@@ -525,6 +526,19 @@ class TransactionValidator
                         'unit_code'      => $providedUnit->code,
                         'quantity_base'  => $quantityInBase,
                         'base_unit_code' => $item->base_unit_code,
+                    ]),
+                );
+
+                continue;
+            }
+
+            if (bccomp($wholeQuantityInBase, (string) InventoryMovement::MAX_QUANTITY) === 1) {
+                $validator->errors()->add(
+                    "movements.{$index}.quantity",
+                    __('inventory::validation.quantity_exceeds_maximum_base_units', [
+                        'quantity_base'  => $wholeQuantityInBase,
+                        'base_unit_code' => $item->base_unit_code,
+                        'maximum'        => InventoryMovement::MAX_QUANTITY,
                     ]),
                 );
             }
