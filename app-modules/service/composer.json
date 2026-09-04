@@ -1,0 +1,25 @@
+{
+    "name": "lahatre/service",
+    "description": "Service commitments and execution evidence.",
+    "type": "library",
+    "version": "1.0",
+    "license": "proprietary",
+    "require": {
+        "lahatre/catalog": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lahatre\\Service\\": "src/",
+            "Lahatre\\Service\\Tests\\": "tests/",
+            "Lahatre\\Service\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lahatre\\Service\\Providers\\ServiceServiceProvider"
+            ]
+        }
+    }
+}

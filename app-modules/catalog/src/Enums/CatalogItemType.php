@@ -8,17 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\Service;
 
 enum CatalogItemType: string
 {
     case ProductVariant = 'catalog_product_variant';
     case Bundle = 'catalog_bundle';
+    case Service = 'catalog_service';
 
     public function isStockable(): bool
     {
         return match ($this) {
             self::Bundle,
             self::ProductVariant => true,
+            self::Service        => false,
         };
     }
 
@@ -36,6 +39,7 @@ enum CatalogItemType: string
         return match ($this) {
             self::ProductVariant => ProductVariant::class,
             self::Bundle         => Bundle::class,
+            self::Service        => Service::class,
         };
     }
 

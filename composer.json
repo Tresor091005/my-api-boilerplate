@@ -19,6 +19,7 @@
         "lahatre/master": "*",
         "lahatre/organization": "*",
         "lahatre/shared": "*",
+        "lahatre/service": "*",
         "laravel/framework": "^13.0",
         "laravel/horizon": "*",
         "laravel/reverb": "^1.0",

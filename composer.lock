@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e1375187b6e3ebfe3d72b57375282e08",
+    "content-hash": "7181f1ead4abd843c875fa9385b790e3",
     "packages": [
         {
             "name": "brick/math",
@@ -2162,10 +2162,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/customer",
-                "reference": "10bf1e8c4028e42b62f62c0b82fcf1554c9baf5b"
-            },
-            "require": {
-                "lahatre/master": "*"
+                "reference": "33feb3537a2f8a5d0264a44aed4aacacc446e7f5"
             },
             "type": "library",
             "extra": {
@@ -2314,6 +2311,41 @@
             "license": [
                 "proprietary"
             ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "lahatre/service",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/service",
+                "reference": "6efb11598009797bac0c22b9fd511a1123b51a59"
+            },
+            "require": {
+                "lahatre/catalog": "*"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Service\\Providers\\ServiceServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Service\\": "src/",
+                    "Lahatre\\Service\\Tests\\": "tests/",
+                    "Lahatre\\Service\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Service commitments and execution evidence.",
             "transport-options": {
                 "symlink": true,
                 "relative": true

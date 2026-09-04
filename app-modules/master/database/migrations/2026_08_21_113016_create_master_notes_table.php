@@ -95,10 +95,10 @@ return new class extends Migration
                 ['organization_id', 'note_id', 'member_id'],
                 'master_note_mentions_organization_note_member_unique',
             );
-            $table->index(['note_id', 'organization_id'], 'master_note_mentions_note_organization_index');
+            $table->index(['organization_id', 'note_id'], 'master_note_mentions_organization_note_index');
             $table->index(
-                ['member_id', 'organization_id', 'read_at'],
-                'master_note_mentions_member_organization_read_index',
+                ['organization_id', 'member_id', 'read_at'],
+                'master_note_mentions_organization_member_read_index',
             );
         });
     }

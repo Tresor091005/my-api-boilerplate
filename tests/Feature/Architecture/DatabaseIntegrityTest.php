@@ -41,27 +41,39 @@ it('ensures all foreign keys are indexed', function (): void {
         // Fetch actual foreign keys from Postgres
         $foreignKeys = DB::select("
             SELECT kcu.column_name
+                , tc.constraint_name
+                , kcu.ordinal_position
             FROM information_schema.table_constraints AS tc
             JOIN information_schema.key_column_usage AS kcu
               ON tc.constraint_name = kcu.constraint_name
               AND tc.table_schema = kcu.table_schema
             WHERE tc.constraint_type = 'FOREIGN KEY'
               AND tc.table_name = ?
+            ORDER BY tc.constraint_name, kcu.ordinal_position
         ", [$tableName]);
 
-        $fkColumns = collect($foreignKeys)->pluck('column_name')->unique()->toArray();
         $indexes = Schema::getIndexes($tableName);
 
-        // Map columns that are at the first position of an index
-        $firstIndexedColumns = collect($indexes)->map(fn ($index) => $index['columns'][0] ?? null)->filter()->unique()->toArray();
+        $foreignKeyColumns = collect($foreignKeys)
+            ->groupBy('constraint_name')
+            ->map(fn ($columns): array => $columns
+                ->sortBy('ordinal_position')
+                ->pluck('column_name')
+                ->values()
+                ->all());
 
-        foreach ($fkColumns as $column) {
-            $isIndexed = in_array($column, $firstIndexedColumns, true);
+        foreach ($foreignKeyColumns as $columns) {
+            $hasCompositeSupportingIndex = collect($indexes)->contains(
+                fn (array $index): bool => array_slice($index['columns'], 0, count($columns)) === $columns
+            );
+            $hasColumnSupportingIndexes = collect($columns)->every(
+                fn (string $column): bool => collect($indexes)->contains(
+                    fn (array $index): bool => ($index['columns'][0] ?? null) === $column
+                )
+            );
 
-            // Special case: check if it's part of a composite index where it's not first,
-            // but we usually want it first for performance on joins.
-            if (!$isIndexed) {
-                $failures[] = "Table [{$tableName}]: Foreign key column [{$column}] is not indexed in first position.";
+            if (!$hasCompositeSupportingIndex && !$hasColumnSupportingIndexes) {
+                $failures[] = "Table [{$tableName}]: Foreign key columns [".implode(', ', $columns).'] have no supporting index prefix.';
             }
         }
     }
