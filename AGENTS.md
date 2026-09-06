@@ -30,7 +30,7 @@ Before relying on a package's API, confirm its installed version:
 
 ## Frontend Bundling
 
-- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+- When frontend changes are not reflected in the UI, inspect the existing build scripts and local server state. Run the relevant authorized local build or development server, reuse a running server when appropriate, and perform the required visual inspection. Ask the user only when the remaining step requires access or interaction unavailable to the agent.
 
 ## Documentation Files
 
@@ -46,7 +46,7 @@ Before relying on a package's API, confirm its installed version:
 
 ## Project Rules
 
-- This project contains committed, area-grouped rules in `.ai/rules` when that directory exists (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule. If `.ai/rules` does not exist, continue without it.
+- Before planning or editing, read `.ai/rules/index.md` and every rule file matching the paths in scope. These files contain normative project guidance. Search `.ai/rules` with task-specific domain terms as well, to catch cross-cutting constraints. Reuse unchanged instructions already read; load additional rules when the scope changes. If `.ai/rules` does not exist, continue without it.
 
 ## Artisan
 
@@ -81,8 +81,9 @@ Before relying on a package's API, confirm its installed version:
 
 # Test Enforcement
 
-- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+- Behavior changes require affected Pest coverage. Add or update a test when existing coverage does not establish the changed contract, then run the smallest relevant tests.
+- For non-behavioral changes, use an appropriate existing check or inspect the diff; do not create a test solely for a spelling or formatting correction.
+- Follow `.ai/rules/testing.md` for test execution and fallback commands. Use `php artisan test --compact` with a specific filename or filter for a focused Artisan run.
 
 === laravel/core rules ===
 
@@ -112,14 +113,14 @@ Before relying on a package's API, confirm its installed version:
 
 ## Vite Error
 
-- If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
+- For an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, follow Frontend Bundling above to inspect and rebuild the local assets, then verify the affected page.
 
 === pint/core rules ===
 
 # Laravel Pint Code Formatter
 
-- If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
-- Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
+- After PHP changes, run `vendor/bin/pint --format agent` with explicit paths to the PHP files changed for this task before finalizing. Use `vendor/bin/pint --dirty --format agent` only when all dirty PHP files belong to this task.
+- Inspect the formatter diff and preserve unrelated user changes. For review-only work, use scoped check mode without autofixes; do not run Pint without file paths or a verified `--dirty` scope.
 
 === pest/core rules ===
 

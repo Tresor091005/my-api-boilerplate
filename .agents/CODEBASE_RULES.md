@@ -17,10 +17,15 @@ owned by the matching files in `.ai/rules/`; agents must use
 - `.ai/rules/*.md` contains the normative detailed rules for its path or
   domain. Existing code and examples are evidence, not permission to repeat a
   known violation.
-- `.agents/PROJECT_MEMORY.md` contains contextual decisions, trade-offs,
-  exceptions, and review traps. It does not override a rule.
-- If two rules conflict, stop and reconcile the rules before generating or
-  approving code. Do not resolve the conflict by personal preference.
+- Keep decision rationale and review traps beside the owning rule in
+  `.ai/rules/`; distinguish current constraints from possible future changes.
+- Resolve apparent conflicts using instruction precedence and the local
+  authority order in `.ai/rules/index.md`. Project rules do not override
+  explicit user instructions or higher-priority session constraints.
+- Do not edit governing rules merely to unblock a task. If a material conflict
+  remains at the same authority level, pause only the dependent action,
+  explain the conflict, and request the missing decision. Continue independent
+  authorized work; do not resolve the conflict by personal preference.
 
 ## Universal Code Standards
 
@@ -62,14 +67,19 @@ owned by the matching files in `.ai/rules/`; agents must use
   complete quality gate when the scope warrants it.
 - Do not delete tests or weaken a rule to make a check pass without explicit
   approval.
-- When a rule is missing or ambiguous, report the gap and propose an update to
-  the appropriate `.ai/rules/*.md` file, this global document, or
-  `PROJECT_MEMORY.md` before silently inventing a convention.
+- For a missing or ambiguous convention, use applicable rules and consistent
+  nearby evidence for routine, reversible choices. State material assumptions.
+  Request a decision only when an unresolved choice affects architecture,
+  public behavior, data safety, or authorization scope. Pause only dependent
+  work; do not require a rule edit before ordinary implementation.
+- Keep recurring decisions in the owning rule when an authorized change
+  establishes them. Never record secrets, credentials, or sensitive user data
+  in instructions or examples.
 
 ## Skill Contract
 
 - `code-generator` and `code-reviewer` are the only project-specific skills.
-- Both must read `.ai/rules/index.md`, all matching rules, this file, and
-  `PROJECT_MEMORY.md` before acting.
+- Both must read `.ai/rules/index.md`, all matching rules, and this file before
+  acting. Reuse unchanged instructions already read.
 - Skills provide procedural workflows only; they must not duplicate detailed
   project doctrine.

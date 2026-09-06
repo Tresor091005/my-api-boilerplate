@@ -52,8 +52,39 @@ paths:
 - Run the smallest affected test file or filter first. Use the normal
   php artisan test --compact path when a complete suite run is intentionally
   required.
-- Use `composer quality:check` as the non-mutating complete quality gate: Rector dry-run, Pint check, and PHPStan. Use `composer quality` only when the requested workflow allows automated Rector/Pint changes.
+- `composer quality:check` runs Rector dry-run, Pint check, PHPStan, and the
+  test script. It avoids source autofixes, but clears application configuration
+  cache and may write test/cache artifacts. Tests use the configured test
+  database; verify isolation before database-mutating tests. Run the full gate
+  when scope warrants it, accounting for tests it will rerun.
+- `composer quality` also runs IDE helper generation and Rector/Pint source
+  rewrites. Use it only when the requested workflow permits those changes;
+  inspect its diff and preserve unrelated user work.
 - Run the affected Pest tests before the complete quality gate. A green static-analysis check does not replace behavioral tests, and a green Feature test does not replace architecture or code-quality checks.
+
+## Pest and PHPStan Context
+
+- PHPStan does not fully understand Pest closure `$this` binding here.
+  `phpstan.neon` contains targeted ignores for `tests/**` and
+  `app-modules/*/tests/**`. Preserve these framework-noise exceptions; do not
+  extend them to production code or weaken checks to conceal a real defect.
+
+## Completion and Failures
+
+- For implementation, finish when the requested behavior is complete, the diff
+  has been inspected, and relevant tests and checks pass. Include required
+  visual inspection for UI work. Scale verification to the changed contract;
+  do not run a full gate solely because a focused check passed.
+- Investigate failures and correct those within the authorized scope. For
+  diagnosis-only or review-only requests, report findings without applying fixes.
+- If a check is blocked or an unrelated failure remains, report the command,
+  evidence, what remains unverified, and the exact missing input or capability.
+  Continue independent authorized work; do not claim full success.
+- Reuse valid results for unchanged source and environment. Repeat or broaden
+  checks only after relevant changes, failures, or new evidence justify it.
+- A review ends after the entire requested scope has been inspected and
+  actionable findings and verification gaps are reported, including when no
+  findings qualify. Do not stop at the first defect or invent follow-up work.
 
 ## References
 

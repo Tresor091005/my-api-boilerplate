@@ -39,6 +39,10 @@ paths:
 ### Output Contract
 
 - Keep the current project convention until an explicit output-boundary refactor is approved.
+- Returning API Resources is intentional output coupling while services remain
+  callable from HTTP, Console, Jobs, and Schedulers. A future move to models or
+  application result objects must update services, Controllers, tests, and
+  consumers deliberately; do not perform it as an incidental cleanup.
 - Return a Resource for a model-backed result, a `Lahatre\Shared\Http\Resources\BaseCollection` subclass for a cursor-paginated list, ViewData for a computed or aggregated projection, and `void` when the operation has no representation.
 - Prefer a Resource when the output is centered on an Eloquent model, collection, or query row. Resources may expose optional relations and aggregates with `whenLoaded()`, `whenCounted()`, and conditional fields.
 - Use ViewData only when the result has no natural model, collection, or query-row Resource, such as a multi-level aggregate or calculated projection assembled from several sources.
@@ -56,6 +60,8 @@ Reference: `.ai/reference-examples/OrderService.php.example` shows transaction o
 
 - Use immutable typed Data classes, normally `final readonly` with a private constructor and a `fromArray()` factory.
 - Keep Data independent from Form Requests, Eloquent models, Laravel validation, authorization, and ambient tenant context.
+- `LahatreDTO` and validated DTOs are retired architecture; do not reintroduce
+  validation into service transport objects.
 - Map source `snake_case` keys to `camelCase` properties explicitly. Convert already validated values into enums, dates, Collections, or nested Data objects in `fromArray()`.
 - Use one Data class per coherent service shape. Split action-specific classes only when the shapes materially differ.
 - `MissingValue` is a small typed marker for partial service updates: it distinguishes an omitted field from an explicitly supplied `null` or another value. It is not a validation system.
@@ -77,6 +83,8 @@ Reference: `.ai/reference-examples/ReplaceOrderLinesData.php.example` shows one 
 - Factory names must describe the failure (`productsUnavailable()`, `hasLines()`), not hide it behind generic names such as `invalid()` or `failed()`.
 - Keep construction private and generic so exceptions can only be created through their named factories: `private function __construct(string $message, array $context = []) { parent::__construct($message, $context); }`.
 - Never throw a bare `Exception` from `app-modules/*/src` for a business failure.
+- The bootstrap rendering of `AssertionException` is part of the API contract;
+  preserve its translated message and stable structured context.
 
 References:
 

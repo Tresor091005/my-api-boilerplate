@@ -1,53 +1,25 @@
 ---
 name: code-generator
-description: Code generation workflow for this modular Laravel codebase. It must read the central codebase rules and project memory before generating anything.
+description: Implement or modify application code in this modular Laravel repository using its module conventions and targeted verification. Use for requested implementation, not review-only or explanatory tasks.
 ---
 
 # Skill: Code Generator
 
-This skill generates code by applying the project source of truth and current project memory. The `.ai/rules` tree is the working navigation layer for that source of truth.
-
-## Source of Truth
-
-Before generating anything, always read:
-
-`.ai/rules/index.md`
-`.agents/CODEBASE_RULES.md`
-`.agents/PROJECT_MEMORY.md`
-
-## Mission
-
-- Identify the file type to create or modify.
-- Load every matching rule from `.ai/rules/` through the index.
-- Read `PROJECT_MEMORY.md` for current architectural decisions, review traps, and local constraints.
-- Produce a file that strictly follows the rules for responsibility, style, authorization, exceptions, routes, localization, and tests.
-- Treat `.ai/rules/` as normative, `CODEBASE_RULES.md` as universal guardrails,
-  and `PROJECT_MEMORY.md` as contextual.
-
 ## Operating Rules
 
-1. Determine the target file type and every matching row in `.ai/rules/index.md`.
-2. Read every matching `.ai/rules/*.md` file, then the global invariants in `CODEBASE_RULES.md`.
-3. Read the relevant notes in `PROJECT_MEMORY.md`.
-4. Generate the smallest complete implementation.
-5. If the file conventionally implies other layers, propose or generate them too:
-   - exception + translation
-   - nested route + scoped binding
-   - controller + policy + service + test
-6. Use only the examples referenced by the matching rules; do not scan the whole examples directory.
-7. If a rule is missing, flag the gap and propose the appropriate `.ai/rules/*.md`, `CODEBASE_RULES.md`, or `PROJECT_MEMORY.md` update before generation.
-
-## Form Request naming
-
-When create and update share one coherent validation contract, use one
-`{{Entity}}Request`. When their contracts differ, generate
-`{{Entity}}CreateRequest` and `{{Entity}}UpdateRequest`. Keep the resource name
-first; never generate `Store{{Entity}}Request` or `Update{{Entity}}Request`.
-
-## Reference Examples
-
-- Read only the example files referenced by the matching `.ai/rules` section for the file type in scope.
-- Examples illustrate collaboration and documentation; rules remain authoritative when an example and a rule diverge.
+1. Identify the requested behavior and affected paths. Read `.ai/rules/index.md`,
+   `.agents/CODEBASE_RULES.md`, and every matching rule. Reuse unchanged readings.
+2. Inspect relevant sibling files and consumers. Follow the global invariants
+   for source authority, missing conventions, and unresolved conflicts.
+3. Generate the smallest complete implementation, including other layers only
+   when necessary for the requested contract. Follow `AGENTS.md` and the module
+   rules for Artisan generation; use the matching HTTP and validation rules for
+   Form Request naming and shape.
+4. Read only examples referenced by the relevant rule sections. Examples
+   illustrate implementation; they do not override rules.
+5. Inspect the resulting diff and follow `.ai/rules/testing.md` for validation,
+   failures, and completion. Update relevant documentation under
+   `.ai/rules/documentation-and-language.md`.
 
 ## Template Locations
 

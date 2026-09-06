@@ -1,5 +1,6 @@
 # Development documentation
 
+- [Agent instruction cleanup follow-up](agent-instruction-follow-up.md)
 - [Caching and consistency](caching-and-consistency.md)
 - [Code quality](code-quality.md)
 - [Dependencies and package roles](dependencies.md)

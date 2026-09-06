@@ -16,6 +16,8 @@ Models, Jobs, Support classes, and other application code.
 ## Query Boundaries
 
 - Make the tenant boundary of every read and write locally provable. Constrain by `organization_id`, apply an explicit system-plus-tenant rule, or query through an already authorized and constrained parent.
+- `organization_id` has no universal global scope in this application. Do not
+  assume tenant filtering merely because a query uses Eloquent.
 - An Eloquent query may rely on `SoftDeletes` only when the queried model actually uses the trait and the default non-deleted behavior is intended. Raw SQL, joins, aggregates, subqueries, and `DB::table()` calls must add every relevant `deleted_at` boundary explicitly.
 - UUIDs are identifiers, not authorization boundaries.
 - Cursor pagination must use deterministic ordering. Whitelist sort fields in Data, append a unique tie-breaker when needed, and prefer `stableCursorPaginate()` for the standard `sort_by`, `sort_order`, `per_page`, and `cursor` filter quartet.
@@ -57,17 +59,38 @@ Models, Jobs, Support classes, and other application code.
 
 ## Schema Audits
 
-- When reviewing the current database structure, inspect the application
-  database through Docker before relying on migration history:
-  `docker compose exec -T app php artisan migrate:status`,
-  `docker compose exec -T app php artisan db:show --counts --views`, and
-  `docker compose exec -T app php artisan db:table <table>`.
+- Distinguish migration-source reviews from current-schema audits. For a
+  migration review, inspect the proposed change, relevant migration history,
+  schema tests, and consumers; a database connection is not a prerequisite
+  for findings supported by source evidence.
+- Before connecting, identify the effective connection target and environment
+  from configuration without displaying credentials or full connection URLs.
+  A Docker container or a local environment label does not prove that the
+  database is local or isolated. If the target is unclear, pause database
+  access and request clarification while continuing source review.
+- Relevant read-only schema inspection of a verified local, non-shared or
+  isolated test database is within review scope. Shared or production database
+  access requires explicit authorization covering the target and operation;
+  reuse authorization already given for that scope.
+- For current-schema claims, inspect the identified, authorized database with
+  read-only commands. In the project's Docker runtime, use
+  `docker compose exec -T app php artisan migrate:status` for applied migration
+  status and `docker compose exec -T app php artisan db:table <table>` for
+  relevant tables. Use `db:show --counts --views` only when counts and a broader
+  inventory are needed. Ensure the commands use the verified connection.
+- Schema inspection does not authorize applying or rolling back migrations,
+  seeding, or changing records. Run tests that mutate database state only
+  against a verified isolated test database within the requested scope.
 - Treat applied migrations and the live database schema as separate evidence:
   use Artisan database commands to establish what exists now, and migration
   files to explain how it got there or where a correction belongs.
 - Do not infer a current column, index, foreign key, or constraint from an old
   migration, a migration `down()` method, model PHPDoc, or an un-applied
   migration.
+- If access is unavailable or not authorized, continue the source review and
+  report its supported findings. Label current-schema conclusions as
+  unverified and identify the remaining check and required access. Do not
+  claim a current-schema audit is complete without that evidence.
 
 ## Factories and Seeders
 

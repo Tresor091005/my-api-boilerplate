@@ -52,11 +52,19 @@ paths:
   extensions, projections, or technical records of the parent use the parent's
   authorization alone.
 - Do not place business logic or manual validation in Controllers.
+- IAM `AuthService` accepts the IAM `User` model explicitly. Preserve the
+  runtime assertions in `AuthController` before service calls. Multi-guard or
+  multi-authenticatable support requires deliberately widening that contract,
+  not merely removing the assertions.
 - Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Use `response()->noContent()` for responses without a body; do not serialize `null` as JSON for a `204` response.
 
 ## Form Requests
 
 - Form Requests own HTTP validation and field-specific normalization. They must not contain Gate or Policy logic.
+- Injected Form Requests validate before Controller authorization. An
+  authenticated but unauthorized request may therefore receive validation
+  errors before the Controller Gate runs. This is an accepted ordering
+  tradeoff; retain route rate limiting and Controller authorization.
 - Reuse one Request while store and update share a coherent shape; split it when conditional branches or missing-value semantics obscure the contract.
 - When create and update require separate Requests, name them `EntityCreateRequest` and `EntityUpdateRequest`, with the resource name first. Do not introduce `StoreEntityRequest` or `UpdateEntityRequest`.
 - Normalize only named fields in `prepareForValidation()`; never recursively sanitize every input string.
@@ -68,6 +76,12 @@ paths:
 
 - Keep Policies query-free and limited to authorization. Standard abilities are `list`, `retrieve`, `create`, `update`, and `delete`.
 - Tenant-owned models must verify `organization_id` as part of model authorization. Return `false` from `restore` and `forceDelete` unless explicitly supported.
+- Model permissions use the registered morph alias, not the model basename
+  (for example, `catalog_product.retrieve`). `MorphMapRegistry` owns model
+  identity for discovery and dynamic polymorphic authorization. Policies use
+  `BasePolicy::canModel()` or `canOnModel()` instead of hardcoded prefixes;
+  missing permissions deny access. When this convention changes, update
+  `docs/iam/permissions.md` and this rule together.
 
 ## Resources
 

@@ -45,11 +45,12 @@ paths:
 
 - Write code, comments, PHPDoc, test names, messages, and rule text in English.
 - Prefer explicit, readable code with complete return types. Add PHPDoc when native signatures cannot express the shape.
-- Run the smallest relevant tests, then use `composer quality:check` as the non-mutating full quality gate when the scope warrants it. Use `composer quality` only when automated Rector/Pint changes are intended.
+- Follow `.ai/rules/testing.md` for focused tests, full quality gates, their
+  side effects, and completion criteria.
 
 Detailed normative definitions live in `.ai/rules/`; universal invariants live
-in `.agents/CODEBASE_RULES.md`; evolving decisions and exceptions remain in
-`.agents/PROJECT_MEMORY.md`.
+in `.agents/CODEBASE_RULES.md`. Keep decision rationale and review traps beside
+the owning rule.
 
 ## References
 

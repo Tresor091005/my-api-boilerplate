@@ -43,20 +43,27 @@ paths:
 
 ## Documentation after generation or structural change
 
-- After generating or materially changing code, inspect the resulting behavior
-  and update the relevant documentation in the same change when the public
-  surface, architecture, workflow, business rule, configuration, command,
-  generated-file contract, or operational behavior changed.
-- Generated files are not self-documenting. Record non-obvious choices,
-  required options, ownership boundaries, side effects, failure modes, and
-  examples in the nearest authoritative document.
+- For changes to public contracts, architecture, workflows, business rules,
+  configuration, commands, generated-file contracts, or non-obvious operational
+  behavior, inspect the result and update the nearest existing authoritative
+  documentation within scope in the same change.
+- Follow `AGENTS.md` for permission to create documentation: create a new file
+  only when explicitly requested. If no suitable document exists, include the
+  proposed documentation in the handoff without creating a file. Do not add a
+  governing rule solely to work around this boundary.
+- Record the resulting contract, rationale, ownership boundaries, side effects,
+  failure modes, and required commands or migrations when relevant. Pure
+  spelling or formatting corrections need no new decision record.
 - Update indexes and links when adding, moving, or renaming documentation.
   Do not leave duplicate instructions in multiple locations; link to the
   source of truth instead.
-- Before finalizing, search for stale paths, old command names, outdated ports,
-  obsolete package references, and claims contradicted by the current code.
-  Validate local Markdown links and run the smallest relevant tests or quality
-  checks for the code change.
+- Before finalizing, check stale references in the changed documentation and
+  its direct consumers, validate affected local Markdown links, and run the
+  smallest relevant tests or quality checks for the code change.
+- When a rule changes how agents or contributors work, update this rules tree
+  and affected index entries. When a stable runtime convention changes, update
+  relevant existing human documentation as well; link to the source of truth
+  instead of duplicating the full explanation.
 
 ## Documentation ownership
 
@@ -68,20 +75,3 @@ paths:
 - A module's `README.md` and `docs/` own module-specific behavior. Keep
   historical decisions in `docs/decisions/` and link them from the stable
   documentation when relevant.
-
-## Self-documenting change workflow
-
-- Every behavior change, addition, removal, public contract change, generator
-  change, or architectural refactor must leave a durable record in the same
-  change.
-- Update the nearest authoritative documentation, decision record, or module
-  documentation. If none exists, create a focused document under
-  `docs/decisions/` or update the applicable `.ai/rules/*.md` file and link it
-  from the relevant index.
-- Do not rely on a commit message, chat history, generated code, or tests alone
-  to explain non-obvious behavior. Record the resulting contract, rationale,
-  boundaries or failure modes, and required commands or migrations.
-- When a rule changes how agents or contributors work, update this rules tree
-  because `.ai/rules/index.md` is loaded before planning and edits. When a
-  stable runtime convention changes, update the relevant human documentation
-  as well instead of duplicating the full explanation in multiple locations.
