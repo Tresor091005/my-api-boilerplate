@@ -15,11 +15,15 @@ Product variants keep their presentation data, while the variant UUID is also
 the CatalogItem UUID. SKU, unit group, and active state belong to CatalogItem
 and remain flattened in the existing variant API response.
 CatalogItem.item_type identifies the referenced business type and currently
-uses `catalog_product_variant` and `catalog_bundle`. A Bundle shares its UUID with CatalogItem,
+uses `catalog_product_variant`, `catalog_bundle`, and `catalog_service`. A Bundle shares its UUID with CatalogItem,
 uses the built-in `bundle` unit group, and is stockable through its own
 `InventoryItem`. Stock locations are Catalog-owned business models backed by
 Inventory's `InventoryLocation` adapter; the first version is flat and may have
 one primary address.
+Service also shares its UUID with CatalogItem, is always non-stockable, and
+owns at least one ordered deliverable template. Templates have no standalone
+CRUD: create and update payloads treat `deliverable_templates` as an aggregate
+array, while responses expose it only through `include=deliverable_templates`.
 Bundle components reference CatalogItems and currently accept product variants
 only.
 BundleItem keeps item_type as a string discriminator and does not define a

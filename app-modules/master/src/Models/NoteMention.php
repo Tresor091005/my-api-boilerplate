@@ -60,6 +60,7 @@ class NoteMention extends Model
 
     public function note(): BelongsTo
     {
-        return $this->belongsTo(Note::class, 'note_id');
+        return $this->belongsTo(Note::class, 'note_id')
+            ->where('master_notes.organization_id', currentOrganizationId());
     }
 }

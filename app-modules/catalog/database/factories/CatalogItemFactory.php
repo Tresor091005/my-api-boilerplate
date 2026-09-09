@@ -43,4 +43,12 @@ class CatalogItemFactory extends Factory
             'is_stockable' => CatalogItemType::Bundle->isStockable(),
         ]);
     }
+
+    public function service(): static
+    {
+        return $this->state([
+            'item_type'    => CatalogItemType::Service,
+            'is_stockable' => CatalogItemType::Service->isStockable(),
+        ]);
+    }
 }

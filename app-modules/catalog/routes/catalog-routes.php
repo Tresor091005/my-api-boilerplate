@@ -11,6 +11,7 @@ use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
 use Lahatre\Catalog\Http\Controllers\ProductVariantController;
+use Lahatre\Catalog\Http\Controllers\ServiceController;
 use Lahatre\Catalog\Http\Controllers\StockLocationController;
 use Lahatre\Catalog\Http\Controllers\StockTransferController;
 
@@ -34,6 +35,7 @@ Route::group([
             'categories'      => CategoryController::class,
             'options'         => OptionController::class,
             'products'        => ProductController::class,
+            'services'        => ServiceController::class,
             'stock-locations' => StockLocationController::class,
             'stock-transfers' => StockTransferController::class,
         ]);

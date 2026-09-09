@@ -6,6 +6,7 @@ use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\Service;
 
 it('maps catalog item types to and from their target models', function (): void {
     $type = CatalogItemType::ProductVariant;
@@ -32,7 +33,14 @@ it('defines a valid model class for every catalog item type', function (): void 
 
 it('identifies whether a catalog item type is stockable', function (): void {
     expect(CatalogItemType::ProductVariant->isStockable())->toBeTrue()
-        ->and(CatalogItemType::Bundle->isStockable())->toBeTrue();
+        ->and(CatalogItemType::Bundle->isStockable())->toBeTrue()
+        ->and(CatalogItemType::Service->isStockable())->toBeFalse();
+});
+
+it('maps services as non-stockable catalog item targets', function (): void {
+    expect(CatalogItemType::Service->modelClass())->toBe(Service::class)
+        ->and(CatalogItemType::Service->morphAlias())->toBe((new Service)->getMorphClass())
+        ->and(CatalogItemType::fromModel(Service::class))->toBe(CatalogItemType::Service);
 });
 
 it('maps bundles and keeps nested bundles out of allowed component types', function (): void {

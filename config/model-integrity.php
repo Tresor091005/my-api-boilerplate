@@ -98,6 +98,7 @@ return [
         'catalog_categories'      => ['handle'],
         'catalog_products'        => ['handle'],
         'catalog_bundles'         => ['handle'],
+        'catalog_services'        => ['handle'],
         'catalog_stock_locations' => ['handle'],
     ],
 
@@ -121,6 +122,7 @@ return [
         ],
         'catalog_bundles'          => ['catalog_bundles_organization_id_id_unique'],
         'catalog_product_variants' => ['catalog_product_variants_organization_id_id_unique'],
+        'catalog_services'         => ['catalog_services_organization_id_id_unique'],
         'catalog_categories'       => ['catalog_categories_organization_id_id_unique'],
         'catalog_products'         => ['catalog_products_organization_id_id_unique'],
         'iam_organization_members' => ['iam_organization_members_organization_id_id_unique'],
