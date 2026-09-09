@@ -70,6 +70,7 @@ return [
             'master_units_code_unique',
             'master_units_group_id_ratio_unique',
         ],
+        'service_evidences' => ['service_evidences_token_unique'],
     ],
 
     'composite_pkey' => [
