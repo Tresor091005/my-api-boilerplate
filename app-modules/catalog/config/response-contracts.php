@@ -58,6 +58,18 @@ $bundleCollection = [
     ]],
 ];
 
+$serviceCollection = [
+    'default_shape' => 'default',
+    'shapes'        => ['default' => [
+        'required_loads' => ['catalogItem'],
+        'includes'       => [
+            'deliverable_templates' => ['loads' => ['deliverableTemplates']],
+            'unit_group'            => ['loads' => ['catalogItem.unitGroup']],
+            'units'                 => ['loads' => ['catalogItem.unitGroup.units']],
+        ],
+    ]],
+];
+
 $stockLocationCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => [
@@ -102,6 +114,10 @@ return [
     'lahatre.catalog.bundles.show'                        => $bundleCollection,
     'lahatre.catalog.bundles.store'                       => $bundleCollection,
     'lahatre.catalog.bundles.update'                      => $bundleCollection,
+    'lahatre.catalog.services.index'                      => $serviceCollection,
+    'lahatre.catalog.services.show'                       => $serviceCollection,
+    'lahatre.catalog.services.store'                      => $serviceCollection,
+    'lahatre.catalog.services.update'                     => $serviceCollection,
     'lahatre.catalog.stock-locations.index'               => $stockLocationCollection,
     'lahatre.catalog.stock-locations.show'                => $stockLocationCollection,
     'lahatre.catalog.stock-locations.store'               => $stockLocationCollection,
@@ -137,6 +153,7 @@ return [
     'lahatre.catalog.products.destroy'                  => [],
     'lahatre.catalog.products.variants.destroy'         => [],
     'lahatre.catalog.bundles.destroy'                   => [],
+    'lahatre.catalog.services.destroy'                  => [],
     'lahatre.catalog.stock-locations.destroy'           => [],
     'lahatre.catalog.bundles.items.destroy'             => [],
 ];

@@ -16,6 +16,7 @@ Models, Jobs, Support classes, and other application code.
 ## Query Boundaries
 
 - Make the tenant boundary of every read and write locally provable. Constrain by `organization_id`, apply an explicit system-plus-tenant rule, or query through an already authorized and constrained parent.
+- For tenant-scoped query builders, add the `organization_id` predicate before relation or business predicates. Tenant-aware indexes should likewise put `organization_id` first unless a documented cross-tenant or non-tenant access pattern requires another leading column.
 - An Eloquent query may rely on `SoftDeletes` only when the queried model actually uses the trait and the default non-deleted behavior is intended. Raw SQL, joins, aggregates, subqueries, and `DB::table()` calls must add every relevant `deleted_at` boundary explicitly.
 - UUIDs are identifiers, not authorization boundaries.
 - Cursor pagination must use deterministic ordering. Whitelist sort fields in Data, append a unique tie-breaker when needed, and prefer `stableCursorPaginate()` for the standard `sort_by`, `sort_order`, `per_page`, and `cursor` filter quartet.

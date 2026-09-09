@@ -28,4 +28,6 @@ return [
     'bundle_cannot_change_composition_with_active_stock' => 'The bundle composition cannot change while the bundle has active stock.',
     'stock_transfer_invalid_state'                       => 'Every stock transfer location and item must be active and have stock tracking enabled.',
     'stock_transfer_invalid_transition'                  => 'A stock transfer with status :status cannot be :action.',
+    'service_deliverable_templates_required'             => 'A service must contain at least one deliverable template.',
+    'service_deliverable_templates_unavailable'          => 'One or more selected deliverable templates are unavailable.',
 ];

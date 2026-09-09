@@ -16,4 +16,5 @@ return [
     'bundle_stock_operation_manual_stock_ids_required'     => 'Stock IDs are required when the deduction strategy is manual.',
     'bundle_stock_operation_stock_ids_prohibited'          => 'Stock IDs are not accepted for this operation direction.',
     'bundle_stock_operation_stock_ids_strategy_prohibited' => 'Stock IDs are only accepted when the deduction strategy is manual.',
+    'service_deliverable_template_unavailable'             => 'The selected deliverable template is unavailable.',
 ];
