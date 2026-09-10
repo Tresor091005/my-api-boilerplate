@@ -14,12 +14,15 @@ return new class extends Migration
         Schema::create('organization_settings', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')
-                ->unique()
                 ->constrained('organization_organizations')
                 ->cascadeOnDelete();
             $table->jsonb('enable_currencies');
             $table->timestamps();
+            $table->softDeletes();
         });
+
+        DB::statement('CREATE UNIQUE INDEX organization_settings_organization_id_unique ON organization_settings (organization_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX organization_settings_deleted_at_index ON organization_settings (deleted_at)');
 
         DB::table('organization_organizations')
             ->select(['id', 'functional_currency_code'])

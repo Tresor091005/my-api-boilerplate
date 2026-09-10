@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->decimal('rate', 30, 12);
             $table->timestamp('effective_at');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('source_currency_code')
                 ->references('code')
@@ -30,16 +32,12 @@ return new class extends Migration
                 ->references('code')
                 ->on('master_currencies')
                 ->restrictOnDelete();
-            $table->index('source_currency_code');
-            $table->index('target_currency_code');
-            $table->unique([
-                'organization_id',
-                'source_currency_code',
-                'target_currency_code',
-                'context',
-                'effective_at',
-            ], 'organization_exchange_rates_identity_unique');
         });
+
+        DB::statement('CREATE UNIQUE INDEX organization_exchange_rates_identity_unique ON organization_exchange_rates (organization_id, source_currency_code, target_currency_code, context, effective_at) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX organization_exchange_rates_deleted_at_index ON organization_exchange_rates (deleted_at)');
+        DB::statement('CREATE INDEX organization_exchange_rates_source_currency_code_index ON organization_exchange_rates (source_currency_code) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX organization_exchange_rates_target_currency_code_index ON organization_exchange_rates (target_currency_code) WHERE deleted_at IS NULL');
     }
 
     public function down(): void

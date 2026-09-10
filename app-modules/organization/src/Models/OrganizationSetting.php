@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Organization\Database\Factories\OrganizationSettingFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -17,6 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $timezone
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  *
  * @method static Builder<static>|OrganizationSetting newModelQuery()
  * @method static Builder<static>|OrganizationSetting newQuery()
@@ -34,6 +36,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class OrganizationSetting extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'organization_settings';
 
@@ -50,5 +53,6 @@ class OrganizationSetting extends Model
         'timezone'          => 'string',
         'created_at'        => 'immutable_datetime',
         'updated_at'        => 'immutable_datetime',
+        'deleted_at'        => 'immutable_datetime',
     ];
 }

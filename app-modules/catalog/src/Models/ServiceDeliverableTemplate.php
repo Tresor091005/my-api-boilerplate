@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -14,10 +16,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $service_id
  * @property string $name
  * @property int $position
+ * @property CarbonImmutable|null $deleted_at
  */
 class ServiceDeliverableTemplate extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'catalog_service_deliverable_templates';
 
@@ -31,6 +35,7 @@ class ServiceDeliverableTemplate extends Model
         'position'        => 'integer',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function service(): BelongsTo

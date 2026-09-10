@@ -134,6 +134,7 @@ final readonly class ServiceService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $lockedService->deliverableTemplates()->delete();
             $lockedService->delete();
             $this->transactionalCatalogItemService->delete($catalogItem);
         });
@@ -214,9 +215,9 @@ final readonly class ServiceService
         $query = $service->deliverableTemplates();
 
         if ($retainedIds->isEmpty()) {
-            $query->delete();
+            $query->forceDelete();
         } else {
-            $query->whereNotIn('id', $retainedIds->all())->delete();
+            $query->whereNotIn('id', $retainedIds->all())->forceDelete();
 
             $positionOffset = ((int) $existingTemplates->max('position')) + $templates->count() + 1;
             $service->deliverableTemplates()

@@ -60,7 +60,7 @@ it('manages a service and its ordered deliverable templates as one aggregate', f
         ->and($updated->catalogItem->is_active)->toBeFalse()
         ->and($updatedTemplates->pluck('position')->all())->toBe([1, 2])
         ->and($updatedTemplates->first()->id)->toBe($preservedTemplateId)
-        ->and(ServiceDeliverableTemplate::query()->whereKey($removedTemplateId)->exists())->toBeFalse();
+        ->and(ServiceDeliverableTemplate::withTrashed()->whereKey($removedTemplateId)->exists())->toBeFalse();
 
     $pageIds = collect($this->serviceService->paginate(ServiceFilterData::fromArray([
         'name' => 'Premium',
@@ -72,7 +72,12 @@ it('manages a service and its ordered deliverable templates as one aggregate', f
     expect(Service::query()->whereKey($service->id)->exists())->toBeFalse()
         ->and(Service::withTrashed()->whereKey($service->id)->exists())->toBeTrue()
         ->and(CatalogItem::query()->whereKey($service->id)->exists())->toBeFalse()
-        ->and(ServiceDeliverableTemplate::query()->where('service_id', $service->id)->count())->toBe(2);
+        ->and(ServiceDeliverableTemplate::query()->where('service_id', $service->id)->count())->toBe(0)
+        ->and(ServiceDeliverableTemplate::withTrashed()->where('service_id', $service->id)->count())->toBe(2)
+        ->and(ServiceDeliverableTemplate::withTrashed()
+            ->where('service_id', $service->id)
+            ->whereNull('deleted_at')
+            ->count())->toBe(0);
 
     $replacement = $this->serviceService->create(ServiceData::fromArray([
         'name'                  => 'On-site Installation',

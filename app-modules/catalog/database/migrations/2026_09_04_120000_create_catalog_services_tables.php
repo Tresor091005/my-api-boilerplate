@@ -41,8 +41,8 @@ return new class extends Migration
             $table->text('name');
             $table->unsignedInteger('position');
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->unique(['organization_id', 'service_id', 'position'], 'catalog_service_templates_position_unique');
             $table->unique(['organization_id', 'id'], 'catalog_service_templates_organization_id_id_unique');
             $table->foreign(['organization_id', 'service_id'], 'catalog_service_templates_service_foreign')
                 ->references(['organization_id', 'id'])
@@ -50,6 +50,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
+        DB::statement('CREATE UNIQUE INDEX catalog_service_templates_position_unique ON catalog_service_deliverable_templates (organization_id, service_id, position) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX catalog_service_templates_deleted_at_index ON catalog_service_deliverable_templates (deleted_at)');
         DB::statement('ALTER TABLE catalog_service_deliverable_templates ADD CONSTRAINT catalog_service_templates_position_positive CHECK (position > 0)');
     }
 

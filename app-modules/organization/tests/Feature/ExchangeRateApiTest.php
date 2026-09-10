@@ -124,7 +124,8 @@ it('manages future exchange rates through the API', function (): void {
     $this->deleteJson("/v1/organization/exchange-rates/{$exchangeRateId}")
         ->assertNoContent();
 
-    expect(ExchangeRate::query()->find($exchangeRateId))->toBeNull();
+    expect(ExchangeRate::query()->find($exchangeRateId))->toBeNull()
+        ->and(ExchangeRate::withTrashed()->find($exchangeRateId)?->deleted_at)->not->toBeNull();
 });
 
 it('keeps effective rates immutable and converts minor units with the selected historical rate', function (): void {

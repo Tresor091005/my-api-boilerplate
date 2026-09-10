@@ -82,6 +82,7 @@ return new class extends Migration
             $table->uuid('member_id');
             $table->timestamp('mentioned_at');
             $table->timestamp('read_at')->nullable();
+            $table->softDeletes();
 
             $table->foreign(['organization_id', 'note_id'], 'master_note_mentions_organization_note_foreign')
                 ->references(['organization_id', 'id'])
@@ -91,16 +92,12 @@ return new class extends Migration
                 ->references(['organization_id', 'id'])
                 ->on('iam_organization_members')
                 ->cascadeOnDelete();
-            $table->unique(
-                ['organization_id', 'note_id', 'member_id'],
-                'master_note_mentions_organization_note_member_unique',
-            );
-            $table->index(['organization_id', 'note_id'], 'master_note_mentions_organization_note_index');
-            $table->index(
-                ['organization_id', 'member_id', 'read_at'],
-                'master_note_mentions_organization_member_read_index',
-            );
         });
+
+        DB::statement('CREATE UNIQUE INDEX master_note_mentions_organization_note_member_unique ON master_note_mentions (organization_id, note_id, member_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX master_note_mentions_deleted_at_index ON master_note_mentions (deleted_at)');
+        DB::statement('CREATE INDEX master_note_mentions_organization_note_index ON master_note_mentions (organization_id, note_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX master_note_mentions_organization_member_read_index ON master_note_mentions (organization_id, member_id, read_at) WHERE deleted_at IS NULL');
     }
 
     public function down(): void

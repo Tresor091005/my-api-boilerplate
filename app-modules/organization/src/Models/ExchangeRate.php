@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Organization\Database\Factories\ExchangeRateFactory;
 use Lahatre\Organization\Enums\ExchangeRateContext;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -21,6 +22,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable $effective_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  *
  * @method static Builder<static>|ExchangeRate newModelQuery()
  * @method static Builder<static>|ExchangeRate newQuery()
@@ -41,6 +43,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class ExchangeRate extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'organization_exchange_rates';
 
@@ -63,5 +66,6 @@ class ExchangeRate extends Model
         'effective_at'         => 'immutable_datetime',
         'created_at'           => 'immutable_datetime',
         'updated_at'           => 'immutable_datetime',
+        'deleted_at'           => 'immutable_datetime',
     ];
 }

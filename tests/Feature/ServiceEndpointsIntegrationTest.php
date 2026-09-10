@@ -113,7 +113,7 @@ it('exposes service CRUD with templates embedded as an ordered array', function 
         ->assertJsonPath('data.deliverable_templates.1.position', 2);
 
     expect((string) $updated->json('data.deliverable_templates.1.id'))->not->toBe($firstTemplateId)
-        ->and(ServiceDeliverableTemplate::query()->whereKey($firstTemplateId)->exists())->toBeFalse();
+        ->and(ServiceDeliverableTemplate::withTrashed()->whereKey($firstTemplateId)->exists())->toBeFalse();
 
     $this->patchJson("/v1/catalog/services/{$serviceId}", [
         'unit_group_id' => $this->unitGroup->id,
@@ -124,7 +124,12 @@ it('exposes service CRUD with templates embedded as an ordered array', function 
     $this->getJson("/v1/catalog/services/{$serviceId}")->assertNotFound();
 
     expect(Service::withTrashed()->whereKey($serviceId)->exists())->toBeTrue()
-        ->and(ServiceDeliverableTemplate::query()->where('service_id', $serviceId)->count())->toBe(2);
+        ->and(ServiceDeliverableTemplate::query()->where('service_id', $serviceId)->count())->toBe(0)
+        ->and(ServiceDeliverableTemplate::withTrashed()->where('service_id', $serviceId)->count())->toBe(2)
+        ->and(ServiceDeliverableTemplate::withTrashed()
+            ->where('service_id', $serviceId)
+            ->whereNull('deleted_at')
+            ->count())->toBe(0);
 });
 
 it('requires at least one template and enforces service permissions', function (): void {

@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Master\Database\Factories\NoteMentionFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -18,6 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $member_id
  * @property CarbonImmutable $mentioned_at
  * @property CarbonImmutable|null $read_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Note $note
  *
  * @method static Builder<static>|NoteMention newModelQuery()
@@ -36,6 +38,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 class NoteMention extends Model
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'master_note_mentions';
 
@@ -56,6 +59,7 @@ class NoteMention extends Model
         'member_id'       => 'string',
         'mentioned_at'    => 'immutable_datetime',
         'read_at'         => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
 
     public function note(): BelongsTo

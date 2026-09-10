@@ -205,6 +205,11 @@ final readonly class NoteService
                 throw NoteException::rootHasReplies();
             }
 
+            NoteMention::query()
+                ->where('organization_id', $ownedNote->organization_id)
+                ->where('note_id', $ownedNote->getKey())
+                ->delete();
+
             $ownedNote->delete();
         });
     }
@@ -266,7 +271,7 @@ final readonly class NoteService
                 ->where('organization_id', $organizationId)
                 ->where('note_id', $ownedNote->getKey())
                 ->whereIn('member_id', $data->memberIds)
-                ->delete();
+                ->forceDelete();
         });
     }
 
@@ -402,7 +407,13 @@ final readonly class NoteService
     private function upsertMentionRows(string $organizationId, string $noteId, array $memberIds): void
     {
         $now = now();
-        $rows = array_map(
+        NoteMention::withTrashed()
+            ->where('organization_id', $organizationId)
+            ->where('note_id', $noteId)
+            ->whereIn('member_id', $memberIds)
+            ->forceDelete();
+
+        NoteMention::query()->insert(array_map(
             static fn (string $memberId): array => [
                 'id'              => (string) Str::uuid7(),
                 'organization_id' => $organizationId,
@@ -412,13 +423,7 @@ final readonly class NoteService
                 'read_at'         => null,
             ],
             $memberIds,
-        );
-
-        NoteMention::query()->upsert(
-            $rows,
-            ['organization_id', 'note_id', 'member_id'],
-            ['mentioned_at', 'read_at'],
-        );
+        ));
     }
 
     private function currentMemberId(): string

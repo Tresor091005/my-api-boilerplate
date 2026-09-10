@@ -260,7 +260,29 @@ it('persists mentions with their own identifiers', function (): void {
         'member_ids' => [$secondMember->id],
     ])->assertNoContent();
 
-    expect(NoteMention::query()->where('note_id', $noteId)->where('member_id', $secondMember->id)->exists())->toBeFalse();
+    expect(NoteMention::query()->where('note_id', $noteId)->where('member_id', $secondMember->id)->exists())->toBeFalse()
+        ->and(NoteMention::withTrashed()
+            ->where('note_id', $noteId)
+            ->where('member_id', $secondMember->id)
+            ->exists())->toBeFalse();
+
+    $this->postJson("/v1/master/notes/{$noteId}/mentions", [
+        'member_ids' => [$secondMember->id],
+    ])->assertNoContent();
+
+    expect(NoteMention::query()
+        ->where('note_id', $noteId)
+        ->where('member_id', $secondMember->id)
+        ->exists())->toBeTrue();
+
+    $this->deleteJson("/v1/master/notes/{$noteId}")->assertNoContent();
+
+    expect(NoteMention::query()->where('note_id', $noteId)->count())->toBe(0)
+        ->and(NoteMention::withTrashed()->where('note_id', $noteId)->count())->toBe(2)
+        ->and(NoteMention::withTrashed()
+            ->where('note_id', $noteId)
+            ->whereNull('deleted_at')
+            ->count())->toBe(0);
 });
 
 it('enforces note ownership, collective permissions, and visible reply counts', function (): void {

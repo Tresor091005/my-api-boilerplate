@@ -52,6 +52,7 @@ final class ValidServiceDeliverableTemplates implements ValidationRule, Validato
         $availableIds = DB::table('catalog_service_deliverable_templates')
             ->where('organization_id', $this->organizationId)
             ->where('service_id', $this->service->id)
+            ->whereNull('deleted_at')
             ->whereIn('id', $templateIds->unique()->values()->all())
             ->pluck('id')
             ->flip();
