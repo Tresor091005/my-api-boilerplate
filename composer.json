@@ -16,6 +16,7 @@
         "lahatre/customer": "*",
         "lahatre/iam": "*",
         "lahatre/inventory": "*",
+        "lahatre/library": "*",
         "lahatre/master": "*",
         "lahatre/organization": "*",
         "lahatre/shared": "*",
