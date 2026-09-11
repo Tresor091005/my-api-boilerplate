@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Organization\Enums\ExchangeRateContext;
 use Lahatre\Organization\Models\Organization;
+use Lahatre\Organization\Models\OrganizationSetting;
 
 class OrganizationService implements OrganizationInterface
 {
@@ -23,6 +24,15 @@ class OrganizationService implements OrganizationInterface
     public function findOrganizationById(string $organizationId): Organization
     {
         return Organization::query()->findOrFail($organizationId);
+    }
+
+    public function quotaBytes(string $organizationId): ?int
+    {
+        $quota = OrganizationSetting::query()
+            ->where('organization_id', $organizationId)
+            ->value('storage_quota_bytes');
+
+        return $quota === null ? null : (int) $quota;
     }
 
     /**

@@ -95,14 +95,36 @@ location registration are currently service-level operations rather than
 public HTTP endpoints. The commented low-stock route is intentionally not
 available; its threshold model is still a specification.
 
+## Library
+
+All Library routes require `auth.api` and the corresponding `library_file.*`
+or `library_folder.*` permission. Files are private and scoped to the active
+organization. File and folder moves are logical database updates and never
+move stored bytes.
+
+| Method | URI | Purpose |
+| --- | --- | --- |
+| GET/POST | `/v1/library/files` | List root files or upload a configurable multi-file batch. |
+| GET/PATCH/DELETE | `/v1/library/files/{file}` | Retrieve, rename/move, or delete an unused file. |
+| GET | `/v1/library/files/{file}/content` | Stream authorized content with private HTTP revalidation. |
+| GET/POST | `/v1/library/folders` | List root folders or create a logical folder. |
+| GET/PATCH/DELETE | `/v1/library/folders/{folder}` | Retrieve, rename/move, or delete an empty logical folder. |
+
+Use `folder_id` on list requests to navigate a folder; omitting it selects the
+logical root. `library:reconcile` reports missing/corrupted objects, cleans
+objects for soft-deleted files, and can prune old managed orphans. Upload count,
+file size, batch size, MIME allowlist, organization quota (5 GiB by default),
+storage disk, and orphan grace period are configurable through `LIBRARY_*`
+environment variables documented in `.env.example`.
+
 ## Root routes
 
 - `GET /` renders the welcome page.
 - `GET /api/user` is the Laravel starter authenticated-user route.
 - `/debug` is Telescope when enabled.
 - `/queues` is Horizon when enabled and authorized.
+- `/docs/api` is the Scramble OpenAPI UI when enabled by the package.
 
 Inventory item and location lifecycle changes are managed by the owning
 polymorphic business workflows. Inventory exposes read endpoints for these
 records, while item configuration is propagated through those workflows.
-- `/docs/api` is the Scramble OpenAPI UI when enabled by the package.

@@ -14,6 +14,8 @@ interface OrganizationInterface
 
     public function findOrganizationById(string $organizationId): Organization;
 
+    public function quotaBytes(string $organizationId): ?int;
+
     /**
      * @return array{currency_code: string, functional_currency_code: string, amount_in_transaction_currency: string, amount_in_functional_currency: string, exchange_rate: string, exchange_rate_effective_at: CarbonImmutable|null, requested_exchange_context: string, exchange_context: string}
      */

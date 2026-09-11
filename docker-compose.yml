@@ -71,6 +71,8 @@ services:
       FRANKENPHP_CONFIG: ""
       SERVER_NAME: ":8080"
       PHP_OPCACHE_ENABLE: 0
+      PHP_UPLOAD_MAX_FILE_SIZE: "30M"
+      PHP_POST_MAX_SIZE: "110M"
       CADDY_SERVER_ROOT: "/var/www/html/public"
       SSL_MODE: "off"
       HEALTHCHECK_PATH: "/up"
