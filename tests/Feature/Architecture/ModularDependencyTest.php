@@ -94,6 +94,7 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         'master'       => ['shared'],
         'organization' => ['shared', 'master'],
         'inventory'    => ['shared', 'master', 'organization'],
+        'library'      => ['shared'],
         'iam'          => ['shared', 'master', 'organization'],
         'catalog'      => ['shared', 'master', 'inventory'],
         'customer'     => ['shared', 'master'],
@@ -109,6 +110,39 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
 
     if ($failures !== []) {
         $this->fail("Modular Dependency Failures (Cross-module imports detected):\n\n".implode("\n", array_unique($failures)));
+    }
+
+    expect(true)->toBeTrue();
+});
+
+it('keeps HTTP resources out of module services', function (): void {
+    $failures = [];
+
+    foreach (getModuleNames() as $module) {
+        $servicesPath = base_path("app-modules/{$module}/src/Services");
+
+        if (!is_dir($servicesPath)) {
+            continue;
+        }
+
+        $finder = new Finder;
+        $finder->files()->in($servicesPath)->name('*.php');
+
+        foreach ($finder as $file) {
+            try {
+                $content = $file->getContents();
+            } catch (RuntimeException) {
+                continue;
+            }
+
+            if (Str::contains($content, 'Http\\Resources\\')) {
+                $failures[] = "[{$module}] service '{$file->getRelativePathname()}' imports HTTP resources.";
+            }
+        }
+    }
+
+    if ($failures !== []) {
+        $this->fail("HTTP Resource Dependency Failures:\n\n".implode("\n", array_unique($failures)));
     }
 
     expect(true)->toBeTrue();

@@ -27,7 +27,7 @@ invariants entry point.
 | --- | --- |
 | Rule authority, missing conventions, decision maintenance, sensitive information | [Global invariants](../../.agents/CODEBASE_RULES.md) |
 | Nested authorization, IAM User assertions, validation-before-authorization tradeoff, morph permissions | [HTTP rules](../../.ai/rules/http-api.md) |
-| Resources as intentional service outputs, retired validated DTOs, exception rendering, transactions and missing values | [Domain rules](../../.ai/rules/domain-services-data.md) |
+| Controller-owned Resources, retired validated DTOs, exception rendering, transactions and missing values | [Domain rules](../../.ai/rules/domain-services-data.md) |
 | No universal tenant global scope; raw queries and soft deletes | [Persistence rules](../../.ai/rules/persistence-tenancy.md) |
 | Inventory ownership and organization context | [Inventory rules](../../.ai/rules/inventory-tenancy.md) |
 | Pest/PHPStan exceptions and integration-test boundaries | [Testing rules](../../.ai/rules/testing.md) |

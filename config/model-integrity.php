@@ -100,6 +100,7 @@ return [
         'catalog_bundles'         => ['handle'],
         'catalog_services'        => ['handle'],
         'catalog_stock_locations' => ['handle'],
+        'library_files'           => ['storage_key'],
     ],
 
     /*
@@ -137,5 +138,6 @@ return [
             'inventory_stocks_organization_id_id_unique',
             'inventory_stocks_aggregate_identity_unique',
         ],
+        'library_files' => ['library_files_organization_id_id_unique'],
     ],
 ];

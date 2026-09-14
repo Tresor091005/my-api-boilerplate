@@ -17,6 +17,8 @@ use Lahatre\Master\Http\Requests\NoteIndexRequest;
 use Lahatre\Master\Http\Requests\NoteMentionRequest;
 use Lahatre\Master\Http\Requests\NoteUpdateRequest;
 use Lahatre\Master\Http\Requests\NoteVisibilityUpdateRequest;
+use Lahatre\Master\Http\Resources\NoteCollection;
+use Lahatre\Master\Http\Resources\NoteResource;
 use Lahatre\Master\Models\Note;
 use Lahatre\Master\Services\NoteService;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
@@ -32,10 +34,11 @@ final readonly class NoteController
     public function index(NoteIndexRequest $request): JsonResponse|Response
     {
         Gate::authorize('list', Note::class);
+        $response = $this->noteService->paginate(NoteFilterData::fromArray($request->validated()));
 
-        $resource = $this->noteService->paginate(NoteFilterData::fromArray($request->validated()));
-
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => NoteCollection::make($response)
+        );
     }
 
     public function store(NoteCreateRequest $request): JsonResponse|Response
@@ -43,10 +46,10 @@ final readonly class NoteController
         $data = NoteCreateData::fromArray($request->validated());
         Gate::authorize('create', [Note::class, $data->visibility]);
 
-        $resource = $this->noteService->create($data);
+        $response = $this->noteService->create($data);
 
         return $this->responseResponder->respond(
-            fn (): JsonResource => $resource,
+            fn (): JsonResource => NoteResource::make($response),
             status: 201,
         );
     }
@@ -55,21 +58,25 @@ final readonly class NoteController
     {
         Gate::authorize('retrieve', $note);
 
-        $resource = $this->noteService->retrieve($note);
+        $response = $this->noteService->retrieve($note);
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => NoteResource::make($response)
+        );
     }
 
     public function update(NoteUpdateRequest $request, Note $note): JsonResponse|Response
     {
         Gate::authorize('update', $note);
 
-        $resource = $this->noteService->update(
+        $response = $this->noteService->update(
             $note,
             NoteUpdateData::fromArray($request->validated(), missingFields: ['body', 'kind', 'expires_at']),
         );
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => NoteResource::make($response)
+        );
     }
 
     public function updateVisibility(NoteVisibilityUpdateRequest $request, Note $note): Response

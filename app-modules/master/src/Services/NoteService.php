@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
@@ -16,8 +17,6 @@ use Lahatre\Master\Data\NoteUpdateData;
 use Lahatre\Master\Data\NoteVisibilityUpdateData;
 use Lahatre\Master\Enums\NoteVisibility;
 use Lahatre\Master\Exceptions\NoteException;
-use Lahatre\Master\Http\Resources\NoteCollection;
-use Lahatre\Master\Http\Resources\NoteResource;
 use Lahatre\Master\Models\Note;
 use Lahatre\Master\Models\NoteMention;
 use Lahatre\Master\Support\NoteTargetResolver;
@@ -29,7 +28,7 @@ final readonly class NoteService
 {
     public function __construct(private NoteTargetResolver $targetResolver) {}
 
-    public function paginate(NoteFilterData $filters): NoteCollection
+    public function paginate(NoteFilterData $filters): CursorPaginator
     {
         $query = Note::query()
             ->where('organization_id', currentOrganizationId())
@@ -72,26 +71,26 @@ final readonly class NoteService
             ->orderBy('id')
             ->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
 
-        return new NoteCollection($notes);
+        return $notes;
     }
 
-    public function retrieve(Note $note): NoteResource
+    public function retrieve(Note $note): Note
     {
         $ownedNote = $this->ownedNote($note->getKey());
 
         $ownedNote->load($this->visibleResponseRelations());
 
-        return new NoteResource($ownedNote);
+        return $ownedNote;
     }
 
-    public function create(NoteCreateData $data): NoteResource
+    public function create(NoteCreateData $data): Note
     {
         $organizationId = currentOrganizationId();
         $memberId = $this->currentMemberId();
 
         $this->targetResolver->resolveNotable($data->notableType, $data->notableId);
 
-        return DB::transaction(function () use ($data, $organizationId, $memberId): NoteResource {
+        return DB::transaction(function () use ($data, $organizationId, $memberId): Note {
             $parent = $this->resolveParent($data->parentId, $data->notableType, $data->notableId);
 
             if ($parent !== null && $data->expiresAt !== null) {
@@ -127,13 +126,13 @@ final readonly class NoteService
                 $this->upsertMentionRows($organizationId, $note->getKey(), $data->memberIds);
             }
 
-            return new NoteResource($note->fresh()->load($this->visibleResponseRelations()));
+            return $note->fresh()->load($this->visibleResponseRelations());
         });
     }
 
-    public function update(Note $note, NoteUpdateData $data): NoteResource
+    public function update(Note $note, NoteUpdateData $data): Note
     {
-        return DB::transaction(function () use ($note, $data): NoteResource {
+        return DB::transaction(function () use ($note, $data): Note {
             $ownedNote = $this->ownedNote($note->getKey(), lockForUpdate: true);
 
             $expiresAt = $data->expiresAt instanceof MissingValue ? $ownedNote->expires_at : $data->expiresAt;
@@ -159,7 +158,7 @@ final readonly class NoteService
 
             $ownedNote->save();
 
-            return new NoteResource($ownedNote->fresh()->load($this->visibleResponseRelations()));
+            return $ownedNote->fresh()->load($this->visibleResponseRelations());
         });
     }
 

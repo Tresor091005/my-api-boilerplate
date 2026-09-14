@@ -11,6 +11,7 @@ tests. The root `App` namespace contains framework-level wiring only.
 | `catalog` | Categories, products, variants, options, and option values | `/v1/catalog/*` | [Module README](../app-modules/catalog/README.md) and feature blueprints. |
 | `master` | Currencies, units, unit conversion, grouped labels, and cached reference data | `/v1/master/*` | Reference-data and cache behavior documented in [caching and consistency](development/caching-and-consistency.md). |
 | `inventory` | Generic inventory item/location registration, ledger transactions, stock queries, lots, costs, and reversals | `/v1/inventory/*` | [Module README](../app-modules/inventory/README.md) and module docs. |
+| `library` | Private organization files, logical folders, quotas, authorized streaming, and storage reconciliation | `/v1/library/*`, `library:reconcile`, and `library:verify-checksums` | Runtime contract is defined by the module configuration, routes, and tests. |
 | `customer` | Customer identity and organization-scoped polymorphic addresses and contacts | `/v1/customer/*` | Customer module documentation and feature tests. |
 | `shared` | Cross-module exceptions, traits, generators, morph-map registry, pagination, handles, and model discovery | Artisan commands and internal contracts | Cross-cutting behavior documented in [application runtime](architecture/application-runtime.md). |
 
@@ -32,6 +33,10 @@ Detailed module notes:
 - `inventory` is package-oriented: the host application supplies the concrete
   item and location models through `HasInventoryItem` and
   `HasInventoryLocation`.
+- `library` owns global file resources and logical folders. File associations
+  will be owned by the attachment model/table once that contract is implemented;
+  Library deletion must then verify those attachments before soft-deleting a file.
+  Business modules never receive physical storage keys.
 - `customer` may consume the public polymorphic address and contact primitives
   from `master`; it does not own those shared tables.
 
