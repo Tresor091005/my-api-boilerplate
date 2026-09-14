@@ -38,12 +38,10 @@ paths:
 
 ### Output Contract
 
-- Keep the current project convention until an explicit output-boundary refactor is approved.
-- Returning API Resources is intentional output coupling while services remain
-  callable from HTTP, Console, Jobs, and Schedulers. A future move to models or
-  application result objects must update services, Controllers, tests, and
-  consumers deliberately; do not perform it as an incidental cleanup.
-- Return a Resource for a model-backed result, a `Lahatre\Shared\Http\Resources\BaseCollection` subclass for a cursor-paginated list, ViewData for a computed or aggregated projection, and `void` when the operation has no representation.
+- Services must not return API Resources. They return models, Collections, paginators,
+  ViewData, or `void`, so they remain reusable from HTTP, Console, Jobs, and Schedulers.
+- Controllers own the HTTP presentation boundary and wrap service results in the
+  appropriate Resource or ResourceCollection before returning the response.
 - Prefer a Resource when the output is centered on an Eloquent model, collection, or query row. Resources may expose optional relations and aggregates with `whenLoaded()`, `whenCounted()`, and conditional fields.
 - Use ViewData only when the result has no natural model, collection, or query-row Resource, such as a multi-level aggregate or calculated projection assembled from several sources.
 - The service performs queries, grouping, calculations, and data preparation. ViewData defines only the named typed output shape and its `toArray()`/JSON serialization.
@@ -54,7 +52,7 @@ paths:
 - Public methods with non-obvious behavior document their use-case intent, transaction ownership, required tenant context, durable side effects, and every concrete business exception.
 - Use native return types and PHPDoc for complex Collection, array, or callback shapes.
 
-Reference: `.ai/reference-examples/OrderService.php.example` shows transaction ownership, service-provided Assertion evidence, explicit Data mapping, a Resource result, a `void` deletion, and a ViewData projection.
+Reference: `.ai/reference-examples/OrderService.php.example` shows transaction ownership, service-provided Assertion evidence, explicit Data mapping, model results, a `void` deletion, and a ViewData projection.
 
 ## Data Classes
 
@@ -94,7 +92,8 @@ References:
 ## ViewData
 
 - ViewData is an immutable, named output projection for computed or aggregated reads that are not naturally represented by one Eloquent model.
-- Data enters a service; ViewData leaves a service. API Resources remain the default for Eloquent models, collections, query rows, loaded relations, and loaded aggregates; ViewData represents already-computed output with no natural Resource boundary.
+- Data enters a service; ViewData leaves a service. Controllers may wrap service-returned
+  models, collections, paginators, and ViewData in the appropriate HTTP representation.
 - Services and query services perform queries, calculations, formatting that needs a dependency, and tenant resolution before constructing ViewData.
 - ViewData must not query, resolve container services, authorize, validate input, or read ambient tenant context.
 - Prefer `final readonly`, typed constructor properties, and typed nested ViewData Collections. Implement `Arrayable` and `JsonSerializable` for direct HTTP output, with `jsonSerialize()` delegating to `toArray()`.

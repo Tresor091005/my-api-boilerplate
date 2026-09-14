@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Services;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Library\Assertions\FolderAssertion;
 use Lahatre\Library\Data\FolderCreateData;
 use Lahatre\Library\Data\FolderFilterData;
 use Lahatre\Library\Data\FolderUpdateData;
-use Lahatre\Library\Http\Resources\FolderCollection;
-use Lahatre\Library\Http\Resources\FolderResource;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Shared\Data\MissingValue;
 
@@ -20,7 +19,7 @@ final readonly class FolderService
 {
     public function __construct(private FolderAssertion $folderAssertion) {}
 
-    public function paginate(FolderFilterData $filters): FolderCollection
+    public function paginate(FolderFilterData $filters): CursorPaginator
     {
         $query = Folder::query()
             ->where('organization_id', currentOrganizationId());
@@ -35,20 +34,22 @@ final readonly class FolderService
             $query->where('name', 'ilike', $filters->search.'%');
         }
 
-        return new FolderCollection(stableCursorPaginate($query, $filters));
+        return stableCursorPaginate($query, $filters);
     }
 
-    public function retrieve(Folder $folder): FolderResource
+    public function retrieve(Folder $folder): Folder
     {
-        return new FolderResource($this->ownedFolder($folder->getKey()));
+        return $this->ownedFolder($folder->getKey());
     }
 
-    public function create(FolderCreateData $data): FolderResource
+    public function create(FolderCreateData $data): Folder
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($data, $organizationId): FolderResource {
+        return DB::transaction(function () use ($data, $organizationId): Folder {
             $parent = $this->resolveParent($data->parentId, lockForUpdate: true);
+            $this->folderAssertion->assertCanCreateAtDepth($parent);
+            $this->folderAssertion->assertCanHaveChild($organizationId, $parent);
             $this->folderAssertion->assertNameAvailable($organizationId, $data->name, $parent?->getKey());
 
             $folder = Folder::query()->create([
@@ -57,15 +58,15 @@ final readonly class FolderService
                 'parent_id'       => $parent?->getKey(),
             ]);
 
-            return new FolderResource($folder);
+            return $folder;
         });
     }
 
-    public function update(Folder $folder, FolderUpdateData $data): FolderResource
+    public function update(Folder $folder, FolderUpdateData $data): Folder
     {
         $organizationId = currentOrganizationId();
 
-        return DB::transaction(function () use ($folder, $data, $organizationId): FolderResource {
+        return DB::transaction(function () use ($folder, $data, $organizationId): Folder {
             $ownedFolder = $this->ownedFolder($folder->getKey(), lockForUpdate: true);
             $parent = $data->parentId instanceof MissingValue
                 ? null
@@ -77,6 +78,8 @@ final readonly class FolderService
 
             if (!($data->parentId instanceof MissingValue)) {
                 $this->folderAssertion->assertCanMoveTo($ownedFolder, $parent);
+                $this->folderAssertion->assertCanMoveAtDepth($ownedFolder, $parent);
+                $this->folderAssertion->assertCanHaveChild($organizationId, $parent, $ownedFolder->getKey());
             }
 
             $this->folderAssertion->assertNameAvailable(
@@ -92,7 +95,7 @@ final readonly class FolderService
             ]));
             $ownedFolder->save();
 
-            return new FolderResource($ownedFolder->fresh());
+            return $ownedFolder->fresh();
         });
     }
 

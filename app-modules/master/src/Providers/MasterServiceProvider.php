@@ -27,6 +27,8 @@ class MasterServiceProvider extends ServiceProvider
         $schedule
             ->command('master:notes:prune')
             ->dailyAt('02:00')
+            ->onOneServer()
+            ->runInBackground()
             ->withoutOverlapping();
     }
 }

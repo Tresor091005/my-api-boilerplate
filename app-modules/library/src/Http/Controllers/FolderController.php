@@ -13,6 +13,8 @@ use Lahatre\Library\Data\FolderUpdateData;
 use Lahatre\Library\Http\Requests\FolderCreateRequest;
 use Lahatre\Library\Http\Requests\FolderFilterRequest;
 use Lahatre\Library\Http\Requests\FolderUpdateRequest;
+use Lahatre\Library\Http\Resources\FolderCollection;
+use Lahatre\Library\Http\Resources\FolderResource;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Library\Services\FolderService;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
@@ -28,36 +30,45 @@ final readonly class FolderController
     public function index(FolderFilterRequest $request): JsonResponse|Response
     {
         Gate::authorize('list', Folder::class);
-        $resource = $this->folderService->paginate(FolderFilterData::fromArray($request->validated()));
+        $response = $this->folderService->paginate(FolderFilterData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => FolderCollection::make($response)
+        );
     }
 
     public function store(FolderCreateRequest $request): JsonResponse|Response
     {
         Gate::authorize('create', Folder::class);
-        $resource = $this->folderService->create(FolderCreateData::fromArray($request->validated()));
+        $response = $this->folderService->create(FolderCreateData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource, status: 201);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => FolderResource::make($response),
+            status: 201,
+        );
     }
 
     public function show(Folder $folder): JsonResponse|Response
     {
         Gate::authorize('retrieve', $folder);
-        $resource = $this->folderService->retrieve($folder);
+        $response = $this->folderService->retrieve($folder);
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => FolderResource::make($response)
+        );
     }
 
     public function update(FolderUpdateRequest $request, Folder $folder): JsonResponse|Response
     {
         Gate::authorize('update', $folder);
-        $resource = $this->folderService->update(
+        $response = $this->folderService->update(
             $folder,
             FolderUpdateData::fromArray($request->validated(), ['name', 'parent_id']),
         );
 
-        return $this->responseResponder->respond(fn (): JsonResource => $resource);
+        return $this->responseResponder->respond(
+            fn (): JsonResource => FolderResource::make($response)
+        );
     }
 
     public function destroy(Folder $folder): Response

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Exceptions;
 
+use Lahatre\Library\Models\File;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Shared\Exceptions\AssertionException;
 
@@ -32,11 +33,85 @@ final class LibraryException extends AssertionException
         ]);
     }
 
+    public static function folderDepthExceeded(int $maximum): self
+    {
+        return new self(__('library::exceptions.folder_depth_exceeded', ['maximum' => $maximum]), [
+            'maximum' => $maximum,
+        ]);
+    }
+
+    public static function folderWidthExceeded(int $maximum): self
+    {
+        return new self(__('library::exceptions.folder_width_exceeded', ['maximum' => $maximum]), [
+            'maximum' => $maximum,
+        ]);
+    }
+
     public static function folderNotEmpty(Folder $folder): self
     {
         return new self(__('library::exceptions.folder_not_empty'), [
             'folder_id' => $folder->id,
         ]);
+    }
+
+    public static function uploadFileCountExceeded(int $maximum): self
+    {
+        return new self(__('library::exceptions.upload_file_count_exceeded', ['maximum' => $maximum]), [
+            'maximum' => $maximum,
+        ]);
+    }
+
+    public static function uploadFileTooLarge(string $name, int $maximum): self
+    {
+        return new self(__('library::exceptions.upload_file_too_large', ['maximum' => $maximum]), [
+            'name'    => $name,
+            'maximum' => $maximum,
+        ]);
+    }
+
+    public static function uploadBatchTooLarge(int $maximum): self
+    {
+        return new self(__('library::exceptions.upload_batch_too_large', ['maximum' => $maximum]), [
+            'maximum' => $maximum,
+        ]);
+    }
+
+    public static function mimeTypeNotAllowed(string $name, string $mimeType): self
+    {
+        return new self(__('library::exceptions.mime_type_not_allowed'), [
+            'name'      => $name,
+            'mime_type' => $mimeType,
+        ]);
+    }
+
+    public static function organizationQuotaExceeded(int $used, int $incoming, int $quota): self
+    {
+        return new self(__('library::exceptions.organization_quota_exceeded'), [
+            'used'     => $used,
+            'incoming' => $incoming,
+            'quota'    => $quota,
+        ]);
+    }
+
+    public static function storageWriteFailed(string $name, string $disk): self
+    {
+        return new self(__('library::exceptions.storage_write_failed'), [
+            'name' => $name,
+            'disk' => $disk,
+        ]);
+    }
+
+    public static function fileCannotBeRestored(File $file): self
+    {
+        return new self(__('library::exceptions.file_cannot_be_restored'), [
+            'file_id'        => $file->id,
+            'storage_status' => $file->storage_status->value,
+        ]);
+    }
+
+    public static function memberContextRequired(): self
+    {
+        return new self(__('library::exceptions.member_context_required'));
     }
 
     public static function organizationContextInvalid(string $organizationId): self

@@ -50,7 +50,7 @@ shared cursor helper requires `sortBy`, `sortOrder`, `perPage`, and `cursor`.
 It clamps page sizes to 1–100, accepts only ascending or descending sort
 directions, and always places a stable tie-breaker last in the ordering.
 
-Services return Resources/Resource Collections for model-backed endpoints and
-ViewData for computed aggregates. Resources should use conditional relation
-loading (`whenLoaded`) so an endpoint does not accidentally expand its query
-contract.
+Services return models, Collections, paginators, or ViewData. Controllers wrap
+those results in Resources or Resource Collections for HTTP responses. Resources
+should use conditional relation loading (`whenLoaded`) so an endpoint does not
+accidentally expand its query contract.

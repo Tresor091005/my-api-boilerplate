@@ -130,3 +130,37 @@ it('rejects a soft-deleted folder as a parent', function (): void {
         'parent_id' => $folderId,
     ])->assertUnprocessable()->assertJsonValidationErrors('parent_id');
 });
+
+it('enforces the configured maximum folder depth', function (): void {
+    $parentId = null;
+    $maximumDepth = (int) config('library.folders.max_depth');
+
+    for ($depth = 1; $depth <= $maximumDepth; $depth++) {
+        $payload = ['name' => "Level {$depth}"];
+
+        if ($parentId !== null) {
+            $payload['parent_id'] = $parentId;
+        }
+
+        $parentId = (string) $this->postJson('/v1/library/folders?response=resource', $payload)
+            ->assertCreated()
+            ->json('data.id');
+    }
+
+    $this->postJson('/v1/library/folders?response=resource', [
+        'name'      => 'Too deep',
+        'parent_id' => $parentId,
+    ])->assertUnprocessable();
+});
+
+it('enforces the configured maximum folder width', function (): void {
+    $maximumChildren = (int) config('library.folders.max_children');
+
+    Folder::factory()->count($maximumChildren)->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->postJson('/v1/library/folders?response=resource', [
+        'name' => 'Too wide',
+    ])->assertUnprocessable();
+});

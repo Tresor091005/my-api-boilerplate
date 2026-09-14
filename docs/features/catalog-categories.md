@@ -35,9 +35,10 @@ sequenceDiagram
     Assertion-->>Service: (Throws Exception on failure)
     Service->>Model: 10. Executes DB Operations
     Model-->>Service: 11. Returns Model Instance
-    Service->>Resource: 12. Shapes the Output
-    Resource-->>Controller: 13. Returns Transformed Data
-    Controller-->>Client: 14. Sends Standardized API Response
+    Service-->>Controller: 12. Returns Model Instance
+    Controller->>Resource: 13. Shapes the Output
+    Resource-->>Controller: 14. Returns Transformed Data
+    Controller-->>Client: 15. Sends Standardized API Response
 ```
 
 ## 2. Component Breakdown
