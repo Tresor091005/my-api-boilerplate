@@ -15,18 +15,17 @@ class TrashFileResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'             => $this->id,
-            'folder_id'      => $this->folder_id,
-            'name'           => $this->name,
-            'mime_type'      => $this->mime_type,
-            'kind'           => $this->kind()->value,
-            'extension'      => $this->extension,
-            'size'           => $this->size,
-            'storage_status' => $this->storage_status->value,
-            'uploaded_by'    => $this->uploaded_by,
-            'created_at'     => $this->created_at,
-            'updated_at'     => $this->updated_at,
-            'deleted_at'     => $this->deleted_at,
+            'id'          => $this->id,
+            'folder_id'   => $this->folder_id,
+            'name'        => $this->name,
+            'mime_type'   => $this->mime_type,
+            'kind'        => $this->kind()->value,
+            'extension'   => $this->extension,
+            'size'        => $this->size,
+            'uploaded_by' => $this->uploaded_by,
+            'created_at'  => $this->created_at,
+            'updated_at'  => $this->updated_at,
+            'deleted_at'  => $this->deleted_at,
         ];
     }
 }

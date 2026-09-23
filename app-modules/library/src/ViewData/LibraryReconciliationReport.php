@@ -7,14 +7,10 @@ namespace Lahatre\Library\ViewData;
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
-/** @implements Arrayable<string, int|list<string>> */
+/** @implements Arrayable<string, int> */
 final readonly class LibraryReconciliationReport implements Arrayable, JsonSerializable
 {
-    /**
-     * @param  list<string>  $missingFileIds
-     */
     public function __construct(
-        public array $missingFileIds,
         public int $deletedObjectsRemoved,
         public int $purgedFilesRemoved,
         public int $purgedFoldersRemoved,
@@ -22,11 +18,10 @@ final readonly class LibraryReconciliationReport implements Arrayable, JsonSeria
         public int $orphanObjectsRemoved,
     ) {}
 
-    /** @return array<string, int|list<string>> */
+    /** @return array<string, int> */
     public function toArray(): array
     {
         return [
-            'missing_file_ids'        => $this->missingFileIds,
             'deleted_objects_removed' => $this->deletedObjectsRemoved,
             'purged_files_removed'    => $this->purgedFilesRemoved,
             'purged_folders_removed'  => $this->purgedFoldersRemoved,
@@ -35,7 +30,7 @@ final readonly class LibraryReconciliationReport implements Arrayable, JsonSeria
         ];
     }
 
-    /** @return array<string, int|list<string>> */
+    /** @return array<string, int> */
     public function jsonSerialize(): array
     {
         return $this->toArray();

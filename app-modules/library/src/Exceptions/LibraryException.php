@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Exceptions;
 
-use Lahatre\Library\Models\File;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Shared\Exceptions\AssertionException;
 
@@ -98,14 +97,6 @@ final class LibraryException extends AssertionException
         return new self(__('library::exceptions.storage_write_failed'), [
             'name' => $name,
             'disk' => $disk,
-        ]);
-    }
-
-    public static function fileCannotBeRestored(File $file): self
-    {
-        return new self(__('library::exceptions.file_cannot_be_restored'), [
-            'file_id'        => $file->id,
-            'storage_status' => $file->storage_status->value,
         ]);
     }
 

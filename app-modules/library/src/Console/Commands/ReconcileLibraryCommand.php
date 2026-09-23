@@ -13,7 +13,9 @@ final class ReconcileLibraryCommand extends Command
     protected $signature = 'library:reconcile
         {--organization= : Limit reconciliation to one organization UUID}
         {--delete-orphans : Delete orphan objects after the safety delay}
-        {--grace-hours= : Override the configured orphan safety delay}';
+        {--grace-hours= : Override the configured orphan safety delay}
+        {--purge-only : Purge expired trash without scanning storage}
+        {--orphans-only : Scan storage for orphans without purging trash}';
 
     protected $description;
 
@@ -32,7 +34,8 @@ final class ReconcileLibraryCommand extends Command
             : (int) $graceHoursOption;
 
         if (($organizationId !== null && (!is_string($organizationId) || !Str::isUuid($organizationId)))
-            || $graceHours < 0) {
+            || $graceHours < 0
+            || ($this->option('purge-only') && $this->option('orphans-only'))) {
             $this->error(__('library::console.reconcile.invalid_options'));
 
             return self::FAILURE;
@@ -42,20 +45,17 @@ final class ReconcileLibraryCommand extends Command
             organizationId: $organizationId,
             deleteOrphans: (bool) $this->option('delete-orphans'),
             orphanGraceHours: $graceHours,
+            purgeExpired: !$this->option('orphans-only'),
+            scanOrphans: !$this->option('purge-only'),
         );
 
         $this->info(__('library::console.reconcile.completed', [
-            'missing'         => count($report->missingFileIds),
             'deleted_objects' => $report->deletedObjectsRemoved,
             'orphans'         => $report->orphanObjectsFound,
             'purged_files'    => $report->purgedFilesRemoved,
             'purged_folders'  => $report->purgedFoldersRemoved,
             'pruned'          => $report->orphanObjectsRemoved,
         ]));
-
-        foreach ($report->missingFileIds as $fileId) {
-            $this->warn(__('library::console.reconcile.missing_file', ['file_id' => $fileId]));
-        }
 
         return self::SUCCESS;
     }

@@ -5,14 +5,12 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
-use Lahatre\Library\Enums\FileStorageStatus;
 use Lahatre\Library\Models\File;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Library\Services\LibraryMaintenanceService;
@@ -91,7 +89,7 @@ beforeEach(function (): void {
 it('uploads multiple private files and exposes only safe library metadata', function (): void {
     $response = $this->post('/v1/library/files?response=resource', [
         'files' => [
-            UploadedFile::fake()->image('cover.jpg'),
+            UploadedFile::fake()->createWithContent('cover.jpg', 'image bytes')->mimeType('image/jpeg'),
             UploadedFile::fake()->createWithContent('notes.txt', 'private notes'),
         ],
     ], ['Accept' => 'application/json'])
@@ -102,6 +100,7 @@ it('uploads multiple private files and exposes only safe library metadata', func
         ->assertJsonMissingPath('data.0.organization_id')
         ->assertJsonMissingPath('data.0.storage_disk')
         ->assertJsonMissingPath('data.0.storage_key')
+        ->assertJsonMissingPath('data.0.storage_status')
         ->assertJsonMissingPath('data.0.checksum');
 
     $fileIds = collect($response->json('data'))->pluck('id')->all();
@@ -248,10 +247,11 @@ it('streams safe content privately and returns a conditional 304 response', func
 
     $response = $this->get("/v1/library/files/{$fileId}/content")
         ->assertOk()
-        ->assertHeader('Cache-Control', 'private, no-cache')
+        ->assertHeader('Cache-Control')
         ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('ETag', '"'.$file->checksum.'"');
 
+    expect($response->headers->get('Cache-Control'))->toContain('private')->toContain('no-cache');
     expect($response->headers->get('Content-Disposition'))->toStartWith('inline;')
         ->and($response->streamedContent())->toBe('hello library');
 
@@ -400,6 +400,7 @@ it('lists trashed file metadata and restores the file and its deleted folder cha
         ->assertJsonPath('data.0.id', $fileId)
         ->assertJsonPath('data.0.name', 'restore.txt')
         ->assertJsonStructure(['data' => [['deleted_at']]])
+        ->assertJsonMissingPath('data.0.storage_status')
         ->assertJsonMissingPath('data.0.content_url');
 
     $this->postJson("/v1/library/files/{$fileId}/restore?response=resource")
@@ -467,32 +468,18 @@ it('does not restore a folder when its parent has reached the maximum width', fu
     expect(File::withTrashed()->whereKey($fileId)->whereNotNull('deleted_at')->exists())->toBeTrue();
 });
 
-it('does not restore files marked as missing or corrupted', function (): void {
+it('does not restore a file whose stored content is missing', function (): void {
     $missingFile = File::factory()->create([
         'organization_id' => $this->organization->id,
         'uploaded_by'     => $this->member->id,
         'storage_disk'    => 'library-test',
     ]);
-    $missingFile->storage_status = FileStorageStatus::Missing;
-    $missingFile->save();
     $missingFile->delete();
 
-    $corruptedFile = File::factory()->create([
-        'organization_id' => $this->organization->id,
-        'uploaded_by'     => $this->member->id,
-        'storage_disk'    => 'library-test',
-    ]);
-    $corruptedFile->storage_status = FileStorageStatus::Corrupted;
-    $corruptedFile->save();
-    $corruptedFile->delete();
-
     $this->postJson("/v1/library/files/{$missingFile->id}/restore?response=resource")
-        ->assertUnprocessable();
-    $this->postJson("/v1/library/files/{$corruptedFile->id}/restore?response=resource")
-        ->assertUnprocessable();
+        ->assertNotFound();
 
-    expect(File::withTrashed()->findOrFail($missingFile->id)->trashed())->toBeTrue()
-        ->and(File::withTrashed()->findOrFail($corruptedFile->id)->trashed())->toBeTrue();
+    expect(File::withTrashed()->findOrFail($missingFile->id)->trashed())->toBeTrue();
 });
 
 it('keeps library reads and mutations inside the active organization', function (): void {
@@ -521,16 +508,7 @@ it('keeps library reads and mutations inside the active organization', function 
         ->assertJsonValidationErrors('folder_id');
 });
 
-it('reconciles missing, corrupted, deleted, and orphan storage objects', function (): void {
-    $correctContent = 'correct';
-    $corruptedFile = File::factory()->create([
-        'organization_id' => $this->organization->id,
-        'uploaded_by'     => $this->member->id,
-        'storage_disk'    => 'library-test',
-        'checksum'        => hash('sha256', $correctContent),
-    ]);
-    Storage::disk('library-test')->put($corruptedFile->storage_key, 'corrupted');
-
+it('reconciles deleted and orphan storage objects without scanning active files', function (): void {
     $missingFile = File::factory()->create([
         'organization_id' => $this->organization->id,
         'uploaded_by'     => $this->member->id,
@@ -560,19 +538,11 @@ it('reconciles missing, corrupted, deleted, and orphan storage objects', functio
         orphanGraceHours: 0,
     );
 
-    expect($report->missingFileIds)->toContain($missingFile->id)
-        ->and($missingFile->fresh()->storage_status)->toBe(FileStorageStatus::Missing)
-        ->and($corruptedFile->fresh()->storage_status)->toBe(FileStorageStatus::Available)
+    expect(File::query()->whereKey($missingFile->id)->exists())->toBeTrue()
         ->and($report->deletedObjectsRemoved)->toBe(1)
         ->and($report->purgedFilesRemoved)->toBe(1)
         ->and($report->orphanObjectsFound)->toBe(1)
         ->and($report->orphanObjectsRemoved)->toBe(1);
     Storage::disk('library-test')->assertMissing($deletedFile->storage_key);
     Storage::disk('library-test')->assertMissing($orphanKey);
-
-    expect(Artisan::call('library:verify-checksums', [
-        '--organization' => $this->organization->id,
-    ]))->toBe(0)
-        ->and($corruptedFile->fresh()->storage_status)->toBe(FileStorageStatus::Corrupted)
-        ->and($missingFile->fresh()->storage_status)->toBe(FileStorageStatus::Missing);
 });

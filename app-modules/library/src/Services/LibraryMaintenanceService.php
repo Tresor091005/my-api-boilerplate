@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Lahatre\Library\Enums\FileStorageStatus;
 use Lahatre\Library\Models\File;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Library\ViewData\LibraryReconciliationReport;
+use League\Flysystem\FilesystemException;
 use Throwable;
 
 final class LibraryMaintenanceService
@@ -27,88 +27,55 @@ final class LibraryMaintenanceService
         ?string $organizationId,
         bool $deleteOrphans,
         int $orphanGraceHours,
+        bool $purgeExpired = true,
+        bool $scanOrphans = true,
     ): LibraryReconciliationReport {
-        $missingFileIds = [];
         $deletedObjectsRemoved = 0;
         $purgedFilesRemoved = 0;
         $purgedFoldersRemoved = 0;
         $orphanObjectsFound = 0;
         $orphanObjectsRemoved = 0;
 
-        $this->activeFilesQuery($organizationId)
-            ->orderBy('id')
-            ->chunkById(200, function (Collection $files) use (&$missingFileIds): void {
-                foreach ($files as $file) {
-                    $disk = Storage::disk($file->storage_disk);
+        if ($purgeExpired) {
+            $cutoff = now()->subDays((int) config('library.maintenance.trash_retention_days', 30));
+            $purgeResult = $this->purgeExpiredFiles($organizationId, $cutoff);
+            $deletedObjectsRemoved = $purgeResult['deleted_objects_removed'];
+            $purgedFilesRemoved = $purgeResult['purged_files_removed'];
+            $purgedFoldersRemoved = $this->purgeExpiredFolders($organizationId, $cutoff);
+        }
 
-                    if (!$disk->exists($file->storage_key)) {
-                        $this->updateStorageStatus($file, FileStorageStatus::Missing);
-                        $missingFileIds[] = $file->id;
+        if ($scanOrphans) {
+            foreach ($this->storageDisks($organizationId) as $diskName) {
+                $disk = Storage::disk($diskName);
+                $prefix = $this->organizationPrefix($organizationId);
 
-                        continue;
+                try {
+                    $keyChunk = [];
+                    foreach ($disk->getDriver()->listContents($prefix, true) as $object) {
+                        if (!$object->isFile()) {
+                            continue;
+                        }
+
+                        $keyChunk[] = $object->path();
+                        if (count($keyChunk) === 500) {
+                            $this->inspectOrphanKeys($disk, $diskName, $organizationId, $keyChunk, $deleteOrphans, $orphanGraceHours, $orphanObjectsFound, $orphanObjectsRemoved);
+                            $keyChunk = [];
+                        }
                     }
 
-                    if ($file->storage_status === FileStorageStatus::Missing) {
-                        $this->updateStorageStatus($file, FileStorageStatus::Available);
+                    if ($keyChunk !== []) {
+                        $this->inspectOrphanKeys($disk, $diskName, $organizationId, $keyChunk, $deleteOrphans, $orphanGraceHours, $orphanObjectsFound, $orphanObjectsRemoved);
                     }
-                }
-            });
-
-        $purgeResult = $this->purgeExpiredFiles(
-            $organizationId,
-            now()->subDays((int) config('library.maintenance.trash_retention_days', 30)),
-        );
-        $deletedObjectsRemoved = $purgeResult['deleted_objects_removed'];
-        $purgedFilesRemoved = $purgeResult['purged_files_removed'];
-        $purgedFoldersRemoved = $this->purgeExpiredFolders(
-            $organizationId,
-            now()->subDays((int) config('library.maintenance.trash_retention_days', 30)),
-        );
-
-        foreach ($this->storageDisks($organizationId) as $diskName) {
-            $disk = Storage::disk($diskName);
-            $prefix = $this->organizationPrefix($organizationId);
-
-            try {
-                $physicalKeys = $disk->allFiles($prefix);
-            } catch (Throwable $exception) {
-                logger()->warning('Library reconciliation could not list a storage disk.', [
-                    'storage_disk' => $diskName,
-                    'exception'    => $exception::class,
-                ]);
-
-                continue;
-            }
-
-            foreach (array_chunk($physicalKeys, 500) as $keyChunk) {
-                $knownKeys = File::withTrashed()
-                    ->where('storage_disk', $diskName)
-                    ->when(
-                        $organizationId !== null,
-                        fn (Builder $query): Builder => $query->where('organization_id', $organizationId),
-                    )
-                    ->whereIn('storage_key', $keyChunk)
-                    ->pluck('storage_key')
-                    ->all();
-
-                foreach (array_diff($keyChunk, $knownKeys) as $orphanKey) {
-                    if (!$this->isManagedStorageKey($orphanKey, $organizationId)) {
-                        continue;
-                    }
-
-                    $orphanObjectsFound++;
-
-                    if ($deleteOrphans
-                        && $this->isOlderThanGracePeriod($disk, $orphanKey, $orphanGraceHours)
-                        && $disk->delete($orphanKey)) {
-                        $orphanObjectsRemoved++;
-                    }
+                } catch (FilesystemException $exception) {
+                    logger()->warning('Library reconciliation could not list a storage disk.', [
+                        'storage_disk' => $diskName,
+                        'exception'    => $exception::class,
+                    ]);
                 }
             }
         }
 
         return new LibraryReconciliationReport(
-            missingFileIds: $missingFileIds,
             deletedObjectsRemoved: $deletedObjectsRemoved,
             purgedFilesRemoved: $purgedFilesRemoved,
             purgedFoldersRemoved: $purgedFoldersRemoved,
@@ -117,43 +84,40 @@ final class LibraryMaintenanceService
         );
     }
 
-    /** @return list<string> */
-    public function verifyChecksums(?string $organizationId): array
-    {
-        $corruptedFileIds = [];
-
-        $this->activeFilesQuery($organizationId)
-            ->orderBy('id')
-            ->chunkById(200, function (Collection $files) use (&$corruptedFileIds): void {
-                foreach ($files as $file) {
-                    $disk = Storage::disk($file->storage_disk);
-
-                    if (!$disk->exists($file->storage_key)) {
-                        continue;
-                    }
-
-                    if ($this->checksumMatches($disk, $file)) {
-                        $this->updateStorageStatus($file, FileStorageStatus::Available);
-
-                        continue;
-                    }
-
-                    $this->updateStorageStatus($file, FileStorageStatus::Corrupted);
-                    $corruptedFileIds[] = $file->id;
-                }
-            });
-
-        return $corruptedFileIds;
-    }
-
-    /** @return Builder<File> */
-    private function activeFilesQuery(?string $organizationId): Builder
-    {
-        return File::query()
+    /** @param list<string> $keyChunk */
+    private function inspectOrphanKeys(
+        FilesystemAdapter $disk,
+        string $diskName,
+        ?string $organizationId,
+        array $keyChunk,
+        bool $deleteOrphans,
+        int $orphanGraceHours,
+        int &$orphanObjectsFound,
+        int &$orphanObjectsRemoved,
+    ): void {
+        $knownKeys = File::withTrashed()
+            ->where('storage_disk', $diskName)
             ->when(
                 $organizationId !== null,
                 fn (Builder $query): Builder => $query->where('organization_id', $organizationId),
-            );
+            )
+            ->whereIn('storage_key', $keyChunk)
+            ->pluck('storage_key')
+            ->all();
+
+        foreach (array_diff($keyChunk, $knownKeys) as $orphanKey) {
+            if (!$this->isManagedStorageKey($orphanKey, $organizationId)) {
+                continue;
+            }
+
+            $orphanObjectsFound++;
+
+            if ($deleteOrphans
+                && $this->isOlderThanGracePeriod($disk, $orphanKey, $orphanGraceHours)
+                && $disk->delete($orphanKey)) {
+                $orphanObjectsRemoved++;
+            }
+        }
     }
 
     /** @return Builder<File> */
@@ -283,30 +247,5 @@ final class LibraryMaintenanceService
         } catch (Throwable) {
             return false;
         }
-    }
-
-    private function checksumMatches(FilesystemAdapter $disk, File $file): bool
-    {
-        $stream = $disk->readStream($file->storage_key);
-
-        if ($stream === false) {
-            return false;
-        }
-
-        $hash = hash_init('sha256');
-        hash_update_stream($hash, $stream);
-        fclose($stream);
-
-        return hash_final($hash) === $file->checksum;
-    }
-
-    private function updateStorageStatus(File $file, FileStorageStatus $status): void
-    {
-        if ($file->storage_status === $status) {
-            return;
-        }
-
-        $file->storage_status = $status;
-        $file->saveQuietly();
     }
 }

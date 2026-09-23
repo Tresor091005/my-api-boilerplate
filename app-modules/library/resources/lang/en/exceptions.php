@@ -15,7 +15,6 @@ return [
     'mime_type_not_allowed'              => 'This file type is not allowed.',
     'organization_quota_exceeded'        => 'The organization storage quota would be exceeded.',
     'storage_write_failed'               => 'The file could not be stored.',
-    'file_cannot_be_restored'            => 'This file cannot be restored because its stored content is unavailable or corrupted.',
     'file_content_missing'               => 'The file content is unavailable.',
     'member_context_required'            => 'An organization member context is required to upload files.',
     'organization_context_invalid'       => 'The active organization context is invalid.',

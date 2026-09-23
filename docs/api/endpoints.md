@@ -111,12 +111,13 @@ move stored bytes.
 | GET/PATCH/DELETE | `/v1/library/folders/{folder}` | Retrieve, rename/move, or delete an empty logical folder. |
 
 Use `folder_id` on list requests to navigate a folder; omitting it selects the
-logical root. `library:reconcile` checks stored bytes, marks missing files,
-cleans objects for soft-deleted files, and can prune old managed orphans.
-`library:verify-checksums` separately verifies active file contents and marks
-checksum mismatches as corrupted. Upload count, file size, batch size, MIME
-allowlist, storage disk, and orphan grace period are configurable through
-`LIBRARY_*` environment variables documented in `.env.example`. The
+logical root. The daily `library:reconcile --purge-only` run permanently removes
+expired soft-deleted files and empty folders. The weekly
+`library:reconcile --orphans-only --delete-orphans` run lists managed storage
+objects and removes old objects without a database record. The content endpoint
+returns 404 when the stored object is missing. Upload count, file size, batch
+size, MIME allowlist, storage disk, and orphan grace period are configurable
+through `LIBRARY_*` environment variables documented in `.env.example`. The
 organization quota comes from `organization_settings`, with a 5 GiB Library
 fallback when no value is configured.
 

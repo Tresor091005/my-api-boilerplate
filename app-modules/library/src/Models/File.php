@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Library\Database\Factories\FileFactory;
 use Lahatre\Library\Enums\FileKind;
-use Lahatre\Library\Enums\FileStorageStatus;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -26,7 +25,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $storage_disk
  * @property string $storage_key
  * @property string $checksum
- * @property FileStorageStatus $storage_status
  * @property string|null $uploaded_by
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -75,7 +73,6 @@ class File extends Model
         'storage_disk'    => 'string',
         'storage_key'     => 'string',
         'checksum'        => 'string',
-        'storage_status'  => FileStorageStatus::class,
         'uploaded_by'     => 'string',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',

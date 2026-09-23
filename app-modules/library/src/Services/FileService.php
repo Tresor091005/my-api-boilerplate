@@ -17,7 +17,6 @@ use Lahatre\Library\Data\FileFilterData;
 use Lahatre\Library\Data\FileUpdateData;
 use Lahatre\Library\Data\FileUploadData;
 use Lahatre\Library\Enums\FileKind;
-use Lahatre\Library\Enums\FileStorageStatus;
 use Lahatre\Library\Exceptions\LibraryException;
 use Lahatre\Library\Models\File;
 use Lahatre\Library\Models\Folder;
@@ -225,10 +224,6 @@ final readonly class FileService
 
             if (!$ownedFile->trashed()) {
                 return $ownedFile;
-            }
-
-            if ($ownedFile->storage_status !== FileStorageStatus::Available) {
-                throw LibraryException::fileCannotBeRestored($ownedFile);
             }
 
             $disk = Storage::disk($ownedFile->storage_disk);
