@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,33 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, StockTransferLine> $lines
+ * @property-read StockLocation|null $destinationLocation
+ * @property-read InventoryTransaction|null $inventoryTransaction
+ * @property-read int|null $lines_count
+ * @property-read InventoryTransaction|null $reversalTransaction
+ * @property-read StockLocation|null $sourceLocation
+ *
+ * @method static StockTransferFactory factory($count = null, $state = [])
+ * @method static Builder<static>|StockTransfer newModelQuery()
+ * @method static Builder<static>|StockTransfer newQuery()
+ * @method static Builder<static>|StockTransfer onlyTrashed()
+ * @method static Builder<static>|StockTransfer query()
+ * @method static Builder<static>|StockTransfer whereCancelledAt($value)
+ * @method static Builder<static>|StockTransfer whereCompletedAt($value)
+ * @method static Builder<static>|StockTransfer whereCreatedAt($value)
+ * @method static Builder<static>|StockTransfer whereDeletedAt($value)
+ * @method static Builder<static>|StockTransfer whereDestinationLocationId($value)
+ * @method static Builder<static>|StockTransfer whereId($value)
+ * @method static Builder<static>|StockTransfer whereInventoryTransactionId($value)
+ * @method static Builder<static>|StockTransfer whereOrganizationId($value)
+ * @method static Builder<static>|StockTransfer whereReversalTransactionId($value)
+ * @method static Builder<static>|StockTransfer whereSourceLocationId($value)
+ * @method static Builder<static>|StockTransfer whereStatus($value)
+ * @method static Builder<static>|StockTransfer whereUpdatedAt($value)
+ * @method static Builder<static>|StockTransfer withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|StockTransfer withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 class StockTransfer extends Model
 {

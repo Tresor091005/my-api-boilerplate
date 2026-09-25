@@ -31,6 +31,11 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|OrganizationSetting whereOrganizationId($value)
  * @method static Builder<static>|OrganizationSetting whereTimezone($value)
  * @method static Builder<static>|OrganizationSetting whereUpdatedAt($value)
+ * @method static Builder<static>|OrganizationSetting onlyTrashed()
+ * @method static Builder<static>|OrganizationSetting whereDeletedAt($value)
+ * @method static Builder<static>|OrganizationSetting whereStorageQuotaBytes($value)
+ * @method static Builder<static>|OrganizationSetting withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|OrganizationSetting withoutTrashed()
  *
  * @mixin \Eloquent
  */

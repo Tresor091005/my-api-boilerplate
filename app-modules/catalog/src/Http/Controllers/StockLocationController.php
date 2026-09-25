@@ -18,7 +18,7 @@ use Lahatre\Catalog\Services\StockLocationService;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
-final class StockLocationController
+final readonly class StockLocationController
 {
     public function __construct(
         private StockLocationService $stockLocationService,

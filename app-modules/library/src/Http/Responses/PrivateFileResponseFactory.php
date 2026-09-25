@@ -75,7 +75,7 @@ final class PrivateFileResponseFactory
         $ifNoneMatch = $request->headers->get('If-None-Match');
 
         if ($ifNoneMatch !== null) {
-            $candidates = array_map('trim', explode(',', $ifNoneMatch));
+            $candidates = array_map(trim(...), explode(',', $ifNoneMatch));
 
             return in_array('*', $candidates, true) || in_array($etag, $candidates, true);
         }

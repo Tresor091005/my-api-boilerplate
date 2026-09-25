@@ -44,6 +44,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|BundleItem withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|BundleItem withoutTrashed()
  * @method static Builder<static>|BundleItem whereDeletedAt($value)
+ * @method static Builder<static>|BundleItem whereDisplayUnitCode($value)
  *
  * @mixin \Eloquent
  */

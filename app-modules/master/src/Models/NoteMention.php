@@ -32,6 +32,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|NoteMention whereNoteId($value)
  * @method static Builder<static>|NoteMention whereReadAt($value)
  * @method static Builder<static>|NoteMention whereOrganizationId($value)
+ * @method static Builder<static>|NoteMention onlyTrashed()
+ * @method static Builder<static>|NoteMention whereDeletedAt($value)
+ * @method static Builder<static>|NoteMention withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|NoteMention withoutTrashed()
  *
  * @mixin \Eloquent
  */

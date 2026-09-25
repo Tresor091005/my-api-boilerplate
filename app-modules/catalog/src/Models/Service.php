@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Catalog\Database\Factories\ServiceFactory;
 use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Library\Contracts\HasFileSlots;
 use Lahatre\Library\Models\FileAttachment;
@@ -27,6 +29,30 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $deleted_at
  * @property-read CatalogItem $catalogItem
  * @property-read Collection<int, ServiceDeliverableTemplate> $deliverableTemplates
+ * @property-read int|null $deliverable_templates_count
+ * @property-read Collection<int, FileAttachment> $fileAttachments
+ * @property-read int|null $file_attachments_count
+ * @property-read Collection<int, FileAttachment> $galleryFileAttachments
+ * @property-read int|null $gallery_file_attachments_count
+ * @property-read Collection<int, FileAttachment> $mainFileAttachments
+ * @property-read int|null $main_file_attachments_count
+ *
+ * @method static ServiceFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Service newModelQuery()
+ * @method static Builder<static>|Service newQuery()
+ * @method static Builder<static>|Service onlyTrashed()
+ * @method static Builder<static>|Service query()
+ * @method static Builder<static>|Service whereCreatedAt($value)
+ * @method static Builder<static>|Service whereDeletedAt($value)
+ * @method static Builder<static>|Service whereHandle($value)
+ * @method static Builder<static>|Service whereId($value)
+ * @method static Builder<static>|Service whereName($value)
+ * @method static Builder<static>|Service whereOrganizationId($value)
+ * @method static Builder<static>|Service whereUpdatedAt($value)
+ * @method static Builder<static>|Service withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Service withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 class Service extends Model implements HasFileSlots
 {

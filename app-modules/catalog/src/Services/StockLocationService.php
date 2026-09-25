@@ -23,7 +23,7 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 use Lahatre\Shared\Support\HandleGenerator;
 
-final class StockLocationService
+final readonly class StockLocationService
 {
     public function __construct(
         private InventoryInterface $inventoryInterface,

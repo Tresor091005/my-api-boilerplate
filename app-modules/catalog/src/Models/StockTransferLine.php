@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Models;
 
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,8 +27,35 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $display_unit_code
  * @property DeductionStrategy|null $strategy
  * @property list<string>|null $stock_ids
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read CatalogItem $catalogItem
  * @property-read Model|null $item
+ * @property-read StockTransfer|null $transfer
+ *
+ * @method static StockTransferLineFactory factory($count = null, $state = [])
+ * @method static Builder<static>|StockTransferLine newModelQuery()
+ * @method static Builder<static>|StockTransferLine newQuery()
+ * @method static Builder<static>|StockTransferLine onlyTrashed()
+ * @method static Builder<static>|StockTransferLine query()
+ * @method static Builder<static>|StockTransferLine whereCatalogItemId($value)
+ * @method static Builder<static>|StockTransferLine whereCatalogItemType($value)
+ * @method static Builder<static>|StockTransferLine whereCreatedAt($value)
+ * @method static Builder<static>|StockTransferLine whereDeletedAt($value)
+ * @method static Builder<static>|StockTransferLine whereDisplayUnitCode($value)
+ * @method static Builder<static>|StockTransferLine whereId($value)
+ * @method static Builder<static>|StockTransferLine whereOrganizationId($value)
+ * @method static Builder<static>|StockTransferLine wherePosition($value)
+ * @method static Builder<static>|StockTransferLine whereQuantity($value)
+ * @method static Builder<static>|StockTransferLine whereStockIds($value)
+ * @method static Builder<static>|StockTransferLine whereStockTransferId($value)
+ * @method static Builder<static>|StockTransferLine whereStrategy($value)
+ * @method static Builder<static>|StockTransferLine whereUpdatedAt($value)
+ * @method static Builder<static>|StockTransferLine withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|StockTransferLine withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 class StockTransferLine extends Model
 {

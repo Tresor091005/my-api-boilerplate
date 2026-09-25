@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Lahatre\Library\Database\Factories\FileAttachmentFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -19,6 +21,14 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $slot
  * @property int $position
  * @property-read File|null $file
+ * @property-read Model|\Eloquent $attachable
+ *
+ * @method static FileAttachmentFactory factory($count = null, $state = [])
+ * @method static Builder<static>|FileAttachment newModelQuery()
+ * @method static Builder<static>|FileAttachment newQuery()
+ * @method static Builder<static>|FileAttachment query()
+ *
+ * @mixin \Eloquent
  */
 class FileAttachment extends Model
 {

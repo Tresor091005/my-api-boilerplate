@@ -37,6 +37,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|ExchangeRate whereSourceCurrencyCode($value)
  * @method static Builder<static>|ExchangeRate whereTargetCurrencyCode($value)
  * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
+ * @method static Builder<static>|ExchangeRate onlyTrashed()
+ * @method static Builder<static>|ExchangeRate whereDeletedAt($value)
+ * @method static Builder<static>|ExchangeRate withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|ExchangeRate withoutTrashed()
  *
  * @mixin \Eloquent
  */

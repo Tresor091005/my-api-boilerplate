@@ -6,6 +6,7 @@ namespace Lahatre\Library\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,6 +32,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Folder|null $folder
+ * @property-read Collection<int, FileAttachment> $attachments
+ * @property-read int|null $attachments_count
  *
  * @method static Builder<static>|File newModelQuery()
  * @method static Builder<static>|File newQuery()
@@ -39,6 +42,21 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|File onlyTrashed()
  * @method static Builder<static>|File withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|File withoutTrashed()
+ * @method static Builder<static>|File whereChecksum($value)
+ * @method static Builder<static>|File whereCreatedAt($value)
+ * @method static Builder<static>|File whereDeletedAt($value)
+ * @method static Builder<static>|File whereExtension($value)
+ * @method static Builder<static>|File whereFolderId($value)
+ * @method static Builder<static>|File whereId($value)
+ * @method static Builder<static>|File whereMimeType($value)
+ * @method static Builder<static>|File whereName($value)
+ * @method static Builder<static>|File whereOrganizationId($value)
+ * @method static Builder<static>|File whereOriginalName($value)
+ * @method static Builder<static>|File whereSize($value)
+ * @method static Builder<static>|File whereStorageDisk($value)
+ * @method static Builder<static>|File whereStorageKey($value)
+ * @method static Builder<static>|File whereUpdatedAt($value)
+ * @method static Builder<static>|File whereUploadedBy($value)
  *
  * @mixin \Eloquent
  */

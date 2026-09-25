@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -28,6 +29,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $deleted_at
  * @property-read Address|null $address
  * @property-read InventoryLocation|null $inventoryLocation
+ * @property-read Collection<int, Address> $addresses
+ * @property-read int|null $addresses_count
  *
  * @method static Builder<static>|StockLocation newModelQuery()
  * @method static Builder<static>|StockLocation newQuery()
@@ -42,7 +45,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|StockLocation onlyTrashed()
  * @method static Builder<static>|StockLocation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|StockLocation withoutTrashed()
- * @method static \Lahatre\Catalog\Database\Factories\StockLocationFactory factory($count = null, $state = [])
+ * @method static StockLocationFactory factory($count = null, $state = [])
  *
  * @mixin \Eloquent
  */

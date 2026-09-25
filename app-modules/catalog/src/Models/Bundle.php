@@ -27,6 +27,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $items_count
  * @property-read CatalogItem $catalogItem
  * @property-read Collection<int, BundleStockOperation> $stockOperations
+ * @property-read int|null $stock_operations_count
  *
  * @method static Builder<static>|Bundle newModelQuery()
  * @method static Builder<static>|Bundle newQuery()

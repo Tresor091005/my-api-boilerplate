@@ -35,6 +35,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $addresses_count
  * @property-read Collection<int, Contact> $contacts
  * @property-read int|null $contacts_count
+ * @property-read Collection<int, FileAttachment> $fileAttachments
+ * @property-read int|null $file_attachments_count
+ * @property-read Collection<int, FileAttachment> $profilePictureFileAttachments
+ * @property-read int|null $profile_picture_file_attachments_count
  *
  * @method static CustomerFactory factory($count = null, $state = [])
  * @method static Builder<static>|Customer newModelQuery()

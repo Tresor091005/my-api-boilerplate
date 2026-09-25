@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Str;
+use Lahatre\Library\Services\AttachmentService;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -156,7 +157,7 @@ it('keeps Library attachment internals behind its public contract', function ():
         $finder->files()->in(base_path("app-modules/{$module}/src"))->name('*.php');
 
         foreach ($finder as $file) {
-            if (Str::contains($file->getContents(), 'Lahatre\\Library\\Services\\AttachmentService')) {
+            if (Str::contains($file->getContents(), AttachmentService::class)) {
                 $failures[] = "{$module}/{$file->getRelativePathname()}";
             }
         }

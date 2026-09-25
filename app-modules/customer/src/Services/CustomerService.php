@@ -18,7 +18,7 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 class CustomerService
 {
-    public function __construct(private LibraryInterface $attachmentService) {}
+    public function __construct(private readonly LibraryInterface $attachmentService) {}
 
     /** @return CursorPaginator<int, Customer> */
     public function paginate(CustomerFilterData $filters): CursorPaginator

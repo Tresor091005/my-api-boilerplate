@@ -49,6 +49,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|BundleStockOperation onlyTrashed()
  * @method static Builder<static>|BundleStockOperation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|BundleStockOperation withoutTrashed()
+ * @method static Builder<static>|BundleStockOperation whereCompletedAt($value)
+ * @method static Builder<static>|BundleStockOperation whereCompositionSnapshot($value)
+ * @method static Builder<static>|BundleStockOperation whereInTransactionId($value)
+ * @method static Builder<static>|BundleStockOperation whereOutTransactionId($value)
+ * @method static Builder<static>|BundleStockOperation wherePayload($value)
+ * @method static Builder<static>|BundleStockOperation whereQuantity($value)
  *
  * @mixin \Eloquent
  */

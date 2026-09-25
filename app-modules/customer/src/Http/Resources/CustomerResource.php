@@ -31,13 +31,11 @@ class CustomerResource extends JsonResource
                 'contacts',
                 fn ($contacts): mixed => ContactResource::collection($contacts),
             ),
-            'files' => $this->whenLoaded('profilePictureFileAttachments', function ($attachments): array {
-                return [
-                    'profile_picture' => $attachments->map(fn ($attachment): FileAttachmentResource => new FileAttachmentResource(
-                        $attachment, 'lahatre.customer.customers.files.content', 'customer', $this->id,
-                    ))->all(),
-                ];
-            }),
+            'files' => $this->whenLoaded('profilePictureFileAttachments', fn ($attachments): array => [
+                'profile_picture' => $attachments->map(fn ($attachment): FileAttachmentResource => new FileAttachmentResource(
+                    $attachment, 'lahatre.customer.customers.files.content', 'customer', $this->id,
+                ))->all(),
+            ]),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -34,6 +34,12 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $option_values_count
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read int|null $variants_count
+ * @property-read Collection<int, FileAttachment> $fileAttachments
+ * @property-read int|null $file_attachments_count
+ * @property-read Collection<int, FileAttachment> $galleryFileAttachments
+ * @property-read int|null $gallery_file_attachments_count
+ * @property-read Collection<int, FileAttachment> $mainFileAttachments
+ * @property-read int|null $main_file_attachments_count
  *
  * @method static Builder<static>|Product newModelQuery()
  * @method static Builder<static>|Product newQuery()
