@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\DB;
 use Lahatre\Customer\Data\CustomerData;
 use Lahatre\Customer\Data\CustomerFilterData;
 use Lahatre\Customer\Models\Customer;
+use Lahatre\Library\Contracts\LibraryInterface;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\withoutMissing;
 
 class CustomerService
 {
+    public function __construct(private LibraryInterface $attachmentService) {}
+
     /** @return CursorPaginator<int, Customer> */
     public function paginate(CustomerFilterData $filters): CursorPaginator
     {
@@ -77,6 +80,7 @@ class CustomerService
             $lockedCustomer = $this->lockCustomer($customer, $organizationId);
             $lockedCustomer->addresses()->delete();
             $lockedCustomer->contacts()->delete();
+            $this->attachmentService->detachAll($lockedCustomer);
             $lockedCustomer->delete();
         });
     }

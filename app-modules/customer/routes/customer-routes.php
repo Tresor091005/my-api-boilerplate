@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Lahatre\Customer\Http\Controllers\CustomerAddressController;
 use Lahatre\Customer\Http\Controllers\CustomerContactController;
 use Lahatre\Customer\Http\Controllers\CustomerController;
+use Lahatre\Customer\Http\Controllers\CustomerFileController;
 
 Route::group([
     'as'         => 'lahatre.customer.',
@@ -13,6 +14,9 @@ Route::group([
     'middleware' => 'api',
 ], function (): void {
     Route::group(['middleware' => 'auth.api'], function (): void {
+        Route::put('customers/{customer}/files/profile-picture', [CustomerFileController::class, 'updateProfilePicture'])->name('customers.files.profile-picture.update');
+        Route::get('customers/{customer}/files/{attachment}/content', [CustomerFileController::class, 'content'])->scopeBindings()->name('customers.files.content');
+
         Route::apiResources(['customers' => CustomerController::class]);
 
         // addresses

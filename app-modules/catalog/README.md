@@ -1,5 +1,24 @@
 # Catalog Module
 
+## Library images
+
+Products and services can attach existing Library files as one `main` image or an
+ordered `gallery`. The allowed MIME types are JPEG, PNG, GIF, and WebP. The
+`/v1/catalog/{products|services}/{id}/files` routes manage these links, and
+`?include=files.main` and `?include=files.gallery` load only the selected slot
+on list, detail, and resource mutation responses. Both slots are arrays,
+including `main`, which contains zero or one link. File content uses the parent
+resource's `retrieve` permission. The gallery POST accepts an ordered `file_ids`
+list. The main PUT accepts a single `file_id`, or `null` to detach it. A gallery
+holds at most 20 images. A batch is validated and appended atomically.
+The gallery DELETE accepts 1–20 `attachment_ids`, removes all requested links
+atomically, and compacts the remaining positions.
+
+Catalog owns the image slots and ordering; Library owns the file and storage.
+Deleting a product or service removes its links in the parent transaction and
+preserves the Library files. Uploading a file from a Catalog route is outside
+this contract.
+
 ## Domain exceptions
 
 Model-specific invariants are grouped by model: `CategoryException`,

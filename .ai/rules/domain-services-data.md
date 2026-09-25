@@ -26,6 +26,7 @@ paths:
 ### Transactions, Concurrency, and Side Effects
 
 - A standalone public mutation owns the complete transaction. A transactional support service assumes its caller's transaction and never opens another one. Read-only methods do not start transactions by default.
+- Library's `AttachmentService` owns transactions for its attachment mutations; `LibraryService` only delegates to it. Catalog and Customer may include those calls in their broader business transactions.
 - Check race-sensitive preconditions inside the transaction. Protect them with a unique constraint, atomic statement, `lockForUpdate()`, or another appropriate concurrency mechanism when a second writer could invalidate the check.
 - Let failures roll back naturally. Catch only to translate an infrastructure failure into the intended domain contract, add meaningful context, or perform required cleanup.
 - Trigger Jobs, events, notifications, external calls, and cache invalidation after commit when they depend on successful persistence.

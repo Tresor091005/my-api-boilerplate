@@ -26,9 +26,11 @@ $optionValueCollection = [
 $productCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => ['includes' => [
-        'categories' => ['loads' => ['categories']],
-        'options'    => ['loads' => ['optionValues.option']],
-        'variants'   => ['loads' => ['variants.catalogItem', 'variants.product', 'variants.optionValues.option']],
+        'categories'    => ['loads' => ['categories']],
+        'options'       => ['loads' => ['optionValues.option']],
+        'variants'      => ['loads' => ['variants.catalogItem', 'variants.product', 'variants.optionValues.option']],
+        'files.main'    => ['loads' => ['mainFileAttachments.file']],
+        'files.gallery' => ['loads' => ['galleryFileAttachments.file']],
     ]]],
 ];
 
@@ -64,6 +66,8 @@ $serviceCollection = [
         'required_loads' => ['catalogItem'],
         'includes'       => [
             'deliverable_templates' => ['loads' => ['deliverableTemplates']],
+            'files.main'            => ['loads' => ['mainFileAttachments.file']],
+            'files.gallery'         => ['loads' => ['galleryFileAttachments.file']],
             'unit_group'            => ['loads' => ['catalogItem.unitGroup']],
             'units'                 => ['loads' => ['catalogItem.unitGroup.units']],
         ],
@@ -105,6 +109,11 @@ return [
     'lahatre.catalog.products.show'                       => $productCollection,
     'lahatre.catalog.products.store'                      => $productCollection,
     'lahatre.catalog.products.update'                     => $productCollection,
+    'lahatre.catalog.products.files.main.update'          => $productCollection,
+    'lahatre.catalog.products.files.gallery.store'        => $productCollection,
+    'lahatre.catalog.products.files.gallery.update'       => $productCollection,
+    'lahatre.catalog.products.files.gallery.destroy'      => [],
+    'lahatre.catalog.products.files.content'              => [],
     'lahatre.catalog.products.variants.index'             => $variantCollection,
     'lahatre.catalog.products.variants.activation.update' => [],
     'lahatre.catalog.products.variants.store'             => $variantCollection,
@@ -118,6 +127,11 @@ return [
     'lahatre.catalog.services.show'                       => $serviceCollection,
     'lahatre.catalog.services.store'                      => $serviceCollection,
     'lahatre.catalog.services.update'                     => $serviceCollection,
+    'lahatre.catalog.services.files.main.update'          => $serviceCollection,
+    'lahatre.catalog.services.files.gallery.store'        => $serviceCollection,
+    'lahatre.catalog.services.files.gallery.update'       => $serviceCollection,
+    'lahatre.catalog.services.files.gallery.destroy'      => [],
+    'lahatre.catalog.services.files.content'              => [],
     'lahatre.catalog.stock-locations.index'               => $stockLocationCollection,
     'lahatre.catalog.stock-locations.show'                => $stockLocationCollection,
     'lahatre.catalog.stock-locations.store'               => $stockLocationCollection,

@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Library\Database\Factories\FileFactory;
 use Lahatre\Library\Enums\FileKind;
@@ -82,6 +83,12 @@ class File extends Model
     public function folder(): BelongsTo
     {
         return $this->belongsTo(Folder::class, 'folder_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(FileAttachment::class, 'file_id')
+            ->where('library_file_attachments.organization_id', currentOrganizationId());
     }
 
     public function kind(): FileKind

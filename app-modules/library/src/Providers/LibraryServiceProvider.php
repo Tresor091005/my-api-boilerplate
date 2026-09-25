@@ -7,12 +7,15 @@ namespace Lahatre\Library\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Library\Console\Commands\ReconcileLibraryCommand;
+use Lahatre\Library\Contracts\LibraryInterface;
+use Lahatre\Library\Services\LibraryService;
 
 class LibraryServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/library.php', 'library');
+        $this->app->scoped(LibraryInterface::class, LibraryService::class);
         $this->commands([
             ReconcileLibraryCommand::class,
         ]);

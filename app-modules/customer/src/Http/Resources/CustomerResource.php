@@ -7,6 +7,7 @@ namespace Lahatre\Customer\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Customer\Models\Customer;
+use Lahatre\Library\Http\Resources\FileAttachmentResource;
 use Lahatre\Master\Http\Resources\AddressResource;
 use Lahatre\Master\Http\Resources\ContactResource;
 
@@ -30,6 +31,13 @@ class CustomerResource extends JsonResource
                 'contacts',
                 fn ($contacts): mixed => ContactResource::collection($contacts),
             ),
+            'files' => $this->whenLoaded('profilePictureFileAttachments', function ($attachments): array {
+                return [
+                    'profile_picture' => $attachments->map(fn ($attachment): FileAttachmentResource => new FileAttachmentResource(
+                        $attachment, 'lahatre.customer.customers.files.content', 'customer', $this->id,
+                    ))->all(),
+                ];
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

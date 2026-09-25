@@ -5,17 +5,20 @@ declare(strict_types=1);
 $customerCollection = [
     'default_shape' => 'default',
     'shapes'        => ['default' => ['includes' => [
-        'addresses' => ['loads' => ['addresses']],
-        'contacts'  => ['loads' => ['contacts']],
+        'addresses'             => ['loads' => ['addresses']],
+        'contacts'              => ['loads' => ['contacts']],
+        'files.profile_picture' => ['loads' => ['profilePictureFileAttachments.file']],
     ]]],
 ];
 
 return [
-    'lahatre.customer.customers.index'           => $customerCollection,
-    'lahatre.customer.customers.show'            => $customerCollection,
-    'lahatre.customer.customers.store'           => $customerCollection,
-    'lahatre.customer.customers.update'          => $customerCollection,
-    'lahatre.customer.customers.addresses.store' => [
+    'lahatre.customer.customers.index'                        => $customerCollection,
+    'lahatre.customer.customers.show'                         => $customerCollection,
+    'lahatre.customer.customers.store'                        => $customerCollection,
+    'lahatre.customer.customers.update'                       => $customerCollection,
+    'lahatre.customer.customers.files.profile-picture.update' => $customerCollection,
+    'lahatre.customer.customers.files.content'                => [],
+    'lahatre.customer.customers.addresses.store'              => [
         'default_mode' => 'resource',
     ],
     'lahatre.customer.customers.addresses.update' => [

@@ -120,7 +120,7 @@ requested, and `response=none` loads no response relations.
 ## Service lifetime
 
 Request-sensitive services such as `AuthContext`, `InventoryInterface`,
-`MasterInterface`, and `UnitCache` are scoped to the application lifecycle.
+`LibraryInterface`, `MasterInterface`, and `UnitCache` are scoped to the application lifecycle.
 `OrganizationInterface` is a normal binding. This distinction prevents
 organization or request-local state leaking across long-lived workers.
 

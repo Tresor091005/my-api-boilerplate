@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\MissingValue;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Library\Http\Resources\FileAttachmentResource;
 
 /**
  * @mixin Product
@@ -51,6 +52,19 @@ class ProductResource extends JsonResource
             'categories' => $this->whenLoaded(
                 'categories',
                 fn ($categories): mixed => CategoryResource::collection($categories),
+            ),
+            'files' => $this->when(
+                $this->resource->relationLoaded('mainFileAttachments') || $this->resource->relationLoaded('galleryFileAttachments'),
+                function (): array {
+                    $render = fn ($attachment): FileAttachmentResource => new FileAttachmentResource(
+                        $attachment, 'lahatre.catalog.products.files.content', 'product', $this->id,
+                    );
+
+                    return [
+                        'main'    => $this->whenLoaded('mainFileAttachments', fn ($attachments): array => $attachments->map($render)->all()),
+                        'gallery' => $this->whenLoaded('galleryFileAttachments', fn ($attachments): array => $attachments->map($render)->all()),
+                    ];
+                },
             ),
         ];
     }

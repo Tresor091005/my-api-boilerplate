@@ -10,8 +10,10 @@ use Lahatre\Catalog\Http\Controllers\CategoryController;
 use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
+use Lahatre\Catalog\Http\Controllers\ProductFileController;
 use Lahatre\Catalog\Http\Controllers\ProductVariantController;
 use Lahatre\Catalog\Http\Controllers\ServiceController;
+use Lahatre\Catalog\Http\Controllers\ServiceFileController;
 use Lahatre\Catalog\Http\Controllers\StockLocationController;
 use Lahatre\Catalog\Http\Controllers\StockTransferController;
 
@@ -27,6 +29,18 @@ Route::group([
     Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
+        Route::put('products/{product}/files/main', [ProductFileController::class, 'updateMain'])->name('products.files.main.update');
+        Route::post('products/{product}/files/gallery', [ProductFileController::class, 'storeGallery'])->name('products.files.gallery.store');
+        Route::put('products/{product}/files/gallery', [ProductFileController::class, 'updateGallery'])->name('products.files.gallery.update');
+        Route::delete('products/{product}/files/gallery', [ProductFileController::class, 'destroyGallery'])->name('products.files.gallery.destroy');
+        Route::get('products/{product}/files/{attachment}/content', [ProductFileController::class, 'content'])->scopeBindings()->name('products.files.content');
+
+        Route::put('services/{service}/files/main', [ServiceFileController::class, 'updateMain'])->name('services.files.main.update');
+        Route::post('services/{service}/files/gallery', [ServiceFileController::class, 'storeGallery'])->name('services.files.gallery.store');
+        Route::put('services/{service}/files/gallery', [ServiceFileController::class, 'updateGallery'])->name('services.files.gallery.update');
+        Route::delete('services/{service}/files/gallery', [ServiceFileController::class, 'destroyGallery'])->name('services.files.gallery.destroy');
+        Route::get('services/{service}/files/{attachment}/content', [ServiceFileController::class, 'content'])->scopeBindings()->name('services.files.content');
+
         Route::patch('products/{product}/variants/activation', [ProductVariantController::class, 'updateActivation'])
             ->name('products.variants.activation.update');
 

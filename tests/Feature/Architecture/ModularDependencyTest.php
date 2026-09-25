@@ -94,10 +94,10 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         'master'       => ['shared'],
         'organization' => ['shared', 'master'],
         'inventory'    => ['shared', 'master', 'organization'],
-        'library'      => ['shared'],
+        'library'      => ['shared', 'organization'],
         'iam'          => ['shared', 'master', 'organization'],
-        'catalog'      => ['shared', 'master', 'inventory'],
-        'customer'     => ['shared', 'master'],
+        'catalog'      => ['shared', 'master', 'inventory', 'library'],
+        'customer'     => ['shared', 'master', 'library'],
     ];
 
     $failures = [];
@@ -146,6 +146,23 @@ it('keeps HTTP resources out of module services', function (): void {
     }
 
     expect(true)->toBeTrue();
+});
+
+it('keeps Library attachment internals behind its public contract', function (): void {
+    $failures = [];
+
+    foreach (['catalog', 'customer'] as $module) {
+        $finder = new Finder;
+        $finder->files()->in(base_path("app-modules/{$module}/src"))->name('*.php');
+
+        foreach ($finder as $file) {
+            if (Str::contains($file->getContents(), 'Lahatre\\Library\\Services\\AttachmentService')) {
+                $failures[] = "{$module}/{$file->getRelativePathname()}";
+            }
+        }
+    }
+
+    expect($failures)->toBe([]);
 });
 
 it('ensures modules do not depend on the main App namespace (except Models)', function (): void {

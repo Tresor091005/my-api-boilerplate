@@ -13,6 +13,7 @@ use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\Variant\TransactionalProductVariantService;
+use Lahatre\Library\Contracts\LibraryInterface;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\required;
@@ -23,7 +24,8 @@ use Lahatre\Shared\Support\HandleGenerator;
 class ProductService
 {
     public function __construct(
-        protected TransactionalProductVariantService $transactionalProductVariantService
+        protected TransactionalProductVariantService $transactionalProductVariantService,
+        protected LibraryInterface $attachmentService,
     ) {}
 
     public function paginate(ProductFilterData $filters): CursorPaginator
@@ -124,12 +126,18 @@ class ProductService
     public function delete(Product $product): void
     {
         DB::transaction(function () use ($product): void {
+            $product = Product::query()
+                ->where('organization_id', currentOrganizationId())
+                ->whereKey($product->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
             /** @var Collection<int, ProductVariant> $variants */
             $variants = $product->variants()->get();
             foreach ($variants as $variant) {
                 $this->transactionalProductVariantService->delete($variant);
             }
 
+            $this->attachmentService->detachAll($product);
             $product->delete();
         });
     }

@@ -9,8 +9,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Library\Contracts\HasFileSlots;
+use Lahatre\Library\Models\FileAttachment;
+use Lahatre\Library\Traits\InteractsWithFile;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -24,8 +28,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read CatalogItem $catalogItem
  * @property-read Collection<int, ServiceDeliverableTemplate> $deliverableTemplates
  */
-class Service extends Model
+class Service extends Model implements HasFileSlots
 {
+    use InteractsWithFile;
     use SharedTraits;
     use SoftDeletes;
 
@@ -42,6 +47,29 @@ class Service extends Model
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
     ];
+
+    /** @return array<string, array{max_files: int, mime_types: list<string>}> */
+    public function fileSlots(): array
+    {
+        $images = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        return [
+            'main'    => ['max_files' => 1, 'mime_types' => $images],
+            'gallery' => ['max_files' => 20, 'mime_types' => $images],
+        ];
+    }
+
+    /** @return MorphMany<FileAttachment, $this> */
+    public function mainFileAttachments(): MorphMany
+    {
+        return $this->fileAttachmentsForSlot('main');
+    }
+
+    /** @return MorphMany<FileAttachment, $this> */
+    public function galleryFileAttachments(): MorphMany
+    {
+        return $this->fileAttachmentsForSlot('gallery');
+    }
 
     public function catalogItem(): BelongsTo
     {

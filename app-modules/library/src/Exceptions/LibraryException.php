@@ -9,6 +9,45 @@ use Lahatre\Shared\Exceptions\AssertionException;
 
 final class LibraryException extends AssertionException
 {
+    public static function fileAttached(string $fileId): self
+    {
+        return new self(__('library::exceptions.file_attached'), ['file_id' => $fileId]);
+    }
+
+    public static function attachmentDuplicate(string $slot, string $fileId): self
+    {
+        return new self(__('library::exceptions.attachment_duplicate'), ['slot' => $slot, 'file_id' => $fileId]);
+    }
+
+    public static function attachmentOrderInvalid(string $slot): self
+    {
+        return new self(__('library::exceptions.attachment_order_invalid'), ['slot' => $slot]);
+    }
+
+    public static function attachmentSelectionInvalid(string $slot): self
+    {
+        return new self(__('library::exceptions.attachment_selection_invalid'), ['slot' => $slot]);
+    }
+
+    public static function attachmentSlotUnavailable(string $slot): self
+    {
+        return new self(__('library::exceptions.attachment_slot_unavailable'), ['slot' => $slot]);
+    }
+
+    public static function attachmentLimitExceeded(string $slot, int $maximum): self
+    {
+        return new self(__('library::exceptions.attachment_limit_exceeded', ['maximum' => $maximum]), [
+            'slot' => $slot, 'maximum' => $maximum,
+        ]);
+    }
+
+    public static function attachmentMimeTypeNotAllowed(string $slot, string $mimeType): self
+    {
+        return new self(__('library::exceptions.attachment_mime_type_not_allowed'), [
+            'slot' => $slot, 'mime_type' => $mimeType,
+        ]);
+    }
+
     public static function folderNameAlreadyExists(string $name, ?string $parentId): self
     {
         return new self(__('library::exceptions.folder_name_already_exists'), [

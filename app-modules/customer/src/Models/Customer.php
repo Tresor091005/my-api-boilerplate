@@ -8,9 +8,13 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Customer\Database\Factories\CustomerFactory;
 use Lahatre\Customer\Enums\CustomerType;
+use Lahatre\Library\Contracts\HasFileSlots;
+use Lahatre\Library\Models\FileAttachment;
+use Lahatre\Library\Traits\InteractsWithFile;
 use Lahatre\Master\Models\Address;
 use Lahatre\Master\Models\Contact;
 use Lahatre\Master\Traits\InteractsWithAddresses;
@@ -51,10 +55,11 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class Customer extends Model
+class Customer extends Model implements HasFileSlots
 {
     use InteractsWithAddresses;
     use InteractsWithContacts;
+    use InteractsWithFile;
     use SharedTraits;
     use SoftDeletes;
 
@@ -79,4 +84,21 @@ class Customer extends Model
         'updated_at'            => 'immutable_datetime',
         'deleted_at'            => 'immutable_datetime',
     ];
+
+    /** @return array<string, array{max_files: int, mime_types: list<string>}> */
+    public function fileSlots(): array
+    {
+        return [
+            'profile_picture' => [
+                'max_files'  => 1,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+            ],
+        ];
+    }
+
+    /** @return MorphMany<FileAttachment, $this> */
+    public function profilePictureFileAttachments(): MorphMany
+    {
+        return $this->fileAttachmentsForSlot('profile_picture');
+    }
 }

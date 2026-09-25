@@ -8,7 +8,7 @@ return [
     'root_prefix' => 'organizations',
 
     'folders' => [
-        'max_depth'   => 5,
+        'max_depth'    => 5,
         'max_children' => 50,
     ],
 

@@ -210,7 +210,9 @@ final readonly class FileService
         DB::transaction(function () use ($file): void {
             $this->lockOrganization(currentOrganizationId());
             $ownedFile = $this->ownedFile($file->getKey(), lockForUpdate: true);
-            // TODO: Block deletion while active file attachments exist once the attachment table is implemented.
+            if ($ownedFile->attachments()->exists()) {
+                throw LibraryException::fileAttached($ownedFile->id);
+            }
             $ownedFile->delete();
         });
     }

@@ -10,8 +10,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\ProductFactory;
+use Lahatre\Library\Contracts\HasFileSlots;
+use Lahatre\Library\Models\FileAttachment;
+use Lahatre\Library\Traits\InteractsWithFile;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -49,8 +53,9 @@ use Lahatre\Shared\Traits\SharedTraits;
  *
  * @mixin \Eloquent
  */
-class Product extends Model
+class Product extends Model implements HasFileSlots
 {
+    use InteractsWithFile;
     use SharedTraits;
     use SoftDeletes;
 
@@ -73,6 +78,29 @@ class Product extends Model
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
     ];
+
+    /** @return array<string, array{max_files: int, mime_types: list<string>}> */
+    public function fileSlots(): array
+    {
+        $images = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        return [
+            'main'    => ['max_files' => 1, 'mime_types' => $images],
+            'gallery' => ['max_files' => 20, 'mime_types' => $images],
+        ];
+    }
+
+    /** @return MorphMany<FileAttachment, $this> */
+    public function mainFileAttachments(): MorphMany
+    {
+        return $this->fileAttachmentsForSlot('main');
+    }
+
+    /** @return MorphMany<FileAttachment, $this> */
+    public function galleryFileAttachments(): MorphMany
+    {
+        return $this->fileAttachmentsForSlot('gallery');
+    }
 
     public function categories(): BelongsToMany
     {

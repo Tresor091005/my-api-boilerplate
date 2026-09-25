@@ -13,10 +13,24 @@ Route → middleware → FormRequest → Controller → Policy/Gate → Data →
 
 - Routes define prefixes, names, middleware, and nested scoping.
 - Form Requests validate and normalize HTTP input.
+  Library provides reusable requests for a single file ID, a list of file IDs,
+  and a list of attachment IDs. A consuming module may extend them when its
+  HTTP input needs additional validation. The service decides whether an
+  operation replaces, adds, reorders, or removes attachments.
 - Controllers authorize the HTTP action and delegate orchestration.
 - Data classes are immutable typed service inputs; they do not know HTTP,
   Eloquent, authorization, or tenant context.
 - Services own business orchestration and transaction boundaries.
+- Cross-module callers use the owning module's public contract. For file links,
+  Catalog and Customer inject `LibraryInterface`; `LibraryService` delegates
+  attachment persistence to Library's internal `AttachmentService`.
+  Each parent model implements `HasFileSlots` to declare its slots, maximum
+  counts, and MIME types; `InteractsWithFile` provides the attachment relation.
+  Catalog uses `main` and `gallery`; Customer uses `profile_picture`. Library
+  enforces those slot rules, tenant ownership, and link integrity. Catalog and
+  Customer retain their parent-state checks.
+  `AttachmentService` owns the attachment transaction; `LibraryService` delegates
+  without opening another one.
 - Models and query services own persistence and relation loading.
 - API Resources represent model-backed responses; ViewData represents computed
   or aggregate projections.
@@ -26,6 +40,9 @@ Route → middleware → FormRequest → Controller → Policy/Gate → Data →
 Authorization belongs at the HTTP boundary through Policies/Gates. Services
 still enforce ownership and invariant checks because they are also callable by
 commands, jobs, schedulers, and other application entry points.
+Library file creation and direct retrieval use `FilePolicy`. Linking an existing
+file through Catalog or Customer uses that parent's update permission; linked
+content uses its retrieve permission.
 
 Inventory and catalog data use explicit organization boundaries. The selected
 organization comes from `AuthContext`; it is never inferred from an arbitrary

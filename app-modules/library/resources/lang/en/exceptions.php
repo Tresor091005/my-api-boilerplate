@@ -3,6 +3,13 @@
 declare(strict_types=1);
 
 return [
+    'file_attached'                      => 'Detach this file from its records before deleting it.',
+    'attachment_duplicate'               => 'This file is already attached to the slot.',
+    'attachment_selection_invalid'       => 'Select at least one file for the slot.',
+    'attachment_order_invalid'           => 'The order must contain every current attachment in the slot exactly once.',
+    'attachment_slot_unavailable'        => 'This file slot is unavailable.',
+    'attachment_limit_exceeded'          => 'This file slot cannot contain more than :maximum files.',
+    'attachment_mime_type_not_allowed'   => 'This file type is not allowed in the slot.',
     'folder_name_already_exists'         => 'A folder with this name already exists at this location.',
     'folder_cannot_contain_itself'       => 'A folder cannot contain itself.',
     'folder_cannot_move_into_descendant' => 'A folder cannot be moved into one of its descendants.',

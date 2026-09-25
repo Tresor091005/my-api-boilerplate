@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -18,8 +19,6 @@ use Lahatre\Master\Data\NoteFilterData;
 use Lahatre\Master\Data\NoteUpdateData;
 use Lahatre\Master\Enums\NoteVisibility;
 use Lahatre\Master\Exceptions\NoteException;
-use Lahatre\Master\Http\Resources\NoteCollection;
-use Lahatre\Master\Http\Resources\NoteResource;
 use Lahatre\Master\Models\Note;
 use Lahatre\Master\Models\NoteMention;
 use Lahatre\Master\Services\NoteService;
@@ -193,7 +192,7 @@ it('requires creation mentions to use mentioned visibility', function (): void {
         ->assertUnprocessable()
         ->assertJsonValidationErrors('member_ids');
 
-    expect(fn (): NoteResource => app(NoteService::class)->create(NoteCreateData::fromArray($payload)))
+    expect(fn (): Note => app(NoteService::class)->create(NoteCreateData::fromArray($payload)))
         ->toThrow(NoteException::class);
 });
 
@@ -470,7 +469,7 @@ it('enforces note ownership, collective permissions, and visible reply counts', 
     ])->assertForbidden();
 });
 
-it('returns resources from the note service and reports missing member context as a module exception', function (): void {
+it('returns models and a paginator from the note service and reports missing member context', function (): void {
     $this->getJson('/v1/master/notes')->assertOk();
 
     $service = app(NoteService::class);
@@ -483,24 +482,25 @@ it('returns resources from the note service and reports missing member context a
         'visibility'   => 'private',
     ]));
 
-    expect($collection)->toBeInstanceOf(NoteCollection::class)
-        ->and($created)->toBeInstanceOf(NoteResource::class)
-        ->and($created->resource)->toBeInstanceOf(Note::class);
+    expect($collection)->toBeInstanceOf(CursorPaginator::class)
+        ->and($created)->toBeInstanceOf(Note::class);
 
-    $note = $created->resource;
-    assert($note instanceof Note);
-    expect($service->retrieve($note))->toBeInstanceOf(NoteResource::class)
-        ->and($service->update(
-            $note,
-            NoteUpdateData::fromArray(
-                ['body' => 'Updated service resource note'],
-                missingFields: ['kind', 'expires_at'],
-            ),
-        ))->toBeInstanceOf(NoteResource::class);
+    $retrieved = $service->retrieve($created);
+    $updated = $service->update(
+        $created,
+        NoteUpdateData::fromArray(
+            ['body' => 'Updated service resource note'],
+            missingFields: ['kind', 'expires_at'],
+        ),
+    );
+    expect($retrieved)->toBeInstanceOf(Note::class)
+        ->and($retrieved->id)->toBe($created->id)
+        ->and($updated)->toBeInstanceOf(Note::class)
+        ->and($updated->body)->toBe('Updated service resource note');
 
     authContext()->clear();
 
-    expect(fn (): NoteCollection => $service->paginate(NoteFilterData::fromArray([])))
+    expect(fn (): CursorPaginator => $service->paginate(NoteFilterData::fromArray([])))
         ->toThrow(
             NoteException::class,
             'An active organization member context is required for note operations.',

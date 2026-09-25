@@ -44,6 +44,37 @@ Transfers are created as drafts. Completion executes one atomic Inventory
 transaction. Cancellation uses Inventory's exact reversal support and fails
 atomically if any stock created by the transfer has already been consumed.
 
+Product and service images link existing Library files. Replace `{resource}`
+with `products` or `services`; mutations require the parent's `update`
+permission, and content requires its `retrieve` permission. Each slot accepts
+JPEG, PNG, GIF, or WebP. `main` holds one image and `gallery` is ordered.
+
+| Method | URI | Purpose |
+| --- | --- | --- |
+| PUT | `/v1/catalog/{resource}/{id}/files/main` | Replace with one UUID in `file_id`; `null` detaches. |
+| POST | `/v1/catalog/{resource}/{id}/files/gallery` | Append an ordered `file_ids` list without exceeding 20 links. |
+| PUT | `/v1/catalog/{resource}/{id}/files/gallery` | Reorder with the complete `attachment_ids` list. |
+| DELETE | `/v1/catalog/{resource}/{id}/files/gallery` | Remove 1–20 gallery links with `attachment_ids` in one request. |
+| GET | `/v1/catalog/{resource}/{id}/files/{attachment}/content` | Stream a linked file through parent authorization. |
+
+`?include=files.main` and `?include=files.gallery` load only the requested
+slots for product and service list/detail and resource mutation responses.
+Each selected slot is an array, including `main`; without a file include,
+`files` is omitted.
+
+## Customer
+
+Customer profile pictures also link existing Library images. The file remains
+in Library when its customer is deleted.
+
+| Method | URI | Purpose |
+| --- | --- | --- |
+| PUT | `/v1/customer/customers/{customer}/files/profile-picture` | Replace with one UUID in `file_id`; `null` detaches. Requires customer `update`. |
+| GET | `/v1/customer/customers/{customer}/files/{attachment}/content` | Stream a linked image; requires customer `retrieve`. |
+
+`?include=files.profile_picture` adds the `files.profile_picture` array to
+customer list/detail and resource mutation responses.
+
 ## Master data
 
 | Method | URI | Purpose |
@@ -120,6 +151,7 @@ size, MIME allowlist, storage disk, and orphan grace period are configurable
 through `LIBRARY_*` environment variables documented in `.env.example`. The
 organization quota comes from `organization_settings`, with a 5 GiB Library
 fallback when no value is configured.
+Library refuses to delete a file while any business record still links it.
 
 ## Root routes
 

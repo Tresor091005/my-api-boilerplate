@@ -30,4 +30,5 @@ return [
     'stock_transfer_invalid_transition'                  => 'A stock transfer with status :status cannot be :action.',
     'service_deliverable_templates_required'             => 'A service must contain at least one deliverable template.',
     'service_deliverable_templates_unavailable'          => 'One or more selected deliverable templates are unavailable.',
+    'file_service_inactive'                              => 'Files cannot be attached to an inactive service.',
 ];

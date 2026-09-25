@@ -21,6 +21,7 @@ use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Service;
 use Lahatre\Catalog\Models\ServiceDeliverableTemplate;
+use Lahatre\Library\Contracts\LibraryInterface;
 use Lahatre\Shared\Data\MissingValue;
 
 use function Lahatre\Shared\Data\required;
@@ -33,6 +34,7 @@ final readonly class ServiceService
     public function __construct(
         private TransactionalCatalogItemService $transactionalCatalogItemService,
         private ServiceAssertion $serviceAssertion,
+        private LibraryInterface $attachmentService,
     ) {}
 
     public function paginate(ServiceFilterData $filters): CursorPaginator
@@ -135,6 +137,7 @@ final readonly class ServiceService
                 ->firstOrFail();
 
             $lockedService->deliverableTemplates()->delete();
+            $this->attachmentService->detachAll($lockedService);
             $lockedService->delete();
             $this->transactionalCatalogItemService->delete($catalogItem);
         });
