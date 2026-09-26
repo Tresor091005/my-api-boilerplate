@@ -33,4 +33,17 @@ return [
     'enum' => [
         'invalid_value' => "Invalid value ':value' for enum :enum_class.",
     ],
+    'state_machine' => [
+        'state_already_registered'         => 'The state :state is already registered.',
+        'initial_state_not_registered'     => 'The initial state :state is not registered.',
+        'transition_target_not_registered' => 'The transition target :target is not registered.',
+        'state_not_found'                  => 'The state :state does not exist.',
+        'actor_not_ready'                  => 'The state machine actor must be started or restored before use.',
+        'transition_not_allowed'           => 'The event :event is not allowed from the state :state.',
+        'source_state_required'            => 'A source state must be selected before defining a transition.',
+        'definition_frozen'                => 'The state machine definition cannot be changed after it is frozen.',
+        'state_type_mismatch'              => 'The state enum :actual does not match the machine state enum :expected.',
+        'event_type_mismatch'              => 'The event enum :actual does not match the machine event enum :expected.',
+        'invalid_event_enum'               => 'The configured event type is not a valid enum.',
+    ],
 ];

@@ -13,7 +13,7 @@ tests. The root `App` namespace contains framework-level wiring only.
 | `inventory` | Generic inventory item/location registration, ledger transactions, stock queries, lots, costs, and reversals | `/v1/inventory/*` | [Module README](../app-modules/inventory/README.md) and module docs. |
 | `library` | Private organization files, logical folders, quotas, authorized streaming, and storage reconciliation | `/v1/library/*` and `library:reconcile` | Runtime contract is defined by the module configuration, routes, and tests. |
 | `customer` | Customer identity and organization-scoped polymorphic addresses and contacts | `/v1/customer/*` | Customer module documentation and feature tests. |
-| `shared` | Cross-module exceptions, traits, generators, morph-map registry, pagination, handles, and model discovery | Artisan commands and internal contracts | Cross-cutting behavior documented in [application runtime](architecture/application-runtime.md). |
+| `shared` | Cross-module exceptions, traits, generators, state machines, morph-map registry, pagination, handles, and model discovery | Artisan commands and internal contracts | Cross-cutting behavior documented in [Shared module](modules/shared.md) and [application runtime](architecture/application-runtime.md). |
 
 Detailed module notes:
 
