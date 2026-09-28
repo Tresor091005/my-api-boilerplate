@@ -51,7 +51,9 @@ return [
     ],
 
     'quantity_bigint_exceptions' => [
-        // Tables with a quantity column that intentionally do not store stock quantities.
+        // Service quantities are decimal display values, not inventory stock in base units.
+        'commitment_deliverables',
+        'commitment_evidence',
     ],
 
     /*
@@ -65,8 +67,11 @@ return [
     |
     */
     'exempt_global_uniqueness' => [
-        'master_unit_groups' => ['master_unit_groups_name_unique'],
-        'master_units'       => [
+        // Guests resolve commitments and sessions without a tenant context.
+        'commitment_service_commitments'   => ['commitment_service_commitments_public_reference_unique'],
+        'commitment_guest_access_sessions' => ['commitment_guest_access_sessions_token_hash_unique'],
+        'master_unit_groups'               => ['master_unit_groups_name_unique'],
+        'master_units'                     => [
             'master_units_code_unique',
             'master_units_group_id_ratio_unique',
         ],

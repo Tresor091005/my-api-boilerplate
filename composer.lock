@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "435f3743a724bece3fe38c5dd65b21b4",
+    "content-hash": "6cbf373b6fb0f910cf11e8ac9e77757d",
     "packages": [
         {
             "name": "brick/math",
@@ -2157,6 +2157,38 @@
             }
         },
         {
+            "name": "lahatre/commitment",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/commitment",
+                "reference": "7473d0172082fe9b524e1b2dd5be0a2734af5f93"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Commitment\\Providers\\CommitmentServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Commitment\\": "src/",
+                    "Lahatre\\Commitment\\Tests\\": "tests/",
+                    "Lahatre\\Commitment\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Commitment\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "lahatre/customer",
             "version": "1.0",
             "dist": {
@@ -2279,6 +2311,7 @@
             "license": [
                 "proprietary"
             ],
+            "description": "Private, tenant-scoped file library for Lahatre applications.",
             "transport-options": {
                 "symlink": true,
                 "relative": true
