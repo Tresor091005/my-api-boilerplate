@@ -21,7 +21,8 @@
   plus individual lot reads, expiration filtering, movement reads, and
   aggregated quantity/value summaries.
 - [x] `permission`: Available for reading the current context through
-  `current-permissions`.
+  `current-permissions` and listing the full catalog through `/v1/iam/permissions`.
+- [x] `role`: CRUD API for organization roles, with read-only system roles.
 - [x] `user`: Available in auth for login, me, logout, password reset, and
   member-role switching.
 - [x] `customer`: Identity CRUD API with organization-scoped polymorphic
@@ -33,8 +34,6 @@
   business CRUD API is exposed.
 - [~] `member`: Present in IAM through `organizationMemberships` and
   `MemberRole`, but there is no dedicated service or management API.
-- [~] `role`: Present in IAM and used by the auth context, but there is no
-  dedicated business CRUD service.
 
 ### Not yet industrialized as an autonomous business component
 

@@ -80,6 +80,15 @@ Policies should call `BasePolicy::canModel()` or `canOnModel()` so permission
 names are resolved from the same morph registry. If a permission is missing,
 policy authorization denies access by returning `false`.
 
+The role API uses `iam_role.list`, `retrieve`, `create`, `update`, and `delete`.
+Its policy allows reads for built-in global roles and current-organization
+roles. Updates and deletes require a current-organization role with
+`is_builtin = false`. Role responses load permissions through the IAM response
+contract when `include=permissions` is requested. `permission_ids` replaces role permissions on create and, when
+supplied, on update. An omitted update field leaves them unchanged.
+Roles are soft-deleted only when they have no active member-role assignment;
+deleted roles are excluded from API reads and their names can be reused.
+
 After adding, removing, or renaming a model or morph alias, run the commands in
 this order:
 

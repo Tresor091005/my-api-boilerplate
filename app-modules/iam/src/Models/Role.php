@@ -7,6 +7,7 @@ namespace Lahatre\Iam\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Iam\Database\Factories\RoleFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -20,6 +21,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
  * @property string|null $description
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Permission> $permissions
  * @property-read int|null $permissions_count
  *
@@ -43,10 +45,12 @@ use Spatie\Permission\Models\Role as SpatieRole;
 class Role extends SpatieRole
 {
     use SharedTraits;
+    use SoftDeletes;
 
     protected $table = 'iam_roles';
 
     protected $fillable = [
+        'team_id',
         'name',
         'is_builtin',
         'description',
@@ -62,5 +66,6 @@ class Role extends SpatieRole
         'guard_name'  => 'string',
         'created_at'  => 'immutable_datetime',
         'updated_at'  => 'immutable_datetime',
+        'deleted_at'  => 'immutable_datetime',
     ];
 }

@@ -39,11 +39,30 @@ $userResourceContracts = array_fill_keys(
     ],
 );
 
+$roleResourceContracts = array_fill_keys(
+    [
+        'lahatre.iam.roles.index',
+        'lahatre.iam.roles.show',
+        'lahatre.iam.roles.store',
+        'lahatre.iam.roles.update',
+    ],
+    [
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'includes' => [
+                'permissions' => ['loads' => ['permissions']],
+            ],
+        ]],
+    ],
+);
+
 return [
     ...$resourceModeContracts,
     ...$authResourceContracts,
     ...$userResourceContracts,
+    ...$roleResourceContracts,
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
     'lahatre.iam.auth.current-permissions' => [],
     'lahatre.iam.permissions.index'        => [],
+    'lahatre.iam.roles.destroy'            => [],
 ];

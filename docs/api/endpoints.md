@@ -18,6 +18,25 @@ and the global API rate limiter. Business module routes additionally use
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
 | GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
 
+## IAM roles
+
+All role routes use `auth.api` and the matching `iam_role` ability.
+
+| Method | URI | Ability | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/iam/roles` | `iam_role.list` | Cursor-paginate system roles and roles in the current organization. |
+| GET | `/v1/iam/roles/{role}` | `iam_role.retrieve` | Retrieve an available role. |
+| POST | `/v1/iam/roles` | `iam_role.create` | Create a role in the current organization. |
+| PUT/PATCH | `/v1/iam/roles/{role}` | `iam_role.update` | Edit an organization role and optionally replace its permissions. |
+| DELETE | `/v1/iam/roles/{role}` | `iam_role.delete` | Soft-delete an organization role without active member assignments. |
+
+Role responses include permissions only with `?include=permissions`. Create requires `name` and `permission_ids`;
+`description` is optional. On update, omitting `permission_ids` preserves the
+assignments, while `[]` clears them. The server sets `team_id`, `is_builtin`,
+and `guard_name`. System roles are readable but cannot be changed or deleted.
+Mutations return `204` by default; create and update accept
+`?response=resource` to return the role.
+
 ## Catalog
 
 `categories`, `options`, and `products` expose standard API resource actions

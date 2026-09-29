@@ -23,8 +23,19 @@ member-role switching, current-permission retrieval, permission catalog listing,
 forgot-password, and reset-password. `GET /v1/iam/permissions` lists all
 permissions for the active guard, including those not assigned to the current
 role. It requires an active organization role with `iam_permission.list` and has
-no mutation or detail routes. Role/member administration does not yet have a
-dedicated CRUD API.
+no mutation or detail routes. Member administration does not yet have a
+dedicated API.
+
+`/v1/iam/roles` supports listing, retrieving, creating, updating, and deleting
+roles. Reads include global built-in roles and roles belonging to the current
+organization. The API creates roles with the current organization's `team_id`,
+`is_builtin = false`, and the active guard; clients cannot set those fields.
+Only roles belonging to the current organization can be changed, and built-in
+roles are immutable. A role with an active member-role assignment cannot be
+deleted. Otherwise deletion is soft, retaining the role and its permission
+assignments in storage while excluding it from normal reads. `response-contracts.php`
+loads role permissions when `include=permissions` is requested. Deletion uses a scoped database
+query and explicitly clears Spatie's permission cache.
 
 `permissions:discover` scans direct PHP files under each module's
 `src/Models` directory, keeps only classes that extend Eloquent's `Model`, and
