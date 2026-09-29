@@ -43,7 +43,7 @@ class AuthContext
 
         $member = $memberRole?->organizationMember;
 
-        if (!$memberRole || !$member || $member->user_id !== $user->id) {
+        if (!$memberRole || !$member || $member->user_id !== $user->id || $member->organization_id !== $memberRole->organization_id) {
             logger()->warning(__('iam::messages.auth.incoherent_auth_metadata', ['user_id' => $user->getAuthIdentifier()]), [
                 'user_id'  => $user->getAuthIdentifier(),
                 'metadata' => $metadata,

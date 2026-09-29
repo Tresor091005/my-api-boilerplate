@@ -85,7 +85,7 @@ class AuthService
 
         $member = $memberRole?->organizationMember;
 
-        if (!$memberRole || !$member || $member->user_id !== $user->id) {
+        if (!$memberRole || !$member || $member->user_id !== $user->id || $member->organization_id !== $memberRole->organization_id) {
             throw new ModelNotFoundException()->setModel(MemberRole::class, [$memberRoleId]);
         }
 

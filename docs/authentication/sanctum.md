@@ -7,9 +7,8 @@ flexible, and contextual system.
 ## 1. Philosophy: why Sanctum?
 
 Laravel Sanctum was chosen for its simplicity and effectiveness when managing
-API tokens, which is well suited to a stateless API. Although it supports
-complex scenarios such as multiple guards, this implementation focuses on a
-single `sanctum` guard for clarity while remaining extensible.
+API tokens, which is well suited to a stateless API. This implementation uses
+the `sanctum` guard for IAM users.
 
 ## 2. Token extension: adding metadata
 
@@ -45,41 +44,32 @@ public function boot(): void
 
 ## 3. Login flow
 
-During login, the token is created and immediately receives the relevant
-metadata.
+`POST /v1/auth/login` checks the IAM user's email and password and returns a
+one-day bearer token. Its `organization_id`, `member_id`, `member_role_id`, and
+`role_id` metadata are initially null. The response lists the user's member
+roles so the client can choose an organization and role.
 
-```php
-// @app-modules/iam/src/Http/Controllers/AuthController.php
-public function login(LoginRequest $request, string $type): JsonResponse
-{
-    // ... authenticate the user
+`POST /v1/auth/switch-member-role` accepts a `member_role_id`. It verifies that
+the role belongs to the authenticated user's membership and that the membership
+and role refer to the same organization. On success, it stores the selected
+organization, member, member role, and role IDs in the current token. A rejected
+selection leaves the token unchanged.
 
-    $metadata = match ($type) {
-        'user'           => ['type' => 'user', 'company_id' => null],
-        'company-member' => ['type' => 'agent', 'company_id' => $authenticatable->company_id],
-        default          => null,
-    };
-
-    // 1. Create the token
-    $token = $authenticatable->createToken('auth_token', ['*'], now()->addDay());
-    // 2. Update the token with metadata
-    $token->accessToken->update(['metadata' => $metadata]);
-
-    return response()->json([
-        'access_token' => $token->plainTextToken,
-        // ...
-    ]);
-}
-```
+Memberships and member roles use soft deletes. An active member role is unique
+for its organization, member, and role; a deleted assignment may be followed
+by a new assignment with a new ID.
 
 ## 4. Authentication context (`AuthContext`)
 
 To avoid querying the user or its context repeatedly, the application uses a
 scoped `AuthContext` resolved for each authenticated request.
 
-1. **The `AuthContext` class** (`Lahatre\Iam\Auth\AuthContext`) is a simple
-   container for the authenticated user and other information such as team and
-   role. It is registered as scoped in `IamServiceProvider`.
+1. **The `AuthContext` class** (`Lahatre\Iam\Auth\AuthContext`) holds the
+   authenticated user, organization, membership, member role, and role. It is
+   registered as scoped in `IamServiceProvider`. For a selected role, it checks
+   the token IDs against the active member role and requires the membership to
+   belong to both the user and the same organization. An incoherent context
+   rejects the request.
 2. **The `ResolveAuthContext` middleware** populates the scoped context with
    the current user's information on every authenticated request.
 3. **The `authContext()` helper** in `app-modules/shared/src/helpers.php` gives
@@ -107,12 +97,13 @@ $middleware->group('auth.api', [
 ]);
 ```
 
-Every route requiring authentication must use this group.
+Tenant-scoped protected routes use this group. The IAM `me`, `logout`, and
+`switch-member-role` routes use Sanctum and `ResolveAuthContext` without
+requiring an active organization yet.
 
 ## 6. Configuring authenticatable models
 
-Models that can authenticate, such as `User` or `CompanyMember`, use the
-`HasAuthenticatableTraits` trait. It:
+The IAM `User` extends the shared `Authenticatable` base class. It:
 
 1. Includes Sanctum's `HasApiTokens`.
 2. Includes Spatie's `HasRoles`.

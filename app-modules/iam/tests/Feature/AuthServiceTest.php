@@ -8,6 +8,7 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\AuthService;
+use Lahatre\Organization\Models\Organization;
 
 uses(RefreshDatabase::class);
 
@@ -63,4 +64,64 @@ it('loads all member roles without an active organization context', function ():
         ->toBe($memberRole->id)
         ->and($user->organizationMemberships->first()->memberRoles->first()->relationLoaded('role'))
         ->toBeTrue();
+});
+
+it('rejects switching to a member role assigned to a different organization than its membership', function (): void {
+    $user = User::factory()->create();
+    $membership = OrganizationMember::factory()->create(['user_id' => $user->id]);
+    $otherOrganization = Organization::factory()->create();
+    $memberRole = MemberRole::factory()->create([
+        'organization_id' => $otherOrganization->id,
+        'member_id'       => $membership->id,
+    ]);
+    $token = $user->createToken('auth-token');
+
+    $this->withToken($token->plainTextToken)
+        ->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRole->id])
+        ->assertNotFound();
+
+    expect($token->accessToken->fresh()->metadata)->toBeNull();
+});
+
+it('rejects an existing token when its member role organization differs from its membership', function (): void {
+    $user = User::factory()->create();
+    $membership = OrganizationMember::factory()->create(['user_id' => $user->id]);
+    $otherOrganization = Organization::factory()->create();
+    $memberRole = MemberRole::factory()->create([
+        'organization_id' => $otherOrganization->id,
+        'member_id'       => $membership->id,
+    ]);
+    $token = $user->createToken('auth-token');
+    $token->accessToken->update(['metadata' => [
+        'organization_id' => $otherOrganization->id,
+        'member_id'       => $membership->id,
+        'member_role_id'  => $memberRole->id,
+        'role_id'         => $memberRole->role_id,
+    ]]);
+
+    $this->withToken($token->plainTextToken)
+        ->getJson('/v1/auth/me')
+        ->assertUnauthorized();
+});
+
+it('allows recreating a member role after its previous assignment was soft deleted', function (): void {
+    $membership = OrganizationMember::factory()->create();
+    $role = Role::factory()->create();
+    $memberRole = MemberRole::factory()->create([
+        'organization_id' => $membership->organization_id,
+        'member_id'       => $membership->id,
+        'role_id'         => $role->id,
+    ]);
+
+    $memberRole->delete();
+
+    $replacement = MemberRole::factory()->create([
+        'organization_id' => $membership->organization_id,
+        'member_id'       => $membership->id,
+        'role_id'         => $role->id,
+    ]);
+
+    expect($memberRole->trashed())->toBeTrue()
+        ->and($replacement->id)->not->toBe($memberRole->id)
+        ->and(MemberRole::query()->where('member_id', $membership->id)->count())->toBe(1);
 });
