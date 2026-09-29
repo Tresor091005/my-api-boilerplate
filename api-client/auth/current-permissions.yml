@@ -1,7 +1,7 @@
 info:
   name: current-permissions
   type: http
-  seq: 4
+  seq: 7
 
 http:
   method: GET

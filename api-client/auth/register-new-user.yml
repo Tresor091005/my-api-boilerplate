@@ -1,0 +1,42 @@
+info:
+  name: register-new-user
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{registrationEmail}}",
+        "token": "{{registrationToken}}",
+        "first_name": "Ada",
+        "last_name": "Lovelace",
+        "password": "password123",
+        "password_confirmation": "password123",
+        "organization": {
+          "name": "First Company",
+          "currency_code": "XOF",
+          "timezone": "Africa/Porto-Novo"
+        }
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    response:
+      status: 201
+      statusText: Created
+      body:
+        type: json
+        data: |-
+          {
+            "message": "Organization created successfully. Sign in to access it."
+          }

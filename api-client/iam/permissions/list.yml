@@ -1,11 +1,11 @@
 info:
-  name: logout
+  name: list
   type: http
-  seq: 8
+  seq: 1
 
 http:
-  method: POST
-  url: "{{baseUrl}}/v1/auth/logout"
+  method: GET
+  url: "{{baseUrl}}/v1/iam/permissions"
   auth: inherit
 
 settings:

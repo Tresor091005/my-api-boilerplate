@@ -1,0 +1,38 @@
+info:
+  name: register-existing-user
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{registrationEmail}}",
+        "token": "{{registrationToken}}",
+        "organization": {
+          "name": "Second Company",
+          "currency_code": "XOF",
+          "timezone": "Africa/Porto-Novo"
+        }
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: success
+    response:
+      status: 201
+      statusText: Created
+      body:
+        type: json
+        data: |-
+          {
+            "message": "Organization created successfully. Sign in to access it."
+          }

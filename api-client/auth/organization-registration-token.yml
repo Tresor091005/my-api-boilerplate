@@ -1,21 +1,21 @@
 info:
-  name: forgot-password
+  name: organization-registration-token
   type: http
-  seq: 9
+  seq: 1
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/auth/forgot-password"
+  url: "{{baseUrl}}/v1/auth/organization-registration-tokens"
   body:
     type: json
     data: |-
       {
         "email": "{{registrationEmail}}"
       }
-  auth: inherit
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

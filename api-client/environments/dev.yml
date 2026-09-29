@@ -2,5 +2,22 @@ name: dev
 variables:
   - name: baseUrl
     value: http://127.0.0.1:28417
+    description: ""
   - name: authToken
     value: ""
+    description: ""
+  - name: registrationEmail
+    value: owner@example.test
+    description: ""
+  - name: registrationToken
+    value: ""
+    description: ""
+  - name: passwordResetToken
+    value: ""
+    description: ""
+  - name: memberRoleId
+    value: ""
+    description: ""
+  - name: roleId
+    value: ""
+    description: ""
