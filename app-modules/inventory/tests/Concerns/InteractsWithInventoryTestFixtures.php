@@ -21,10 +21,12 @@ trait InteractsWithInventoryTestFixtures
         $this->otherOrganizationId = Str::uuid7()->toString();
 
         $now = now();
+        $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
         DB::table('organization_organizations')->insert([
             [
                 'id'                       => $this->organizationId,
                 'name'                     => 'Inventory Test Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,
@@ -32,6 +34,7 @@ trait InteractsWithInventoryTestFixtures
             [
                 'id'                       => $this->otherOrganizationId,
                 'name'                     => 'Inventory Other Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,

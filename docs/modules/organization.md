@@ -5,10 +5,12 @@ model, migration, and `OrganizationInterface` used by IAM.
 
 It currently provides:
 
-- `initializeOrganization(array $data)` for creating an organization;
+- `initializeOrganization(OrganizationData $data)` for creating an organization
+  with its owner, immutable functional currency, timezone, and initial enabled currency;
 - `findOrganizationById(string $organizationId)` for authenticated context
   resolution.
 
-There are no public organization CRUD routes yet. Membership and role context
-are owned by IAM and must go through IAM's public contract rather than reaching
-into organization internals from another module.
+The IAM email-token registration cycle creates an organization together with its owner
+membership and administrator role assignment. Organization settings and exchange
+rates remain under `/v1/organization/*`. There is no general organization CRUD
+API yet.

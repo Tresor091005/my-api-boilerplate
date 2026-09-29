@@ -112,27 +112,6 @@ class AuthService
     }
 
     /**
-     * Forgot password
-     */
-    public function forgotPassword(string $email): string
-    {
-        $user = User::where('email', $email)->first();
-
-        if (!$user) {
-            return '';
-        }
-
-        $token = Password::broker('users')->createToken($user);
-
-        $link = rtrim(config('app.url'), '/').'/auth/reset-password?'.http_build_query([
-            'token' => $token,
-            'email' => $email,
-        ]);
-
-        return $link;
-    }
-
-    /**
      * Reset password
      */
     public function resetPassword(ResetPasswordData $data): void
@@ -146,6 +125,7 @@ class AuthService
             function (User $user, string $password): void {
                 $user->fill(['password' => $password]);
                 $user->save();
+                $user->tokens()->delete();
             }
         ));
 

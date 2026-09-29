@@ -21,6 +21,7 @@ class OrganizationFactory extends Factory
     {
         return [
             'name'                     => fake()->name(),
+            'owner_id'                 => (config('auth.providers.users.model'))::factory(),
             'functional_currency_code' => 'XOF',
         ];
     }

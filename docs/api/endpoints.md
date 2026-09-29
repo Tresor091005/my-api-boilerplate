@@ -8,15 +8,28 @@ and the global API rate limiter. Business module routes additionally use
 
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
-| POST | `/v1/auth/register` | public, auth throttle | Create a user. |
-| POST | `/v1/auth/login` | public, auth throttle | Issue a Sanctum token. |
-| POST | `/v1/auth/forgot-password` | public, auth throttle | Create a password reset token and link. |
-| POST | `/v1/auth/reset-password` | public, auth throttle | Consume a reset token and update the password. |
+| POST | `/v1/auth/organization-registration-tokens` | public, auth throttle | Send a frontend registration link to an available email; always return a generic response. |
+| POST | `/v1/auth/register` | public, auth throttle | Consume the emailed token and create an organization with Administrator and Readonly member roles for its owner. |
+| POST | `/v1/auth/login` | public, auth throttle | Issue a Sanctum token for valid credentials. |
+| POST | `/v1/auth/forgot-password` | public, auth throttle | Queue a password reset email and return a generic response. |
+| POST | `/v1/auth/reset-password` | public, auth throttle | Consume a reset token, update the password, and revoke all of the user's access tokens. |
 | GET | `/v1/auth/me` | Sanctum + auth context | Return the current user and selected member role. |
 | POST | `/v1/auth/logout` | Sanctum + auth context | Revoke the current access token. |
-| POST | `/v1/auth/switch-member-role` | `auth.api` | Issue a token for another member role. |
+| POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
 | GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
+
+Registration begins with only `email`. The mail links to the configured frontend
+URL with a single-use `token` and a display-only `has_account` flag. The final
+request requires `email`, `token`, and `organization` with `name`, `currency_code`,
+and an IANA `timezone`. New users must also supply `first_name`, `last_name`, and
+a confirmed `password`; existing users must omit them. The API rechecks account
+status, including soft deletion, and uses the token's email as the owner. The
+functional currency is fixed at creation. Registration sets `email_verified_at`
+for the token holder as part of organization provisioning. No general email
+verification requirement is enforced on login or authenticated routes.
+`register` returns `201` with a success message and no user data or login token.
+The user then logs in to select the new organization.
 
 ## IAM roles
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Str;
+use Lahatre\Shared\Enums\QueueName;
 
 return [
 
@@ -201,7 +202,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection'          => 'redis',
-            'queue'               => ['default'],
+            'queue'               => [QueueName::Default->value, QueueName::Email->value],
             'balance'             => 'auto',
             'autoScalingStrategy' => 'time',
             'minProcesses'        => 1,

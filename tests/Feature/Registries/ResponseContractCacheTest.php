@@ -56,7 +56,7 @@ it('applies the same default shape to catalog variant contracts', function (): v
         ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
 });
 
-it('applies the same default shape to IAM auth and user contracts', function (): void {
+it('loads user relationships only for IAM responses that return a user', function (): void {
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
@@ -72,10 +72,10 @@ it('applies the same default shape to IAM auth and user contracts', function ():
         ->and($login->defaultMode)->toBe(ResponseMode::Resource)
         ->and($login->shapes['default']->requiredLoads)
         ->toBe(['organizationMemberships.memberRoles.role'])
+        ->and($register->defaultMode)->toBe(ResponseMode::Resource)
+        ->and($register->resolveShape(null))->toBeNull()
         ->and($me->defaultMode)->toBe(ResponseMode::Resource)
         ->and($switchMemberRole->defaultMode)->toBe(ResponseMode::Resource)
-        ->and($register->shapes['default']->requiredLoads)
-        ->toBe($login->shapes['default']->requiredLoads)
         ->and($me->shapes['default']->requiredLoads)
         ->toBe($login->shapes['default']->requiredLoads)
         ->and($switchMemberRole->shapes['default']->requiredLoads)

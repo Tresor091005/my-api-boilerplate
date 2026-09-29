@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
-class ForgotPasswordRequest extends FormRequest
+class OrganizationRegistrationTokenRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -17,7 +18,7 @@ class ForgotPasswordRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

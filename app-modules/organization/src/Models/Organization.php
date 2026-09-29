@@ -15,6 +15,7 @@ use Lahatre\Shared\Traits\SharedTraits;
 /**
  * @property string $id
  * @property string $name
+ * @property string $owner_id
  * @property string $functional_currency_code
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -29,6 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Organization whereDeletedAt($value)
  * @method static Builder<static>|Organization whereId($value)
  * @method static Builder<static>|Organization whereName($value)
+ * @method static Builder<static>|Organization whereOwnerId($value)
  * @method static Builder<static>|Organization whereFunctionalCurrencyCode($value)
  * @method static Builder<static>|Organization whereUpdatedAt($value)
  * @method static Builder<static>|Organization withTrashed(bool $withTrashed = true)
@@ -46,12 +48,14 @@ class Organization extends Model
 
     protected $fillable = [
         'name',
+        'owner_id',
         'functional_currency_code',
     ];
 
     protected $casts = [
         'id'                       => 'string',
         'name'                     => 'string',
+        'owner_id'                 => 'string',
         'functional_currency_code' => 'string',
         'created_at'               => 'immutable_datetime',
         'updated_at'               => 'immutable_datetime',

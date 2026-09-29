@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Lahatre\Organization\Contracts;
 
 use Carbon\CarbonImmutable;
+use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Enums\ExchangeRateContext;
 use Lahatre\Organization\Models\Organization;
 
 interface OrganizationInterface
 {
-    public function initializeOrganization(array $data): Organization;
+    public function initializeOrganization(OrganizationData $data): Organization;
 
     public function findOrganizationById(string $organizationId): Organization;
 

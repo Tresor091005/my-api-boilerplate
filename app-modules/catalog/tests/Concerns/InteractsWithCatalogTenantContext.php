@@ -15,10 +15,12 @@ trait InteractsWithCatalogTenantContext
         $this->otherOrganizationId = Str::uuid7()->toString();
 
         $now = now();
+        $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
         DB::table('organization_organizations')->insert([
             [
                 'id'                       => $this->organizationId,
                 'name'                     => 'Catalog Test Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,
@@ -27,6 +29,7 @@ trait InteractsWithCatalogTenantContext
             [
                 'id'                       => $this->otherOrganizationId,
                 'name'                     => 'Catalog Other Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,

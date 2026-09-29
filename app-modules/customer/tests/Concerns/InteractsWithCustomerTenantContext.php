@@ -14,11 +14,13 @@ trait InteractsWithCustomerTenantContext
         $this->organizationId = Str::uuid7()->toString();
         $this->otherOrganizationId = Str::uuid7()->toString();
         $now = now();
+        $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
 
         DB::table('organization_organizations')->insert([
             [
                 'id'                       => $this->organizationId,
                 'name'                     => 'Customer Test Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,
@@ -27,6 +29,7 @@ trait InteractsWithCustomerTenantContext
             [
                 'id'                       => $this->otherOrganizationId,
                 'name'                     => 'Customer Other Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,

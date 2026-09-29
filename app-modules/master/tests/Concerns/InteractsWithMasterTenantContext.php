@@ -15,10 +15,12 @@ trait InteractsWithMasterTenantContext
         $this->otherOrganizationId = Str::uuid7()->toString();
 
         $now = now();
+        $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
         DB::table('organization_organizations')->insert([
             [
                 'id'                       => $this->organizationId,
                 'name'                     => 'Master Test Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,
@@ -27,6 +29,7 @@ trait InteractsWithMasterTenantContext
             [
                 'id'                       => $this->otherOrganizationId,
                 'name'                     => 'Master Other Organization',
+                'owner_id'                 => $ownerId,
                 'functional_currency_code' => 'XOF',
                 'created_at'               => $now,
                 'updated_at'               => $now,

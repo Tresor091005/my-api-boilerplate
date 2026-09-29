@@ -40,6 +40,7 @@ return [
         'organization_organizations',
         'users',
         'iam_users',
+        'iam_organization_registration_tokens',
         'iam_roles',
         'iam_permissions',
         'iam_model_has_roles',

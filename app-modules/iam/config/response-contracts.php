@@ -5,6 +5,8 @@ declare(strict_types=1);
 $resourceModeContracts = array_fill_keys(
     [
         'lahatre.iam.auth.forgot-password',
+        'lahatre.iam.auth.organization-registration-tokens.store',
+        'lahatre.iam.auth.register',
         'lahatre.iam.auth.logout',
         'lahatre.iam.auth.reset-password',
     ],
@@ -12,10 +14,7 @@ $resourceModeContracts = array_fill_keys(
 );
 
 $authResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.auth.login',
-        'lahatre.iam.auth.register',
-    ],
+    ['lahatre.iam.auth.login'],
     [
         'default_mode'  => 'resource',
         'default_shape' => 'default',

@@ -15,6 +15,13 @@ return [
         'permissions_unavailable' => 'One or more permissions are unavailable.',
         'assigned'                => 'A role assigned to a member cannot be deleted.',
     ],
+    'organization_onboarding' => [
+        'system_roles_unavailable'   => 'The system roles are not configured.',
+        'invalid_registration_token' => 'The registration token is invalid or expired.',
+        'unavailable_email'          => 'This email address cannot be used for registration.',
+        'user_details_required'      => 'User details are required for a new account.',
+        'user_details_forbidden'     => 'User details cannot be changed during organization registration.',
+    ],
     'migration' => [
         'config_not_loaded'   => 'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.',
         'config_not_found'    => 'Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.',

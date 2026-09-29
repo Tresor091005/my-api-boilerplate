@@ -1,25 +1,23 @@
 # Queues, mail, notifications, and realtime communication
 
-This page records both the infrastructure that exists and the application
-features that do not yet exist, so an empty directory is not mistaken for an
-omission.
+This page records the queue, mail, notification, and realtime services used by
+the application.
 
 ## Queues and Horizon
 
 The Docker stack runs a dedicated Horizon process. Local application defaults
-use Redis queues and the `default` queue. Horizon supervises that queue with
+use Redis queues. Horizon supervises the `default` and `email` queues with
 automatic balancing, one process by default, up to three local processes, one
 attempt locally, a 60-second worker timeout, and a 90-second retry window.
+Queue names are defined in `Lahatre\Shared\Enums\QueueName`.
 
 Failed jobs use the `failed_jobs` database table. Job batches use the
 `job_batches` table. Queue connections currently have `after_commit: false`;
 code dispatching a job from a transaction must therefore explicitly defer the
 dispatch if it depends on committed data.
 
-There are currently no application jobs under `app/Jobs` or module job
-directories. Horizon is operationally ready, but no business workflow is
-queued yet. The absence of jobs is intentional and should change together with
-the relevant business documentation and tests.
+IAM dispatches `SendOrganizationRegistrationLink` and `SendPasswordResetLink`
+jobs to the `email` queue. Horizon must run for these messages to be delivered.
 
 ## Mail
 
@@ -28,17 +26,15 @@ is exposed on `http://localhost:28419`. The default sender is configured by
 `MAIL_FROM_ADDRESS` and `MAIL_FROM_NAME`.
 
 Laravel also exposes log, array, failover, SES, Postmark, Resend, sendmail,
-and round-robin mailer configurations. The current password-reset endpoint
-creates and returns a reset link; it does not send that link by email. There
-are no application mailables or custom password-reset notification classes.
-Password reset links are built from `APP_URL`.
+and round-robin mailer configurations. Password reset and organization
+registration links are sent by email. Both use the frontend URL configured by
+`FRONTEND_URL` and their paths in `config/frontend.php`.
 
 ## Notifications
 
-No application notification classes, notification database table, or broadcast
-notification channel currently exists. If notifications are added, document
-whether they are synchronous, queued, persisted, broadcast, or sent by email;
-do not infer that Horizon or Reverb automatically delivers them.
+IAM uses `OrganizationRegistrationLinkNotification` and Laravel's password reset
+notification for email delivery from queued jobs. No notification database
+table or broadcast notification channel currently exists.
 
 ## Realtime broadcasting
 

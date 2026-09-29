@@ -19,10 +19,10 @@ paths:
   Sanctum authentication, `ResolveAuthContext`, and
   `SetTeamPermissionsId`. Do not duplicate that stack on ordinary protected
   routes.
-- There is currently no email-verification middleware in the project. Do not
-  document or apply a `verified` middleware until an explicit implementation
-  and route policy exist; the IAM routes currently mark that boundary as
-  pending.
+- IAM organization registration is public and requires a single-use token sent
+  to the supplied email before a user or organization is created. The emailed
+  link targets the configured frontend URL; its display-only account flag must
+  never determine server-side ownership or validation.
 - Prefer `Route::apiResources()` for simple CRUD groups.
 - Apply scoped binding explicitly to every nested resource. A request must never resolve a child that does not belong to the route parent.
 - Do not expose a package-generic route in a tenant-scoped host application unless the host access boundary is explicit.
@@ -114,8 +114,7 @@ paths:
 - `app-modules/iam/src/Http/Middleware/SetTeamPermissionsId.php` requires a
   valid organization/member-role context and sets the permission team scope.
 - `app-modules/iam/routes/iam-routes.php` shows the distinction between public
-  authentication endpoints and authenticated IAM endpoints, including the
-  pending email-verification boundary.
+  authentication endpoints and authenticated IAM endpoints.
 - `app-modules/inventory/routes/inventory-routes.php` shows the standard
   module route prefix, naming convention, `api` group, and `auth.api` usage.
 - `.ai/rules/validation.md` defines Form Request, Rule, and `after()` usage;

@@ -20,6 +20,7 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Organization\Models\Organization;
+use Lahatre\Organization\Models\OrganizationSetting;
 
 class DatabaseSeeder extends Seeder
 {
@@ -39,9 +40,17 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
         $organization = Organization::firstOrCreate(
             ['name' => 'kouri'],
-            ['functional_currency_code' => 'XOF'],
+            ['owner_id' => $user->id, 'functional_currency_code' => 'XOF'],
+        );
+        OrganizationSetting::firstOrCreate(
+            ['organization_id' => $organization->id],
+            ['enable_currencies' => ['XOF'], 'timezone' => 'Africa/Porto-Novo'],
         );
 
         $member = OrganizationMember::firstOrCreate([

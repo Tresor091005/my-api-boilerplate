@@ -18,10 +18,12 @@ trait ResolvesOrganizationId
         }
 
         $organizationId = (string) Str::uuid7();
+        $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
 
         DB::table('organization_organizations')->insert([
             'id'                       => $organizationId,
             'name'                     => 'Factory Organization '.$organizationId,
+            'owner_id'                 => $ownerId,
             'functional_currency_code' => 'XOF',
             'created_at'               => now(),
             'updated_at'               => now(),

@@ -22,6 +22,7 @@ Route::group([
         'prefix' => 'auth',
     ], function (): void {
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth')->name('register');
+        Route::post('/organization-registration-tokens', [AuthController::class, 'organizationRegistrationToken'])->middleware('throttle:auth')->name('organization-registration-tokens.store');
 
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth')->name('forgot-password');

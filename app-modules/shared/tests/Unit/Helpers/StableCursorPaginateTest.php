@@ -80,9 +80,11 @@ it('clamps the page size and rejects an invalid sort direction', function (): vo
 
 it('keeps duplicate sort values on separate cursor pages without gaps or duplicates', function (): void {
     $organizationId = (string) Str::uuid7();
+    $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
     DB::table('organization_organizations')->insert([
         'id'                       => $organizationId,
         'name'                     => 'Cursor Test Organization',
+        'owner_id'                 => $ownerId,
         'functional_currency_code' => 'XOF',
         'created_at'               => now(),
         'updated_at'               => now(),

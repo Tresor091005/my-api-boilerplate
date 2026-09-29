@@ -4,17 +4,36 @@ The IAM module owns authentication and organization-scoped authorization.
 
 ## Authentication flow
 
-1. A user registers or logs in through `/v1/auth/*`.
-2. Sanctum issues a personal access token using the custom
+1. `POST /v1/auth/organization-registration-tokens` accepts an email and always
+   returns the same response. A queued job emails a short-lived, single-use token
+   to an available address. No user or organization is created at this point.
+   Addresses belonging to soft-deleted users stay unavailable.
+2. The email links to `frontend.url` plus `frontend.organization_registration_path` with `email`,
+   `token`, and a display-only `has_account` flag. The frontend submits the token
+   and organization data to `POST /v1/auth/register`. New accounts also supply
+   names and a confirmed password; existing accounts must omit those fields.
+   The API rechecks the email and token, sets `email_verified_at`, then creates
+   the organization, settings, membership, and two member roles in one
+   transaction. The owner receives the built-in Administrator and Readonly roles;
+   each member role is also assigned its role in Spatie's team-scoped pivot so
+   its permissions work after role switching.
+   Registration returns a success message without user data or an access token.
+3. The user logs in. Sanctum issues a personal access token using the custom
    `Lahatre\Iam\Auth\PersonalAccessToken` model.
-3. The token metadata records the selected organization/member-role context.
-4. `ResolveAuthContext` validates that metadata against the authenticated user
+4. The token metadata records the selected organization/member-role context.
+5. `ResolveAuthContext` validates that metadata against the authenticated user
    and loads the organization, membership, member role, and role.
-5. `SetTeamPermissionsId` sets Spatie's team ID before permission checks.
+6. `SetTeamPermissionsId` sets Spatie's team ID before permission checks.
 
 An incoherent or missing organization context is rejected on routes that use
 `auth.api`. A plain `auth:sanctum` route can authenticate a user without
 establishing an organization context.
+The same registration cycle creates additional organizations for existing users,
+whether or not the frontend currently holds an access token. The email token
+identifies the owner; the current access token is not used for ownership.
+Login and authenticated routes do not enforce email verification. The
+registration token only proves control of the email for this organization
+creation flow.
 
 ## Current operations
 
@@ -58,9 +77,13 @@ workflow.
 
 ## Boundaries and gaps
 
-- Email verification middleware is not currently enabled on role switching.
-- The password reset flow uses Laravel's password broker to create a token and
-  returns an application reset URL in the JSON response. It does not send an
-  email and does not define a custom notification class.
+- Password reset returns a generic response and queues Laravel's broker email.
+  The link points to `frontend.url` plus `frontend.reset_password_path`; no reset
+  token is returned by the API. Only the frontend base URL comes from
+  `FRONTEND_URL`; both paths are defined in `config/frontend.php`. A successful
+  reset revokes every Sanctum access token belonging to the user.
+- Login access tokens expire after 24 hours. Password reset tokens expire after
+  60 minutes; organization registration tokens expire after one hour and are
+  consumed on successful registration.
 - The Horizon/Telescope gates contain no configured production allow-list yet;
   production access must be explicitly configured before exposing those UIs.

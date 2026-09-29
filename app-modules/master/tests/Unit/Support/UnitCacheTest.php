@@ -52,11 +52,13 @@ it('scopes cached units to system units and the current organization', function 
     $organizationId = (string) str()->uuid();
     $otherOrganizationId = (string) str()->uuid();
     $now = now();
+    $ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
 
     DB::table('organization_organizations')->insert([
         [
             'id'                       => $organizationId,
             'name'                     => 'Cache Test Organization',
+            'owner_id'                 => $ownerId,
             'functional_currency_code' => 'XOF',
             'created_at'               => $now,
             'updated_at'               => $now,
@@ -65,6 +67,7 @@ it('scopes cached units to system units and the current organization', function 
         [
             'id'                       => $otherOrganizationId,
             'name'                     => 'Other Cache Test Organization',
+            'owner_id'                 => $ownerId,
             'functional_currency_code' => 'XOF',
             'created_at'               => $now,
             'updated_at'               => $now,
