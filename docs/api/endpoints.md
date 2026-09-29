@@ -16,6 +16,7 @@ and the global API rate limiter. Business module routes additionally use
 | POST | `/v1/auth/logout` | Sanctum + auth context | Revoke the current access token. |
 | POST | `/v1/auth/switch-member-role` | `auth.api` | Issue a token for another member role. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
+| GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
 
 ## Catalog
 

@@ -45,4 +45,5 @@ return [
     ...$userResourceContracts,
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
     'lahatre.iam.auth.current-permissions' => [],
+    'lahatre.iam.permissions.index'        => [],
 ];

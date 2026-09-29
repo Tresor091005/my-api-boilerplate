@@ -19,9 +19,12 @@ establishing an organization context.
 ## Current operations
 
 The module supports registration, login, logout, current-user retrieval,
-member-role switching, current-permission retrieval, forgot-password, and
-reset-password. Role/member administration does not yet have a dedicated CRUD
-API.
+member-role switching, current-permission retrieval, permission catalog listing,
+forgot-password, and reset-password. `GET /v1/iam/permissions` lists all
+permissions for the active guard, including those not assigned to the current
+role. It requires an active organization role with `iam_permission.list` and has
+no mutation or detail routes. Role/member administration does not yet have a
+dedicated CRUD API.
 
 `permissions:discover` scans direct PHP files under each module's
 `src/Models` directory, keeps only classes that extend Eloquent's `Model`, and

@@ -18,7 +18,7 @@ class RoleFactory extends Factory
             'name'        => fake()->unique()->word(),
             'is_builtin'  => false,
             'description' => fake()->sentence(),
-            'guard_name'  => 'api',
+            'guard_name'  => 'sanctum',
         ];
     }
 }

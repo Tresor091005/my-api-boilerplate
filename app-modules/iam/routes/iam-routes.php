@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
+use Lahatre\Iam\Http\Controllers\PermissionController;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 
 Route::group([
@@ -39,5 +40,12 @@ Route::group([
         ], function (): void {
             Route::get('/current-permissions', [AuthController::class, 'currentPermissions'])->name('current-permissions');
         });
+    });
+
+    Route::group([
+        'prefix'     => 'iam',
+        'middleware' => 'auth.api',
+    ], function (): void {
+        Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });
 });

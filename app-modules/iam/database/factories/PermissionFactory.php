@@ -18,7 +18,7 @@ class PermissionFactory extends Factory
             'name'        => fake()->unique()->word(),
             'title'       => fake()->words(2, true),
             'description' => fake()->sentence(),
-            'guard_name'  => 'api',
+            'guard_name'  => 'sanctum',
         ];
     }
 }
