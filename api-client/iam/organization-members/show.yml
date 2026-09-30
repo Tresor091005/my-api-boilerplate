@@ -1,11 +1,11 @@
 info:
   name: show
   type: http
-  seq: 3
+  seq: 2
 
 http:
   method: GET
-  url: "{{baseUrl}}/v1/iam/invitations/{{invitationId}}?include=roles"
+  url: "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}?include=member_roles"
   auth: inherit
 
 settings:

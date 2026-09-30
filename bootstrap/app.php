@@ -7,6 +7,7 @@ use App\Http\Middleware\ResolveResponseContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
@@ -33,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             ResolveAuthContext::class,
             SetTeamPermissionsId::class,
         ]);
+        $middleware->prependToPriorityList(SubstituteBindings::class, ResolveAuthContext::class);
+        $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AssertionException $e, $request) {

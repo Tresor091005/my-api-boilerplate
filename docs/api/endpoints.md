@@ -9,7 +9,7 @@ and the global API rate limiter. Business module routes additionally use
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
 | POST | `/v1/auth/organization-registration-tokens` | public, auth throttle | Send a frontend registration link to an available email; always return a generic response. |
-| POST | `/v1/auth/register` | public, auth throttle | Consume the emailed token and create an organization with Administrator and Readonly member roles for its owner. |
+| POST | `/v1/auth/register` | public, auth throttle | Consume the emailed token and create an organization with an Administrator member role for its owner. |
 | POST | `/v1/auth/login` | public, auth throttle | Issue a Sanctum token for valid credentials. |
 | POST | `/v1/auth/forgot-password` | public, auth throttle | Queue a password reset email and return a generic response. |
 | POST | `/v1/auth/reset-password` | public, auth throttle | Consume a reset token, update the password, and revoke all of the user's access tokens. |
@@ -50,6 +50,33 @@ and `guard_name`. System roles are readable but cannot be changed or deleted.
 Mutations return `204` by default; create and update accept
 `?response=resource` to return the role.
 
+## IAM organization members
+
+| Method | URI | Authorization | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/iam/organization-members` | `auth.api` + `iam_organization_member.list` | Cursor-paginate active members in the current organization. |
+| GET | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.retrieve` | Retrieve an active member in the current organization. |
+| DELETE | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.delete` | Clear role assignments and soft-delete a member, except the owner. |
+
+The user profile is always included. Member roles are optional through
+`include=member_roles`, which also loads their nested roles. See [organization members](../modules/iam.md#organization-members)
+for pagination and visibility rules.
+
+## IAM member role batches
+
+| Method | URI | Authorization | Purpose |
+| --- | --- | --- | --- |
+| POST | `/v1/iam/organization-members/{organizationMember}/member-roles` | `auth.api` + `iam_organization_member.update` | Add organization roles from `role_ids`. |
+| DELETE | `/v1/iam/organization-members/{organizationMember}/member-roles` | `auth.api` + `iam_organization_member.update` | Soft-delete assignments from `member_role_ids`. |
+
+Both payloads contain 1–100 distinct UUIDs and apply atomically. Grants accept
+only active custom roles from the current organization. The owner's
+Administrator assignment is protected from withdrawal; other removals may leave
+zero roles. Addition returns `204` by default, or a `201` collection with
+`?response=resource`. Each returned assignment always includes its role, without
+its permissions.
+See [member role batches](../modules/iam.md#member-role-batches).
+
 ## IAM invitations
 
 | Method | URI | Access | Purpose |
@@ -66,7 +93,7 @@ Create requires `email` and `role_ids`; role replacement requires only
 `role_ids`. At least one active custom role from the current organization is
 required; built-in roles cannot be offered. Management mutations return `204`
 by default; create, role replacement, and resend support `?response=resource`.
-Responses load roles only with `include=roles` or `include=roles.permissions`.
+Responses load roles only with `include=roles`, without permission includes.
 There is no generic invitation update route.
 
 Public acceptance takes `email` and `token`, plus names and a confirmed password

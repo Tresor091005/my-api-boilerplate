@@ -55,7 +55,7 @@ function queuedOrganizationRegistrationLinks(): Collection
 
 it('creates no user or organization until the email token completes registration', function (): void {
     $permission = Permission::factory()->create(['name' => 'iam_role.list']);
-    foreach (Role::query()->with('permissions')->whereIn('name', [SysRole::Administrator->value, SysRole::Readonly->value])->get() as $role) {
+    foreach (Role::query()->with('permissions')->whereIn('name', [SysRole::Administrator->value])->get() as $role) {
         $role->givePermissionTo($permission);
     }
 
@@ -99,7 +99,7 @@ it('creates no user or organization until the email token completes registration
         ->and($organization->functional_currency_code)->toBe('XOF')
         ->and($organization->settings->timezone)->toBe('Africa/Porto-Novo')
         ->and($organization->settings->enable_currencies)->toBe(['XOF'])
-        ->and($memberRoles->keys()->all())->toEqualCanonicalizing([SysRole::Administrator->value, SysRole::Readonly->value]);
+        ->and($memberRoles->keys()->all())->toEqualCanonicalizing([SysRole::Administrator->value]);
     expect(getPermissionsTeamId())->toBeNull();
 
     $this->postJson('/v1/auth/register', [
@@ -142,7 +142,7 @@ it('lets an existing account create an organization with its email token and no 
         ->and($organization->functional_currency_code)->toBe('XOF')
         ->and(OrganizationMember::query()->where('organization_id', $organization->id)->where('user_id', $user->id)->exists())->toBeTrue()
         ->and(MemberRole::query()->where('organization_id', $organization->id)->whereHas('role', fn ($query) => $query->where('name', 'administrator'))->exists())->toBeTrue()
-        ->and(MemberRole::query()->where('organization_id', $organization->id)->whereHas('role', fn ($query) => $query->where('name', 'read-only'))->exists())->toBeTrue()
+        ->and(MemberRole::query()->where('organization_id', $organization->id)->whereHas('role', fn ($query) => $query->where('name', 'read-only'))->exists())->toBeFalse()
         ->and(Organization::query()->count())->toBe(1);
 });
 
@@ -242,7 +242,7 @@ it('rolls back registration when a system role is unavailable', function (string
 
     expect(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse()
         ->and(Organization::query()->where('name', 'Missing Admin')->exists())->toBeFalse();
-})->with([SysRole::Administrator->value, SysRole::Readonly->value]);
+})->with([SysRole::Administrator->value]);
 
 it('keeps the last requested registration token when email jobs execute in reverse order', function (): void {
     $email = 'new@example.com';

@@ -1,0 +1,23 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "role_ids": [
+          "{{roleId}}"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

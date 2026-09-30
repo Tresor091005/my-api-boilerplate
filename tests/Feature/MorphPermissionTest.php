@@ -6,7 +6,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
+use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\Permission;
+use Lahatre\Iam\Models\Role;
 use Lahatre\Master\Models\Note;
 use Lahatre\Shared\Policies\BasePolicy;
 use Lahatre\Shared\Registries\MorphMapRegistry;
@@ -44,5 +46,7 @@ it('discovers namespaced permissions without basename collisions', function (): 
         ->and(Permission::query()->where('name', 'catalog_product_variant.create')->exists())->toBeFalse()
         ->and(Permission::query()->where('name', 'master_address.create')->exists())->toBeFalse()
         ->and(Permission::query()->where('name', 'master_contact.create')->exists())->toBeFalse()
-        ->and(app(MorphMapRegistry::class)->getAlias(Note::class))->toBe('master_note');
+        ->and(app(MorphMapRegistry::class)->getAlias(Note::class))->toBe('master_note')
+        ->and(Role::query()->whereNull('team_id')->where('is_builtin', true)->pluck('name')->all())
+        ->toBe([SysRole::Administrator->value]);
 });

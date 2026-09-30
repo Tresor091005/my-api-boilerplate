@@ -83,6 +83,7 @@ class DiscoverSysPermissions extends Command
         // Create Administrator role and assign all permissions
         $adminRole = Role::updateOrCreate(
             [
+                'team_id'    => null,
                 'name'       => SysRole::Administrator->value,
                 'guard_name' => $guardName,
             ],
@@ -94,25 +95,6 @@ class DiscoverSysPermissions extends Command
         $allPermissions = Permission::where('guard_name', $guardName)->get();
         $adminRole->syncPermissions($allPermissions);
         $this->line(__('iam::console.discovery.synced_administrator'));
-
-        // Create a Readonly role with basic list+retrieve permissions
-        $readOnlyRole = Role::updateOrCreate(
-            [
-                'name'       => SysRole::Readonly->value,
-                'guard_name' => $guardName,
-            ],
-            [
-                'is_builtin'  => true,
-                'description' => __('iam::console.roles.read_only.description'),
-            ]
-        );
-        $readPermissions = Permission::where('guard_name', $guardName)
-            ->where(function ($query): void {
-                $query->where('name', 'like', '%.list')
-                    ->orWhere('name', 'like', '%.retrieve');
-            })->get();
-        $readOnlyRole->syncPermissions($readPermissions);
-        $this->line(__('iam::console.discovery.synced_read_only'));
 
         // Reset the permission cache again
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

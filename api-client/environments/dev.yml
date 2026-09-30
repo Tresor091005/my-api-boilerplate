@@ -10,6 +10,8 @@ variables:
     value: invited@example.com
   - name: invitationToken
     value: ""
+  - name: organizationMemberId
+    value: ""
   - name: invitationId
     value: ""
   - name: registrationEmail

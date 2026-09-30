@@ -107,7 +107,7 @@ it('creates one normalized invitation without creating an account or membership 
     expect($query)->toMatchArray(['email' => $invitation->email, 'token' => $job->token, 'has_account' => '0']);
 });
 
-it('lists and retrieves only the current tenant invitations with optional roles and permissions', function (): void {
+it('lists and retrieves only the current tenant invitations with optional roles and no permission include', function (): void {
     $context = authenticatedInvitationContext();
     $permission = Permission::factory()->create(['name' => 'catalog_product.list']);
     $context['role']->givePermissionTo($permission);
@@ -118,9 +118,12 @@ it('lists and retrieves only the current tenant invitations with optional roles 
     $this->getJson('/v1/iam/invitations?per_page=1')->assertOk()
         ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $own->id)
         ->assertJsonPath('meta.per_page', 1)->assertJsonMissingPath('data.0.roles');
-    $this->getJson("/v1/iam/invitations/{$own->id}?include=roles.permissions")->assertOk()
-        ->assertJsonPath('data.roles.0.permissions.0.id', $permission->id)
+    $this->getJson("/v1/iam/invitations/{$own->id}?include=roles")->assertOk()
+        ->assertJsonPath('data.roles.0.id', $context['role']->id)
+        ->assertJsonMissingPath('data.roles.0.permissions')
         ->assertJsonMissingPath('data.organization_id')->assertJsonMissingPath('data.token_hash');
+    $this->getJson("/v1/iam/invitations/{$own->id}?include=roles.permissions")
+        ->assertUnprocessable()->assertJsonValidationErrors('include');
     $this->getJson("/v1/iam/invitations/{$other->id}")->assertForbidden();
     $this->getJson("/v1/iam/invitations/{$deleted->id}")->assertNotFound();
 });

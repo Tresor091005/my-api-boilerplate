@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
 use Lahatre\Iam\Http\Controllers\InvitationAcceptanceController;
 use Lahatre\Iam\Http\Controllers\InvitationController;
+use Lahatre\Iam\Http\Controllers\MemberRoleController;
+use Lahatre\Iam\Http\Controllers\OrganizationMemberController;
 use Lahatre\Iam\Http\Controllers\PermissionController;
 use Lahatre\Iam\Http\Controllers\RoleController;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
@@ -55,6 +57,10 @@ Route::group([
     ], function (): void {
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::apiResource('roles', RoleController::class);
+        Route::apiResource('organization-members', OrganizationMemberController::class)
+            ->only(['index', 'show', 'destroy'])->parameters(['organization-members' => 'organizationMember']);
+        Route::post('/organization-members/{organizationMember}/member-roles', [MemberRoleController::class, 'store'])->name('organization-members.member-roles.store');
+        Route::delete('/organization-members/{organizationMember}/member-roles', [MemberRoleController::class, 'destroy'])->name('organization-members.member-roles.destroy');
         Route::apiResource('invitations', InvitationController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::put('/invitations/{invitation}/roles', [InvitationController::class, 'replaceRoles'])->name('invitations.roles.update');
         Route::post('/invitations/{invitation}/resend', [InvitationController::class, 'resendEmail'])->name('invitations.resend');

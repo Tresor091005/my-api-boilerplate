@@ -68,9 +68,8 @@ registered module models.
        `master_label.delete`.
     4. Models listed in `skip_models`, or without a registered morph alias, are
        skipped and reported.
-    5. It creates or updates the built-in Administrator and Readonly roles;
-       Administrator receives all permissions and Readonly receives only
-       `list` and `retrieve` permissions.
+    5. It creates or updates the built-in Administrator role;
+       Administrator receives all permissions.
 
 The table-based alias prevents collisions when models have distinct prefixed
 tables. Two models must not share a table unless they intentionally share the

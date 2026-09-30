@@ -42,6 +42,10 @@ to that base. Conversion uses BCMath and returns decimal strings to avoid
 floating-point money/quantity drift. Units can be system-wide (`organization_id
 is null`) or organization-specific.
 
+Unit list responses load the group only with `include=group`, including when
+sorting by group. Organization predicates qualify the units table to avoid
+ambiguous columns in the group join; deleted groups are excluded from that join.
+
 `UnitService::upsert` updates a unit group and its units transactionally, then
 rewarm the relevant cache after commit. System groups and another
 organization's groups are protected by request validation and service checks.

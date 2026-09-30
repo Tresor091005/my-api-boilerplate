@@ -17,7 +17,11 @@ http:
 runtime:
   scripts:
     - type: after-response
-      code: bru.setEnvVar('authToken', res.body.data.access_token)
+      code: |-
+        const token = res.body?.data?.access_token;
+        if (res.status === 200 && typeof token === 'string' && token.length > 0) {
+          bru.setEnvVar('authToken', token);
+        }
 
 settings:
   encodeUrl: true

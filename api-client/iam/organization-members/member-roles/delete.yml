@@ -1,0 +1,23 @@
+info:
+  name: delete
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles"
+  body:
+    type: json
+    data: |-
+      {
+        "member_role_ids": [
+          "{{memberRoleId}}"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

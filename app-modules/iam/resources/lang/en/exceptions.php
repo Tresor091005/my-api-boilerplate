@@ -24,6 +24,16 @@ return [
         'user_details_required'  => 'User details are required for a new account.',
         'user_details_forbidden' => 'User details cannot be changed during email onboarding.',
     ],
+    'organization_member' => [
+        'unavailable' => 'Member is not available in this organization.',
+        'owner'       => 'The organization owner cannot be removed.',
+    ],
+    'member_role' => [
+        'roles_unavailable'             => 'One or more organization roles are unavailable.',
+        'already_assigned'              => 'One or more roles are already assigned to this member.',
+        'assignments_unavailable'       => 'One or more role assignments are unavailable for this member.',
+        'owner_administrator_protected' => 'The organization owner must retain their Administrator role.',
+    ],
     'invitation' => [
         'unavailable'       => 'Invitation is not available in this organization.',
         'invalid_token'     => 'The invitation token is invalid or expired.',

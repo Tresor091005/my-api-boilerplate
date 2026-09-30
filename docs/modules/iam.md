@@ -15,10 +15,10 @@ The IAM module owns authentication and organization-scoped authorization.
    and organization data to `POST /v1/auth/register`. New accounts also supply
    names and a confirmed password; existing accounts must omit those fields.
    The API rechecks the email and token, sets `email_verified_at`, then creates
-   the organization, settings, membership, and two member roles in one
-   transaction. The owner receives the built-in Administrator and Readonly roles;
-   each member role is also assigned its role in Spatie's team-scoped pivot so
-   its permissions work after role switching.
+   the organization, settings, membership, and one member role in one
+   transaction. The owner receives the built-in Administrator role,
+   assigned through Spatie's team-scoped pivot so its permissions work after
+   role switching.
    Registration returns a success message without user data or an access token.
 3. The user logs in. Sanctum issues a personal access token using the custom
    `Lahatre\Iam\Auth\PersonalAccessToken` model.
@@ -61,7 +61,7 @@ query and explicitly clears Spatie's permission cache.
 `permissions:discover` scans direct PHP files under each module's
 `src/Models` directory, keeps only classes that extend Eloquent's `Model`, and
 creates the CRUD permissions `list`, `retrieve`, `create`, `update`, and
-`delete`. It also synchronizes the built-in Administrator and Readonly roles and
+`delete`. It also synchronizes the built-in Administrator role and
 clears the Spatie permission cache before and after the operation. It does not
 remove permissions for models that no longer exist.
 
@@ -74,8 +74,75 @@ updates use the same organization-scoped model check.
 
 The root `DatabaseSeeder` is idempotent for the development administrator and
 organization, discovers permissions, seeds catalog reference data, and assigns
-each built-in system role to the member. It is not a production provisioning
+the built-in Administrator role to the member. It is not a production provisioning
 workflow.
+
+## Organization members
+
+`GET /v1/iam/organization-members` cursor-paginates active members of the current
+organization. `GET /v1/iam/organization-members/{organizationMember}` retrieves
+one active member. Both require `auth.api`; their permissions are
+`iam_organization_member.list` and `iam_organization_member.retrieve` respectively.
+A foreign-organization detail is forbidden, and a deleted member is not found.
+
+The default response contains the organization member ID, timestamps, and the
+user profile, loaded through `required_loads`. Member roles remain optional
+through `include=member_roles`, which loads each assignment with its role.
+`UserProfileResource` exposes only `first_name`,
+`last_name`, and `email`; neither `user_id` nor nested `user.id` is returned.
+Profiles do not load the user's other organization memberships. `UserResource` is reserved for the
+user's own login, current-user, and role-switch responses, where their user ID
+is available. Member roles exclude deleted assignments and are
+scoped to the current organization. Nested roles are available only when they
+belong to this organization or are global built-ins for the active guard;
+unavailable or deleted roles resolve to `null`.
+
+Pagination accepts `per_page` (1–100, default 50), `cursor`, `sort_by`
+(`id`, `created_at`, or `updated_at`, default `created_at`), and `sort_order`
+(`asc` or `desc`, default `asc`). Ordering includes a unique ID tie-breaker.
+
+`DELETE /v1/iam/organization-members/{organizationMember}` requires
+`iam_organization_member.delete` and returns `204`. Removal soft-deletes the
+member and all active MemberRole assignments in that organization in one
+transaction. The owner cannot be removed (`422`). Assignments belonging to other
+members, including legacy Administrator assignments, are cleared through
+`MemberRoleDeletionService`. The service locks the membership and active
+assignments before cleanup. Member-role mutations share the same membership
+lock before changing its assignments.
+
+The user account and memberships in other organizations stay active. Tokens
+selecting a removed assignment are rejected on subsequent requests; the user
+can log in again and use another organization. Membership creation remains the
+invitation flow; there is no generic membership create or update endpoint.
+
+### Member role batches
+
+`POST /v1/iam/organization-members/{organizationMember}/member-roles` accepts
+`role_ids`. `DELETE` on the same URI accepts `member_role_ids`. Both require
+`iam_organization_member.update` through the parent member policy. Lists must
+contain 1–100 distinct UUIDs. There are no separate list, detail, or update routes.
+
+Addition accepts only active custom roles in the current organization and guard.
+Already active assignments reject the complete batch. Regranting a soft-deleted
+assignment creates a new MemberRole ID, so an old token cannot regain access.
+The service inserts MemberRole records in one batch, fetches them once keyed by
+role, then calls `syncRoles($role)` for each assignment in the organization's
+Spatie team context. All steps share one transaction, and the previous team
+context is restored afterward. Creation returns `204` by default,
+or `201` with the newly created assignments for `?response=resource`.
+Each returned assignment always loads its role through `required_loads`, without
+permission includes.
+
+Removal calls `syncRoles([])` on each selected assignment before their bulk
+soft delete, scoped to the current organization and parent member. Member
+removal reuses the same transactional cleanup before deleting the membership.
+The previous Spatie team context is restored even on failure.
+An unavailable assignment rejects the whole batch. `MemberRoleDeletionService`
+protects the owner's built-in Administrator assignment before any mutation,
+including mixed batches. Other removals may leave the member with zero roles. The
+account and membership remain active. Grants, withdrawals, and member removal
+serialize through the membership row lock; granted roles are also locked so
+concurrent role deletion cannot create an invalid attribution.
 
 ## Organization invitations
 
@@ -83,7 +150,7 @@ workflow.
 and email resend. Management requires `auth.api` and the matching
 `iam_invitation` capability. Role replacement and resend use `update`; neither
 exposes a generic invitation update endpoint. Roles are optional response loads
-through `include=roles` or `include=roles.permissions`.
+through `include=roles`; permissions are not available as an invitation include.
 
 Create takes `email` and a nonempty `role_ids` list. Only active, non-built-in
 roles belonging to the current organization and guard are accepted. There is one

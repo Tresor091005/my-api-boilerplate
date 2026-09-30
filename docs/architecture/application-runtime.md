@@ -20,6 +20,11 @@ incoherent token context raises an authentication error. `SetTeamPermissionsId`
 then configures Spatie's permission team to the selected organization and
 clears previously loaded role/permission relations.
 
+Middleware priority places `ResolveAuthContext` and `SetTeamPermissionsId`
+before `SubstituteBindings`, after Sanctum authentication. Nested model binding
+can therefore use organization-scoped relations on the first request, without
+depending on an already initialized Spatie team context.
+
 Authentication routes that only need a user use `auth:sanctum` and
 `ResolveAuthContext`. Routes that authorize organization-scoped behavior use
 the complete `auth.api` group.

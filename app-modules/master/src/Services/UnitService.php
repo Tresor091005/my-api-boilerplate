@@ -39,10 +39,11 @@ class UnitService
     /** @return Builder<Unit> */
     private function unitsQuery(UnitFilterData $filters): Builder
     {
-        $query = Unit::query()->where(function (Builder $query): void {
-            $query->whereNull('organization_id')
-                ->orWhere('organization_id', currentOrganizationId());
-        });
+        $organizationId = currentOrganizationId();
+        $query = Unit::query()->where(function (Builder $query) use ($organizationId): void {
+            $query->whereNull('master_units.organization_id')
+                ->orWhere('master_units.organization_id', $organizationId);
+        })->with(responseRelationsToLoad());
         if ($filters->code) {
             $query->where('code', 'like', "$filters->code%");
         }
@@ -62,6 +63,7 @@ class UnitService
 
         if ($filters->sortBy === 'group') {
             $query->join('master_unit_groups', 'master_units.group_id', '=', 'master_unit_groups.id')
+                ->whereNull('master_unit_groups.deleted_at')
                 ->select('master_units.*')
                 ->orderBy('master_unit_groups.name', $filters->sortOrder)
                 ->orderBy('master_units.id', $filters->sortOrder);
