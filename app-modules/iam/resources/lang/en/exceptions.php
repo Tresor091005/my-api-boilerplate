@@ -26,7 +26,7 @@ return [
     ],
     'organization_member' => [
         'unavailable' => 'Member is not available in this organization.',
-        'owner'       => 'The organization owner cannot be removed.',
+        'owner'       => 'The organization owner cannot be removed or deactivated.',
     ],
     'member_role' => [
         'roles_unavailable'             => 'One or more organization roles are unavailable.',

@@ -23,6 +23,12 @@ class MemberRoleFactory extends Factory
             'organization_id' => Organization::factory(),
             'member_id'       => OrganizationMember::factory(),
             'role_id'         => Role::factory(),
+            'is_active'       => true,
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(['is_active' => false]);
     }
 }

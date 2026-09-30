@@ -40,11 +40,12 @@ All role routes use `auth.api` and the matching `iam_role` ability.
 | GET | `/v1/iam/roles` | `iam_role.list` | Cursor-paginate system roles and roles in the current organization. |
 | GET | `/v1/iam/roles/{role}` | `iam_role.retrieve` | Retrieve an available role. |
 | POST | `/v1/iam/roles` | `iam_role.create` | Create a role in the current organization. |
-| PUT/PATCH | `/v1/iam/roles/{role}` | `iam_role.update` | Edit an organization role and optionally replace its permissions. |
-| DELETE | `/v1/iam/roles/{role}` | `iam_role.delete` | Soft-delete an organization role without active member assignments. |
+| PUT/PATCH | `/v1/iam/roles/{role}` | `iam_role.update` | Edit an organization role, its activation state, and optionally its permissions. |
+| DELETE | `/v1/iam/roles/{role}` | `iam_role.delete` | Soft-delete an organization role without non-deleted member assignments. |
 
 Role responses include permissions only with `?include=permissions`. Create requires `name` and `permission_ids`;
-`description` is optional. On update, omitting `permission_ids` preserves the
+`description` and `is_active` are optional; activation defaults to `true` on create.
+On update, omitting `is_active` preserves the stored state. Omitting `permission_ids` preserves the
 assignments, while `[]` clears them. The server sets `team_id`, `is_builtin`,
 and `guard_name`. System roles are readable but cannot be changed or deleted.
 Mutations return `204` by default; create and update accept
@@ -54,27 +55,33 @@ Mutations return `204` by default; create and update accept
 
 | Method | URI | Authorization | Purpose |
 | --- | --- | --- | --- |
-| GET | `/v1/iam/organization-members` | `auth.api` + `iam_organization_member.list` | Cursor-paginate active members in the current organization. |
-| GET | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.retrieve` | Retrieve an active member in the current organization. |
+| GET | `/v1/iam/organization-members` | `auth.api` + `iam_organization_member.list` | Cursor-paginate non-deleted members in the current organization. |
+| GET | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.retrieve` | Retrieve a non-deleted member in the current organization. |
+| PUT/PATCH | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.update` | Change membership activation with required `is_active`; the owner cannot be deactivated. |
 | DELETE | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.delete` | Clear role assignments and soft-delete a member, except the owner. |
 
 The user profile is always included. Member roles are optional through
 `include=member_roles`, which also loads their nested roles. See [organization members](../modules/iam.md#organization-members)
-for pagination and visibility rules.
+for pagination and visibility rules. Updates return `204` by default or `200`
+with `?response=resource`, and never change role or assignment activation.
 
 ## IAM member role batches
 
 | Method | URI | Authorization | Purpose |
 | --- | --- | --- | --- |
 | POST | `/v1/iam/organization-members/{organizationMember}/member-roles` | `auth.api` + `iam_organization_member.update` | Add organization roles from `role_ids`. |
+| PUT/PATCH | `/v1/iam/organization-members/{organizationMember}/member-roles` | `auth.api` + `iam_organization_member.update` | Set required `is_active` for a batch of `member_role_ids`. |
 | DELETE | `/v1/iam/organization-members/{organizationMember}/member-roles` | `auth.api` + `iam_organization_member.update` | Soft-delete assignments from `member_role_ids`. |
 
-Both payloads contain 1–100 distinct UUIDs and apply atomically. Grants accept
-only active custom roles from the current organization. The owner's
-Administrator assignment is protected from withdrawal; other removals may leave
+All batches contain 1–100 distinct UUIDs and apply atomically. Grants accept
+only non-deleted custom roles from the current organization and accept optional
+`is_active`, defaulting to `true`. The owner's
+Administrator assignment is protected from withdrawal and deactivation; other removals may leave
 zero roles. Addition returns `204` by default, or a `201` collection with
 `?response=resource`. Each returned assignment always includes its role, without
-its permissions.
+its permissions. Updates return `204` by default, or a `200` collection with
+`?response=resource`. They retain Spatie role associations and change neither
+membership nor role activation.
 See [member role batches](../modules/iam.md#member-role-batches).
 
 ## IAM invitations

@@ -16,6 +16,7 @@ use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
 use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
+use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Shared\Models\Authenticatable;
 
 class AuthService
@@ -79,15 +80,23 @@ class AuthService
     {
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
-            ->with(['organizationMember'])
+            ->with(['organizationMember', 'role'])
             ->where('id', $memberRoleId)
             ->first();
 
         $member = $memberRole?->organizationMember;
+        $role = $memberRole?->role;
 
-        if (!$memberRole || !$member || $member->user_id !== $user->id || $member->organization_id !== $memberRole->organization_id) {
+        if (!$memberRole || !$member || !$role
+            || !$memberRole->is_active || !$member->is_active || !$role->is_active
+            || $member->user_id !== $user->id
+            || $member->organization_id !== $memberRole->organization_id
+            || ($role->team_id !== null && $role->team_id !== $memberRole->organization_id)
+            || $role->guard_name !== config('auth.defaults.guard')) {
             throw new ModelNotFoundException()->setModel(MemberRole::class, [$memberRoleId]);
         }
+
+        app(OrganizationInterface::class)->findOrganizationById($memberRole->organization_id);
 
         /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();

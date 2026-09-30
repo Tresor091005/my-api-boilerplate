@@ -12,6 +12,7 @@ http:
       {
         "name": "Sales Manager",
         "description": "Manages sales",
+        "is_active": true,
         "permission_ids": []
       }
   auth: inherit

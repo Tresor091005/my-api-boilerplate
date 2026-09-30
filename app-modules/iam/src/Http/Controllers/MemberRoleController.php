@@ -9,8 +9,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Iam\Data\MemberRoleCreateData;
 use Lahatre\Iam\Data\MemberRoleDeleteData;
+use Lahatre\Iam\Data\MemberRoleUpdateData;
 use Lahatre\Iam\Http\Requests\MemberRoleCreateRequest;
 use Lahatre\Iam\Http\Requests\MemberRoleDeleteRequest;
+use Lahatre\Iam\Http\Requests\MemberRoleUpdateRequest;
 use Lahatre\Iam\Http\Resources\MemberRoleCollection;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Services\MemberRoleService;
@@ -38,5 +40,13 @@ class MemberRoleController
         $this->memberRoles->delete($organizationMember, MemberRoleDeleteData::fromArray($request->validated()));
 
         return response()->noContent();
+    }
+
+    public function update(MemberRoleUpdateRequest $request, OrganizationMember $organizationMember): JsonResponse|Response
+    {
+        Gate::authorize('update', $organizationMember);
+        $assignments = $this->memberRoles->update($organizationMember, MemberRoleUpdateData::fromArray($request->validated()));
+
+        return $this->responseResponder->respond(fn (): JsonResource => MemberRoleCollection::make($assignments));
     }
 }

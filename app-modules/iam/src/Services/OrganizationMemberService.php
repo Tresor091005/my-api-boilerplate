@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Iam\Data\OrganizationMemberFilterData;
+use Lahatre\Iam\Data\OrganizationMemberUpdateData;
 use Lahatre\Iam\Exceptions\MemberRoleException;
 use Lahatre\Iam\Exceptions\OrganizationMemberException;
 use Lahatre\Iam\Models\MemberRole;
@@ -39,6 +40,33 @@ final class OrganizationMemberService
         }
 
         return $member->load($this->relationsToLoad($organizationId));
+    }
+
+    /**
+     * Change membership activation without modifying its role assignments.
+     * Owns the transaction and shares the membership lock with role mutations.
+     *
+     * @throws OrganizationMemberException
+     */
+    public function update(OrganizationMember $member, OrganizationMemberUpdateData $data): OrganizationMember
+    {
+        $organizationId = currentOrganizationId();
+        $updated = DB::transaction(function () use ($member, $data, $organizationId): OrganizationMember {
+            $locked = OrganizationMember::query()->where('organization_id', $organizationId)
+                ->whereKey($member->id)->lockForUpdate()->first();
+            if (!$locked) {
+                throw OrganizationMemberException::unavailable();
+            }
+            if (!$data->isActive && $locked->user_id === $this->organizations->findOrganizationById($organizationId)->owner_id) {
+                throw OrganizationMemberException::owner();
+            }
+            $locked->is_active = $data->isActive;
+            $locked->save();
+
+            return $locked;
+        });
+
+        return $updated->load($this->relationsToLoad($organizationId));
     }
 
     /**

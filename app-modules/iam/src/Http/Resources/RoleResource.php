@@ -23,6 +23,7 @@ class RoleResource extends JsonResource
             'name'        => $this->name,
             'description' => $this->description,
             'is_builtin'  => $this->is_builtin,
+            'is_active'   => $this->is_active,
             'permissions' => $this->whenLoaded('permissions', fn () => PermissionResource::collection($this->permissions)),
         ];
     }

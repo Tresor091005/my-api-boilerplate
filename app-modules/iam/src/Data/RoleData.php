@@ -14,6 +14,7 @@ final readonly class RoleData
         public MissingValue|string $name,
         public MissingValue|string|null $description,
         public MissingValue|array $permissionIds,
+        public MissingValue|bool $isActive,
     ) {}
 
     /**
@@ -23,11 +24,13 @@ final readonly class RoleData
     public static function fromArray(array $data, array $missingFields = []): self
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
+        $isActive = $read->get('is_active', default: true);
 
         return new self(
             name: $read->get('name'),
             description: $read->get('description', default: null),
             permissionIds: $read->get('permission_ids'),
+            isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
         );
     }
 }

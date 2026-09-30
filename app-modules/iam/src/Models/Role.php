@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
  * @property string $name
  * @property string $guard_name
  * @property bool $is_builtin
+ * @property bool $is_active
  * @property string|null $description
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -53,8 +54,13 @@ class Role extends SpatieRole
         'team_id',
         'name',
         'is_builtin',
+        'is_active',
         'description',
         'guard_name',
+    ];
+
+    protected $attributes = [
+        'is_active' => true,
     ];
 
     protected $casts = [
@@ -62,6 +68,7 @@ class Role extends SpatieRole
         'team_id'     => 'string',
         'name'        => 'string',
         'is_builtin'  => 'boolean',
+        'is_active'   => 'boolean',
         'description' => 'string',
         'guard_name'  => 'string',
         'created_at'  => 'immutable_datetime',

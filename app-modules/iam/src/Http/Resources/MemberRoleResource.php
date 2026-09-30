@@ -17,6 +17,7 @@ class MemberRoleResource extends JsonResource
         return [
             'id'         => $this->id,
             'role_id'    => $this->role_id,
+            'is_active'  => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'role'       => $this->whenLoaded('role', fn () => RoleResource::make($this->role)),

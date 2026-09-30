@@ -55,7 +55,7 @@ class RoleController
         Gate::authorize('update', $role);
         $role = $this->roleService->update(
             $role,
-            RoleData::fromArray($request->validated(), ['name', 'description', 'permission_ids']),
+            RoleData::fromArray($request->validated(), ['name', 'description', 'permission_ids', 'is_active']),
         );
 
         return $this->responseResponder->respond(fn (): JsonResource => RoleResource::make($role));

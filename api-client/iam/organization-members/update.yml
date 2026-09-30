@@ -1,17 +1,16 @@
 info:
   name: update
   type: http
-  seq: 4
+  seq: 3
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/v1/iam/roles/{{roleId}}?response=resource&include=permissions"
+  url: "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}?response=resource"
   body:
     type: json
     data: |-
       {
-        "description": "Manages regional sales",
-        "is_active": true
+        "is_active": false
       }
   auth: inherit
 

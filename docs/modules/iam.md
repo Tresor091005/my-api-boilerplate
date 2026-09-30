@@ -30,6 +30,30 @@ The IAM module owns authentication and organization-scoped authorization.
 An incoherent or missing organization context is rejected on routes that use
 `auth.api`. A plain `auth:sanctum` route can authenticate a user without
 establishing an organization context.
+
+`OrganizationMember`, `MemberRole`, and `Role` each have an independent
+`is_active` boolean, defaulting to `true` in both the schema and models. There
+is no activation flag on `User` or `Organization`. Deactivation never changes
+the flags of related records: a membership suspends access to that organization,
+an assignment suspends only that role selection, and a role suspends every
+assignment using it.
+
+For a selected organization, `AuthContext::setContext()` reads the membership,
+assignment, and role from the database on each authenticated request. All three
+must exist, remain non-deleted, and be active; the membership must belong to the
+user and organization, and the role must use the current guard and either be
+global or belong to that organization. The organization must also remain
+non-deleted. An unavailable context returns `401`, including for tokens issued
+before deactivation. Token metadata and Spatie assignments are retained.
+The context is cleared before resolution and is populated only after all checks
+pass. Authentication without a selected organization remains available.
+
+Role switching rejects an unavailable context with `404` before changing token
+metadata. Member, assignment, and role API resources expose their own
+`is_active` value, including inactive records in management reads. Apply
+`2026_09_30_164549_add_is_active_to_iam_access_tables.php` with
+`php artisan migrate` to add the flags to existing databases.
+
 The same registration cycle creates additional organizations for existing users,
 whether or not the frontend currently holds an access token. The email token
 identifies the owner; the current access token is not used for ownership.
@@ -52,11 +76,16 @@ roles. Reads include global built-in roles and roles belonging to the current
 organization. The API creates roles with the current organization's `team_id`,
 `is_builtin = false`, and the active guard; clients cannot set those fields.
 Only roles belonging to the current organization can be changed, and built-in
-roles are immutable. A role with an active member-role assignment cannot be
+roles are immutable. A role with a non-deleted member-role assignment cannot be
 deleted. Otherwise deletion is soft, retaining the role and its permission
 assignments in storage while excluding it from normal reads. `response-contracts.php`
 loads role permissions when `include=permissions` is requested. Deletion uses a scoped database
 query and explicitly clears Spatie's permission cache.
+
+Role creation accepts optional `is_active`, defaulting to `true`. Role updates
+accept it independently of names, descriptions, and permissions; omission
+preserves the current state, and explicit `false` deactivates the role. Existing
+assignments and permission associations remain stored for reactivation.
 
 `permissions:discover` scans direct PHP files under each module's
 `src/Models` directory, keeps only classes that extend Eloquent's `Model`, and
@@ -79,9 +108,9 @@ workflow.
 
 ## Organization members
 
-`GET /v1/iam/organization-members` cursor-paginates active members of the current
+`GET /v1/iam/organization-members` cursor-paginates non-deleted members of the current
 organization. `GET /v1/iam/organization-members/{organizationMember}` retrieves
-one active member. Both require `auth.api`; their permissions are
+one non-deleted member. Both require `auth.api`; their permissions are
 `iam_organization_member.list` and `iam_organization_member.retrieve` respectively.
 A foreign-organization detail is forbidden, and a deleted member is not found.
 
@@ -113,17 +142,25 @@ lock before changing its assignments.
 The user account and memberships in other organizations stay active. Tokens
 selecting a removed assignment are rejected on subsequent requests; the user
 can log in again and use another organization. Membership creation remains the
-invitation flow; there is no generic membership create or update endpoint.
+invitation flow; there is no generic membership create endpoint.
+
+`PUT/PATCH /v1/iam/organization-members/{organizationMember}` accepts only the
+required `is_active` boolean and uses `iam_organization_member.update`. It changes
+membership activation without changing assignment or role states. The owner
+cannot be deactivated. The service locks the membership in its transaction,
+sharing the same lock as assignment mutations and removal. It returns `204` by
+default or `200` with the member resource for `?response=resource`; the user
+profile remains a required load and member roles remain optional includes.
 
 ### Member role batches
 
 `POST /v1/iam/organization-members/{organizationMember}/member-roles` accepts
 `role_ids`. `DELETE` on the same URI accepts `member_role_ids`. Both require
 `iam_organization_member.update` through the parent member policy. Lists must
-contain 1–100 distinct UUIDs. There are no separate list, detail, or update routes.
+contain 1–100 distinct UUIDs. There are no standalone assignment list or detail routes.
 
-Addition accepts only active custom roles in the current organization and guard.
-Already active assignments reject the complete batch. Regranting a soft-deleted
+Addition accepts only non-deleted custom roles in the current organization and guard.
+Already non-deleted assignments reject the complete batch. Regranting a soft-deleted
 assignment creates a new MemberRole ID, so an old token cannot regain access.
 The service inserts MemberRole records in one batch, fetches them once keyed by
 role, then calls `syncRoles($role)` for each assignment in the organization's
@@ -131,7 +168,19 @@ Spatie team context. All steps share one transaction, and the previous team
 context is restored afterward. Creation returns `204` by default,
 or `201` with the newly created assignments for `?response=resource`.
 Each returned assignment always loads its role through `required_loads`, without
-permission includes.
+permission includes. Creation accepts optional `is_active`, defaulting to
+`true`, and still synchronizes Spatie roles for suspended assignments.
+
+`PUT/PATCH` on the same URI takes `member_role_ids` and required `is_active`.
+It updates 1–100 distinct assignments in one batch, locked after their parent
+membership. All targets must belong to that member and organization and retain
+a non-deleted role in the current guard and organization or a global built-in.
+An unavailable target rejects the entire batch. Deactivation protects the
+owner's Administrator assignment through the same `MemberRoleDeletionService`
+check as removal. Assignment activation is independent of membership and role
+activation, including when either remains suspended. No Spatie roles are cleared
+or reassigned. Updates return `204` by default or a `200` collection with each
+assignment's required role for `?response=resource`, without permission includes.
 
 Removal calls `syncRoles([])` on each selected assignment before their bulk
 soft delete, scoped to the current organization and parent member. Member

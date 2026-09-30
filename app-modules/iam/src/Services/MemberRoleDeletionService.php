@@ -29,6 +29,32 @@ final class MemberRoleDeletionService
      */
     public function delete(OrganizationMember $member, Collection $assignments): void
     {
+        $this->assertCanRevoke($member, $assignments);
+        $organizationId = currentOrganizationId();
+        $previousTeamId = getPermissionsTeamId();
+        setPermissionsTeamId($organizationId);
+        try {
+            foreach ($assignments as $assignment) {
+                $assignment->syncRoles([]);
+            }
+            MemberRole::query()->where('organization_id', $organizationId)->where('member_id', $member->id)
+                ->whereIn('id', $assignments->modelKeys())->delete();
+        } finally {
+            setPermissionsTeamId($previousTeamId);
+        }
+    }
+
+    /**
+     * Protect the owner's Administrator access before deletion or deactivation.
+     * The caller owns the transaction and locks the member and assignments.
+     *
+     * @param  Collection<int, MemberRole>  $assignments
+     *
+     * @throws OrganizationMemberException
+     * @throws MemberRoleException
+     */
+    public function assertCanRevoke(OrganizationMember $member, Collection $assignments): void
+    {
         $organizationId = currentOrganizationId();
         if ($member->organization_id !== $organizationId || $member->trashed()) {
             throw OrganizationMemberException::unavailable();
@@ -43,18 +69,6 @@ final class MemberRoleDeletionService
                 ->where('guard_name', config('auth.defaults.guard'))->where('name', SysRole::Administrator->value)
                 ->whereIn('id', $assignments->pluck('role_id'))->exists()) {
             throw MemberRoleException::ownerAdministratorProtected();
-        }
-
-        $previousTeamId = getPermissionsTeamId();
-        setPermissionsTeamId($organizationId);
-        try {
-            foreach ($assignments as $assignment) {
-                $assignment->syncRoles([]);
-            }
-            MemberRole::query()->where('organization_id', $organizationId)->where('member_id', $member->id)
-                ->whereIn('id', $assignments->modelKeys())->delete();
-        } finally {
-            setPermissionsTeamId($previousTeamId);
         }
     }
 }

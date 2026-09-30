@@ -59,6 +59,7 @@ class RoleService
                     'description' => required($data->description),
                     'guard_name'  => config('auth.defaults.guard'),
                     'is_builtin'  => false,
+                    'is_active'   => required($data->isActive),
                 ]);
                 $role->syncPermissions($permissions);
 
@@ -95,6 +96,7 @@ class RoleService
                 $lockedRole->fill(withoutMissing([
                     'name'        => $data->name,
                     'description' => $data->description,
+                    'is_active'   => $data->isActive,
                 ]));
                 if (!$data->permissionIds instanceof MissingValue) {
                     $permissions = $this->resolvePermissions($data->permissionIds);
@@ -118,7 +120,7 @@ class RoleService
         return $updated->load(responseRelationsToLoad());
     }
 
-    /** Soft-delete a tenant role without an active member assignment. */
+    /** Soft-delete a tenant role without a non-deleted member assignment. */
     public function delete(Role $role): void
     {
         $organizationId = currentOrganizationId();

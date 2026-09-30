@@ -6,6 +6,7 @@ namespace Lahatre\Iam\Auth;
 
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
@@ -24,17 +25,26 @@ class AuthContext
 
     protected ?Role $role = null;
 
+    /**
+     * Resolve fresh access records and publish only a coherent, active context.
+     *
+     * @param  array<string, mixed>|null  $metadata
+     *
+     * @throws AuthenticationException
+     */
     public function setContext(Authenticatable $user, ?array $metadata = null): void
     {
-        $this->user = $user;
+        $this->clear();
 
         if ($metadata === null || $metadata === [] || empty($metadata['organization_id'])) {
+            $this->user = $user;
+
             return;
         }
 
         /** @var MemberRole|null $memberRole */
         $memberRole = MemberRole::query()
-            ->with(['organizationMember'])
+            ->with(['organizationMember', 'role'])
             ->where('id', $metadata['member_role_id'] ?? null)
             ->where('member_id', $metadata['member_id'] ?? null)
             ->where('organization_id', $metadata['organization_id'])
@@ -42,8 +52,14 @@ class AuthContext
             ->first();
 
         $member = $memberRole?->organizationMember;
+        $role = $memberRole?->role;
 
-        if (!$memberRole || !$member || $member->user_id !== $user->id || $member->organization_id !== $memberRole->organization_id) {
+        if (!$memberRole || !$member || !$role
+            || !$memberRole->is_active || !$member->is_active || !$role->is_active
+            || $member->user_id !== $user->id
+            || $member->organization_id !== $memberRole->organization_id
+            || ($role->team_id !== null && $role->team_id !== $memberRole->organization_id)
+            || $role->guard_name !== config('auth.defaults.guard')) {
             logger()->warning(__('iam::messages.auth.incoherent_auth_metadata', ['user_id' => $user->getAuthIdentifier()]), [
                 'user_id'  => $user->getAuthIdentifier(),
                 'metadata' => $metadata,
@@ -52,10 +68,17 @@ class AuthContext
             throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
-        $this->organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);
+        try {
+            $organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);
+        } catch (ModelNotFoundException) {
+            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
+        }
+
+        $this->user = $user;
+        $this->organization = $organization;
         $this->member = $member;
         $this->memberRole = $memberRole;
-        $this->role = $memberRole->role;
+        $this->role = $role;
     }
 
     public function clear(): void

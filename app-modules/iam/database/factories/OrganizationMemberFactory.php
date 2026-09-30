@@ -21,6 +21,12 @@ class OrganizationMemberFactory extends Factory
         return [
             'user_id'         => User::factory(),
             'organization_id' => Organization::factory(),
+            'is_active'       => true,
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(['is_active' => false]);
     }
 }

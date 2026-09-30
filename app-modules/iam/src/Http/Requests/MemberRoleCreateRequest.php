@@ -22,6 +22,7 @@ class MemberRoleCreateRequest extends FormRequest
                 ],
             )],
             'role_ids.*' => ['required', 'uuid', 'distinct'],
+            'is_active'  => ['boolean'],
         ];
     }
 }

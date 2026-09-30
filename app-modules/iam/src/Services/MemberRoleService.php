@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lahatre\Iam\Data\MemberRoleCreateData;
 use Lahatre\Iam\Data\MemberRoleDeleteData;
+use Lahatre\Iam\Data\MemberRoleUpdateData;
 use Lahatre\Iam\Exceptions\MemberRoleException;
 use Lahatre\Iam\Exceptions\OrganizationMemberException;
 use Lahatre\Iam\Models\MemberRole;
@@ -52,6 +54,7 @@ final class MemberRoleService
                     'organization_id' => $organizationId,
                     'member_id'       => $locked->id,
                     'role_id'         => $role->id,
+                    'is_active'       => $data->isActive,
                     'created_at'      => $now,
                     'updated_at'      => $now,
                 ];
@@ -68,6 +71,48 @@ final class MemberRoleService
                 }
             } finally {
                 setPermissionsTeamId($previousTeamId);
+            }
+
+            return $assignments;
+        });
+
+        return $assignments->load(responseRelationsToLoad());
+    }
+
+    /**
+     * Change only the activation state of a complete batch of assignments.
+     * Owns the transaction and locks the member before assignments.
+     * Spatie assignments remain intact for later reactivation.
+     *
+     * @throws OrganizationMemberException
+     * @throws MemberRoleException
+     *
+     * @return Collection<int, MemberRole>
+     */
+    public function update(OrganizationMember $member, MemberRoleUpdateData $data): Collection
+    {
+        $organizationId = currentOrganizationId();
+        $assignments = DB::transaction(function () use ($member, $data, $organizationId): Collection {
+            $locked = $this->lockMember($organizationId, $member->id);
+            $assignments = MemberRole::query()->where('organization_id', $organizationId)
+                ->where('member_id', $locked->id)->whereIn('id', $data->memberRoleIds)
+                ->whereHas('role', fn (Builder $query) => $query
+                    ->where('guard_name', config('auth.defaults.guard'))
+                    ->where(fn (Builder $query) => $query->where('team_id', $organizationId)
+                        ->orWhere(fn (Builder $query) => $query->whereNull('team_id')->where('is_builtin', true))))
+                ->orderBy('id')->lockForUpdate()->get();
+            if ($data->memberRoleIds === [] || $assignments->count() !== count($data->memberRoleIds)) {
+                throw MemberRoleException::assignmentsUnavailable();
+            }
+            if (!$data->isActive) {
+                $this->deletions->assertCanRevoke($locked, $assignments);
+            }
+
+            $now = now();
+            MemberRole::query()->where('organization_id', $organizationId)->where('member_id', $locked->id)
+                ->whereIn('id', $assignments->modelKeys())->update(['is_active' => $data->isActive, 'updated_at' => $now]);
+            foreach ($assignments as $assignment) {
+                $assignment->forceFill(['is_active' => $data->isActive, 'updated_at' => $now])->syncOriginal();
             }
 
             return $assignments;

@@ -58,9 +58,11 @@ Route::group([
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('organization-members', OrganizationMemberController::class)
-            ->only(['index', 'show', 'destroy'])->parameters(['organization-members' => 'organizationMember']);
+            ->only(['index', 'show', 'update', 'destroy'])->parameters(['organization-members' => 'organizationMember']);
         Route::post('/organization-members/{organizationMember}/member-roles', [MemberRoleController::class, 'store'])->name('organization-members.member-roles.store');
         Route::delete('/organization-members/{organizationMember}/member-roles', [MemberRoleController::class, 'destroy'])->name('organization-members.member-roles.destroy');
+        Route::match(['put', 'patch'], '/organization-members/{organizationMember}/member-roles', [MemberRoleController::class, 'update'])
+            ->name('organization-members.member-roles.update');
         Route::apiResource('invitations', InvitationController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::put('/invitations/{invitation}/roles', [InvitationController::class, 'replaceRoles'])->name('invitations.roles.update');
         Route::post('/invitations/{invitation}/resend', [InvitationController::class, 'resendEmail'])->name('invitations.resend');

@@ -17,8 +17,14 @@ class RoleFactory extends Factory
         return [
             'name'        => fake()->unique()->word(),
             'is_builtin'  => false,
+            'is_active'   => true,
             'description' => fake()->sentence(),
             'guard_name'  => 'sanctum',
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(['is_active' => false]);
     }
 }

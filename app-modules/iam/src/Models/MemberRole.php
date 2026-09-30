@@ -19,6 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $organization_id
  * @property string $member_id
  * @property string $role_id
+ * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -65,6 +66,11 @@ class MemberRole extends Model
         'organization_id',
         'member_id',
         'role_id',
+        'is_active',
+    ];
+
+    protected $attributes = [
+        'is_active' => true,
     ];
 
     protected $casts = [
@@ -72,6 +78,7 @@ class MemberRole extends Model
         'organization_id' => 'string',
         'member_id'       => 'string',
         'role_id'         => 'string',
+        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',

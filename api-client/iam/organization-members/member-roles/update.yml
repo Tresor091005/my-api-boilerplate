@@ -1,19 +1,19 @@
 info:
-  name: create
+  name: update
   type: http
-  seq: 1
+  seq: 2
 
 http:
-  method: POST
+  method: PATCH
   url: "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles?response=resource"
   body:
     type: json
     data: |-
       {
-        "role_ids": [
-          "{{roleId}}"
+        "member_role_ids": [
+          "{{memberRoleId}}"
         ],
-        "is_active": true
+        "is_active": false
       }
   auth: inherit
 

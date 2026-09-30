@@ -39,6 +39,7 @@ class RoleCreateRequest extends FormRequest
                     ->where(fn ($query) => $query->where('team_id', currentOrganizationId())->orWhereNull('team_id')),
             ],
             'description'      => ['nullable', 'string', 'max:255'],
+            'is_active'        => ['boolean'],
             'permission_ids'   => ['present', 'array', 'max:500', new BulkExists('iam_permissions', extraConditions: ['guard_name' => config('auth.defaults.guard')])],
             'permission_ids.*' => ['required', 'uuid', 'distinct'],
         ];

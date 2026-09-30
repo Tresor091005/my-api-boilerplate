@@ -8,7 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Iam\Data\OrganizationMemberFilterData;
+use Lahatre\Iam\Data\OrganizationMemberUpdateData;
 use Lahatre\Iam\Http\Requests\OrganizationMemberFilterRequest;
+use Lahatre\Iam\Http\Requests\OrganizationMemberUpdateRequest;
 use Lahatre\Iam\Http\Resources\OrganizationMemberCollection;
 use Lahatre\Iam\Http\Resources\OrganizationMemberResource;
 use Lahatre\Iam\Models\OrganizationMember;
@@ -45,5 +47,13 @@ class OrganizationMemberController
         $this->members->delete($organizationMember);
 
         return response()->noContent();
+    }
+
+    public function update(OrganizationMemberUpdateRequest $request, OrganizationMember $organizationMember): JsonResponse|Response
+    {
+        Gate::authorize('update', $organizationMember);
+        $member = $this->members->update($organizationMember, OrganizationMemberUpdateData::fromArray($request->validated()));
+
+        return $this->responseResponder->respond(fn (): JsonResource => OrganizationMemberResource::make($member));
     }
 }

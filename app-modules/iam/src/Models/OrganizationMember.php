@@ -18,6 +18,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $user_id
  * @property string $organization_id
+ * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -51,12 +52,18 @@ class OrganizationMember extends Model
     protected $fillable = [
         'user_id',
         'organization_id',
+        'is_active',
+    ];
+
+    protected $attributes = [
+        'is_active' => true,
     ];
 
     protected $casts = [
         'id'              => 'string',
         'user_id'         => 'string',
         'organization_id' => 'string',
+        'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',
