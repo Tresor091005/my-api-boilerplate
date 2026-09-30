@@ -68,6 +68,8 @@ return [
     |
     */
     'exempt_global_uniqueness' => [
+        // Public invitation acceptance resolves the tenant from the secret token.
+        'iam_invitations' => ['iam_invitations_token_hash_unique'],
         // Guests resolve commitments and sessions without a tenant context.
         'commitment_service_commitments'   => ['commitment_service_commitments_public_reference_unique'],
         'commitment_guest_access_sessions' => ['commitment_guest_access_sessions_token_hash_unique'],
@@ -79,6 +81,7 @@ return [
     ],
 
     'composite_pkey' => [
+        'iam_invitation_roles',
         'iam_model_has_permissions',
         'iam_model_has_roles',
         'iam_role_has_permissions',
@@ -95,6 +98,8 @@ return [
     |
     */
     'ignored_soft_delete_partial_columns' => [
+        // One invitation identity is retained across cancellations and reinvitations.
+        'iam_invitations'         => ['email', 'token_hash'],
         'users'                   => ['email'],
         'iam_users'               => ['email'],
         'inventory_items'         => ['sku'],
@@ -121,6 +126,7 @@ return [
     |
     */
     'ignored_soft_delete_partial_indexes' => [
+        'iam_invitations'       => ['iam_invitations_organization_id_id_unique'],
         'catalog_option_values' => ['catalog_option_values_organization_id_id_unique'],
         'catalog_options'       => ['catalog_options_organization_id_id_unique'],
         'catalog_items'         => [

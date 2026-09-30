@@ -1,0 +1,22 @@
+info:
+  name: accept-existing-user
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/iam/invitations/accept"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{invitationEmail}}",
+        "token": "{{invitationToken}}"
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,23 @@
+info:
+  name: replace-roles
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/v1/iam/invitations/{{invitationId}}/roles?response=resource&include=roles"
+  body:
+    type: json
+    data: |-
+      {
+        "role_ids": [
+          "{{roleId}}"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

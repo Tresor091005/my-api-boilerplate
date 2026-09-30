@@ -7,6 +7,7 @@ $resourceModeContracts = array_fill_keys(
         'lahatre.iam.auth.forgot-password',
         'lahatre.iam.auth.organization-registration-tokens.store',
         'lahatre.iam.auth.register',
+        'lahatre.iam.invitations.accept',
         'lahatre.iam.auth.logout',
         'lahatre.iam.auth.reset-password',
     ],
@@ -55,13 +56,34 @@ $roleResourceContracts = array_fill_keys(
     ],
 );
 
+$invitationResourceContracts = array_fill_keys(
+    [
+        'lahatre.iam.invitations.index',
+        'lahatre.iam.invitations.show',
+        'lahatre.iam.invitations.store',
+        'lahatre.iam.invitations.roles.update',
+        'lahatre.iam.invitations.resend',
+    ],
+    [
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'includes' => [
+                'roles'             => ['loads' => ['roles']],
+                'roles.permissions' => ['loads' => ['roles.permissions']],
+            ],
+        ]],
+    ],
+);
+
 return [
     ...$resourceModeContracts,
     ...$authResourceContracts,
     ...$userResourceContracts,
     ...$roleResourceContracts,
+    ...$invitationResourceContracts,
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
     'lahatre.iam.auth.current-permissions' => [],
     'lahatre.iam.permissions.index'        => [],
+    'lahatre.iam.invitations.destroy'      => [],
     'lahatre.iam.roles.destroy'            => [],
 ];

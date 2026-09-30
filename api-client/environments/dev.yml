@@ -6,6 +6,12 @@ variables:
   - name: authToken
     value: ""
     description: ""
+  - name: invitationEmail
+    value: invited@example.com
+  - name: invitationToken
+    value: ""
+  - name: invitationId
+    value: ""
   - name: registrationEmail
     value: owner@example.test
     description: ""

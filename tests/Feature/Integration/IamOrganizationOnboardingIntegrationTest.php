@@ -5,9 +5,11 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Testing\Fakes\QueueFake;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
 use Lahatre\Iam\Models\MemberRole;
@@ -40,6 +42,17 @@ afterEach(function (): void {
     setPermissionsTeamId(null);
 });
 
+/** @return Collection<int, SendOrganizationRegistrationLink> */
+function queuedOrganizationRegistrationLinks(): Collection
+{
+    $queue = Queue::getFacadeRoot();
+    if (!$queue instanceof QueueFake) {
+        throw new LogicException('Organization registration delivery must be faked in this test.');
+    }
+
+    return $queue->pushed(SendOrganizationRegistrationLink::class);
+}
+
 it('creates no user or organization until the email token completes registration', function (): void {
     $permission = Permission::factory()->create(['name' => 'iam_role.list']);
     foreach (Role::query()->with('permissions')->whereIn('name', [SysRole::Administrator->value, SysRole::Readonly->value])->get() as $role) {
@@ -54,7 +67,7 @@ it('creates no user or organization until the email token completes registration
 
     Queue::assertPushed(SendOrganizationRegistrationLink::class);
     Queue::assertPushedOn(QueueName::Email->value, SendOrganizationRegistrationLink::class);
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $notification = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first();
     $url = $notification->url;
     expect($url)->toStartWith('https://app.example.test/auth/register?');
@@ -111,7 +124,7 @@ it('creates no user or organization until the email token completes registration
 it('lets an existing account create an organization with its email token and no user fields', function (): void {
     $user = User::factory()->unverified()->create();
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $user->email])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     expect($query['has_account'])->toBe('1');
@@ -138,7 +151,7 @@ it('uses the same public response for unavailable addresses without sending a li
     $user->delete();
 
     $response = $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $user->email])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    Queue::assertNotPushed(SendOrganizationRegistrationLink::class);
 
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => 'free@example.com'])
         ->assertOk()
@@ -148,7 +161,7 @@ it('uses the same public response for unavailable addresses without sending a li
 
 it('requires user details only for new accounts after a valid email token', function (): void {
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => 'new@example.com'])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
 
@@ -160,7 +173,7 @@ it('requires user details only for new accounts after a valid email token', func
 
     $existing = User::factory()->create();
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $existing->email])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->last()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->last()->handle(app(OrganizationOnboardingService::class));
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->last()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $existingQuery);
 
@@ -182,12 +195,12 @@ it('requires user details only for new accounts after a valid email token', func
 it('invalidates a previous registration link when a new one is requested', function (): void {
     $email = 'new@example.com';
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $email])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $firstUrl = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
     parse_str((string) parse_url($firstUrl, PHP_URL_QUERY), $firstQuery);
 
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $email])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->last()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->last()->handle(app(OrganizationOnboardingService::class));
     $secondUrl = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->last()->url;
     parse_str((string) parse_url($secondUrl, PHP_URL_QUERY), $secondQuery);
 
@@ -208,7 +221,7 @@ it('invalidates a previous registration link when a new one is requested', funct
 
 it('rolls back registration when a system role is unavailable', function (string $missingRole): void {
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => 'grace@example.com'])->assertOk();
-    Queue::pushed(SendOrganizationRegistrationLink::class)->first()->handle(app(OrganizationOnboardingService::class));
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     Role::query()->where('name', $missingRole)->delete();
@@ -230,3 +243,17 @@ it('rolls back registration when a system role is unavailable', function (string
     expect(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse()
         ->and(Organization::query()->where('name', 'Missing Admin')->exists())->toBeFalse();
 })->with([SysRole::Administrator->value, SysRole::Readonly->value]);
+
+it('keeps the last requested registration token when email jobs execute in reverse order', function (): void {
+    $email = 'new@example.com';
+    $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $email])->assertOk();
+    $first = queuedOrganizationRegistrationLinks()->first();
+    $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $email])->assertOk();
+    $last = queuedOrganizationRegistrationLinks()->last();
+    $last->handle(app(OrganizationOnboardingService::class));
+    $first->handle(app(OrganizationOnboardingService::class));
+
+    Notification::assertSentOnDemandTimes(OrganizationRegistrationLinkNotification::class, 1);
+    expect(app(OrganizationOnboardingService::class)->accountExistsForToken($email, $first->token))->toBeNull()
+        ->and(app(OrganizationOnboardingService::class)->accountExistsForToken($email, $last->token))->toBeFalse();
+});

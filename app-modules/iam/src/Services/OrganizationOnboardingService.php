@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Lahatre\Iam\Data\RegistrationData;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Exceptions\OrganizationOnboardingException;
+use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
@@ -22,9 +23,12 @@ use Lahatre\Organization\Models\Organization;
 
 final class OrganizationOnboardingService
 {
-    public function __construct(private readonly OrganizationInterface $organizations) {}
+    public function __construct(
+        private readonly OrganizationInterface $organizations,
+        private readonly EmailAccountService $accounts,
+    ) {}
 
-    public function sendRegistrationToken(string $email): void
+    public function requestRegistrationToken(string $email): void
     {
         $limiterKey = 'organization-registration:'.hash('sha256', $email);
         if (RateLimiter::tooManyAttempts($limiterKey, 3)) {
@@ -37,15 +41,30 @@ final class OrganizationOnboardingService
             return;
         }
 
-        $token = Str::random(64);
-        DB::table('iam_organization_registration_tokens')->upsert([[
-            'id'         => (string) Str::uuid(),
-            'token_hash' => hash('sha256', $token),
-            'email'      => $email,
-            'expires_at' => now()->addHour(),
-            'created_at' => now(),
-        ]], ['email'], ['token_hash', 'expires_at', 'created_at']);
+        DB::transaction(function () use ($email): void {
+            $token = Str::random(64);
+            DB::table('iam_organization_registration_tokens')->upsert([[
+                'id'         => (string) Str::uuid(),
+                'token_hash' => hash('sha256', $token),
+                'email'      => $email,
+                'expires_at' => now()->addHour(),
+                'created_at' => now(),
+            ]], ['email'], ['token_hash', 'expires_at', 'created_at']);
+            SendOrganizationRegistrationLink::dispatch($email, $token)->afterCommit();
+        });
+    }
 
+    /** Delivery never creates or rotates a token, including when jobs execute out of order. */
+    public function sendRegistrationToken(string $email, string $token): void
+    {
+        if (!DB::table('iam_organization_registration_tokens')->where('email', $email)
+            ->where('token_hash', hash('sha256', $token))->where('expires_at', '>', now())->exists()) {
+            return;
+        }
+        $user = User::withTrashed()->where('email', $email)->first();
+        if ($user?->trashed()) {
+            return;
+        }
         $url = rtrim(config('frontend.url'), '/').config('frontend.organization_registration_path').'?'.http_build_query([
             'email'       => $email,
             'token'       => $token,
@@ -83,30 +102,7 @@ final class OrganizationOnboardingService
                 throw OrganizationOnboardingException::invalidRegistrationToken();
             }
 
-            $user = User::withTrashed()->where('email', $data->email)->lockForUpdate()->first();
-            if ($user?->trashed()) {
-                throw OrganizationOnboardingException::unavailableEmail();
-            }
-            if (!$user && (!$data->firstName || !$data->lastName || !$data->password)) {
-                throw OrganizationOnboardingException::userDetailsRequired();
-            }
-            if ($user && ($data->firstName !== null || $data->lastName !== null || $data->password !== null)) {
-                throw OrganizationOnboardingException::userDetailsForbidden();
-            }
-
-            if (!$user) {
-                $user = User::query()->create([
-                    'first_name' => $data->firstName,
-                    'last_name'  => $data->lastName,
-                    'email'      => $data->email,
-                    'password'   => $data->password,
-                ]);
-            }
-            if ($user->email_verified_at === null) {
-                $user->email_verified_at = now();
-                $user->save();
-            }
-
+            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName, $data->password);
             $this->provision($user, OrganizationData::fromArray($data->organization, $user->id));
             DB::table('iam_organization_registration_tokens')->where('token_hash', $challenge->token_hash)->delete();
         });

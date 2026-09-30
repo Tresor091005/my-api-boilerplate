@@ -38,7 +38,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static>|MemberRole whereRoleId($value)
  * @method static Builder<static>|MemberRole whereUpdatedAt($value)
  * @method static Builder<static>|MemberRole permission($permissions, bool $without = false)
- * @method static Builder<static>|MemberRole role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|MemberRole withoutPermission($permissions)
  * @method static Builder<static>|MemberRole withoutRole($roles, ?string $guard = null)
  * @method static Builder<static>|MemberRole whereOrganizationId($value)
@@ -89,6 +88,7 @@ class MemberRole extends Model
         return $this->belongsTo(OrganizationMember::class, 'member_id');
     }
 
+    /** @return BelongsTo<Role, $this> */
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');

@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 return [
-    'auth' => [
+    'invitation' => ['accepted' => 'Organization joined successfully. Sign in to access it.'],
+    'auth'       => [
         'logged_out'               => 'Successfully logged out.',
         'role_switched'            => 'Successfully switched role.',
         'registration_link_sent'   => 'If this address can register an organization, an email has been sent.',

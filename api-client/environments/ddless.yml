@@ -4,6 +4,12 @@ variables:
     value: http://127.0.0.1:8001
   - name: authToken
     value: ""
+  - name: invitationEmail
+    value: invited@example.com
+  - name: invitationToken
+    value: ""
+  - name: invitationId
+    value: ""
   - name: registrationEmail
     value: owner@example.test
   - name: registrationToken

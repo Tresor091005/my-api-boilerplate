@@ -18,7 +18,6 @@ use Lahatre\Iam\Http\Requests\SwitchMemberRoleRequest;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Http\Resources\PermissionResource;
 use Lahatre\Iam\Http\Resources\UserResource;
-use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
 use Lahatre\Iam\Jobs\SendPasswordResetLink;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\AuthService;
@@ -45,7 +44,7 @@ class AuthController
 
     public function organizationRegistrationToken(OrganizationRegistrationTokenRequest $request): JsonResponse|Response
     {
-        SendOrganizationRegistrationLink::dispatch($request->validated('email'));
+        $this->onboarding->requestRegistrationToken($request->validated('email'));
 
         return $this->responseResponder->respond(fn (): array => [
             'message' => __('iam::messages.auth.registration_link_sent'),

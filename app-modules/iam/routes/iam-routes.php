@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
+use Lahatre\Iam\Http\Controllers\InvitationAcceptanceController;
+use Lahatre\Iam\Http\Controllers\InvitationController;
 use Lahatre\Iam\Http\Controllers\PermissionController;
 use Lahatre\Iam\Http\Controllers\RoleController;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
@@ -44,11 +46,17 @@ Route::group([
         });
     });
 
+    Route::post('/iam/invitations/accept', [InvitationAcceptanceController::class, 'store'])
+        ->middleware('throttle:auth')->name('invitations.accept');
+
     Route::group([
         'prefix'     => 'iam',
         'middleware' => 'auth.api',
     ], function (): void {
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
         Route::apiResource('roles', RoleController::class);
+        Route::apiResource('invitations', InvitationController::class)->only(['index', 'store', 'show', 'destroy']);
+        Route::put('/invitations/{invitation}/roles', [InvitationController::class, 'replaceRoles'])->name('invitations.roles.update');
+        Route::post('/invitations/{invitation}/resend', [InvitationController::class, 'resendEmail'])->name('invitations.resend');
     });
 });

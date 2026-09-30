@@ -16,8 +16,12 @@ Failed jobs use the `failed_jobs` database table. Job batches use the
 code dispatching a job from a transaction must therefore explicitly defer the
 dispatch if it depends on committed data.
 
-IAM dispatches `SendOrganizationRegistrationLink` and `SendPasswordResetLink`
-jobs to the `email` queue. Horizon must run for these messages to be delivered.
+IAM dispatches `SendOrganizationRegistrationLink`, `SendInvitationLink`, and
+`SendPasswordResetLink` jobs to the `email` queue. Horizon must run for these
+messages to be delivered.
+Registration and invitation tokens are persisted before their jobs are queued
+after commit. These jobs carry encrypted payloads and only deliver the current
+token; retries and out-of-order processing cannot rotate tokens.
 
 ## Mail
 
@@ -26,14 +30,14 @@ is exposed on `http://localhost:28419`. The default sender is configured by
 `MAIL_FROM_ADDRESS` and `MAIL_FROM_NAME`.
 
 Laravel also exposes log, array, failover, SES, Postmark, Resend, sendmail,
-and round-robin mailer configurations. Password reset and organization
-registration links are sent by email. Both use the frontend URL configured by
+and round-robin mailer configurations. Password reset, organization registration,
+and invitation links are sent by email. They use the frontend URL configured by
 `FRONTEND_URL` and their paths in `config/frontend.php`.
 
 ## Notifications
 
-IAM uses `OrganizationRegistrationLinkNotification` and Laravel's password reset
-notification for email delivery from queued jobs. No notification database
+IAM uses `OrganizationRegistrationLinkNotification`, `InvitationLinkNotification`,
+and Laravel's password reset notification for email delivery from queued jobs. No notification database
 table or broadcast notification channel currently exists.
 
 ## Realtime broadcasting

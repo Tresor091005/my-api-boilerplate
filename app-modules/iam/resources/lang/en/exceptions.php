@@ -18,9 +18,19 @@ return [
     'organization_onboarding' => [
         'system_roles_unavailable'   => 'The system roles are not configured.',
         'invalid_registration_token' => 'The registration token is invalid or expired.',
-        'unavailable_email'          => 'This email address cannot be used for registration.',
-        'user_details_required'      => 'User details are required for a new account.',
-        'user_details_forbidden'     => 'User details cannot be changed during organization registration.',
+    ],
+    'email_account' => [
+        'unavailable_email'      => 'This email address cannot be used for registration.',
+        'user_details_required'  => 'User details are required for a new account.',
+        'user_details_forbidden' => 'User details cannot be changed during email onboarding.',
+    ],
+    'invitation' => [
+        'unavailable'       => 'Invitation is not available in this organization.',
+        'invalid_token'     => 'The invitation token is invalid or expired.',
+        'already_accepted'  => 'An accepted invitation cannot be changed.',
+        'already_member'    => 'This user is already a member of the organization.',
+        'roles_unavailable' => 'One or more offered roles are unavailable. Replace the invitation roles before continuing.',
+        'unavailable_email' => 'This email address cannot be invited.',
     ],
     'migration' => [
         'config_not_loaded'   => 'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.',

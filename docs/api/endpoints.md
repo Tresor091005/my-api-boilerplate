@@ -50,6 +50,32 @@ and `guard_name`. System roles are readable but cannot be changed or deleted.
 Mutations return `204` by default; create and update accept
 `?response=resource` to return the role.
 
+## IAM invitations
+
+| Method | URI | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/iam/invitations` | `auth.api` + `iam_invitation.list` | Cursor-paginate invitations in the current organization. |
+| GET | `/v1/iam/invitations/{invitation}` | `auth.api` + `iam_invitation.retrieve` | Retrieve an invitation. |
+| POST | `/v1/iam/invitations` | `auth.api` + `iam_invitation.create` | Create or reuse an invitation for an email and replace its offered roles. |
+| PUT | `/v1/iam/invitations/{invitation}/roles` | `auth.api` + `iam_invitation.update` | Replace pending roles while preserving the emailed token. |
+| POST | `/v1/iam/invitations/{invitation}/resend` | `auth.api` + `iam_invitation.update` | Renew the expiry and rotate the token before queuing a new email. |
+| DELETE | `/v1/iam/invitations/{invitation}` | `auth.api` + `iam_invitation.delete` | Cancel a pending invitation, soft-delete its record, and invalidate its token. |
+| POST | `/v1/iam/invitations/accept` | public, auth throttle | Consume the email token, create membership, and assign current offered roles. |
+
+Create requires `email` and `role_ids`; role replacement requires only
+`role_ids`. At least one active custom role from the current organization is
+required; built-in roles cannot be offered. Management mutations return `204`
+by default; create, role replacement, and resend support `?response=resource`.
+Responses load roles only with `include=roles` or `include=roles.permissions`.
+There is no generic invitation update route.
+
+Public acceptance takes `email` and `token`, plus names and a confirmed password
+only for new accounts. Existing accounts must omit those fields. It returns a
+`201` success message without user data or an access token. The recipient then
+logs in and switches to an available member role. See the
+[IAM invitation workflow](../modules/iam.md#organization-invitations) for
+record reuse, expiry, token rotation, and concurrency guarantees.
+
 ## Catalog
 
 `categories`, `options`, and `products` expose standard API resource actions

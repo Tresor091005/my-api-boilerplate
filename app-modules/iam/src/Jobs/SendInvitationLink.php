@@ -10,23 +10,23 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Lahatre\Iam\Services\OrganizationOnboardingService;
+use Lahatre\Iam\Services\InvitationService;
 use Lahatre\Shared\Enums\QueueName;
 
-final class SendOrganizationRegistrationLink implements ShouldBeEncrypted, ShouldQueue
+final class SendInvitationLink implements ShouldBeEncrypted, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public readonly string $email, public readonly string $token)
-    {
+    public function __construct(
+        public readonly string $organizationId,
+        public readonly string $invitationId,
+        public readonly string $token,
+    ) {
         $this->queue = QueueName::Email->value;
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle(OrganizationOnboardingService $onboarding): void
+    public function handle(InvitationService $invitations): void
     {
-        $onboarding->sendRegistrationToken($this->email, $this->token);
+        $invitations->sendLink($this->organizationId, $this->invitationId, $this->token);
     }
 }

@@ -1,0 +1,15 @@
+info:
+  name: resend-email
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/iam/invitations/{{invitationId}}/resend"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
