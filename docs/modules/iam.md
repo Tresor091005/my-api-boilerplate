@@ -100,13 +100,54 @@ owned token. `DELETE /v1/auth/sessions` revokes all owned tokens, including the
 current and expired tokens. Foreign session identifiers return `404`.
 
 `metadata.session` holds the authentication method and latest request's IP,
-User-Agent (limited to 1000 characters), and timestamp. User-Agent is descriptive
-client input, never an authentication or trusted-device credential. IP uses
-Laravel's request resolution; forwarded addresses are accepted only through
-configured trusted proxies. No geolocation provider is configured, so geographic
-location is not inferred or fabricated. A future GeoIP integration can enrich
-the same metadata. Last-request writes use an atomic JSONB update; role switches
-lock the token and merge only the four organization context keys.
+User-Agent (limited to 1000 characters), and timestamp. `EnrichSession` runs on
+the `default` queue after commit at token issuance and when IP/User-Agent changes.
+It adds nullable `last_request.device` (`name`, `type`, `os`) and
+`last_request.location` (`city`, `region`, `region_code`, `country`, `country_code`).
+Session responses expose only `at`, `device`, and `location` in `last_request`.
+Raw IP addresses and User-Agents remain in internal metadata for enrichment.
+The latest request timestamp remains current while enrichment is pending.
+Changed inputs clear earlier enrichment, and delayed jobs cannot overwrite newer
+inputs. Unchanged inputs reuse stored results without enqueueing another job.
+Matomo Device Detector parses the User-Agent locally; unavailable models use
+generic device names. Unknown clients such as Bruno return a null device.
+These descriptions are client input, never authentication or trusted-device credentials.
+IP uses Laravel's request resolution; forwarded addresses are accepted only
+through configured trusted proxies. Private/reserved IPs, absent databases, and
+IPs without a GeoIP record return null locations. Detection results are cached
+for one day. No external geolocation HTTP request is made.
+
+Session locations require a MaxMind GeoLite2 City `.mmdb` file at
+`storage/app/private/GeoLite2-City.mmdb`, or set `GEOIP_DATABASE_PATH` in the
+environment. The queue worker and scheduler must be able to read the same file.
+See [session location setup](../infrastructure/docker.md#7-session-location-setup)
+for MaxMind credentials and the optional immediate initialization command.
+
+`iam:geoip-update` checks the remote `Last-Modified` date with an authenticated
+HEAD request, streams a newer archive to temporary storage, extracts only the
+City database, validates its format, and replaces the local file atomically.
+Unchanged valid databases need no download. The command repairs invalid local
+files, preserves the current database on failure, cleans temporary files, and
+uses a file lock shared by manual and scheduled updates. Credentials are sent
+through HTTP Basic authentication, never URL parameters or job payloads.
+Telescope masks Authorization headers and skips the binary download response.
+
+The scheduler checks daily at 03:00 in the application's timezone, only when
+both credentials are configured. It runs per application server so each local
+database is updated; shared targets are protected by the file lock. Keep the
+scheduler running in deployments and grant it write access to the database's
+directory. This workflow uses Laravel's existing HTTP client and PHP's Phar/zlib
+extensions, without an additional container or package.
+Follow MaxMind's attribution and database freshness terms; the production
+database remains outside Git. Locations are approximate, and
+city/region may be absent. A corrupt database fails the background job without
+affecting login. After installing a previously missing database, a new login or
+changed IP/User-Agent schedules enrichment again.
+
+Last-request writes and enrichment use atomic JSONB merges; role switches lock
+the token and merge only the four organization context keys. Revoked sessions
+are never recreated by enrichment jobs. Expired tokens are ignored even before
+pruning, using both token-specific expiry and Sanctum's global expiration limit.
 
 `me`, `logout`, session management, and role switching resolve organization
 context optionally and fall back to user-only context when it is unavailable.

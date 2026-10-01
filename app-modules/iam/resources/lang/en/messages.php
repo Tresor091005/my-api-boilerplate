@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 return [
+    'session_device' => [
+        'phone'    => 'Phone',
+        'tablet'   => 'Tablet',
+        'computer' => 'Computer',
+    ],
     'invitation' => ['accepted' => 'Organization joined successfully. Sign in to access it.'],
     'auth'       => [
         'logged_out'               => 'Successfully logged out.',

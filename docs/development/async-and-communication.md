@@ -17,11 +17,17 @@ code dispatching a job from a transaction must therefore explicitly defer the
 dispatch if it depends on committed data.
 
 IAM dispatches `SendOrganizationRegistrationLink`, `SendInvitationLink`, and
-`SendPasswordResetLink` jobs to the `email` queue. Horizon must run for these
+`SendLoginCode` jobs to the `email` queue. Horizon must run for these
 messages to be delivered.
 Registration and invitation tokens are persisted before their jobs are queued
 after commit. These jobs carry encrypted payloads and only deliver the current
 token; retries and out-of-order processing cannot rotate tokens.
+
+`EnrichSession` runs on the `default` queue after commit. It enriches session
+devices and approximate locations locally when the IP or User-Agent changes,
+with three attempts and protection against stale jobs. See
+[session enrichment setup](../modules/iam.md#email-otp-and-sessions) for the
+optional MaxMind database and response fields.
 
 ## Mail
 
@@ -55,6 +61,13 @@ not an active business notification system.
 
 ## Scheduler
 
-No application schedule is currently registered. The scheduler container is
-present and runs `schedule:work`, but there are no project-owned scheduled
-tasks to execute. Telescope can observe scheduled tasks when they are added.
+The scheduler container runs `schedule:work`. IAM registers daily token cleanup:
+Sanctum tokens at 02:30 with a 24-hour retention after expiration, organization
+registration tokens at 02:35, and email login challenges at 02:40.
+
+`iam:geoip-update` runs at 03:00 when MaxMind download credentials are configured.
+It installs or updates each server's local City database, with a file lock and
+atomic replacement. See [GeoIP setup](../modules/iam.md#email-otp-and-sessions)
+for credentials, initialization, and failure behavior. These times use the
+application timezone. Session enrichment skips expired tokens regardless of
+the later pruning schedule.

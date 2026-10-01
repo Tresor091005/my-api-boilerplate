@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
+use Lahatre\Iam\Integrations\GeoipDatabaseUpdater;
 use Laravel\Sanctum\Sanctum;
 
 class IamServiceProvider extends ServiceProvider
@@ -24,6 +25,12 @@ class IamServiceProvider extends ServiceProvider
     public function boot(Schedule $schedule): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        $schedule
+            ->command('iam:geoip-update')
+            ->dailyAt('03:00')
+            ->when(fn (): bool => app(GeoipDatabaseUpdater::class)->isConfigured())
+            ->runInBackground();
 
         $schedule
             ->command('sanctum:prune-expired --hours=24')

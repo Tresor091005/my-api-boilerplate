@@ -24,6 +24,12 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'geoip' => [
+        'database'    => env('GEOIP_DATABASE_PATH', storage_path('app/private/GeoLite2-City.mmdb')),
+        'account_id'  => env('MAXMIND_ACCOUNT_ID'),
+        'license_key' => env('MAXMIND_LICENSE_KEY'),
+    ],
+
     'ses' => [
         'key'    => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

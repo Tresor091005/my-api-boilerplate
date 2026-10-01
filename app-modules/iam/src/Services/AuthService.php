@@ -16,6 +16,8 @@ use Lahatre\Shared\Models\Authenticatable;
 
 class AuthService
 {
+    public function __construct(private readonly SessionService $sessions) {}
+
     /**
      * Issue the common Sanctum session after the caller proves identity.
      * The caller owns any surrounding authentication transaction.
@@ -33,10 +35,12 @@ class AuthService
                 'role_id'         => null,
                 'session'         => [
                     'authentication_method' => $authenticationMethod,
-                    'last_request'          => [...$session->toArray(), 'at' => now()->toISOString()],
+                    'enrichment_key'        => $session->fingerprint(),
+                    'last_request'          => [...$session->toArray(), 'at' => now()->toISOString(), 'device' => null, 'location' => null],
                 ],
             ],
         ]);
+        $this->sessions->queueEnrichment($token->accessToken, $session);
         $user->load(responseRelationsToLoad());
 
         return ['user' => $user, 'token' => $token->plainTextToken];

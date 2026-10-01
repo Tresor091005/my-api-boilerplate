@@ -19,4 +19,9 @@ final readonly class SessionData
     {
         return ['ip_address' => $this->ipAddress, 'user_agent' => $this->userAgent];
     }
+
+    public function fingerprint(): string
+    {
+        return hash('sha256', json_encode($this->toArray(), JSON_THROW_ON_ERROR));
+    }
 }

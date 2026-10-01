@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 return [
+    'geoip' => [
+        'configuration_missing' => 'Configure MAXMIND_ACCOUNT_ID, MAXMIND_LICENSE_KEY, and a local database path before updating GeoLite2 City.',
+        'download_failed'       => 'GeoLite2 City download failed. Check MaxMind credentials, account access, and network availability.',
+        'invalid_archive'       => 'The downloaded archive does not contain a valid City database.',
+        'storage_unavailable'   => 'The GeoLite2 City database directory is not writable.',
+    ],
     'auth' => [
         'invalid_code'            => 'The sign-in code is invalid, expired, or no longer available.',
         'invalid_session_context' => 'Invalid session context.',

@@ -56,6 +56,11 @@ docker compose up -d
 docker compose exec -T app php artisan migrate --seed --no-interaction
 ```
 
+To enable session locations, configure the MaxMind credentials and optionally
+install the GeoLite2 City database immediately. See
+[session location setup](docs/infrastructure/docker.md#7-session-location-setup)
+for the environment values and initialization command.
+
 Run the test suite inside the application container:
 
 ```bash

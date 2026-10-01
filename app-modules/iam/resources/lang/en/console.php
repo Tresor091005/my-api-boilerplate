@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 return [
+    'geoip' => [
+        'description' => 'Install or update the local GeoLite2 City database',
+        'updated'     => 'GeoLite2 City database installed successfully.',
+        'unchanged'   => 'The local GeoLite2 City database is already up to date.',
+        'locked'      => 'Another GeoLite2 City update is already running.',
+    ],
     'discovery' => [
         'starting'               => 'Starting permission discovery...',
         'scanning'               => 'Scanning for models in: :path.',

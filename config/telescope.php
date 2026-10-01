@@ -165,7 +165,7 @@ return [
 
         ClientRequestWatcher::class => [
             'enabled'      => env('TELESCOPE_CLIENT_REQUEST_WATCHER', true),
-            'ignore_hosts' => [],
+            'ignore_hosts' => ['download.maxmind.com', 'mm-prod-geoip-databases.a2649acb697e2c09b632799562c076f2.r2.cloudflarestorage.com'],
         ],
 
         CommandWatcher::class => [

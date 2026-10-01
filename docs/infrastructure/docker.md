@@ -75,3 +75,39 @@ the `.bashrc` configures an `a` alias (`alias a='php artisan'`).
   such as the database and Redis are ready before startup.
 - **Permissions:** The Dockerfile manages user IDs (`1000:1000`) to avoid
   permission problems on mounted files.
+
+## 7. Session location setup
+
+Create a [MaxMind account with free GeoLite access](https://www.maxmind.com/en/create-account).
+Find your account ID in [Account Information](https://support.maxmind.com/knowledge-base/articles/find-your-maxmind-account-id)
+and generate a key in [Manage License Keys](https://support.maxmind.com/knowledge-base/articles/generate-a-maxmind-license-key).
+The key is displayed only once. Add both values to `.env`:
+
+```dotenv
+MAXMIND_ACCOUNT_ID=your_account_id
+MAXMIND_LICENSE_KEY=your_license_key
+```
+
+For immediate availability, run this initialization command once after starting
+the environment:
+
+```bash
+docker compose exec -T app php artisan iam:geoip-update
+```
+
+The command installs the database at `storage/app/private/GeoLite2-City.mmdb`.
+It can be skipped: the existing scheduler installs a missing database and checks
+for updates daily at 03:00 in the application timezone. Until installation,
+session locations are null. If configuration was previously cached, clear or
+rebuild that cache after changing `.env`.
+
+Keep Horizon and the scheduler running. Their containers already share the
+database file through the project mount; no additional MaxMind service is
+needed. GeoIP lookups use the local file without external HTTP requests.
+The downloaded database and credentials remain outside Git.
+
+Local Docker requests commonly arrive with a private IP such as `192.168.65.1`,
+which cannot be geolocated. Public deployments must expose the client's public
+IP to Laravel, with trusted proxies configured when applicable. See
+[IAM session enrichment](../modules/iam.md#email-otp-and-sessions) for metadata,
+queue behavior, and update failure handling.

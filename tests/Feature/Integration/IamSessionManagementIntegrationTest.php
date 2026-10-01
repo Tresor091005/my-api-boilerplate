@@ -59,6 +59,10 @@ it('lists only the callers unexpired sessions and exposes no token secrets or or
     foreach ($response->json('data') as $session) {
         expect($session)->not->toHaveKeys(['token', 'metadata', 'tokenable_id', 'tokenable_type', 'abilities']);
         expect($session['is_current'])->toBe($session['id'] === $context['record']->id);
+        if ($session['last_request'] !== null) {
+            expect($session['last_request'])->toHaveKeys(['at', 'device', 'location'])
+                ->not->toHaveKeys(['ip_address', 'user_agent']);
+        }
     }
     expect($response->getContent())->not->toContain($context['token'], $foreign->plainTextToken);
 });
