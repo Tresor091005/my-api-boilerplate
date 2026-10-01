@@ -45,7 +45,6 @@ class InvitationAcceptanceRequest extends FormRequest
             'last_name'  => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'max:100'],
             'email'      => ['required', 'string', 'email', 'max:254'],
             'token'      => ['required', 'string', 'size:64'],
-            'password'   => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'min:8', 'max:255', 'confirmed'],
         ];
     }
 
@@ -62,7 +61,7 @@ class InvitationAcceptanceRequest extends FormRequest
             if (!$accountExists) {
                 return;
             }
-            foreach (['first_name', 'last_name', 'password', 'password_confirmation'] as $field) {
+            foreach (['first_name', 'last_name'] as $field) {
                 if (array_key_exists($field, $this->all())) {
                     $validator->errors()->add($field, __('iam::validation.user_details_forbidden'));
                 }

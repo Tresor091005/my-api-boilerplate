@@ -2,30 +2,27 @@ name: dev
 variables:
   - name: baseUrl
     value: http://127.0.0.1:28417
-    description: ""
   - name: authToken
-    value: ""
-    description: ""
+    value: 3|upYw9z3LNjAOzRGP4PtdhC3T2nMWq2dSvGpReyDKea80dad0
   - name: invitationEmail
     value: invited@example.com
   - name: invitationToken
-    value: ""
+    value: lUVkDdmiCJf8Dx4mL9jf6UIpewVqn0ge8rfgN9AiMyVxqs6xhiJvSfl9aSXfW4U4
   - name: organizationMemberId
     value: ""
   - name: invitationId
-    value: ""
+    value: 84467829-25a3-4e53-863f-fa30a2eb775e
   - name: registrationEmail
     value: owner@example.test
-    description: ""
-  - name: registrationToken
-    value: ""
-    description: ""
-  - name: passwordResetToken
-    value: ""
-    description: ""
+  - name: organizationRegistrationToken
+    value: Po8NRTIFQOWKxukLHO3FyDtd1rRGTMC2TivFymBjhec1mb2YblMJwxv1ZrkKBqnN
   - name: memberRoleId
-    value: ""
-    description: ""
+    value: 01a0f73f-238d-702c-95ad-202b598348cd
   - name: roleId
+    value: 01a0f748-043a-73cf-ac78-33a66add1a32
+  - name: loginChallengeId
+    value: 01a0f75b-fafc-7169-bb29-9ae344e1523b
+  - name: loginCode
+    value: "072558"
+  - name: sessionId
     value: ""
-    description: ""

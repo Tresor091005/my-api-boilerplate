@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Testing\Fakes\QueueFake;
+use Illuminate\Testing\TestResponse;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Iam\Jobs\SendLoginCode;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
 use Tests\TestCase;
@@ -91,4 +96,27 @@ function createCatalogProductVariant(
         ...$variantAttributes,
         'organization_id' => $organizationId,
     ]);
+}
+
+/** Authenticate through the real email challenge endpoints with delivery faked. */
+function loginWithEmailCode(string $email): TestResponse
+{
+    Queue::fake();
+    $response = currentTestCase()->withHeader('Authorization', '')->postJson('/v1/auth/email-challenges', ['email' => $email])->assertOk();
+    $job = queuedLoginCodes()->last();
+
+    return currentTestCase()->postJson('/v1/auth/email-challenge-verifications', [
+        'challenge_id' => $response->json('challenge_id'), 'code' => $job->code,
+    ]);
+}
+
+/** @return Collection<int, SendLoginCode> */
+function queuedLoginCodes(): Collection
+{
+    $queue = Queue::getFacadeRoot();
+    if (!$queue instanceof QueueFake) {
+        throw new LogicException('Login code delivery must be faked in this test.');
+    }
+
+    return $queue->pushed(SendLoginCode::class);
 }

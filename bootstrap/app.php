@@ -11,6 +11,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
+use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 use Lahatre\Shared\Exceptions\AssertionException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -31,9 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->group('auth.api', [
             'auth:sanctum',
+            TrackSessionActivity::class,
             ResolveAuthContext::class,
             SetTeamPermissionsId::class,
         ]);
+        $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, ResolveAuthContext::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
     })

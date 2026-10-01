@@ -12,7 +12,7 @@ use Illuminate\Validation\Validator;
 use Lahatre\Iam\Services\OrganizationOnboardingService;
 use Lahatre\Shared\Rules\IanaTimezone;
 
-class RegisterRequest extends FormRequest
+class OrganizationRegistrationRequest extends FormRequest
 {
     private bool $accountLookupComplete = false;
 
@@ -57,7 +57,6 @@ class RegisterRequest extends FormRequest
             'last_name'                  => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'max:100'],
             'email'                      => ['required', 'string', 'email', 'max:254'],
             'token'                      => ['required', 'string', 'size:64'],
-            'password'                   => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'min:8', 'max:255', 'confirmed'],
             'organization'               => ['required', 'array:name,currency_code,timezone'],
             'organization.name'          => ['required', 'string', 'max:100'],
             'organization.currency_code' => ['required', 'string', 'size:3', 'alpha', Rule::exists('master_currencies', 'code')->whereNull('deleted_at')],
@@ -78,7 +77,7 @@ class RegisterRequest extends FormRequest
             if (!$accountExists) {
                 return;
             }
-            foreach (['first_name', 'last_name', 'password', 'password_confirmation'] as $field) {
+            foreach (['first_name', 'last_name'] as $field) {
                 if (array_key_exists($field, $this->all())) {
                     $validator->errors()->add($field, __('iam::validation.user_details_forbidden'));
                 }

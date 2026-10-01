@@ -44,8 +44,9 @@ public function boot(): void
 
 ## 3. Login flow
 
-`POST /v1/auth/login` checks the IAM user's email and password and returns a
-one-day bearer token. Its `organization_id`, `member_id`, `member_role_id`, and
+`POST /v1/auth/email-challenges` sends a sign-in code.
+`POST /v1/auth/email-challenge-verifications` verifies it and returns a one-day
+bearer token, creating a verified user when names are supplied for a new email. Its `organization_id`, `member_id`, `member_role_id`, and
 `role_id` metadata are initially null. The response lists the user's member
 roles so the client can choose an organization and role.
 
@@ -53,7 +54,8 @@ roles so the client can choose an organization and role.
 the role belongs to the authenticated user's membership and that the membership
 and role refer to the same organization. On success, it stores the selected
 organization, member, member role, and role IDs in the current token. A rejected
-selection leaves the token unchanged.
+selection leaves its organization context unchanged. Other session metadata is
+preserved; last-request evidence may still be updated.
 
 Memberships and member roles use soft deletes. An active member role is unique
 for its organization, member, and role; a deleted assignment may be followed
@@ -92,14 +94,22 @@ Sanctum guard and the context-resolution middleware together.
 ```php
 $middleware->group('auth.api', [
     'auth:sanctum',
+    TrackSessionActivity::class,
     ResolveAuthContext::class,
     SetTeamPermissionsId::class,
 ]);
 ```
 
 Tenant-scoped protected routes use this group. The IAM `me`, `logout`, and
-`switch-member-role` routes use Sanctum and `ResolveAuthContext` without
-requiring an active organization yet.
+`switch-member-role` routes, together with session management, use Sanctum and
+`ResolveAuthContext:user`. An invalid organization selection falls back to the
+authenticated user rather than preventing account access. Tenant routes retain
+strict context validation. See [OTP and sessions](../modules/iam.md#email-otp-and-sessions).
+
+Invalid authentication returns `401`. A valid token whose organization context
+is missing, incoherent, deleted, or inactive receives `403` on tenant routes.
+Account routes keep their user-only fallback so the user can still inspect
+sessions, log out, or select another active context.
 
 ## 6. Configuring authenticatable models
 
@@ -119,4 +129,5 @@ the following variable in `.env.example`:
 AUTH_GUARD=sanctum
 ```
 
-Laravel then uses the `sanctum` driver for the default `api` guard.
+Laravel then selects `sanctum` as the default guard. The `web` guard remains
+available; the API uses Sanctum bearer tokens.

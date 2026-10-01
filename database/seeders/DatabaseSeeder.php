@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             [
                 'first_name' => 'Test',
                 'last_name'  => 'User',
-                'password'   => 'password',
             ]
         );
 

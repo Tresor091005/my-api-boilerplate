@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 $resourceModeContracts = array_fill_keys(
     [
-        'lahatre.iam.auth.forgot-password',
+        'lahatre.iam.auth.email-challenges.store',
         'lahatre.iam.auth.organization-registration-tokens.store',
-        'lahatre.iam.auth.register',
+        'lahatre.iam.auth.organization-registrations.store',
         'lahatre.iam.invitations.accept',
         'lahatre.iam.auth.logout',
-        'lahatre.iam.auth.reset-password',
     ],
     ['default_mode' => 'resource'],
 );
 
 $authResourceContracts = array_fill_keys(
-    ['lahatre.iam.auth.login'],
+    ['lahatre.iam.auth.email-challenge-verifications.store'],
     [
         'default_mode'  => 'resource',
         'default_shape' => 'default',
@@ -113,6 +112,9 @@ return [
     ...$organizationMemberResourceContracts,
     ...$memberRoleResourceContracts,
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
+    'lahatre.iam.auth.sessions.index'                       => [],
+    'lahatre.iam.auth.sessions.destroy'                     => [],
+    'lahatre.iam.auth.sessions.destroy-all'                 => [],
     'lahatre.iam.auth.current-permissions'                  => [],
     'lahatre.iam.permissions.index'                         => [],
     'lahatre.iam.invitations.destroy'                       => [],

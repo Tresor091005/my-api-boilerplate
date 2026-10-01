@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Http\Middleware;
 
 use Closure;
-use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,7 +19,7 @@ class SetTeamPermissionsId
     public function handle(Request $request, Closure $next): Response
     {
         if (!authContext()->organization() || !authContext()->memberRole()) {
-            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
+            throw new AuthorizationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
         setPermissionsTeamId(authContext()->organization()->getKey());

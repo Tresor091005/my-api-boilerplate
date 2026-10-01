@@ -11,7 +11,6 @@ final readonly class InvitationAcceptanceData
         public ?string $lastName,
         public string $email,
         public string $token,
-        public ?string $password,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -22,7 +21,6 @@ final readonly class InvitationAcceptanceData
             $data['last_name'] ?? null,
             $data['email'],
             $data['token'],
-            $data['password'] ?? null,
         );
     }
 }

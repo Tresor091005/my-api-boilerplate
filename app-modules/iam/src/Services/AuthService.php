@@ -7,13 +7,8 @@ namespace Lahatre\Iam\Services;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Lahatre\Iam\Auth\PersonalAccessToken;
-use Lahatre\Iam\Data\LoginData;
-use Lahatre\Iam\Data\ResetPasswordData;
-use Lahatre\Iam\Exceptions\Auth\InvalidLoginException;
-use Lahatre\Iam\Exceptions\Auth\ResetPasswordFailedException;
+use Lahatre\Iam\Data\SessionData;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
 use Lahatre\Organization\Contracts\OrganizationInterface;
@@ -22,23 +17,13 @@ use Lahatre\Shared\Models\Authenticatable;
 class AuthService
 {
     /**
-     * Authenticate a user and return the user with its plain-text token.
-     *
-     * @throws InvalidLoginException
+     * Issue the common Sanctum session after the caller proves identity.
+     * The caller owns any surrounding authentication transaction.
      *
      * @return array{user: User, token: string}
      */
-    public function login(LoginData $data): array
+    public function issueToken(User $user, SessionData $session, string $authenticationMethod = 'email_otp'): array
     {
-        $user = User::query()
-            ->with(responseRelationsToLoad())
-            ->where('email', $data->email)
-            ->first();
-
-        if (!$user || !Hash::check($data->password, $user->password)) {
-            throw new InvalidLoginException;
-        }
-
         $token = $user->createToken('auth_token', ['*'], now()->addDay());
         $token->accessToken->update([
             'metadata' => [
@@ -46,8 +31,13 @@ class AuthService
                 'member_id'       => null,
                 'member_role_id'  => null,
                 'role_id'         => null,
+                'session'         => [
+                    'authentication_method' => $authenticationMethod,
+                    'last_request'          => [...$session->toArray(), 'at' => now()->toISOString()],
+                ],
             ],
         ]);
+        $user->load(responseRelationsToLoad());
 
         return ['user' => $user, 'token' => $token->plainTextToken];
     }
@@ -101,14 +91,21 @@ class AuthService
         /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();
 
-        $token->update([
-            'metadata' => [
-                'organization_id' => $memberRole->organization_id,
-                'member_id'       => $memberRole->member_id,
-                'member_role_id'  => $memberRole->id,
-                'role_id'         => $memberRole->role_id,
-            ],
-        ]);
+        $metadata = DB::transaction(function () use ($user, $token, $memberRole): array {
+            $locked = $user->tokens()->whereKey($token->id)->lockForUpdate()->firstOrFail();
+            $locked->update([
+                'metadata' => array_replace($locked->getAttribute('metadata') ?? [], [
+                    'organization_id' => $memberRole->organization_id,
+                    'member_id'       => $memberRole->member_id,
+                    'member_role_id'  => $memberRole->id,
+                    'role_id'         => $memberRole->role_id,
+                ]),
+            ]);
+
+            return $locked->getAttribute('metadata');
+        });
+        $token->setAttribute('metadata', $metadata);
+        $token->syncOriginalAttribute('metadata');
 
         $user->load(responseRelationsToLoad());
 
@@ -118,28 +115,5 @@ class AuthService
     public function currentPermissions(MemberRole $memberRole): Collection
     {
         return $memberRole->getPermissionsViaRoles();
-    }
-
-    /**
-     * Reset password
-     */
-    public function resetPassword(ResetPasswordData $data): void
-    {
-        $status = DB::transaction(fn () => Password::broker('users')->reset(
-            [
-                'email'    => $data->email,
-                'password' => $data->password,
-                'token'    => $data->token,
-            ],
-            function (User $user, string $password): void {
-                $user->fill(['password' => $password]);
-                $user->save();
-                $user->tokens()->delete();
-            }
-        ));
-
-        if ($status !== Password::PASSWORD_RESET) {
-            throw new ResetPasswordFailedException;
-        }
     }
 }

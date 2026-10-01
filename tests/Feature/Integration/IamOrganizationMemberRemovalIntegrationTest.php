@@ -151,7 +151,7 @@ it('soft deletes membership and roles while keeping the account and its other or
         setPermissionsTeamId($previousTeamId);
     }
     app('auth')->forgetGuards();
-    $this->withToken($removedToken)->getJson('/v1/auth/me')->assertUnauthorized();
+    $this->withToken($removedToken)->getJson('/v1/auth/current-permissions')->assertForbidden();
     app('auth')->forgetGuards();
     $this->withToken($otherToken)->getJson('/v1/auth/me')->assertOk()
         ->assertJsonPath('data.id', $user->id);
@@ -161,7 +161,7 @@ it('soft deletes membership and roles while keeping the account and its other or
 it('permits self removal for an ordinary member with the delete permission', function (): void {
     $context = authenticatedMemberRemovalContext();
     $this->deleteJson("/v1/iam/organization-members/{$context['member']->id}")->assertNoContent();
-    $this->getJson('/v1/auth/me')->assertUnauthorized();
+    $this->getJson('/v1/auth/current-permissions')->assertForbidden();
     expect($context['user']->fresh()->trashed())->toBeFalse();
 });
 

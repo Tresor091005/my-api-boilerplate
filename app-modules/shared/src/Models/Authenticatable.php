@@ -13,7 +13,6 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property string $id
  * @property string $email
- * @property string $password
  */
 abstract class Authenticatable extends BaseAuthenticatable
 {

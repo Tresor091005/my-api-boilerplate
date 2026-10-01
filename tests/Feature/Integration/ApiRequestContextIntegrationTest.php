@@ -120,7 +120,7 @@ it('rejects a token without a selected organization before tenant scoped binding
     $token = $context['user']->createToken('no-organization');
     $option = Option::factory()->create(['organization_id' => $context['organization']->id]);
     $value = OptionValue::factory()->create(['organization_id' => $context['organization']->id, 'option_id' => $option->id]);
-    $this->withToken($token->plainTextToken)->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertUnauthorized();
+    $this->withToken($token->plainTextToken)->getJson("/v1/catalog/options/{$option->id}/values/{$value->id}")->assertForbidden();
 });
 
 it('loads unit groups only when requested and keeps other organization units out for both sort paths', function (string $sortBy): void {

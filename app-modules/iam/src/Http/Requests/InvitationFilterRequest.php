@@ -20,6 +20,7 @@ class InvitationFilterRequest extends FormRequest
             'cursor'     => ['nullable', 'string'],
             'sort_by'    => ['string', Rule::in(['email', 'created_at', 'updated_at'])],
             'sort_order' => ['string', Rule::in(['asc', 'desc'])],
+            'status'     => ['string', Rule::in(['pending', 'expired'])],
         ];
     }
 }

@@ -28,7 +28,7 @@ it('has an auth rate limiter configured for 5 requests per minute', function ():
 
     expect($limiter)->toBeCallable();
 
-    $request = Request::create('/v1/auth/login', 'POST');
+    $request = Request::create('/v1/auth/email-challenges', 'POST');
     $limit = $limiter($request);
 
     expect($limit)->toBeInstanceOf(Limit::class);
@@ -58,8 +58,13 @@ it('ensures all api routes are throttled correctly', function (): void {
 
         expect($hasThrottle)->toBeTrue("Route [{$uri}] is not throttled.");
 
-        // Specific checks for login/register
-        if (str_contains((string) $uri, 'login') || str_contains((string) $uri, 'register')) {
+        if (in_array($uri, [
+            'v1/auth/email-challenges',
+            'v1/auth/email-challenge-verifications',
+            'v1/auth/organization-registration-tokens',
+            'v1/auth/organization-registrations',
+            'v1/iam/invitations/accept',
+        ], true)) {
             $hasAuthThrottle = collect($middleware)->contains(fn ($m): bool => is_string($m) && (
                 $m === 'throttle:auth' ||
                 $m === ThrottleRequests::class.':auth'

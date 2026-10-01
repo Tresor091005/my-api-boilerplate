@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Lahatre\Iam\Data\RegistrationData;
+use Lahatre\Iam\Data\OrganizationRegistrationData;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Exceptions\OrganizationOnboardingException;
 use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
@@ -90,7 +90,7 @@ final class OrganizationOnboardingService
         return $user?->trashed() ? null : $user !== null;
     }
 
-    public function register(RegistrationData $data): void
+    public function registerOrganization(OrganizationRegistrationData $data): void
     {
         DB::transaction(function () use ($data): void {
             $challenge = DB::table('iam_organization_registration_tokens')
@@ -102,7 +102,7 @@ final class OrganizationOnboardingService
                 throw OrganizationOnboardingException::invalidRegistrationToken();
             }
 
-            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName, $data->password);
+            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName);
             $this->provision($user, OrganizationData::fromArray($data->organization, $user->id));
             DB::table('iam_organization_registration_tokens')->where('token_hash', $challenge->token_hash)->delete();
         });

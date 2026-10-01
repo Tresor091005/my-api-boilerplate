@@ -6,19 +6,12 @@ namespace Lahatre\Iam\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Iam\Data\LoginData;
-use Lahatre\Iam\Data\RegistrationData;
-use Lahatre\Iam\Data\ResetPasswordData;
-use Lahatre\Iam\Http\Requests\ForgotPasswordRequest;
-use Lahatre\Iam\Http\Requests\LoginRequest;
+use Lahatre\Iam\Data\OrganizationRegistrationData;
+use Lahatre\Iam\Http\Requests\OrganizationRegistrationRequest;
 use Lahatre\Iam\Http\Requests\OrganizationRegistrationTokenRequest;
-use Lahatre\Iam\Http\Requests\RegisterRequest;
-use Lahatre\Iam\Http\Requests\ResetPasswordRequest;
 use Lahatre\Iam\Http\Requests\SwitchMemberRoleRequest;
-use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Http\Resources\PermissionResource;
 use Lahatre\Iam\Http\Resources\UserResource;
-use Lahatre\Iam\Jobs\SendPasswordResetLink;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\AuthService;
 use Lahatre\Iam\Services\OrganizationOnboardingService;
@@ -33,9 +26,9 @@ class AuthController
         protected ResponseResponder $responseResponder,
     ) {}
 
-    public function register(RegisterRequest $request): JsonResponse|Response
+    public function registerOrganization(OrganizationRegistrationRequest $request): JsonResponse|Response
     {
-        $this->onboarding->register(RegistrationData::fromArray($request->validated()));
+        $this->onboarding->registerOrganization(OrganizationRegistrationData::fromArray($request->validated()));
 
         return $this->responseResponder->respond(fn (): array => [
             'message' => __('iam::messages.auth.organization_registered'),
@@ -49,18 +42,6 @@ class AuthController
         return $this->responseResponder->respond(fn (): array => [
             'message' => __('iam::messages.auth.registration_link_sent'),
         ]);
-    }
-
-    /**
-     * Authenticate a user and return an AuthResource.
-     */
-    public function login(LoginRequest $request): JsonResponse|Response
-    {
-        $response = $this->authService->login(LoginData::fromArray($request->validated()));
-
-        return $this->responseResponder->respond(
-            fn (): JsonResource => AuthResource::make($response['user'])->withToken($response['token']),
-        );
     }
 
     /**
@@ -126,21 +107,5 @@ class AuthController
         );
 
         return $this->responseResponder->respond(fn (): JsonResource => PermissionResource::collection($response));
-    }
-
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse|Response
-    {
-        SendPasswordResetLink::dispatch($request->validated('email'));
-
-        return $this->responseResponder->respond(fn (): array => [
-            'message' => __('iam::messages.auth.password_reset_link_sent'),
-        ]);
-    }
-
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse|Response
-    {
-        $this->authService->resetPassword(ResetPasswordData::fromArray($request->validated()));
-
-        return $this->responseResponder->respond(fn (): array => ['detail' => true]);
     }
 }

@@ -107,7 +107,7 @@ it('changes only role activation and restores access on the same token after rea
         useIamActivationAccessToken($context['actorToken']);
         $this->patchJson('/v1/iam/roles/'.$context['role']->id, ['is_active' => $isActive])->assertNoContent();
         useIamActivationAccessToken($context['targetToken']);
-        $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 401);
+        $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 403);
         expect($context['member']->fresh()->is_active)->toBeTrue()
             ->and($context['assignment']->fresh()->is_active)->toBeTrue()
             ->and($context['role']->fresh()->is_active)->toBe($isActive)
@@ -127,7 +127,7 @@ it('changes only member activation and always includes its user profile in resou
             ->assertJsonPath('data.member_roles.0.is_active', true)
             ->assertJsonPath('data.member_roles.0.role.is_active', true);
         useIamActivationAccessToken($context['targetToken']);
-        $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 401);
+        $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 403);
         expect($context['assignment']->fresh()->is_active)->toBeTrue()->and($context['role']->fresh()->is_active)->toBeTrue();
     }
     useIamActivationAccessToken($context['actorToken']);
@@ -153,7 +153,7 @@ it('updates a complete assignment batch without deleting records or clearing Spa
         }
         foreach ([$context['targetToken'], $otherToken] as $token) {
             useIamActivationAccessToken($token);
-            $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 401);
+            $this->getJson('/v1/auth/current-permissions')->assertStatus($isActive ? 200 : 403);
         }
         expect($context['member']->fresh()->is_active)->toBeTrue()
             ->and(MemberRole::query()->where('organization_id', $context['organization']->id)->whereIn('id', $ids)->count())->toBe(2)
@@ -175,7 +175,7 @@ it('creates suspended assignments with Spatie roles ready for reactivation', fun
     $assignment = MemberRole::query()->findOrFail($response->json('data.0.id'));
     $targetToken = iamActivationAccessToken($context['member']->user, $assignment);
     useIamActivationAccessToken($targetToken);
-    $this->getJson('/v1/auth/current-permissions')->assertUnauthorized();
+    $this->getJson('/v1/auth/current-permissions')->assertForbidden();
     useIamActivationAccessToken($context['actorToken']);
     $this->patchJson($url, ['member_role_ids' => [$assignment->id], 'is_active' => true])->assertNoContent();
     useIamActivationAccessToken($targetToken);
@@ -298,11 +298,11 @@ it('keeps activation controls independent when the other access levels remain su
         ->and($context['role']->fresh()->is_active)->toBeFalse()
         ->and($context['assignment']->fresh()->is_active)->toBeTrue();
     useIamActivationAccessToken($context['targetToken']);
-    $this->getJson('/v1/auth/current-permissions')->assertUnauthorized();
+    $this->getJson('/v1/auth/current-permissions')->assertForbidden();
     useIamActivationAccessToken($context['actorToken']);
     $this->patchJson('/v1/iam/organization-members/'.$context['member']->id, ['is_active' => true])->assertNoContent();
     useIamActivationAccessToken($context['targetToken']);
-    $this->getJson('/v1/auth/current-permissions')->assertUnauthorized();
+    $this->getJson('/v1/auth/current-permissions')->assertForbidden();
     useIamActivationAccessToken($context['actorToken']);
     $this->patchJson('/v1/iam/roles/'.$context['role']->id, ['is_active' => true])->assertNoContent();
     useIamActivationAccessToken($context['targetToken']);

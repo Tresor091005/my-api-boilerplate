@@ -31,7 +31,12 @@ final class InvitationService
 
     public function paginate(InvitationFilterData $filters): CursorPaginator
     {
-        $query = Invitation::query()->where('organization_id', currentOrganizationId());
+        $query = Invitation::query()->where('organization_id', currentOrganizationId())->whereNull('accepted_at');
+        if ($filters->status === 'pending') {
+            $query->where('expires_at', '>', now());
+        } elseif ($filters->status === 'expired') {
+            $query->where('expires_at', '<=', now());
+        }
 
         return stableCursorPaginate(applyResponseContextToQuery($query), $filters);
     }
@@ -160,7 +165,7 @@ final class InvitationService
             if (!Organization::query()->whereKey($organizationId)->exists()) {
                 throw InvitationException::unavailable();
             }
-            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName, $data->password);
+            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName);
             $this->assertCanInvite($organizationId, $user);
             $roles = $this->resolveRoles($organizationId, $this->offeredRoleIds($invitation));
             $member = OrganizationMember::query()->create([

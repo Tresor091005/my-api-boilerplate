@@ -1,17 +1,18 @@
 info:
-  name: login
+  name: verify-email-code-existing-user
   type: http
-  seq: 4
+  seq: 6
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/auth/login"
+  url: "{{baseUrl}}/v1/auth/email-challenge-verifications"
+  auth: none
   body:
     type: json
     data: |-
       {
-        "email": "{{registrationEmail}}",
-        "password": "password123"
+        "challenge_id": "{{loginChallengeId}}",
+        "code": "{{loginCode}}"
       }
 
 runtime:

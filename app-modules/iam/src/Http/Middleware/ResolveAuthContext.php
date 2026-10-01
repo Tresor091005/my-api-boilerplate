@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Http\Middleware;
 
 use Closure;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Context;
@@ -18,7 +19,7 @@ class ResolveAuthContext
      *
      * @param  Closure(Request):Response  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $scope = 'organization'): Response
     {
         $context = authContext();
 
@@ -31,7 +32,14 @@ class ResolveAuthContext
 
             $metadata = ($token instanceof PersonalAccessToken) ? $token->metadata : null;
 
-            $context->setContext($user, $metadata);
+            try {
+                $context->setContext($user, $metadata);
+            } catch (AuthorizationException $exception) {
+                if ($scope !== 'user') {
+                    throw $exception;
+                }
+                $context->setContext($user);
+            }
 
             Context::add('auth', array_filter([
                 'user_id'         => $user->getAuthIdentifier(),

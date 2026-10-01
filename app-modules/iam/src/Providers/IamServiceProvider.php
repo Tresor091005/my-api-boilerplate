@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Providers;
 
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
-use Lahatre\Iam\Models\User;
 use Laravel\Sanctum\Sanctum;
 
 class IamServiceProvider extends ServiceProvider
@@ -27,11 +25,6 @@ class IamServiceProvider extends ServiceProvider
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
-        ResetPassword::createUrlUsing(fn (User $user, string $token): string => rtrim(config('frontend.url'), '/').config('frontend.reset_password_path').'?'.http_build_query([
-            'email' => $user->email,
-            'token' => $token,
-        ]));
-
         $schedule
             ->command('sanctum:prune-expired --hours=24')
             ->dailyAt('02:30')
@@ -43,6 +36,13 @@ class IamServiceProvider extends ServiceProvider
             ->call(fn (): int => DB::table('iam_organization_registration_tokens')->where('expires_at', '<=', now())->delete())
             ->name('prune-organization-registration-tokens')
             ->dailyAt('02:35')
+            ->onOneServer()
+            ->withoutOverlapping();
+
+        $schedule
+            ->call(fn (): int => DB::table('iam_email_login_challenges')->where('expires_at', '<=', now())->delete())
+            ->name('prune-email-login-challenges')
+            ->dailyAt('02:40')
             ->onOneServer()
             ->withoutOverlapping();
 

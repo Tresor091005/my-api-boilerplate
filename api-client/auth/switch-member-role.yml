@@ -1,7 +1,7 @@
 info:
   name: switch-member-role
   type: http
-  seq: 5
+  seq: 7
 
 http:
   method: POST

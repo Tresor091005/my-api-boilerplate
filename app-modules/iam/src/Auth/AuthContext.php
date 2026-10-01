@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Auth;
 
-use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Lahatre\Iam\Models\MemberRole;
@@ -30,7 +30,7 @@ class AuthContext
      *
      * @param  array<string, mixed>|null  $metadata
      *
-     * @throws AuthenticationException
+     * @throws AuthorizationException
      */
     public function setContext(Authenticatable $user, ?array $metadata = null): void
     {
@@ -65,13 +65,13 @@ class AuthContext
                 'metadata' => $metadata,
             ]);
 
-            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
+            throw new AuthorizationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
         try {
             $organization = app(OrganizationInterface::class)->findOrganizationById($metadata['organization_id']);
         } catch (ModelNotFoundException) {
-            throw new AuthenticationException(__('iam::exceptions.auth.invalid_session_context'));
+            throw new AuthorizationException(__('iam::exceptions.auth.invalid_session_context'));
         }
 
         $this->user = $user;

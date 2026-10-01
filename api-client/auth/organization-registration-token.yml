@@ -1,11 +1,12 @@
 info:
-  name: organization-registration-token
+  name: request-organization-registration-token
   type: http
   seq: 1
 
 http:
   method: POST
   url: "{{baseUrl}}/v1/auth/organization-registration-tokens"
+  auth: none
   body:
     type: json
     data: |-

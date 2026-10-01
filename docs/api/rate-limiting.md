@@ -36,8 +36,11 @@ prevent brute-force attacks.
 - **Identification:** IP address only.
 - **Middleware:** `throttle:auth`.
 - **Affected endpoints:**
-  - `POST /v1/auth/{type}/login`
-  - `POST /v1/auth/register`
+  - `POST /v1/auth/email-challenges`
+  - `POST /v1/auth/email-challenge-verifications`
+  - `POST /v1/auth/organization-registration-tokens`
+  - `POST /v1/auth/organization-registrations`
+  - `POST /v1/iam/invitations/accept`
 
 Other authentication routes, such as `/me` and `/logout`, use the default
 `api` limiter.

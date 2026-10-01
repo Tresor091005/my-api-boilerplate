@@ -54,8 +54,8 @@ it('requires authentication and a selected organization for member reads', funct
     $this->getJson('/v1/iam/organization-members')->assertUnauthorized();
     $this->getJson("/v1/iam/organization-members/{$member->id}")->assertUnauthorized();
     $token = User::factory()->create()->createToken('no-context');
-    $this->withToken($token->plainTextToken)->getJson('/v1/iam/organization-members')->assertUnauthorized();
-    $this->getJson("/v1/iam/organization-members/{$member->id}")->assertUnauthorized();
+    $this->withToken($token->plainTextToken)->getJson('/v1/iam/organization-members')->assertForbidden();
+    $this->getJson("/v1/iam/organization-members/{$member->id}")->assertForbidden();
 });
 
 it('authorizes list and detail with separate member permissions', function (array $abilities, int $listStatus, int $detailStatus): void {
@@ -161,9 +161,7 @@ it('returns the account id only to its owner through login, current-user, and ro
         'organization_id' => $context['organization']->id, 'user_id' => $otherUser->id,
     ]);
 
-    $login = currentTestCase()->withHeader('Authorization', '')->postJson('/v1/auth/login', [
-        'email' => $context['user']->email, 'password' => 'password',
-    ])->assertOk()->assertJsonPath('data.user.id', $context['user']->id);
+    $login = loginWithEmailCode($context['user']->email)->assertOk()->assertJsonPath('data.user.id', $context['user']->id);
     $me = $this->withToken($login->json('data.access_token'))->getJson('/v1/auth/me')
         ->assertOk()->assertJsonPath('data.id', $context['user']->id);
     $switch = $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $context['memberRole']->id])

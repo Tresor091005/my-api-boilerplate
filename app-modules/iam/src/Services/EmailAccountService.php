@@ -27,16 +27,16 @@ final class EmailAccountService
      *
      * @throws EmailAccountException
      */
-    public function resolve(string $email, ?string $firstName, ?string $lastName, ?string $password): User
+    public function resolve(string $email, ?string $firstName, ?string $lastName): User
     {
         $user = $this->findForUpdate($email);
         if ($user?->trashed()) {
             throw EmailAccountException::unavailableEmail();
         }
-        if (!$user && (!$firstName || !$lastName || !$password)) {
+        if (!$user && (!$firstName || !$lastName)) {
             throw EmailAccountException::userDetailsRequired();
         }
-        if ($user && ($firstName !== null || $lastName !== null || $password !== null)) {
+        if ($user && ($firstName !== null || $lastName !== null)) {
             throw EmailAccountException::userDetailsForbidden();
         }
         if (!$user) {
@@ -44,7 +44,6 @@ final class EmailAccountService
                 'first_name' => $firstName,
                 'last_name'  => $lastName,
                 'email'      => $email,
-                'password'   => $password,
             ]);
         }
         if ($user->email_verified_at === null) {

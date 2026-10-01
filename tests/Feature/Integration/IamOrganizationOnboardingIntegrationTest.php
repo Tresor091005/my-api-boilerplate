@@ -53,7 +53,12 @@ function queuedOrganizationRegistrationLinks(): Collection
     return $queue->pushed(SendOrganizationRegistrationLink::class);
 }
 
-it('creates no user or organization until the email token completes registration', function (): void {
+it('removes the ambiguous registration endpoint', function (): void {
+    $this->postJson('/v1/auth/register', [])->assertNotFound();
+    expect(User::query()->count())->toBe(0)->and(Organization::query()->count())->toBe(0);
+});
+
+it('creates no user or organization until the email token completes organization registration', function (): void {
     $permission = Permission::factory()->create(['name' => 'iam_role.list']);
     foreach (Role::query()->with('permissions')->whereIn('name', [SysRole::Administrator->value])->get() as $role) {
         $role->givePermissionTo($permission);
@@ -74,14 +79,12 @@ it('creates no user or organization until the email token completes registration
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     expect($query['has_account'])->toBe('0');
 
-    $this->postJson('/v1/auth/register', [
-        'first_name'            => ' Ada ',
-        'last_name'             => ' Lovelace ',
-        'email'                 => 'ADA@EXAMPLE.COM',
-        'token'                 => $query['token'],
-        'password'              => 'password123',
-        'password_confirmation' => 'password123',
-        'organization'          => [
+    $this->postJson('/v1/auth/organization-registrations', [
+        'first_name'   => ' Ada ',
+        'last_name'    => ' Lovelace ',
+        'email'        => 'ADA@EXAMPLE.COM',
+        'token'        => $query['token'],
+        'organization' => [
             'name'          => ' First Company ',
             'currency_code' => 'xof',
             'timezone'      => 'Africa/Porto-Novo',
@@ -102,13 +105,13 @@ it('creates no user or organization until the email token completes registration
         ->and($memberRoles->keys()->all())->toEqualCanonicalizing([SysRole::Administrator->value]);
     expect(getPermissionsTeamId())->toBeNull();
 
-    $this->postJson('/v1/auth/register', [
+    $this->postJson('/v1/auth/organization-registrations', [
         'email'        => $user->email,
         'token'        => $query['token'],
         'organization' => ['name' => 'Replay', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
     ])->assertUnprocessable();
 
-    $login = $this->postJson('/v1/auth/login', ['email' => strtoupper($user->email), 'password' => 'password123'])
+    $login = loginWithEmailCode(strtoupper($user->email))
         ->assertOk()
         ->assertJsonPath('data.user.id', $user->id);
     foreach ($memberRoles as $memberRole) {
@@ -129,7 +132,7 @@ it('lets an existing account create an organization with its email token and no 
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     expect($query['has_account'])->toBe('1');
 
-    $this->postJson('/v1/auth/register?response=resource', [
+    $this->postJson('/v1/auth/organization-registrations?response=resource', [
         'email'        => $user->email,
         'token'        => $query['token'],
         'organization' => ['name' => 'Second Company', 'currency_code' => 'xof', 'timezone' => 'Africa/Porto-Novo'],
@@ -165,11 +168,11 @@ it('requires user details only for new accounts after a valid email token', func
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
 
-    $this->postJson('/v1/auth/register', [
+    $this->postJson('/v1/auth/organization-registrations', [
         'email'        => 'new@example.com',
         'token'        => $query['token'],
         'organization' => ['name' => 'New Company', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
-    ])->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name', 'password']);
+    ])->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name']);
 
     $existing = User::factory()->create();
     $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $existing->email])->assertOk();
@@ -177,14 +180,14 @@ it('requires user details only for new accounts after a valid email token', func
     $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->last()->url;
     parse_str((string) parse_url($url, PHP_URL_QUERY), $existingQuery);
 
-    $this->postJson('/v1/auth/register', [
+    $this->postJson('/v1/auth/organization-registrations', [
         'email'        => $existing->email,
         'token'        => $existingQuery['token'],
         'first_name'   => 'Should not change',
         'organization' => ['name' => 'Existing Company', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
     ])->assertUnprocessable()->assertJsonValidationErrors(['first_name']);
 
-    $this->postJson('/v1/auth/register', [
+    $this->postJson('/v1/auth/organization-registrations', [
         'email'        => 'someone-else@example.com',
         'token'        => $existingQuery['token'],
         'organization' => ['name' => 'Wrong Owner', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
@@ -205,17 +208,15 @@ it('invalidates a previous registration link when a new one is requested', funct
     parse_str((string) parse_url($secondUrl, PHP_URL_QUERY), $secondQuery);
 
     $payload = [
-        'email'                 => $email,
-        'first_name'            => 'New',
-        'last_name'             => 'Owner',
-        'password'              => 'password123',
-        'password_confirmation' => 'password123',
-        'organization'          => ['name' => 'New Company', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
+        'email'        => $email,
+        'first_name'   => 'New',
+        'last_name'    => 'Owner',
+        'organization' => ['name' => 'New Company', 'currency_code' => 'XOF', 'timezone' => 'UTC'],
     ];
-    $this->postJson('/v1/auth/register', [...$payload, 'token' => $firstQuery['token']])
+    $this->postJson('/v1/auth/organization-registrations', [...$payload, 'token' => $firstQuery['token']])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['token']);
-    $this->postJson('/v1/auth/register', [...$payload, 'token' => $secondQuery['token']])->assertCreated();
+    $this->postJson('/v1/auth/organization-registrations', [...$payload, 'token' => $secondQuery['token']])->assertCreated();
     expect(User::query()->count())->toBe(1);
 });
 
@@ -226,14 +227,12 @@ it('rolls back registration when a system role is unavailable', function (string
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     Role::query()->where('name', $missingRole)->delete();
 
-    $this->postJson('/v1/auth/register', [
-        'first_name'            => 'Grace',
-        'last_name'             => 'Hopper',
-        'email'                 => 'grace@example.com',
-        'token'                 => $query['token'],
-        'password'              => 'password123',
-        'password_confirmation' => 'password123',
-        'organization'          => [
+    $this->postJson('/v1/auth/organization-registrations', [
+        'first_name'   => 'Grace',
+        'last_name'    => 'Hopper',
+        'email'        => 'grace@example.com',
+        'token'        => $query['token'],
+        'organization' => [
             'name'          => 'Missing Admin',
             'currency_code' => 'XOF',
             'timezone'      => 'Africa/Porto-Novo',

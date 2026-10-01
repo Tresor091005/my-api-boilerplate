@@ -7,7 +7,7 @@ namespace Lahatre\Iam\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
-class ForgotPasswordRequest extends FormRequest
+class EmailChallengeRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -16,13 +16,9 @@ class ForgotPasswordRequest extends FormRequest
         }
     }
 
-    /**
-     * @return array<string, array<int, string>>
-     */
+    /** @return array<string, array<mixed>> */
     public function rules(): array
     {
-        return [
-            'email' => ['required', 'string', 'email', 'max:254'],
-        ];
+        return ['email' => ['required', 'string', 'email', 'max:254']];
     }
 }

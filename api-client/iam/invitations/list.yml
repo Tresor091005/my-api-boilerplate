@@ -6,6 +6,11 @@ info:
 http:
   method: GET
   url: "{{baseUrl}}/v1/iam/invitations?per_page=20"
+  params:
+    - name: status
+      value: pending
+      type: query
+      disabled: true
   auth: inherit
 
 settings:

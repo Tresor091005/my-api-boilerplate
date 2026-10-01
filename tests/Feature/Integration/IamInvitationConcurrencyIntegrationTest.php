@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use Lahatre\Iam\Auth\PersonalAccessToken;
 use Lahatre\Iam\Models\Invitation;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
@@ -61,6 +62,8 @@ function invitationConcurrencyContext(): array
 
 /**
  * Exercise separate HTTP requests with separate PostgreSQL connections.
+ * Reconnect replaces the PDO while preserving the connection object retained
+ * by the database-backed limiter cache after the fork.
  *
  * @param  list<array{method: string, url: string, payload: array<string, mixed>, accessToken?: string}>  $requests
  * @return list<array{status: int, body: array<string, mixed>|null}>
@@ -79,7 +82,7 @@ function concurrentInvitationRequests(array $requests): array
             }
             if ($pid === 0) {
                 try {
-                    DB::purge();
+                    DB::reconnect();
                     app('auth')->forgetGuards();
                     file_put_contents($directory.'/'.$index.'.ready', 'ready');
                     $deadline = microtime(true) + 10;
@@ -128,7 +131,7 @@ function concurrentInvitationRequests(array $requests): array
 
         return $results;
     } finally {
-        DB::purge();
+        DB::reconnect();
         foreach (glob($directory.'/*') ?: [] as $file) {
             unlink($file);
         }
@@ -200,7 +203,7 @@ it('creates one account when two organizations invitations to a new email are ac
         'organization_id' => $otherOrganization->id, 'email' => $email, 'token_hash' => hash('sha256', $otherToken),
     ]);
     $otherInvitation->roles()->syncWithPivotValues([$otherRole->id], ['organization_id' => $otherOrganization->id]);
-    $payload = ['email' => $email, 'first_name' => 'New', 'last_name' => 'User', 'password' => 'password123', 'password_confirmation' => 'password123'];
+    $payload = ['email' => $email, 'first_name' => 'New', 'last_name' => 'User'];
     $results = concurrentInvitationRequests([
         ['method' => 'POST', 'url' => '/v1/iam/invitations/accept', 'payload' => [...$payload, 'token' => $context['token']]],
         ['method' => 'POST', 'url' => '/v1/iam/invitations/accept', 'payload' => [...$payload, 'token' => $otherToken]],
@@ -229,4 +232,46 @@ it('serializes role deletion with acceptance so a new membership never receives 
     $accepted = $results[0]['status'] === 201;
     expect($offeredRole->fresh()->deleted_at === null)->toBe($accepted)
         ->and(OrganizationMember::query()->where('organization_id', $context['organization']->id)->where('user_id', $context['user']->id)->exists())->toBe($accepted);
+});
+
+it('issues exactly one session when two correct OTP verifications race', function (): void {
+    $email = 'otp-race@example.test';
+    $response = $this->postJson('/v1/auth/email-challenges', ['email' => $email])->assertOk();
+    $job = queuedLoginCodes()->last();
+    $request = ['method' => 'POST', 'url' => '/v1/auth/email-challenge-verifications', 'payload' => [
+        'challenge_id' => $response->json('challenge_id'), 'code' => $job->code,
+        'first_name'   => 'New', 'last_name' => 'User',
+    ]];
+    $results = concurrentInvitationRequests([$request, $request]);
+    expect(array_column($results, 'status'))->toEqualCanonicalizing([200, 422])
+        ->and(User::query()->where('email', $email)->count())->toBe(1)
+        ->and(User::query()->where('email', $email)->firstOrFail()->tokens()->count())->toBe(1)
+        ->and(Organization::query()->count())->toBe(0);
+});
+
+it('serializes concurrent email-code requests under the same cooldown', function (): void {
+    $request = ['method' => 'POST', 'url' => '/v1/auth/email-challenges', 'payload' => ['email' => 'code-race@example.test']];
+    $results = concurrentInvitationRequests([$request, $request]);
+    expect(array_column($results, 'status'))->toBe([200, 200])
+        ->and($results[0]['body']['challenge_id'])->toBe($results[1]['body']['challenge_id'])
+        ->and(DB::table('iam_email_login_challenges')->where('email', 'code-race@example.test')->count())->toBe(1);
+});
+
+it('preserves context and session evidence when activity and role switching race', function (): void {
+    $context = invitationConcurrencyContext();
+    $record = PersonalAccessToken::query()->where('name', 'concurrent-invitations')->firstOrFail();
+    $role = Role::factory()->create(['team_id' => $context['organization']->id]);
+    $assignment = MemberRole::factory()->create([
+        'organization_id' => $context['organization']->id, 'member_id' => $record->getMeta('member_id'), 'role_id' => $role->id,
+    ]);
+    $record->update(['metadata' => array_replace($record->metadata, ['custom' => 'preserved', 'session' => ['authentication_method' => 'email_otp']])]);
+    $results = concurrentInvitationRequests([
+        ['method' => 'GET', 'url' => '/v1/auth/me', 'payload' => [], 'accessToken' => $context['accessToken']],
+        ['method' => 'POST', 'url' => '/v1/auth/switch-member-role', 'payload' => ['member_role_id' => $assignment->id], 'accessToken' => $context['accessToken']],
+    ]);
+    expect(array_column($results, 'status'))->toBe([200, 200])
+        ->and($record->fresh()->getMeta('member_role_id'))->toBe($assignment->id)
+        ->and($record->fresh()->getMeta('custom'))->toBe('preserved')
+        ->and($record->fresh()->getMeta('session.authentication_method'))->toBe('email_otp')
+        ->and($record->fresh()->getMeta('session.last_request.at'))->toBeString();
 });

@@ -12,15 +12,17 @@ The IAM module owns authentication and organization-scoped authorization.
    newer token. Stale jobs skip delivery.
 2. The email links to `frontend.url` plus `frontend.organization_registration_path` with `email`,
    `token`, and a display-only `has_account` flag. The frontend submits the token
-   and organization data to `POST /v1/auth/register`. New accounts also supply
-   names and a confirmed password; existing accounts must omit those fields.
+   and organization data to `POST /v1/auth/organization-registrations`. New accounts also supply
+   names; existing accounts must omit those fields.
    The API rechecks the email and token, sets `email_verified_at`, then creates
    the organization, settings, membership, and one member role in one
    transaction. The owner receives the built-in Administrator role,
    assigned through Spatie's team-scoped pivot so its permissions work after
    role switching.
    Registration returns a success message without user data or an access token.
-3. The user logs in. Sanctum issues a personal access token using the custom
+   Account signup without an organization uses the email OTP flow described
+   below; there is no generic `/v1/auth/register` endpoint.
+3. The user signs in with an email OTP. Sanctum issues a personal access token using the custom
    `Lahatre\Iam\Auth\PersonalAccessToken` model.
 4. The token metadata records the selected organization/member-role context.
 5. `ResolveAuthContext` validates that metadata against the authenticated user
@@ -43,7 +45,7 @@ assignment, and role from the database on each authenticated request. All three
 must exist, remain non-deleted, and be active; the membership must belong to the
 user and organization, and the role must use the current guard and either be
 global or belong to that organization. The organization must also remain
-non-deleted. An unavailable context returns `401`, including for tokens issued
+non-deleted. An unavailable context returns `403` on organization endpoints, including for tokens issued
 before deactivation. Token metadata and Spatie assignments are retained.
 The context is cleared before resolution and is populated only after all checks
 pass. Authentication without a selected organization remains available.
@@ -61,11 +63,67 @@ Login and authenticated routes do not enforce email verification. The
 registration token only proves control of the email for this organization
 creation flow.
 
+## Email OTP and sessions
+
+`POST /v1/auth/email-challenges` takes only `email`. The response always has the
+same message and a random `challenge_id`, even for soft-deleted addresses or
+limited sends. Limited requests retain the current challenge ID without
+invalidating an already emailed code. It does not expose account existence. Sending creates no user.
+The six-digit code expires after ten minutes and is protected in storage by a
+purpose- and challenge-bound HMAC using the application key. The encrypted
+`SendLoginCode` job runs on the `email` queue after commit. Delivery skips codes
+that have been replaced, consumed, exhausted, or expired.
+
+`POST /v1/auth/email-challenge-verifications` takes `challenge_id`, `code` as a
+six-character string, and names for a new account. The code proves ownership
+before account details are required. Existing profiles are preserved even if
+names are supplied. New users receive `email_verified_at` and no organization
+or membership. Verification consumes the code and issues a 24-hour Sanctum token
+in one transaction; concurrent verification can issue at most one session.
+Account resolution shares the email advisory lock with organization registration
+and invitation acceptance, preventing duplicate users across the flows.
+
+Each email can receive at most five sends per hour with a 60-second cooldown.
+A challenge permits five incorrect attempts. Incorrect attempts commit before
+returning a generic error. Resend rotates the challenge ID and code but retains
+the failed-attempt count while the previous challenge has not expired.
+Expired challenge records are pruned daily. Login challenges cannot authorize
+organization creation or invitation acceptance; those tokens remain separate.
+
+`GET /v1/auth/sessions` lists only the caller's unexpired Sanctum tokens, with
+cursor pagination (`per_page`, `cursor`, `sort_by=id|created_at|updated_at`,
+`sort_order`; defaults 50, created date descending). Output includes `id`,
+`name`, `is_current`, creation/last-use/expiry timestamps, authentication method,
+and last-request evidence. It never exposes token values, hashes, abilities,
+user IDs, or arbitrary metadata. `DELETE /v1/auth/sessions/{session}` revokes one
+owned token. `DELETE /v1/auth/sessions` revokes all owned tokens, including the
+current and expired tokens. Foreign session identifiers return `404`.
+
+`metadata.session` holds the authentication method and latest request's IP,
+User-Agent (limited to 1000 characters), and timestamp. User-Agent is descriptive
+client input, never an authentication or trusted-device credential. IP uses
+Laravel's request resolution; forwarded addresses are accepted only through
+configured trusted proxies. No geolocation provider is configured, so geographic
+location is not inferred or fabricated. A future GeoIP integration can enrich
+the same metadata. Last-request writes use an atomic JSONB update; role switches
+lock the token and merge only the four organization context keys.
+
+`me`, `logout`, session management, and role switching resolve organization
+context optionally and fall back to user-only context when it is unavailable.
+Tenant operations retain strict `AuthContext` validation and activation checks.
+Missing, invalid, expired, or revoked Sanctum tokens return `401`; a valid token
+with a missing or unavailable organization context returns `403` on tenant
+operations. Frontends can retain authentication after a `403` and allow account
+access or context switching. A `401` requires authentication again.
+Password login and forgot/reset password endpoints no longer exist. Apply the
+passwordless migrations with `php artisan migrate`; removed password data cannot
+be recovered through rollback. No separate verify-email enforcement is added.
+
 ## Current operations
 
 The module supports registration, login, logout, current-user retrieval,
 member-role switching, current-permission retrieval, permission catalog listing,
-forgot-password, and reset-password. `GET /v1/iam/permissions` lists all
+email-code challenges, and session listing and revocation. `GET /v1/iam/permissions` lists all
 permissions for the active guard, including those not assigned to the current
 role. It requires an active organization role with `iam_permission.list` and has
 no mutation or detail routes. Invitations provide the member onboarding API;
@@ -201,6 +259,12 @@ and email resend. Management requires `auth.api` and the matching
 exposes a generic invitation update endpoint. Roles are optional response loads
 through `include=roles`; permissions are not available as an invitation include.
 
+The list always excludes accepted and soft-deleted invitations. Its optional
+`status` filter accepts `pending` (`expires_at > now`) or `expired`
+(`expires_at <= now`). Without a status filter, both states are returned.
+Expiry is evaluated at query time, so no stored status or scheduled transition
+is needed. Accepted records remain available for reuse after member departure.
+
 Create takes `email` and a nonempty `role_ids` list. Only active, non-built-in
 roles belonging to the current organization and guard are accepted. There is one
 record per organization and normalized email, including cancelled records.
@@ -221,7 +285,7 @@ The frontend link uses `frontend.invitation_acceptance_path` and carries
 `email`, `token`, and the display-only `has_account` flag.
 
 `POST /v1/iam/invitations/accept` is public and rate-limited. It takes `email`
-and `token`. Names and a confirmed password are required for a new account and
+and `token`. Names are required for a new account and
 must be omitted for an existing account. The API rechecks account existence and
 rejects soft-deleted accounts. Acceptance marks `email_verified_at` when absent,
 creates membership and one MemberRole per current offered role, and calls
@@ -246,13 +310,8 @@ cache workflow when those caches are enabled.
 
 ## Boundaries and gaps
 
-- Password reset returns a generic response and queues Laravel's broker email.
-  The link points to `frontend.url` plus `frontend.reset_password_path`; no reset
-  token is returned by the API. Only the frontend base URL comes from
-  `FRONTEND_URL`; the paths are defined in `config/frontend.php`. A successful
-  reset revokes every Sanctum access token belonging to the user.
-- Login access tokens expire after 24 hours. Password reset tokens expire after
-  60 minutes; organization registration tokens expire after one hour and are
+- Login access tokens expire after 24 hours. Email login codes expire after
+  10 minutes. Organization registration tokens expire after one hour and are
   consumed on successful registration.
 - The Horizon/Telescope gates contain no configured production allow-list yet;
   production access must be explicitly configured before exposing those UIs.

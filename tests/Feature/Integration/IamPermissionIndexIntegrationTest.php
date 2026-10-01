@@ -23,7 +23,7 @@ it('requires an authenticated organization role to list permissions', function (
     $user = User::factory()->create();
     $this->withToken($user->createToken('permissions-test')->plainTextToken)
         ->getJson('/v1/iam/permissions')
-        ->assertUnauthorized();
+        ->assertForbidden();
 });
 
 it('lists every permission for the active guard, including unassigned permissions', function (): void {

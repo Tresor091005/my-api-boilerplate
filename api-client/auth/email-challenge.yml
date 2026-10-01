@@ -1,0 +1,29 @@
+info:
+  name: request-email-code
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/email-challenges"
+  auth: none
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{registrationEmail}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200 && typeof res.body?.challenge_id === 'string') {
+          bru.setEnvVar('loginChallengeId', res.body.challenge_id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

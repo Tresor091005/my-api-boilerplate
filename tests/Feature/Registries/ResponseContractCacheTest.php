@@ -60,20 +60,20 @@ it('loads user relationships only for IAM responses that return a user', functio
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    $login = $registry->forRoute('lahatre.iam.auth.login');
-    $register = $registry->forRoute('lahatre.iam.auth.register');
+    $login = $registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store');
+    $organizationRegistration = $registry->forRoute('lahatre.iam.auth.organization-registrations.store');
     $me = $registry->forRoute('lahatre.iam.auth.me');
     $switchMemberRole = $registry->forRoute('lahatre.iam.auth.switch-member-role');
 
     expect($login)->not->toBeNull()
-        ->and($register)->not->toBeNull()
+        ->and($organizationRegistration)->not->toBeNull()
         ->and($me)->not->toBeNull()
         ->and($switchMemberRole)->not->toBeNull()
         ->and($login->defaultMode)->toBe(ResponseMode::Resource)
         ->and($login->shapes['default']->requiredLoads)
         ->toBe(['organizationMemberships.memberRoles.role'])
-        ->and($register->defaultMode)->toBe(ResponseMode::Resource)
-        ->and($register->resolveShape(null))->toBeNull()
+        ->and($organizationRegistration->defaultMode)->toBe(ResponseMode::Resource)
+        ->and($organizationRegistration->resolveShape(null))->toBeNull()
         ->and($me->defaultMode)->toBe(ResponseMode::Resource)
         ->and($switchMemberRole->defaultMode)->toBe(ResponseMode::Resource)
         ->and($me->shapes['default']->requiredLoads)
@@ -109,7 +109,7 @@ it('maps every relation-backed resource operation to required loads or includes'
         }
     }
 
-    expect($registry->forRoute('lahatre.iam.auth.login')?->resolveShape(null)->requiredLoads)
+    expect($registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store')?->resolveShape(null)->requiredLoads)
         ->toContain('organizationMemberships.memberRoles.role');
 });
 

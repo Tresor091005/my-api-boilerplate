@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Testing\Fakes\QueueFake;
@@ -85,8 +84,7 @@ function createInvitationThroughApi(string $email, array $roleIds): Invitation
 function newInvitedUserPayload(string $email, string $token): array
 {
     return [
-        'email'    => $email, 'token' => $token, 'first_name' => ' Invited ', 'last_name' => ' User ',
-        'password' => 'password123', 'password_confirmation' => 'password123',
+        'email' => $email, 'token' => $token, 'first_name' => ' Invited ', 'last_name' => ' User ',
     ];
 }
 
@@ -128,6 +126,62 @@ it('lists and retrieves only the current tenant invitations with optional roles 
     $this->getJson("/v1/iam/invitations/{$deleted->id}")->assertNotFound();
 });
 
+it('filters unaccepted invitations by expiry while preserving tenant and soft-delete boundaries', function (?string $status): void {
+    currentTestCase()->travelTo(now()->startOfSecond());
+    $context = authenticatedInvitationContext();
+    $attributes = ['organization_id' => $context['organization']->id];
+    $pending = Invitation::factory()->create([...$attributes, 'expires_at' => now()->addSecond()]);
+    $expired = Invitation::factory()->create([...$attributes, 'expires_at' => now()->subSecond()]);
+    $boundary = Invitation::factory()->create([...$attributes, 'expires_at' => now()]);
+    $accepted = Invitation::factory()->create([...$attributes, 'accepted_at' => now()]);
+    Invitation::factory()->create([...$attributes, 'accepted_at' => now(), 'expires_at' => now()->subDay()]);
+    Invitation::factory()->create([...$attributes, 'deleted_at' => now()]);
+    Invitation::factory()->create([...$attributes, 'deleted_at' => now(), 'expires_at' => now()->subDay()]);
+    Invitation::factory()->create();
+    Invitation::factory()->create(['expires_at' => now()->subDay()]);
+
+    $query = $status === null ? '' : '?status='.$status;
+    $response = $this->getJson('/v1/iam/invitations'.$query)->assertOk();
+    $expected = match ($status) {
+        'pending' => [$pending->id],
+        'expired' => [$expired->id, $boundary->id],
+        default   => [$pending->id, $expired->id, $boundary->id],
+    };
+    expect(array_column($response->json('data'), 'id'))->toEqualCanonicalizing($expected);
+    expect($accepted->fresh()->accepted_at)->not->toBeNull();
+})->with([null, 'pending', 'expired']);
+
+it('rejects unsupported invitation status filters', function (mixed $status): void {
+    authenticatedInvitationContext();
+    $this->getJson('/v1/iam/invitations?'.http_build_query(['status' => $status]))
+        ->assertUnprocessable()->assertJsonValidationErrors('status');
+})->with([
+    'accepted' => ['accepted'],
+    'unknown'  => ['unknown'],
+    'array'    => [['pending']],
+]);
+
+it('preserves stable cursor pagination and optional role loading for filtered invitations', function (): void {
+    currentTestCase()->travelTo(now()->startOfSecond());
+    $context = authenticatedInvitationContext();
+    $attributes = ['organization_id' => $context['organization']->id, 'expires_at' => now()->subSecond()];
+    $first = Invitation::factory()->create([...$attributes, 'email' => 'a@example.com']);
+    $second = Invitation::factory()->create([...$attributes, 'email' => 'c@example.com']);
+    $first->roles()->syncWithPivotValues([$context['role']->id], ['organization_id' => $context['organization']->id]);
+    Invitation::factory()->create([...$attributes, 'email' => 'b@example.com', 'accepted_at' => now()]);
+    Invitation::factory()->create([...$attributes, 'email' => 'd@example.com', 'expires_at' => now()->addDay()]);
+
+    $query = ['status' => 'expired', 'sort_by' => 'email', 'per_page' => 1, 'include' => 'roles'];
+    $response = $this->getJson('/v1/iam/invitations?'.http_build_query($query))->assertOk()
+        ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $first->id)
+        ->assertJsonPath('data.0.roles.0.id', $context['role']->id);
+    $cursor = $response->json('meta.next_cursor');
+    expect($cursor)->toBeString();
+    $this->getJson('/v1/iam/invitations?'.http_build_query([...$query, 'cursor' => $cursor]))->assertOk()
+        ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $second->id)
+        ->assertJsonPath('meta.next_cursor', null);
+});
+
 it('keeps the same record and rotates the token when reinviting a pending or expired email', function (bool $expired): void {
     $context = authenticatedInvitationContext();
     $invitation = createInvitationThroughApi('invite@example.com', [$context['role']->id]);
@@ -161,11 +215,10 @@ it('replaces offered roles without changing the emailed token and acceptance use
     $memberRoles = MemberRole::query()->where('organization_id', $context['organization']->id)->where('member_id', $member->id)->get();
     expect($memberRoles->pluck('role_id')->all())->toEqualCanonicalizing($roles->modelKeys())
         ->and($user->first_name)->toBe('Invited')->and($user->email_verified_at)->not->toBeNull()
-        ->and(Hash::check('password123', $user->password))->toBeTrue()
         ->and($user->tokens()->count())->toBe(0);
     setPermissionsTeamId($context['organization']->id);
     expect($memberRoles->firstWhere('role_id', $roles->first()->id)->hasPermissionTo($permission))->toBeTrue();
-    $login = $this->postJson('/v1/auth/login', ['email' => $user->email, 'password' => 'password123'])->assertOk();
+    $login = loginWithEmailCode($user->email)->assertOk();
     $this->withToken($login->json('data.access_token'));
     app('auth')->forgetGuards();
     $activeMemberRole = $memberRoles->firstWhere('role_id', $roles->first()->id);
@@ -177,15 +230,15 @@ it('replaces offered roles without changing the emailed token and acceptance use
         ->assertUnprocessable()->assertJsonValidationErrors('token');
 });
 
-it('requires names and confirmed password only for a new account after a valid token', function (): void {
+it('requires names only for a new account after a valid token', function (): void {
     $context = authenticatedInvitationContext();
     $invitation = createInvitationThroughApi('new@example.com', [$context['role']->id]);
     $token = queuedInvitationLinks()->first()->token;
     $this->postJson('/v1/iam/invitations/accept', ['email' => $invitation->email, 'token' => $token])
-        ->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name', 'password']);
+        ->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name']);
     $this->postJson('/v1/iam/invitations/accept', [
-        ...newInvitedUserPayload($invitation->email, $token), 'password_confirmation' => 'different',
-    ])->assertUnprocessable()->assertJsonValidationErrors('password');
+        ...newInvitedUserPayload($invitation->email, $token), 'first_name' => [],
+    ])->assertUnprocessable()->assertJsonValidationErrors('first_name');
     $this->postJson('/v1/iam/invitations/accept', newInvitedUserPayload('wrong@example.com', $token))
         ->assertUnprocessable()->assertJsonValidationErrors('token');
     expect(User::query()->where('email', $invitation->email)->exists())->toBeFalse();
@@ -200,7 +253,7 @@ it('accepts an existing account without authentication and forbids supplied acco
     $notification = Notification::sent(new AnonymousNotifiable, InvitationLinkNotification::class)->first();
     parse_str((string) parse_url($notification->url, PHP_URL_QUERY), $query);
     expect($query['has_account'])->toBe('1');
-    foreach (['first_name', 'last_name', 'password', 'password_confirmation'] as $field) {
+    foreach (['first_name', 'last_name'] as $field) {
         $this->postJson('/v1/iam/invitations/accept', ['email' => $user->email, 'token' => $job->token, $field => null])
             ->assertUnprocessable()->assertJsonValidationErrors($field);
     }
@@ -216,7 +269,7 @@ it('rechecks account existence when the recipient creates an account after the e
     $token = queuedInvitationLinks()->first()->token;
     $user = User::factory()->create(['email' => $invitation->email]);
     $this->postJson('/v1/iam/invitations/accept', newInvitedUserPayload($user->email, $token))
-        ->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name', 'password']);
+        ->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name']);
     $this->postJson('/v1/iam/invitations/accept', ['email' => $user->email, 'token' => $token])->assertCreated();
 });
 

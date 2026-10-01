@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
+use Lahatre\Iam\Http\Controllers\EmailLoginController;
 use Lahatre\Iam\Http\Controllers\InvitationAcceptanceController;
 use Lahatre\Iam\Http\Controllers\InvitationController;
 use Lahatre\Iam\Http\Controllers\MemberRoleController;
 use Lahatre\Iam\Http\Controllers\OrganizationMemberController;
 use Lahatre\Iam\Http\Controllers\PermissionController;
 use Lahatre\Iam\Http\Controllers\RoleController;
+use Lahatre\Iam\Http\Controllers\SessionController;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
+use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 
 Route::group([
     'as'         => 'lahatre.iam.',
@@ -25,19 +28,20 @@ Route::group([
         'as'     => 'auth.',
         'prefix' => 'auth',
     ], function (): void {
-        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth')->name('register');
+        Route::post('/organization-registrations', [AuthController::class, 'registerOrganization'])->middleware('throttle:auth')->name('organization-registrations.store');
         Route::post('/organization-registration-tokens', [AuthController::class, 'organizationRegistrationToken'])->middleware('throttle:auth')->name('organization-registration-tokens.store');
 
-        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login');
-        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth')->name('forgot-password');
-        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth')->name('reset-password');
+        Route::post('/email-challenges', [EmailLoginController::class, 'store'])->middleware('throttle:auth')->name('email-challenges.store');
+        Route::post('/email-challenge-verifications', [EmailLoginController::class, 'verify'])->middleware('throttle:auth')->name('email-challenge-verifications.store');
 
         Route::group([
-            'middleware' => ['auth:sanctum', ResolveAuthContext::class],
+            'middleware' => ['auth:sanctum', TrackSessionActivity::class, ResolveAuthContext::class.':user'],
         ], function (): void {
             Route::get('/me', [AuthController::class, 'me'])->name('me');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-            // TODO: verified middleware here
+            Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
+            Route::delete('/sessions', [SessionController::class, 'destroyAll'])->name('sessions.destroy-all');
+            Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
             Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
         });
 

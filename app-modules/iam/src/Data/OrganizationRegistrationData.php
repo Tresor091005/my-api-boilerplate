@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Data;
 
-final readonly class RegistrationData
+final readonly class OrganizationRegistrationData
 {
     /** @param array{name: string, currency_code: string, timezone: string} $organization */
     private function __construct(
@@ -12,7 +12,6 @@ final readonly class RegistrationData
         public ?string $lastName,
         public string $email,
         public string $token,
-        public ?string $password,
         public array $organization,
     ) {}
 
@@ -24,7 +23,6 @@ final readonly class RegistrationData
             $data['last_name'] ?? null,
             $data['email'],
             $data['token'],
-            $data['password'] ?? null,
             $data['organization'],
         );
     }

@@ -30,14 +30,15 @@ is exposed on `http://localhost:28419`. The default sender is configured by
 `MAIL_FROM_ADDRESS` and `MAIL_FROM_NAME`.
 
 Laravel also exposes log, array, failover, SES, Postmark, Resend, sendmail,
-and round-robin mailer configurations. Password reset, organization registration,
-and invitation links are sent by email. They use the frontend URL configured by
+and round-robin mailer configurations. Email login codes, organization registration,
+and invitation links are sent by email. Organization and invitation links use
+the frontend URL configured by
 `FRONTEND_URL` and their paths in `config/frontend.php`.
 
 ## Notifications
 
 IAM uses `OrganizationRegistrationLinkNotification`, `InvitationLinkNotification`,
-and Laravel's password reset notification for email delivery from queued jobs. No notification database
+and the email login code notification for email delivery from queued jobs. No notification database
 table or broadcast notification channel currently exists.
 
 ## Realtime broadcasting

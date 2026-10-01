@@ -21,8 +21,6 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property string $last_name
  * @property string $email
  * @property CarbonImmutable|null $email_verified_at
- * @property string $password
- * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -75,12 +73,6 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'email',
-        'password',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
     ];
 
     protected function casts(): array
@@ -91,8 +83,6 @@ class User extends Authenticatable
             'last_name'         => 'string',
             'email'             => 'string',
             'email_verified_at' => 'immutable_datetime',
-            'password'          => 'hashed',
-            'remember_token'    => 'string',
             'created_at'        => 'immutable_datetime',
             'updated_at'        => 'immutable_datetime',
             'deleted_at'        => 'immutable_datetime',

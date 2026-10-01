@@ -23,8 +23,8 @@
 - [x] `permission`: Available for reading the current context through
   `current-permissions` and listing the full catalog through `/v1/iam/permissions`.
 - [x] `role`: CRUD API for organization roles, with read-only system roles.
-- [x] `user`: Available in auth for login, me, logout, password reset, and
-  member-role switching.
+- [x] `user`: Email OTP login and signup, account reads, member-role switching,
+  logout, and session management. See [email OTP and sessions](modules/iam.md#email-otp-and-sessions).
 - [x] `customer`: Identity CRUD API with organization-scoped polymorphic
   addresses and contacts.
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Iam\Models\User;
@@ -51,10 +52,14 @@ class UserResource extends JsonResource
                             continue;
                         }
 
-                        $organization = $organizationService->findOrganizationById($membership->organization_id);
+                        try {
+                            $organization = $organizationService->findOrganizationById($membership->organization_id);
+                        } catch (ModelNotFoundException) {
+                            continue;
+                        }
 
                         foreach ($membership->memberRoles as $memberRole) {
-                            if (!$memberRole->relationLoaded('role')) {
+                            if (!$memberRole->relationLoaded('role') || $memberRole->role === null) {
                                 continue;
                             }
 

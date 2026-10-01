@@ -54,10 +54,9 @@ it('keeps payload-producing IAM endpoints resource responses by default', functi
     $registry = app(ResponseContractRegistry::class);
 
     foreach ([
-        'lahatre.iam.auth.forgot-password',
-        'lahatre.iam.auth.login',
+        'lahatre.iam.auth.email-challenges.store',
+        'lahatre.iam.auth.email-challenge-verifications.store',
         'lahatre.iam.auth.logout',
-        'lahatre.iam.auth.reset-password',
         'lahatre.iam.auth.switch-member-role',
     ] as $routeName) {
         expect($registry->forRoute($routeName)?->resolveMode(null, 'POST'))
@@ -69,7 +68,7 @@ it('declares the user relationships required by IAM resources', function (): voi
     $registry = app(ResponseContractRegistry::class);
 
     foreach ([
-        'lahatre.iam.auth.login',
+        'lahatre.iam.auth.email-challenge-verifications.store',
         'lahatre.iam.auth.me',
         'lahatre.iam.auth.switch-member-role',
     ] as $routeName) {

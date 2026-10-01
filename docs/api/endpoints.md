@@ -9,27 +9,63 @@ and the global API rate limiter. Business module routes additionally use
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
 | POST | `/v1/auth/organization-registration-tokens` | public, auth throttle | Send a frontend registration link to an available email; always return a generic response. |
-| POST | `/v1/auth/register` | public, auth throttle | Consume the emailed token and create an organization with an Administrator member role for its owner. |
-| POST | `/v1/auth/login` | public, auth throttle | Issue a Sanctum token for valid credentials. |
-| POST | `/v1/auth/forgot-password` | public, auth throttle | Queue a password reset email and return a generic response. |
-| POST | `/v1/auth/reset-password` | public, auth throttle | Consume a reset token, update the password, and revoke all of the user's access tokens. |
-| GET | `/v1/auth/me` | Sanctum + auth context | Return the current user and selected member role. |
-| POST | `/v1/auth/logout` | Sanctum + auth context | Revoke the current access token. |
+| POST | `/v1/auth/organization-registrations` | public, auth throttle | Consume the emailed token and create an organization with an Administrator member role for its owner. |
+| POST | `/v1/auth/email-challenges` | public, auth throttle | Queue a sign-in code and return a generic message and challenge ID. |
+| POST | `/v1/auth/email-challenge-verifications` | public, auth throttle | Consume an OTP, create a user when needed, and issue a Sanctum token. |
+| GET | `/v1/auth/me` | Sanctum + optional organization context | Return the current user and selected member role. |
+| POST | `/v1/auth/logout` | Sanctum + optional organization context | Revoke the current access token. |
 | POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
 | GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
 
-Registration begins with only `email`. The mail links to the configured frontend
+Organization registration begins with only `email`. The mail links to the configured frontend
 URL with a single-use `token` and a display-only `has_account` flag. The final
 request requires `email`, `token`, and `organization` with `name`, `currency_code`,
-and an IANA `timezone`. New users must also supply `first_name`, `last_name`, and
-a confirmed `password`; existing users must omit them. The API rechecks account
+and an IANA `timezone`. New users must also supply `first_name` and `last_name`; existing users must omit them. The API rechecks account
 status, including soft deletion, and uses the token's email as the owner. The
 functional currency is fixed at creation. Registration sets `email_verified_at`
 for the token holder as part of organization provisioning. No general email
 verification requirement is enforced on login or authenticated routes.
-`register` returns `201` with a success message and no user data or login token.
+`organization-registrations` returns `201` with a success message and no user data or login token.
 The user then logs in to select the new organization.
+Account creation without an organization uses the email OTP endpoints below.
+
+### Email OTP and sessions
+
+Email code verification takes `challenge_id`, a six-digit string `code`, and
+`first_name` / `last_name` for a new account. Existing users may omit the names;
+if provided, they do not overwrite the existing profile. A successful response
+contains `data.access_token`, `data.token_type`, and `data.user`. An unknown
+email creates a verified user without an organization only after a correct code
+and complete names. Missing names after valid proof return `EmailAccountException`;
+the same unconsumed code may be submitted again with the names.
+
+In Bruno, use `auth/request-email-code`, then either
+`auth/verify-email-code-new-user` with names or
+`auth/verify-email-code-existing-user` without names. Copy the emailed OTP into
+`loginCode`; the challenge request stores `loginChallengeId` automatically, and
+successful verification stores `authToken`. These are alternative examples of
+one verification endpoint, and a code can be consumed only once.
+
+To create an organization, use `auth/request-organization-registration-token`,
+copy the emailed token into `organizationRegistrationToken`, then use
+`auth/register-organization-new-user` or
+`auth/register-organization-existing-user`. This token is required in both
+organization requests and is separate from the login OTP.
+
+| Method | URI | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/auth/sessions` | Sanctum, account owner | Cursor-paginate the user's unexpired API sessions. |
+| DELETE | `/v1/auth/sessions/{session}` | Sanctum, account owner | Revoke one owned token, including the current token. Foreign IDs return `404`. |
+| DELETE | `/v1/auth/sessions` | Sanctum, account owner | Revoke all owned tokens, including current and expired tokens. |
+
+Session deletion returns `204`. These operations, `me`, `logout`, and role
+switching remain available when a previously selected organization context is
+unavailable. Organization endpoints still require a coherent active context.
+Invalid authentication returns `401`; missing or unavailable organization access
+with a valid token returns `403`. A frontend should retain its token after a
+`403` so account operations and switching remain available.
+See [passwordless authentication](../modules/iam.md#email-otp-and-sessions).
 
 ## IAM roles
 
@@ -88,7 +124,7 @@ See [member role batches](../modules/iam.md#member-role-batches).
 
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
-| GET | `/v1/iam/invitations` | `auth.api` + `iam_invitation.list` | Cursor-paginate invitations in the current organization. |
+| GET | `/v1/iam/invitations` | `auth.api` + `iam_invitation.list` | Cursor-paginate unaccepted invitations in the current organization, optionally filtered by `status=pending` or `status=expired`. |
 | GET | `/v1/iam/invitations/{invitation}` | `auth.api` + `iam_invitation.retrieve` | Retrieve an invitation. |
 | POST | `/v1/iam/invitations` | `auth.api` + `iam_invitation.create` | Create or reuse an invitation for an email and replace its offered roles. |
 | PUT | `/v1/iam/invitations/{invitation}/roles` | `auth.api` + `iam_invitation.update` | Replace pending roles while preserving the emailed token. |
@@ -103,7 +139,7 @@ by default; create, role replacement, and resend support `?response=resource`.
 Responses load roles only with `include=roles`, without permission includes.
 There is no generic invitation update route.
 
-Public acceptance takes `email` and `token`, plus names and a confirmed password
+Public acceptance takes `email` and `token`, plus names
 only for new accounts. Existing accounts must omit those fields. It returns a
 `201` success message without user data or an access token. The recipient then
 logs in and switches to an available member role. See the
