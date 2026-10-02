@@ -1,0 +1,21 @@
+info:
+  name: update
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/v1/organization/settings?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "My Organization"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

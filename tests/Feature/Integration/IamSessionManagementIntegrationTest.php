@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Lahatre\Iam\Auth\PersonalAccessToken;
 use Lahatre\Iam\Data\SessionData;
 use Lahatre\Iam\Models\MemberRole;
@@ -66,6 +68,55 @@ it('lists only the callers unexpired sessions and exposes no token secrets or or
     }
     expect($response->getContent())->not->toContain($context['token'], $foreign->plainTextToken);
 });
+
+it('issues UUIDv7 session identifiers and authenticates the Sanctum bearer token', function (): void {
+    $user = User::factory()->create();
+    $issued = app(AuthService::class)->issueToken($user, SessionData::fromArray([]));
+    [$id, $secret] = explode('|', $issued['token'], 2);
+    expect(Str::isUuid($id, 7))->toBeTrue()
+        ->and(PersonalAccessToken::findToken($issued['token'])?->id)->toBe($id)
+        ->and(PersonalAccessToken::findToken($secret)?->id)->toBe($id);
+    $this->withToken($issued['token'])->getJson('/v1/auth/me')->assertOk()->assertJsonPath('data.id', $user->id);
+    $this->getJson('/v1/auth/sessions')->assertOk()->assertJsonPath('data.0.id', $id)->assertJsonPath('data.0.is_current', true);
+});
+
+it('rejects malformed token identifiers without a database UUID error', function (string $id): void {
+    $this->withToken($id.'|'.Str::random(48))->getJson('/v1/auth/me')->assertUnauthorized();
+})->with(['1', 'not-a-uuid', '', '019a0000-0000-7000-8000-00000000000g']);
+
+it('rejects an incorrect secret for an existing UUID session', function (): void {
+    $token = User::factory()->create()->createToken('Client');
+    $this->withToken($token->accessToken->id.'|'.Str::random(48))->getJson('/v1/auth/me')->assertUnauthorized();
+});
+
+it('paginates sessions with UUID identifiers without duplicates or foreign sessions', function (): void {
+    $user = User::factory()->create();
+    $token = $user->createToken('Current');
+    $second = $user->createToken('Second');
+    $third = $user->createToken('Third');
+    User::factory()->create()->createToken('Foreign');
+    $this->withToken($token->plainTextToken);
+    $firstPage = $this->getJson('/v1/auth/sessions?per_page=2&sort_by=id&sort_order=asc')->assertOk()->assertJsonCount(2, 'data');
+    $cursor = $firstPage->json('meta.next_cursor');
+    expect($cursor)->toBeString();
+    $secondPage = $this->getJson('/v1/auth/sessions?per_page=2&sort_by=id&sort_order=asc&cursor='.urlencode($cursor))
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('meta.next_cursor', null);
+    $ids = [...array_column($firstPage->json('data'), 'id'), ...array_column($secondPage->json('data'), 'id')];
+    expect($ids)->toEqualCanonicalizing([$token->accessToken->id, $second->accessToken->id, $third->accessToken->id]);
+});
+
+it('creates Sanctum token storage with a UUID primary key', function (): void {
+    expect(Schema::getColumnType('personal_access_tokens', 'id'))->toBe('uuid');
+    $token = User::factory()->create()->createToken('Client');
+    expect(Str::isUuid($token->accessToken->id, 7))->toBeTrue()
+        ->and($token->accessToken->getIncrementing())->toBeFalse()
+        ->and($token->accessToken->getKeyType())->toBe('string');
+});
+
+it('rejects malformed session identifiers before querying PostgreSQL', function (string $id): void {
+    sessionManagementContext();
+    $this->deleteJson('/v1/auth/sessions/'.$id)->assertNotFound();
+})->with(['1', 'not-a-uuid']);
 
 it('records last request evidence atomically without losing arbitrary or organization metadata', function (): void {
     $context = sessionManagementContext();
@@ -148,7 +199,7 @@ it('revokes the current session through its identifier', function (): void {
 
 it('requires authentication for every session operation', function (string $method, string $path): void {
     currentTestCase()->json($method, $path)->assertUnauthorized();
-})->with([['GET', '/v1/auth/sessions'], ['DELETE', '/v1/auth/sessions'], ['DELETE', '/v1/auth/sessions/1']]);
+})->with([['GET', '/v1/auth/sessions'], ['DELETE', '/v1/auth/sessions'], ['DELETE', '/v1/auth/sessions/019a0000-0000-7000-8000-000000000001']]);
 
 it('validates session pagination filters', function (): void {
     sessionManagementContext();

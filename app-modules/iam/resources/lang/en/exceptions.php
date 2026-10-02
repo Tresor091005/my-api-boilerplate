@@ -34,6 +34,7 @@ return [
         'owner'       => 'The organization owner cannot be removed or deactivated.',
     ],
     'member_role' => [
+        'default_unavailable'           => 'The default member role is not available for this account.',
         'roles_unavailable'             => 'One or more organization roles are unavailable.',
         'already_assigned'              => 'One or more roles are already assigned to this member.',
         'assignments_unavailable'       => 'One or more role assignments are unavailable for this member.',

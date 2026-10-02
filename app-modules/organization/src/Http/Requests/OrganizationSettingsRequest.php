@@ -22,29 +22,24 @@ class OrganizationSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'enable_currencies' => [
-                $this->isMethod('PATCH') ? 'required' : 'sometimes',
-                'array',
-                'min:1',
-            ],
-            'enable_currencies.*' => [
-                'string',
-                'size:3',
-                'alpha',
-            ],
-            'timezone' => [
-                'string',
-                new IanaTimezone,
-            ],
+            'name'                => ['filled', 'string', 'max:100'],
+            'enable_currencies'   => ['array', 'min:1'],
+            'enable_currencies.*' => ['string', 'size:3', 'alpha'],
+            'timezone'            => ['filled', 'string', new IanaTimezone],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'enable_currencies' => collect($this->input('enable_currencies', []))
-                ->map(fn (mixed $code): mixed => is_string($code) ? Str::toUpper($code) : $code)
-                ->all(),
-        ]);
+        if (is_array($this->input('enable_currencies'))) {
+            $this->merge([
+                'enable_currencies' => collect($this->input('enable_currencies'))
+                    ->map(fn (mixed $code): mixed => is_string($code) ? Str::toUpper($code) : $code)
+                    ->all(),
+            ]);
+        }
+        if (is_string($this->input('name'))) {
+            $this->merge(['name' => Str::sanitize($this->input('name'))]);
+        }
     }
 }

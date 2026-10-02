@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Organization\Database\Factories\OrganizationSettingFactory;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -20,6 +21,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
+ * @property-read Organization $organization
  *
  * @method static Builder<static>|OrganizationSetting newModelQuery()
  * @method static Builder<static>|OrganizationSetting newQuery()
@@ -63,4 +65,10 @@ class OrganizationSetting extends Model
         'updated_at'          => 'immutable_datetime',
         'deleted_at'          => 'immutable_datetime',
     ];
+
+    /** @return BelongsTo<Organization, $this> */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

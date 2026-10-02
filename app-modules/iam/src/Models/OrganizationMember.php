@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Iam\Database\Factories\OrganizationMemberFactory;
+use Lahatre\Organization\Models\Organization;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -25,6 +26,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
  * @property-read User $user
+ * @property-read Organization|null $organization
  *
  * @method static Builder<static>|OrganizationMember newModelQuery()
  * @method static Builder<static>|OrganizationMember newQuery()
@@ -72,6 +74,12 @@ class OrganizationMember extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return BelongsTo<Organization, $this> */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
     }
 
     public function memberRoles(): HasMany

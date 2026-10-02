@@ -8,6 +8,11 @@ use Lahatre\Shared\Exceptions\AssertionException;
 
 final class MemberRoleException extends AssertionException
 {
+    public static function defaultUnavailable(): self
+    {
+        return new self(__('iam::exceptions.member_role.default_unavailable'));
+    }
+
     public static function rolesUnavailable(): self
     {
         return new self(__('iam::exceptions.member_role.roles_unavailable'));

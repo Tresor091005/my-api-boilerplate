@@ -6,11 +6,13 @@ namespace Lahatre\Iam\Auth;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
 /**
- * @property int $id
+ * @property string $id
  * @property string $tokenable_type
  * @property string $tokenable_id
  * @property string $name
@@ -42,12 +44,9 @@ use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
  */
 class PersonalAccessToken extends SanctumPersonalAccessToken
 {
-    protected $casts = [
-        'abilities'    => 'json',
-        'metadata'     => 'json',
-        'last_used_at' => 'immutable_datetime',
-        'expires_at'   => 'immutable_datetime',
-    ];
+    use HasUuids;
+
+    protected $table = 'personal_access_tokens';
 
     protected $fillable = [
         'name',
@@ -56,6 +55,26 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
         'expires_at',
         'metadata',
     ];
+
+    protected $casts = [
+        'id'           => 'string',
+        'tokenable_id' => 'string',
+        'abilities'    => 'json',
+        'metadata'     => 'json',
+        'last_used_at' => 'immutable_datetime',
+        'expires_at'   => 'immutable_datetime',
+        'created_at'   => 'immutable_datetime',
+        'updated_at'   => 'immutable_datetime',
+    ];
+
+    public static function findToken(mixed $token): ?static
+    {
+        if (str_contains($token, '|') && !Str::isUuid(explode('|', $token, 2)[0])) {
+            return null;
+        }
+
+        return parent::findToken($token);
+    }
 
     /**
      * Get a metadata value

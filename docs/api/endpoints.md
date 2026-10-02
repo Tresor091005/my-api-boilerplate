@@ -13,6 +13,7 @@ and the global API rate limiter. Business module routes additionally use
 | POST | `/v1/auth/email-challenges` | public, auth throttle | Queue a sign-in code and return a generic message and challenge ID. |
 | POST | `/v1/auth/email-challenge-verifications` | public, auth throttle | Consume an OTP, create a user when needed, and issue a Sanctum token. |
 | GET | `/v1/auth/me` | Sanctum + optional organization context | Return the current user and selected member role. |
+| PATCH | `/v1/auth/me` | Sanctum, account owner | Update names and the nullable default member role preference. |
 | POST | `/v1/auth/logout` | Sanctum + optional organization context | Revoke the current access token. |
 | POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
@@ -59,7 +60,8 @@ organization requests and is separate from the login OTP.
 | DELETE | `/v1/auth/sessions/{session}` | Sanctum, account owner | Revoke one owned token, including the current token. Foreign IDs return `404`. |
 | DELETE | `/v1/auth/sessions` | Sanctum, account owner | Revoke all owned tokens, including current and expired tokens. |
 
-Session deletion returns `204`. These operations, `me`, `logout`, and role
+Session IDs are UUIDv7. Session deletion returns `204`; malformed IDs return `404`.
+These operations, `me`, `logout`, and role
 switching remain available when a previously selected organization context is
 unavailable. Organization endpoints still require a coherent active context.
 Invalid authentication returns `401`; missing or unavailable organization access
@@ -225,8 +227,8 @@ The target must use `InteractsWithLabels` and belong to the active organization.
 
 | Method | URI | Purpose |
 | --- | --- | --- |
-| GET | `/v1/organization/settings` | Retrieve the active organization's enabled currency codes. |
-| PATCH | `/v1/organization/settings` | Replace enabled currency codes while retaining the functional currency. |
+| GET | `/v1/organization/settings` | Retrieve the active organization's name, functional currency, and settings. |
+| PATCH | `/v1/organization/settings` | Partially update the organization name, enabled currencies, and timezone. |
 | GET | `/v1/organization/exchange-rates` | List exchange rates for the active organization. |
 | POST | `/v1/organization/exchange-rates` | Create a future or historical exchange rate. |
 | GET | `/v1/organization/exchange-rates/{exchange_rate}` | Retrieve one exchange rate. |

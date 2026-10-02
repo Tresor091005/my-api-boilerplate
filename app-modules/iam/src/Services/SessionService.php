@@ -26,7 +26,7 @@ final class SessionService
         return stableCursorPaginate($query, $filters);
     }
 
-    public function delete(User $user, int $sessionId): void
+    public function delete(User $user, string $sessionId): void
     {
         $user->tokens()->whereKey($sessionId)->firstOrFail()->delete();
     }
@@ -74,11 +74,11 @@ final class SessionService
 
     public function queueEnrichment(\Laravel\Sanctum\PersonalAccessToken $token, SessionData $data): void
     {
-        EnrichSession::dispatch($token->id, $token->tokenable_type, (string) $token->tokenable_id, $data);
+        EnrichSession::dispatch($token->getKey(), $token->tokenable_type, (string) $token->tokenable_id, $data);
     }
 
     /** Ignore revoked, expired, or superseded sessions, and merge results without replacing activity or organization metadata. */
-    public function enrich(int $sessionId, string $tokenableType, string $tokenableId, SessionData $data): void
+    public function enrich(string $sessionId, string $tokenableType, string $tokenableId, SessionData $data): void
     {
         $key = $data->fingerprint();
         $session = $this->unexpired(PersonalAccessToken::query()->where('tokenable_type', $tokenableType)->where('tokenable_id', $tokenableId))

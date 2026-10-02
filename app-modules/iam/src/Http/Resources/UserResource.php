@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Iam\Models\User;
-use Lahatre\Organization\Contracts\OrganizationInterface;
 
 class UserResource extends JsonResource
 {
@@ -33,33 +31,29 @@ class UserResource extends JsonResource
     {
         /** @var User $user */
         $user = $this->resource;
-        /** @var OrganizationInterface $organizationService */
-        $organizationService = app(OrganizationInterface::class);
 
         return [
             'id'                     => $user->id,
             'first_name'             => $user->first_name,
             'last_name'              => $user->last_name,
             'email'                  => $user->email,
+            'default_member_role_id' => $user->default_member_role_id,
             'current_member_role_id' => $this->currentMemberRoleId,
             'member_roles'           => $this->whenLoaded(
                 'organizationMemberships',
-                function ($memberships) use ($organizationService): array {
+                function ($memberships) use ($user): array {
                     $memberRoles = [];
 
                     foreach ($memberships as $membership) {
-                        if (!$membership->relationLoaded('memberRoles')) {
+                        if (!$membership->relationLoaded('memberRoles') || !$membership->relationLoaded('organization')) {
                             continue;
                         }
 
-                        try {
-                            $organization = $organizationService->findOrganizationById($membership->organization_id);
-                        } catch (ModelNotFoundException) {
-                            continue;
-                        }
+                        $organization = $membership->organization;
 
                         foreach ($membership->memberRoles as $memberRole) {
-                            if (!$memberRole->relationLoaded('role') || $memberRole->role === null) {
+                            if (!$memberRole->relationLoaded('role')
+                                || !$memberRole->hasValidContextFor($user, $membership, $memberRole->role)) {
                                 continue;
                             }
 
@@ -68,6 +62,7 @@ class UserResource extends JsonResource
                                 'member_id'       => $memberRole->member_id,
                                 'organization_id' => $memberRole->organization_id,
                                 'role_id'         => $memberRole->role_id,
+                                'is_default'      => $memberRole->id === $user->default_member_role_id,
                                 'role'            => [
                                     'id'          => $memberRole->role->id,
                                     'name'        => $memberRole->role->name,

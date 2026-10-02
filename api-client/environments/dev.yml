@@ -4,37 +4,25 @@ variables:
     value: http://127.0.0.1:28417
   - secret: true
     name: authToken
-    description: ""
   - secret: true
     name: invitationEmail
-    description: ""
   - secret: true
     name: invitationToken
-    description: ""
   - secret: true
     name: organizationMemberId
-    description: ""
   - secret: true
     name: invitationId
-    description: ""
   - secret: true
     name: registrationEmail
-    description: ""
   - secret: true
     name: organizationRegistrationToken
-    description: ""
   - secret: true
     name: memberRoleId
-    description: ""
   - secret: true
     name: roleId
-    description: ""
   - secret: true
     name: loginChallengeId
-    description: ""
   - secret: true
     name: loginCode
-    description: ""
   - secret: true
     name: sessionId
-    description: ""

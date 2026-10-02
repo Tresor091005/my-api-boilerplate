@@ -1,0 +1,22 @@
+info:
+  name: update me
+  type: http
+  seq: 11
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/v1/auth/me?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "first_name": "Ada",
+        "last_name": "Lovelace"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

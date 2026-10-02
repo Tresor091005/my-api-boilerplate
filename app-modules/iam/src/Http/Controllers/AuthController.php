@@ -6,10 +6,13 @@ namespace Lahatre\Iam\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 use Lahatre\Iam\Data\OrganizationRegistrationData;
+use Lahatre\Iam\Data\UserUpdateData;
 use Lahatre\Iam\Http\Requests\OrganizationRegistrationRequest;
 use Lahatre\Iam\Http\Requests\OrganizationRegistrationTokenRequest;
 use Lahatre\Iam\Http\Requests\SwitchMemberRoleRequest;
+use Lahatre\Iam\Http\Requests\UserUpdateRequest;
 use Lahatre\Iam\Http\Resources\PermissionResource;
 use Lahatre\Iam\Http\Resources\UserResource;
 use Lahatre\Iam\Models\User;
@@ -56,6 +59,18 @@ class AuthController
         assert($user instanceof User);
 
         $response = $this->authService->me($user);
+
+        return $this->responseResponder->respond(
+            fn (): JsonResource => UserResource::make($response)->withCurrentMemberRoleId(authContext()->memberRole()?->id),
+        );
+    }
+
+    public function update(UserUpdateRequest $request): JsonResponse|Response
+    {
+        $user = authContext()->user();
+        assert($user instanceof User);
+        Gate::authorize('update', $user);
+        $response = $this->authService->update($user, UserUpdateData::fromArray($request->validated()));
 
         return $this->responseResponder->respond(
             fn (): JsonResource => UserResource::make($response)->withCurrentMemberRoleId(authContext()->memberRole()?->id),

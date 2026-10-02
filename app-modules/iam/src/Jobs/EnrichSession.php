@@ -20,7 +20,7 @@ final class EnrichSession implements ShouldQueue
     public int $tries = 3;
 
     public function __construct(
-        public readonly int $sessionId,
+        public readonly string $sessionId,
         public readonly string $tokenableType,
         public readonly string $tokenableId,
         public readonly SessionData $data,

@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace Lahatre\Organization\Data;
 
+use Lahatre\Shared\Data\MissingValue;
+use Lahatre\Shared\Data\MissingValueReader;
+
 final readonly class OrganizationSettingsData
 {
-    /** @param array<int, string> $enableCurrencies */
+    /** @param MissingValue|array<int, string> $enableCurrencies */
     private function __construct(
-        public array $enableCurrencies,
-        public ?string $timezone,
+        public MissingValue|string $name,
+        public MissingValue|array $enableCurrencies,
+        public MissingValue|string $timezone,
     ) {}
 
-    /** @param array{enable_currencies: array<int, string>, timezone?: string} $data */
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
-        return new self($data['enable_currencies'], $data['timezone'] ?? null);
+        $read = MissingValueReader::fromArray($data, ['name', 'enable_currencies', 'timezone']);
+
+        return new self($read->get('name'), $read->get('enable_currencies'), $read->get('timezone'));
     }
 }

@@ -27,7 +27,7 @@ class SessionController
         return $this->responder->respond(fn (): JsonResource => SessionCollection::make($sessions));
     }
 
-    public function destroy(int $session): Response
+    public function destroy(string $session): Response
     {
         $user = authContext()->user();
         assert($user instanceof User);

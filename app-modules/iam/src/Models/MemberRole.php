@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Iam\Database\Factories\MemberRoleFactory;
+use Lahatre\Shared\Models\Authenticatable;
 use Lahatre\Shared\Traits\SharedTraits;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -87,6 +88,26 @@ class MemberRole extends Model
     protected function getDefaultGuardName(): string
     {
         return $this->guard_name;
+    }
+
+    /** Validate already resolved access records without loading relations. */
+    public function hasValidContextFor(Authenticatable $user, ?OrganizationMember $member, ?Role $role): bool
+    {
+        if ($member === null || $role === null || !$member->relationLoaded('organization')) {
+            return false;
+        }
+
+        $organization = $member->organization;
+
+        return $organization !== null && !$organization->trashed()
+            && !$this->trashed() && !$member->trashed() && !$role->trashed()
+            && $this->is_active && $member->is_active && $role->is_active
+            && $member->id === $this->member_id && $role->id === $this->role_id
+            && $member->user_id === $user->id
+            && $member->organization_id === $this->organization_id
+            && $organization->id === $this->organization_id
+            && ($role->team_id === null || $role->team_id === $this->organization_id)
+            && $role->guard_name === config('auth.defaults.guard');
     }
 
     public function organizationMember(): BelongsTo

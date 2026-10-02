@@ -19,7 +19,7 @@ $authResourceContracts = array_fill_keys(
         'default_mode'  => 'resource',
         'default_shape' => 'default',
         'shapes'        => ['default' => [
-            'required_loads' => ['organizationMemberships.memberRoles.role'],
+            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
         ]],
     ],
 );
@@ -33,7 +33,7 @@ $userResourceContracts = array_fill_keys(
         'default_mode'  => 'resource',
         'default_shape' => 'default',
         'shapes'        => ['default' => [
-            'required_loads' => ['organizationMemberships.memberRoles.role'],
+            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
         ]],
     ],
 );
@@ -111,6 +111,12 @@ return [
     ...$invitationResourceContracts,
     ...$organizationMemberResourceContracts,
     ...$memberRoleResourceContracts,
+    'lahatre.iam.auth.me.update' => [
+        'default_shape' => 'default',
+        'shapes'        => ['default' => [
+            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
+        ]],
+    ],
     // GET already defaults to a resource; permission output has no relations or alternate shapes.
     'lahatre.iam.auth.sessions.index'                       => [],
     'lahatre.iam.auth.sessions.destroy'                     => [],

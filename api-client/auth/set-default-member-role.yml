@@ -1,0 +1,21 @@
+info:
+  name: set default member role
+  type: http
+  seq: 12
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/v1/auth/me?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "default_member_role_id": "{{memberRoleId}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

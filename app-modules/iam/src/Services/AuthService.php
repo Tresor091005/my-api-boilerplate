@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Iam\Auth\PersonalAccessToken;
 use Lahatre\Iam\Data\SessionData;
+use Lahatre\Iam\Data\UserUpdateData;
+use Lahatre\Iam\Exceptions\MemberRoleException;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\User;
-use Lahatre\Organization\Contracts\OrganizationInterface;
+use Lahatre\Shared\Data\MissingValue;
+
+use function Lahatre\Shared\Data\withoutMissing;
+
 use Lahatre\Shared\Models\Authenticatable;
 
 class AuthService
@@ -56,6 +62,26 @@ class AuthService
         return $user;
     }
 
+    public function update(User $user, UserUpdateData $data): User
+    {
+        return DB::transaction(function () use ($user, $data): User {
+            if (!$data->defaultMemberRoleId instanceof MissingValue && $data->defaultMemberRoleId !== null) {
+                try {
+                    $this->findAccessibleMemberRole($user, $data->defaultMemberRoleId);
+                } catch (ModelNotFoundException) {
+                    throw MemberRoleException::defaultUnavailable();
+                }
+            }
+            $user->update(withoutMissing([
+                'first_name'             => $data->firstName,
+                'last_name'              => $data->lastName,
+                'default_member_role_id' => $data->defaultMemberRoleId,
+            ]));
+
+            return $user->refresh()->load(responseRelationsToLoad());
+        });
+    }
+
     /**
      * Log out the current user by deleting their access token.
      */
@@ -72,25 +98,7 @@ class AuthService
      */
     public function switchMemberRole(User $user, string $memberRoleId): User
     {
-        /** @var MemberRole|null $memberRole */
-        $memberRole = MemberRole::query()
-            ->with(['organizationMember', 'role'])
-            ->where('id', $memberRoleId)
-            ->first();
-
-        $member = $memberRole?->organizationMember;
-        $role = $memberRole?->role;
-
-        if (!$memberRole || !$member || !$role
-            || !$memberRole->is_active || !$member->is_active || !$role->is_active
-            || $member->user_id !== $user->id
-            || $member->organization_id !== $memberRole->organization_id
-            || ($role->team_id !== null && $role->team_id !== $memberRole->organization_id)
-            || $role->guard_name !== config('auth.defaults.guard')) {
-            throw new ModelNotFoundException()->setModel(MemberRole::class, [$memberRoleId]);
-        }
-
-        app(OrganizationInterface::class)->findOrganizationById($memberRole->organization_id);
+        $memberRole = $this->findAccessibleMemberRole($user, $memberRoleId);
 
         /** @var PersonalAccessToken $token */
         $token = $user->currentAccessToken();
@@ -119,5 +127,18 @@ class AuthService
     public function currentPermissions(MemberRole $memberRole): Collection
     {
         return $memberRole->getPermissionsViaRoles();
+    }
+
+    private function findAccessibleMemberRole(User $user, string $memberRoleId): MemberRole
+    {
+        $memberRole = MemberRole::query()
+            ->whereHas('organizationMember', fn (Builder $query) => $query->where('user_id', $user->id))
+            ->with(['organizationMember.organization', 'role'])->whereKey($memberRoleId)->first();
+
+        if (!$memberRole?->hasValidContextFor($user, $memberRole->organizationMember, $memberRole->role)) {
+            throw new ModelNotFoundException()->setModel(MemberRole::class, [$memberRoleId]);
+        }
+
+        return $memberRole;
     }
 }

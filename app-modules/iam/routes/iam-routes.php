@@ -38,10 +38,11 @@ Route::group([
             'middleware' => ['auth:sanctum', TrackSessionActivity::class, ResolveAuthContext::class.':user'],
         ], function (): void {
             Route::get('/me', [AuthController::class, 'me'])->name('me');
+            Route::patch('/me', [AuthController::class, 'update'])->name('me.update');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
             Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
             Route::delete('/sessions', [SessionController::class, 'destroyAll'])->name('sessions.destroy-all');
-            Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
+            Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->whereUuid('session')->name('sessions.destroy');
             Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
         });
 

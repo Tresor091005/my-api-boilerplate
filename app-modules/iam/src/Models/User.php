@@ -7,6 +7,7 @@ namespace Lahatre\Iam\Models;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\DatabaseNotification;
@@ -20,6 +21,7 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property string $first_name
  * @property string $last_name
  * @property string $email
+ * @property string|null $default_member_role_id
  * @property CarbonImmutable|null $email_verified_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -27,6 +29,7 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
  * @property-read Collection<int, OrganizationMember> $organizationMemberships
+ * @property-read MemberRole|null $defaultMemberRole
  * @property-read int|null $organization_memberships_count
  * @property-read Collection<int, Permission> $permissions
  * @property-read int|null $permissions_count
@@ -73,20 +76,28 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'email',
+        'default_member_role_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'id'                => 'string',
-            'first_name'        => 'string',
-            'last_name'         => 'string',
-            'email'             => 'string',
-            'email_verified_at' => 'immutable_datetime',
-            'created_at'        => 'immutable_datetime',
-            'updated_at'        => 'immutable_datetime',
-            'deleted_at'        => 'immutable_datetime',
+            'id'                     => 'string',
+            'first_name'             => 'string',
+            'last_name'              => 'string',
+            'email'                  => 'string',
+            'default_member_role_id' => 'string',
+            'email_verified_at'      => 'immutable_datetime',
+            'created_at'             => 'immutable_datetime',
+            'updated_at'             => 'immutable_datetime',
+            'deleted_at'             => 'immutable_datetime',
         ];
+    }
+
+    /** @return BelongsTo<MemberRole, $this> */
+    public function defaultMemberRole(): BelongsTo
+    {
+        return $this->belongsTo(MemberRole::class, 'default_member_role_id');
     }
 
     public function organizationMemberships(): HasMany
