@@ -6,9 +6,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Testing\Fakes\QueueFake;
+use Lahatre\Iam\Auth\PersonalAccessToken;
 use Lahatre\Iam\Jobs\SendInvitationLink;
 use Lahatre\Iam\Models\Invitation;
 use Lahatre\Iam\Models\MemberRole;
@@ -207,19 +209,18 @@ it('replaces offered roles without changing the emailed token and acceptance use
     $this->putJson("/v1/iam/invitations/{$invitation->id}/roles", ['role_ids' => $roles->modelKeys()])->assertNoContent();
     expect($invitation->fresh()->token_hash)->toBe(hash('sha256', $job->token));
     Queue::assertPushed(SendInvitationLink::class, 1);
-    currentTestCase()->withHeader('Authorization', '')->postJson('/v1/iam/invitations/accept', [
+    $accepted = currentTestCase()->withHeader('Authorization', '')->postJson('/v1/iam/invitations/accept', [
         ...newInvitedUserPayload('INVITE@EXAMPLE.COM', $job->token), 'has_account' => true,
-    ])->assertCreated()->assertExactJson(['message' => __('iam::messages.invitation.accepted')]);
+    ])->assertCreated()->assertJsonPath('data.token_type', 'Bearer');
     $user = User::query()->where('email', 'invite@example.com')->firstOrFail();
     $member = OrganizationMember::query()->where('organization_id', $context['organization']->id)->where('user_id', $user->id)->firstOrFail();
     $memberRoles = MemberRole::query()->where('organization_id', $context['organization']->id)->where('member_id', $member->id)->get();
     expect($memberRoles->pluck('role_id')->all())->toEqualCanonicalizing($roles->modelKeys())
         ->and($user->first_name)->toBe('Invited')->and($user->email_verified_at)->not->toBeNull()
-        ->and($user->tokens()->count())->toBe(0);
+        ->and($user->tokens()->count())->toBe(1);
     setPermissionsTeamId($context['organization']->id);
     expect($memberRoles->firstWhere('role_id', $roles->first()->id)->hasPermissionTo($permission))->toBeTrue();
-    $login = loginWithEmailCode($user->email)->assertOk();
-    $this->withToken($login->json('data.access_token'));
+    $this->withToken($accepted->json('data.access_token'));
     app('auth')->forgetGuards();
     $activeMemberRole = $memberRoles->firstWhere('role_id', $roles->first()->id);
     $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $activeMemberRole->id])->assertOk();
@@ -230,12 +231,10 @@ it('replaces offered roles without changing the emailed token and acceptance use
         ->assertUnprocessable()->assertJsonValidationErrors('token');
 });
 
-it('requires names only for a new account after a valid token', function (): void {
+it('validates optional names and requires the token to match the invited email', function (): void {
     $context = authenticatedInvitationContext();
     $invitation = createInvitationThroughApi('new@example.com', [$context['role']->id]);
     $token = queuedInvitationLinks()->first()->token;
-    $this->postJson('/v1/iam/invitations/accept', ['email' => $invitation->email, 'token' => $token])
-        ->assertUnprocessable()->assertJsonValidationErrors(['first_name', 'last_name']);
     $this->postJson('/v1/iam/invitations/accept', [
         ...newInvitedUserPayload($invitation->email, $token), 'first_name' => [],
     ])->assertUnprocessable()->assertJsonValidationErrors('first_name');
@@ -258,7 +257,8 @@ it('accepts an existing account without authentication and forbids supplied acco
             ->assertUnprocessable()->assertJsonValidationErrors($field);
     }
     currentTestCase()->withHeader('Authorization', '')->postJson('/v1/iam/invitations/accept', ['email' => $user->email, 'token' => $job->token])
-        ->assertCreated()->assertJsonMissingPath('data');
+        ->assertCreated()->assertJsonPath('data.user.id', $user->id)->assertJsonPath('data.user.profile_complete', true);
+    expect($user->tokens()->count())->toBe(1);
     expect(User::query()->where('email', $user->email)->count())->toBe(1)->and($user->fresh()->first_name)->toBe($user->first_name)
         ->and($user->fresh()->email_verified_at)->not->toBeNull();
 });
@@ -344,7 +344,7 @@ it('rejects empty, duplicate, foreign, system, other guard and deleted offered r
     $this->postJson('/v1/iam/invitations', ['email' => 'invite@example.com', 'role_ids' => $ids])
         ->assertUnprocessable()->assertJsonValidationErrors($error);
     expect(Invitation::query()->count())->toBe(0);
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(SendInvitationLink::class);
 })->with(['empty', 'duplicate', 'foreign', 'system', 'guard', 'deleted']);
 
 it('rolls back acceptance if any offered role was deleted after sending and permits replacing it', function (): void {
@@ -395,5 +395,67 @@ it('denies tenant mutations even with all invitation permissions', function (): 
     $this->putJson("/v1/iam/invitations/{$other->id}/roles", ['role_ids' => [$context['role']->id]])->assertForbidden();
     $this->postJson("/v1/iam/invitations/{$other->id}/resend")->assertForbidden();
     $this->deleteJson("/v1/iam/invitations/{$other->id}")->assertForbidden();
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(SendInvitationLink::class);
+});
+
+it('accepts a six day old invitation without names and completes the profile in its new 24 hour session', function (): void {
+    currentTestCase()->travelTo(now()->startOfSecond());
+    $context = authenticatedInvitationContext();
+    $invitation = createInvitationThroughApi('new.member@example.com', [$context['role']->id]);
+    $token = queuedInvitationLinks()->first()->token;
+    expect($invitation->expires_at->equalTo($invitation->created_at->copy()->addDays(7)))->toBeTrue();
+    currentTestCase()->travel(6)->days();
+
+    $accepted = currentTestCase()->withHeader('Authorization', '')->postJson('/v1/iam/invitations/accept', [
+        'email' => $invitation->email, 'token' => $token,
+    ])->assertCreated()->assertJsonPath('data.user.profile_complete', false)
+        ->assertJsonPath('data.user.first_name', null)->assertJsonPath('data.user.last_name', null);
+    $session = PersonalAccessToken::findToken($accepted->json('data.access_token'));
+    expect($session)->not->toBeNull()
+        ->and($session->getMeta('session.authentication_method'))->toBe('email_invitation')
+        ->and($session->expires_at->equalTo(now()->addDay()))->toBeTrue()
+        ->and($session->getMeta('organization_id'))->toBeNull();
+    expect($invitation->fresh()->accepted_at)->not->toBeNull()
+        ->and($invitation->fresh()->token_hash)->toBeNull();
+    $memberRoleId = $accepted->json('data.user.member_roles.0.id');
+    expect($memberRoleId)->toBeString();
+
+    $this->withToken($accepted->json('data.access_token'));
+    app('auth')->forgetGuards();
+    $this->getJson('/v1/auth/me')->assertOk()->assertJsonPath('data.profile_complete', false);
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRoleId])
+        ->assertForbidden()->assertJsonPath('code', 'profile_incomplete');
+    $this->patchJson('/v1/auth/me', ['first_name' => 'New', 'last_name' => 'Member'])->assertNoContent();
+    app('auth')->forgetGuards();
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRoleId])->assertOk();
+    $this->postJson('/v1/iam/invitations/accept', ['email' => $invitation->email, 'token' => $token])
+        ->assertUnprocessable()->assertJsonValidationErrors('token');
+    expect(User::query()->where('email', $invitation->email)->firstOrFail()->tokens()->count())->toBe(1);
+});
+
+it('rolls back the account membership and invitation consumption when session creation fails', function (): void {
+    $context = authenticatedInvitationContext();
+    $invitation = createInvitationThroughApi('rollback.member@example.com', [$context['role']->id]);
+    $token = queuedInvitationLinks()->first()->token;
+    DB::unprepared(<<<'SQL'
+        CREATE FUNCTION reject_invitation_session() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN
+            RAISE EXCEPTION 'Session storage unavailable';
+        END;
+        $$;
+        CREATE TRIGGER reject_invitation_session BEFORE INSERT ON personal_access_tokens
+            FOR EACH ROW EXECUTE FUNCTION reject_invitation_session();
+        SQL);
+    try {
+        currentTestCase()->withHeader('Authorization', '')->postJson('/v1/iam/invitations/accept', [
+            'email' => $invitation->email, 'token' => $token,
+        ])->assertStatus(500);
+    } finally {
+        DB::unprepared('DROP TRIGGER reject_invitation_session ON personal_access_tokens; DROP FUNCTION reject_invitation_session();');
+    }
+    expect(User::query()->where('email', $invitation->email)->exists())->toBeFalse()
+        ->and($invitation->fresh()->accepted_at)->toBeNull()
+        ->and($invitation->fresh()->token_hash)->toBe(hash('sha256', $token))
+        ->and(OrganizationMember::query()->where('organization_id', $context['organization']->id)->count())->toBe(1)
+        ->and(PersonalAccessToken::query()->count())->toBe(1);
 });

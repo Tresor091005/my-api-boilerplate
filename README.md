@@ -61,6 +61,15 @@ install the GeoLite2 City database immediately. See
 [session location setup](docs/infrastructure/docker.md#7-session-location-setup)
 for the environment values and initialization command.
 
+To enable Google sign-in, configure `GOOGLE_CLIENT_ID` for a Web application
+OAuth client. See [Google setup](docs/infrastructure/docker.md#8-google-sign-in-setup)
+for the frontend configuration and Bruno workflow.
+
+For an interactive IAM demo, run `docker compose up -d frontend` and open
+`http://localhost:28421/`. See [demo frontend setup](docs/infrastructure/docker.md#9-iam-demo-frontend)
+for supported flows and the separate client service. Bruno remains available
+for API specification and manual tests.
+
 Run the test suite inside the application container:
 
 ```bash

@@ -56,6 +56,12 @@ it('keeps payload-producing IAM endpoints resource responses by default', functi
     foreach ([
         'lahatre.iam.auth.email-challenges.store',
         'lahatre.iam.auth.email-challenge-verifications.store',
+        'lahatre.iam.auth.google-challenges.store',
+        'lahatre.iam.auth.google-challenge-verifications.store',
+        'lahatre.iam.invitations.accept',
+        'lahatre.iam.auth.google-identities.store',
+        'lahatre.iam.auth.organizations.store',
+        'lahatre.iam.auth.invitations.accept',
         'lahatre.iam.auth.logout',
         'lahatre.iam.auth.switch-member-role',
     ] as $routeName) {
@@ -69,6 +75,8 @@ it('declares the user relationships required by IAM resources', function (): voi
 
     foreach ([
         'lahatre.iam.auth.email-challenge-verifications.store',
+        'lahatre.iam.auth.google-challenge-verifications.store',
+        'lahatre.iam.invitations.accept',
         'lahatre.iam.auth.me',
         'lahatre.iam.auth.switch-member-role',
     ] as $routeName) {

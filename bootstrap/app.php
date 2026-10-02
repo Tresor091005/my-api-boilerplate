@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
@@ -32,13 +33,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->group('auth.api', [
             'auth:sanctum',
+            EnsureProfileComplete::class,
             TrackSessionActivity::class,
             ResolveAuthContext::class,
             SetTeamPermissionsId::class,
         ]);
-        $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, ResolveAuthContext::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
+        $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
+        $middleware->prependToPriorityList(TrackSessionActivity::class, EnsureProfileComplete::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AssertionException $e, $request) {

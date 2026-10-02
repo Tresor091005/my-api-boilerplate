@@ -10,6 +10,11 @@ use Lahatre\Shared\Policies\BasePolicy;
 
 class UserPolicy extends BasePolicy
 {
+    public function createOrganization(Authorizable $user, User $model): bool
+    {
+        return $user instanceof User && $user->id === $model->id;
+    }
+
     public function update(Authorizable $user, User $model): bool
     {
         return $user instanceof User && $user->id === $model->id;

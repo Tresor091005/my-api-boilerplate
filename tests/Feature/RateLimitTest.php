@@ -36,6 +36,15 @@ it('has an auth rate limiter configured for 5 requests per minute', function ():
     expect($limit->decaySeconds)->toBe(60);
 });
 
+it('gives Google an independent budget of 20 requests per minute', function (): void {
+    $request = Request::create('/v1/auth/google-challenges', 'POST');
+    $limit = RateLimiter::limiter('google-auth')($request);
+
+    expect($limit->maxAttempts)->toBe(20)
+        ->and($limit->decaySeconds)->toBe(60)
+        ->and($limit->key)->toBe($request->ip());
+});
+
 it('ensures all api routes are throttled correctly', function (): void {
     $apiRoutes = collect(Route::getRoutes())->filter(function ($route): bool {
         $uri = $route->uri();
@@ -70,6 +79,13 @@ it('ensures all api routes are throttled correctly', function (): void {
                 $m === ThrottleRequests::class.':auth'
             ));
             expect($hasAuthThrottle)->toBeTrue("Route [{$uri}] should use 'throttle:auth'.");
+        } elseif (in_array($uri, [
+            'v1/auth/google-challenges',
+            'v1/auth/google-challenge-verifications',
+            'v1/auth/google-identities',
+        ], true)) {
+            expect(collect($middleware)->contains(ThrottleRequests::class.':google-auth'))->toBeTrue();
+            expect(collect($middleware)->contains(ThrottleRequests::class.':auth'))->toBeFalse();
         } else {
             // All other API routes should use 'throttle:api' (via group)
             $hasApiThrottle = collect($middleware)->contains(fn ($m): bool => is_string($m) && (

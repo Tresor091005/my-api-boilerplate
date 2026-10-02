@@ -42,6 +42,20 @@ prevent brute-force attacks.
   - `POST /v1/auth/organization-registrations`
   - `POST /v1/iam/invitations/accept`
 
+### `google-auth` (Google authentication)
+
+- **Limit:** 20 requests per minute, shared between Google challenge creation,
+  verification, and identity linking.
+- **Identification:** IP address.
+- **Middleware:** `throttle:google-auth`.
+- **Affected endpoints:** `POST /v1/auth/google-challenges`,
+  `POST /v1/auth/google-challenge-verifications`, and
+  `POST /v1/auth/google-identities`.
+
+This budget is independent of the email `auth` budget. The frontend prepares
+Google automatically and reuses an unexpired challenge when changing screens.
+The global `api` limit still applies.
+
 Other authentication routes, such as `/me` and `/logout`, use the default
 `api` limiter.
 

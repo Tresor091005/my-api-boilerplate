@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Lahatre\Iam\Data\OrganizationRegistrationData;
 use Lahatre\Iam\Enums\SysRole;
+use Lahatre\Iam\Exceptions\EmailAccountException;
 use Lahatre\Iam\Exceptions\OrganizationOnboardingException;
 use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
 use Lahatre\Iam\Models\MemberRole;
@@ -108,8 +109,23 @@ final class OrganizationOnboardingService
         });
     }
 
+    /** Owns the transaction. Use the authenticated account as owner without a registration email token. */
+    public function createForUser(User $actor, OrganizationData $data): void
+    {
+        DB::transaction(function () use ($actor, $data): void {
+            $user = $this->accounts->findForUpdate($actor->email);
+            if ($user === null || $user->trashed() || $user->id !== $actor->id || $data->ownerId !== $actor->id) {
+                throw OrganizationOnboardingException::accountUnavailable();
+            }
+            $this->provision($user, $data);
+        });
+    }
+
     private function provision(User $user, OrganizationData $data): Organization
     {
+        if (!$user->hasCompleteProfile()) {
+            throw EmailAccountException::profileIncomplete();
+        }
         $systemRoles = Role::query()
             ->whereNull('team_id')
             ->where('guard_name', config('auth.defaults.guard'))

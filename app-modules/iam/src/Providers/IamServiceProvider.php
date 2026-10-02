@@ -53,6 +53,13 @@ class IamServiceProvider extends ServiceProvider
             ->onOneServer()
             ->withoutOverlapping();
 
+        $schedule
+            ->call(fn (): int => DB::table('iam_google_auth_challenges')->where('expires_at', '<=', now())->delete())
+            ->name('prune-google-auth-challenges')
+            ->dailyAt('02:45')
+            ->onOneServer()
+            ->withoutOverlapping();
+
         /*
         TODO use Illuminate\Auth\Access\Response::allow, deny and denyAsNotFound
         Gate::authorize('update', [$post, $request->category]); when multiple element

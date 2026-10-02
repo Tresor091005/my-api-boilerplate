@@ -18,8 +18,8 @@ use Lahatre\Shared\Models\Authenticatable;
 
 /**
  * @property string $id
- * @property string $first_name
- * @property string $last_name
+ * @property string|null $first_name
+ * @property string|null $last_name
  * @property string $email
  * @property string|null $default_member_role_id
  * @property CarbonImmutable|null $email_verified_at
@@ -29,6 +29,7 @@ use Lahatre\Shared\Models\Authenticatable;
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
  * @property-read Collection<int, OrganizationMember> $organizationMemberships
+ * @property-read Collection<int, ExternalIdentity> $externalIdentities
  * @property-read MemberRole|null $defaultMemberRole
  * @property-read int|null $organization_memberships_count
  * @property-read Collection<int, Permission> $permissions
@@ -94,6 +95,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function hasCompleteProfile(): bool
+    {
+        return filled($this->first_name) && filled($this->last_name);
+    }
+
     /** @return BelongsTo<MemberRole, $this> */
     public function defaultMemberRole(): BelongsTo
     {
@@ -104,5 +110,11 @@ class User extends Authenticatable
     {
         /** Callers must enforce organization authorization when using this cross-organization relation. */
         return $this->hasMany(OrganizationMember::class, 'user_id');
+    }
+
+    /** @return HasMany<ExternalIdentity, $this> */
+    public function externalIdentities(): HasMany
+    {
+        return $this->hasMany(ExternalIdentity::class, 'user_id');
     }
 }

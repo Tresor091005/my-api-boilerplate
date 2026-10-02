@@ -39,6 +39,8 @@ consistent:
 - **`redis`:** Redis 8 (Alpine) for cache, queues, and Reverb.
 - **`mailpit`:** Development email capture tool, with its web interface at
   `http://localhost:28419` and internal SMTP server at `mailpit:1025`.
+- **`frontend`:** Separate Node 24 IAM demo at `http://localhost:28421`, with
+  a same-origin proxy to the application API. See [demo setup](#9-iam-demo-frontend).
 
 ## 3. Development optimizations
 
@@ -111,3 +113,101 @@ which cannot be geolocated. Public deployments must expose the client's public
 IP to Laravel, with trusted proxies configured when applicable. See
 [IAM session enrichment](../modules/iam.md#email-otp-and-sessions) for metadata,
 queue behavior, and update failure handling.
+
+## 8. Google sign-in setup
+
+Create or select a project in [Google Auth Platform](https://console.cloud.google.com/auth/overview).
+Configure Branding and Audience, then create an OAuth client of type **Web application**
+under Clients. Register the frontend's exact origin, including its development
+port, as an Authorized JavaScript origin. For example, `http://localhost:28421`.
+Copy the client ID into `.env`:
+
+```dotenv
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+FRONTEND_URL=http://localhost:28421
+```
+
+Use that same client ID in the frontend Google Identity Services SDK. This
+integration receives ID credentials through its JavaScript callback and verifies
+public signatures; it does not need a client secret, service-account JSON file,
+Google access token, or refresh token. See [Google's setup guide](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
+
+Install the locked dependencies and apply the migrations:
+
+```bash
+docker compose exec -T app composer install --no-interaction
+docker compose exec -T app php artisan migrate --no-interaction
+docker compose exec -T app php artisan config:clear
+```
+
+The frontend first requests a Google challenge, keeps its ID and nonce locally,
+and passes the nonce to `google.accounts.id.initialize`. Submit Google's
+`response.credential` with that challenge ID to the API. Do not retrieve a
+challenge ID from URL parameters supplied by another party. Use a same-origin
+API proxy or direct API requests. `config/cors.php` enables `/v1/*` preflight
+and bearer headers for the origin derived from `FRONTEND_URL`.
+The API additionally checks browser Origin against `FRONTEND_URL`.
+
+Google is disabled when `GOOGLE_CLIENT_ID` is empty; email OTP and existing
+organization/invitation flows continue working. The scheduler prunes expired
+Google challenges daily at 02:45. Public verification certificates are cached
+according to Google's Cache-Control lifetime. No manual certificate downloads
+or Google-specific queue worker are required.
+
+The [endpoint map](../api/endpoints.md#google-authentication) describes the
+Bruno requests, profile completion, and OTP confirmation before linking.
+
+## 9. IAM demo frontend
+
+The `frontend/` directory is an independent client with its own Node server and
+package manifest. It has no npm dependencies or build step. Start it with:
+
+```bash
+docker compose up -d frontend
+```
+
+Open `http://localhost:28421/`. The service is bound to loopback and proxies
+`/api/v1/*` to `http://app:8080/v1/*`; Laravel owns authentication, profile
+requirements, authorization, and all business state. `/config.json` exposes
+only the public `GOOGLE_CLIENT_ID` from the root `.env`, never other environment
+values. After changing that ID, rerun `docker compose up -d frontend` and clear
+the backend configuration cache. Authorize `http://localhost` and
+`http://localhost:28421` in Google, and set `FRONTEND_URL=http://localhost:28421`.
+The demo redirects HTML pages opened through the equivalent loopback address
+`127.0.0.1` to the configured `localhost` origin, preserving emailed link
+parameters. API requests keep their original Origin header.
+
+The UI supports email OTP signup/login, Google signup/login, OTP confirmation
+before Google linking, profile completion, direct organization creation, emailed
+organization registration, public and authenticated invitation acceptance,
+organization/member-role switching and default preference, profile edits,
+session listing and individual/all revocation. Organization tools also allow
+editing name/timezone, creating custom roles, inviting members, and resending or
+cancelling invitations. APIs enforce permissions; an unavailable capability
+shows the API error without logging the user out. Email links open the relevant
+screen automatically. Development emails are available at `http://localhost:28419`.
+
+Challenges and Google credentials remain in memory and are managed by the
+client. An invitation link opens its acceptance form directly, without requiring
+Google or an OTP. Public acceptance signs the recipient in and opens profile
+completion when names are missing. A matching authenticated account keeps its
+session; a different signed-in account must explicitly sign out before continuing.
+Sanctum tokens are kept in `sessionStorage` for the current browser tab;
+signing out clears them. HTTP 401 clears the session, profile-incomplete 403
+opens profile completion, and other 403 responses preserve the account session.
+The client automatically switches to an available default member role after
+login. Profile read/update and session controls remain available before the
+profile is complete. Reloading loses a pending Google-link challenge; restart
+Google linking if its ten-minute window expires. The optional manual helper
+for Bruno remains at `/google-test.html`.
+
+To run outside Docker with Node 24 or later:
+
+```bash
+npm --prefix frontend start
+```
+
+This reads the root `.env` locally, proxies to `APP_URL`, and listens on
+`127.0.0.1:28421`. Stop the Docker frontend first to free the port. Test the
+server with `npm --prefix frontend test`. Bruno remains the API specification
+and can be used independently of the demo.

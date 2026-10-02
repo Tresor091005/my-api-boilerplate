@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Lahatre\Iam\Http\Controllers\AuthController;
 use Lahatre\Iam\Http\Controllers\EmailLoginController;
+use Lahatre\Iam\Http\Controllers\GoogleAuthController;
 use Lahatre\Iam\Http\Controllers\InvitationAcceptanceController;
 use Lahatre\Iam\Http\Controllers\InvitationController;
 use Lahatre\Iam\Http\Controllers\MemberRoleController;
@@ -12,6 +13,8 @@ use Lahatre\Iam\Http\Controllers\OrganizationMemberController;
 use Lahatre\Iam\Http\Controllers\PermissionController;
 use Lahatre\Iam\Http\Controllers\RoleController;
 use Lahatre\Iam\Http\Controllers\SessionController;
+use Lahatre\Iam\Http\Middleware\EnsureGoogleRequestOrigin;
+use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 
@@ -34,6 +37,11 @@ Route::group([
         Route::post('/email-challenges', [EmailLoginController::class, 'store'])->middleware('throttle:auth')->name('email-challenges.store');
         Route::post('/email-challenge-verifications', [EmailLoginController::class, 'verify'])->middleware('throttle:auth')->name('email-challenge-verifications.store');
 
+        Route::group(['middleware' => ['throttle:google-auth', EnsureGoogleRequestOrigin::class]], function (): void {
+            Route::post('/google-challenges', [GoogleAuthController::class, 'challenge'])->name('google-challenges.store');
+            Route::post('/google-challenge-verifications', [GoogleAuthController::class, 'verify'])->name('google-challenge-verifications.store');
+        });
+
         Route::group([
             'middleware' => ['auth:sanctum', TrackSessionActivity::class, ResolveAuthContext::class.':user'],
         ], function (): void {
@@ -43,7 +51,14 @@ Route::group([
             Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
             Route::delete('/sessions', [SessionController::class, 'destroyAll'])->name('sessions.destroy-all');
             Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->whereUuid('session')->name('sessions.destroy');
-            Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
+            Route::group(['middleware' => EnsureProfileComplete::class], function (): void {
+                Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
+                Route::post('/google-identities', [GoogleAuthController::class, 'link'])
+                    ->middleware(['throttle:google-auth', EnsureGoogleRequestOrigin::class])->name('google-identities.store');
+                Route::post('/organizations', [AuthController::class, 'createOrganization'])->middleware('throttle:auth')->name('organizations.store');
+                Route::post('/invitations/accept', [InvitationAcceptanceController::class, 'storeForUser'])
+                    ->middleware('throttle:auth')->name('invitations.accept');
+            });
         });
 
         Route::group([

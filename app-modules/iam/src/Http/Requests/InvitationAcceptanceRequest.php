@@ -7,7 +7,6 @@ namespace Lahatre\Iam\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Lahatre\Iam\Services\InvitationService;
 
@@ -38,11 +37,9 @@ class InvitationAcceptanceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $accountExists = $this->invitationAccountExists();
-
         return [
-            'first_name' => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'max:100'],
-            'last_name'  => [Rule::requiredIf($accountExists === false), 'nullable', 'string', 'max:100'],
+            'first_name' => ['filled', 'string', 'max:100'],
+            'last_name'  => ['filled', 'string', 'max:100'],
             'email'      => ['required', 'string', 'email', 'max:254'],
             'token'      => ['required', 'string', 'size:64'],
         ];

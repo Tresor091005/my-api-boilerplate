@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 return [
+    'google' => [
+        'configuration_missing'                => 'Google sign-in is not configured.',
+        'invalid_credential'                   => 'The Google credential is invalid or expired.',
+        'invalid_challenge'                    => 'The Google challenge is invalid, expired, or no longer available.',
+        'identity_unavailable'                 => 'This Google identity cannot be used for this account.',
+        'recent_email_authentication_required' => 'Sign in with a new email code before linking Google.',
+        'invalid_origin'                       => 'Google authentication requires a JSON request from an allowed origin.',
+        'verification_unavailable'             => 'Google verification is temporarily unavailable. Try again later.',
+    ],
     'geoip' => [
         'configuration_missing' => 'Configure MAXMIND_ACCOUNT_ID, MAXMIND_LICENSE_KEY, and a local database path before updating GeoLite2 City.',
         'download_failed'       => 'GeoLite2 City download failed. Check MaxMind credentials, account access, and network availability.',
@@ -10,6 +19,7 @@ return [
         'storage_unavailable'   => 'The GeoLite2 City database directory is not writable.',
     ],
     'auth' => [
+        'profile_incomplete'      => 'Complete your first and last name before continuing.',
         'invalid_code'            => 'The sign-in code is invalid, expired, or no longer available.',
         'invalid_session_context' => 'Invalid session context.',
     ],
@@ -21,12 +31,12 @@ return [
         'assigned'                => 'A role assigned to a member cannot be deleted.',
     ],
     'organization_onboarding' => [
+        'account_unavailable'        => 'This account cannot create an organization.',
         'system_roles_unavailable'   => 'The system roles are not configured.',
         'invalid_registration_token' => 'The registration token is invalid or expired.',
     ],
     'email_account' => [
         'unavailable_email'      => 'This email address cannot be used for registration.',
-        'user_details_required'  => 'User details are required for a new account.',
         'user_details_forbidden' => 'User details cannot be changed during email onboarding.',
     ],
     'organization_member' => [

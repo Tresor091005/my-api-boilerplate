@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Lahatre\Iam\Data\InvitationAcceptanceData;
 use Lahatre\Iam\Data\InvitationData;
 use Lahatre\Iam\Data\InvitationFilterData;
+use Lahatre\Iam\Data\SessionData;
 use Lahatre\Iam\Exceptions\EmailAccountException;
 use Lahatre\Iam\Exceptions\InvitationException;
 use Lahatre\Iam\Jobs\SendInvitationLink;
@@ -27,7 +28,7 @@ final class InvitationService
 {
     private const int EXPIRATION_DAYS = 7;
 
-    public function __construct(private readonly EmailAccountService $accounts) {}
+    public function __construct(private readonly EmailAccountService $accounts, private readonly AuthService $auth) {}
 
     public function paginate(InvitationFilterData $filters): CursorPaginator
     {
@@ -145,51 +146,74 @@ final class InvitationService
     }
 
     /**
-     * Accept a public single-use email token and assign the latest offered roles.
-     * Owns the transaction; all invitation mutations share its row lock. Email
-     * ownership is established by the token, never by the frontend account flag.
+     * Accept the single-use email token and issue a session in one transaction.
+     * An incomplete profile can join, but cannot access business routes until completed.
      *
      * @throws InvitationException
      * @throws EmailAccountException
+     *
+     * @return array{user: User, token: string}
      */
-    public function accept(InvitationAcceptanceData $data): void
+    public function accept(InvitationAcceptanceData $data, SessionData $session): array
     {
-        DB::transaction(function () use ($data): void {
-            $invitation = Invitation::query()->where('token_hash', hash('sha256', $data->token))
-                ->where('email', $data->email)->whereNull('accepted_at')
-                ->where('expires_at', '>', now())->lockForUpdate()->first();
-            if (!$invitation || !$invitation->expires_at?->isFuture()) {
-                throw InvitationException::invalidToken();
+        return DB::transaction(fn (): array => $this->auth->issueToken(
+            $this->acceptInvitation($data), $session, 'email_invitation',
+        ));
+    }
+
+    /** Accept for the authenticated email owner and preserve the current session. Owns the transaction. */
+    public function acceptForUser(User $user, string $token): void
+    {
+        DB::transaction(fn (): User => $this->acceptInvitation(
+            InvitationAcceptanceData::fromArray(['email' => $user->email, 'token' => $token]), $user,
+        ));
+    }
+
+    /** Caller owns the transaction. All invitation mutations share its row lock. */
+    private function acceptInvitation(InvitationAcceptanceData $data, ?User $actor = null): User
+    {
+        $invitation = Invitation::query()->where('token_hash', hash('sha256', $data->token))
+            ->where('email', $data->email)->whereNull('accepted_at')
+            ->where('expires_at', '>', now())->lockForUpdate()->first();
+        if (!$invitation || !$invitation->expires_at?->isFuture()) {
+            throw InvitationException::invalidToken();
+        }
+        $organizationId = $invitation->organization_id;
+        if (!Organization::query()->whereKey($organizationId)->exists()) {
+            throw InvitationException::unavailable();
+        }
+        $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName);
+        if ($actor !== null && !$user->hasCompleteProfile()) {
+            throw EmailAccountException::profileIncomplete();
+        }
+        if ($actor !== null && $actor->id !== $user->id) {
+            throw InvitationException::invalidToken();
+        }
+        $this->assertCanInvite($organizationId, $user);
+        $roles = $this->resolveRoles($organizationId, $this->offeredRoleIds($invitation));
+        $member = OrganizationMember::query()->create([
+            'organization_id' => $organizationId,
+            'user_id'         => $user->id,
+        ]);
+        $previousTeamId = getPermissionsTeamId();
+        setPermissionsTeamId($organizationId);
+        try {
+            foreach ($roles as $role) {
+                $memberRole = MemberRole::query()->create([
+                    'organization_id' => $organizationId,
+                    'member_id'       => $member->id,
+                    'role_id'         => $role->id,
+                ]);
+                $memberRole->syncRoles($role);
             }
-            $organizationId = $invitation->organization_id;
-            if (!Organization::query()->whereKey($organizationId)->exists()) {
-                throw InvitationException::unavailable();
-            }
-            $user = $this->accounts->resolve($data->email, $data->firstName, $data->lastName);
-            $this->assertCanInvite($organizationId, $user);
-            $roles = $this->resolveRoles($organizationId, $this->offeredRoleIds($invitation));
-            $member = OrganizationMember::query()->create([
-                'organization_id' => $organizationId,
-                'user_id'         => $user->id,
-            ]);
-            $previousTeamId = getPermissionsTeamId();
-            setPermissionsTeamId($organizationId);
-            try {
-                foreach ($roles as $role) {
-                    $memberRole = MemberRole::query()->create([
-                        'organization_id' => $organizationId,
-                        'member_id'       => $member->id,
-                        'role_id'         => $role->id,
-                    ]);
-                    $memberRole->syncRoles($role);
-                }
-            } finally {
-                setPermissionsTeamId($previousTeamId);
-            }
-            $invitation->accepted_at = now();
-            $invitation->token_hash = null;
-            $invitation->save();
-        });
+        } finally {
+            setPermissionsTeamId($previousTeamId);
+        }
+        $invitation->accepted_at = now();
+        $invitation->token_hash = null;
+        $invitation->save();
+
+        return $user;
     }
 
     /** Deliver only the current token; retrying or reordering a job never rotates it. */

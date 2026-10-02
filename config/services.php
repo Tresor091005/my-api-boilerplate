@@ -30,6 +30,10 @@ return [
         'license_key' => env('MAXMIND_LICENSE_KEY'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
     'ses' => [
         'key'    => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

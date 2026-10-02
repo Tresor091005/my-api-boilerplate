@@ -12,6 +12,11 @@ and the global API rate limiter. Business module routes additionally use
 | POST | `/v1/auth/organization-registrations` | public, auth throttle | Consume the emailed token and create an organization with an Administrator member role for its owner. |
 | POST | `/v1/auth/email-challenges` | public, auth throttle | Queue a sign-in code and return a generic message and challenge ID. |
 | POST | `/v1/auth/email-challenge-verifications` | public, auth throttle | Consume an OTP, create a user when needed, and issue a Sanctum token. |
+| POST | `/v1/auth/google-challenges` | public, auth throttle, frontend Origin | Issue a ten-minute nonce challenge for Google Identity Services. |
+| POST | `/v1/auth/google-challenge-verifications` | public, auth throttle, frontend Origin | Verify the Google ID token and create/sign in, or request email OTP before linking. |
+| POST | `/v1/auth/google-identities` | Sanctum user, auth throttle, frontend Origin | Link Google after a recent email OTP login, retaining the current session. |
+| POST | `/v1/auth/organizations` | Sanctum user, auth throttle | Create an organization owned by the current user without an emailed registration token. |
+| POST | `/v1/auth/invitations/accept` | Sanctum user, auth throttle | Accept an invitation token addressed to the current user's email. |
 | GET | `/v1/auth/me` | Sanctum + optional organization context | Return the current user and selected member role. |
 | PATCH | `/v1/auth/me` | Sanctum, account owner | Update names and the nullable default member role preference. |
 | POST | `/v1/auth/logout` | Sanctum + optional organization context | Revoke the current access token. |
@@ -29,21 +34,122 @@ for the token holder as part of organization provisioning. No general email
 verification requirement is enforced on login or authenticated routes.
 `organization-registrations` returns `201` with a success message and no user data or login token.
 The user then logs in to select the new organization.
-Account creation without an organization uses the email OTP endpoints below.
+Account creation without an organization uses email OTP or Google below.
+
+### Google authentication
+
+`google-challenges` takes `{}` and returns `challenge_id`, `nonce`, and
+`expires_at`. Pass the nonce to the frontend Google Identity Services SDK and
+send its `credential` ID token with the challenge ID to
+`google-challenge-verifications`. The frontend must retain its own challenge ID
+and nonce for that attempt; do not take these values from an incoming link.
+Both routes require JSON. Browser Origin must match `FRONTEND_URL`; native and
+CLI clients may omit Origin. Signature, configured audience, issuer, expiry,
+verified email, and nonce are checked server-side. A successful response has the
+same `data.access_token`, `data.token_type`, and `data.user` as email OTP, with
+`authentication_method = google` and no organization selected.
+
+A new Gmail or verified Workspace identity creates a verified user, its
+external identity, and a Sanctum session even when Google omits profile names.
+The response includes `data.user.profile_complete`; complete missing names
+through `PATCH /v1/auth/me` using that session. Existing names and email are
+never overwritten by login.
+
+For an unlinked existing account or a Google account using a third-party email
+address, the response is `{status: "email_verification_required", challenge_id,
+email}`. No user or session is created by this response. Use the existing
+email challenge and verification endpoints, complete the profile if needed, then
+POST the original Google challenge and credential to `google-identities` with
+the resulting Sanctum token. Linking requires an email OTP session issued
+within the last ten minutes and a matching email. It returns `201` with a
+message and keeps that token. Google can then authenticate directly by subject.
+The Google challenge must still be valid; restart it if it has expired.
+
+One Google identity may belong to only one user, and a user may link only one
+Google identity. Pending challenges bind to the verified issuer, subject, and
+email. Completion consumes the challenge atomically with identity/account
+persistence. Soft-deleted users cannot authenticate or be replaced. Google
+credentials are not persisted. Public certificates are cached across requests
+according to Google's cache lifetime; expired challenges are pruned daily.
+
+In Bruno, use `auth/google/request-google-challenge`, then obtain a real Google
+credential from the frontend SDK configured with that `googleNonce` and the
+same `GOOGLE_CLIENT_ID`. Save it as the local secret `googleCredential`, then
+use `auth/google/verify-google-credential`. The folder contains three requests:
+challenge creation, credential verification, and identity linking. If Google
+omits names, complete the profile with `PATCH /v1/auth/me` after authentication.
+Verification saves `authToken` on success
+or `registrationEmail` when OTP is required. The existing OTP requests and
+`auth/google/link-google-after-email-otp` complete linking. A generic Google
+OAuth Playground token has a different audience and is not a substitute.
+
+The separate [demo frontend](../infrastructure/docker.md#9-iam-demo-frontend)
+at `http://localhost:28421/` handles challenges automatically. For manual Bruno
+tests, its optional helper remains at `http://localhost:28421/google-test.html`.
+In Google Auth Platform, authorize
+the JavaScript origins `http://localhost` and `http://localhost:28421`. Use
+`FRONTEND_URL=http://localhost:28421` and the same Client ID as the API. Run
+`request-google-challenge` in Bruno, paste its challenge ID and nonce into the
+page, then prepare sign-in. Choose your Google account and copy the returned
+credential into Bruno's local `googleCredential` secret. The helper also offers
+the complete JSON body to paste directly into the verification request. It
+does not call the API or persist credentials in browser storage. Request a new
+challenge if its 10-minute window has elapsed.
+
+Authenticated organization creation takes flat `name`, `currency_code`, and
+`timezone`, returns `201` with a message, and creates the current user's
+membership and Administrator assignment through the existing provisioner.
+Ownership comes from Sanctum, not a payload ID or email. Google and OTP sessions
+both work, including accounts with no organization or an unavailable selected
+context. It does not change the session's selected role.
+
+Authenticated invitation acceptance takes only the emailed `token`, returns
+`201` with a message, and checks it against the current account's email. It
+uses the current offered roles under the existing invitation transaction and
+locks. Payload email and profile fields do not change the recipient. The
+public email-token registration and invitation endpoints remain available.
 
 ### Email OTP and sessions
 
 Email code verification takes `challenge_id`, a six-digit string `code`, and
-`first_name` / `last_name` for a new account. Existing users may omit the names;
+optional `first_name` / `last_name` for a new account. Existing users may omit the names;
 if provided, they do not overwrite the existing profile. A successful response
 contains `data.access_token`, `data.token_type`, and `data.user`. An unknown
-email creates a verified user without an organization only after a correct code
-and complete names. Missing names after valid proof return `EmailAccountException`;
-the same unconsumed code may be submitted again with the names.
+email creates a verified user without an organization after a correct code.
+Missing names do not prevent issuing the token. Complete them through
+`PATCH /v1/auth/me`; the OTP is already consumed and is not submitted again.
+
+### Invitation acceptance and sign-in
+
+`POST /v1/iam/invitations/accept` takes `email` and the emailed `token`, and
+returns `201` with the common authentication payload. New accounts may omit both
+names and complete their profile after automatic sign-in. Existing accounts must
+omit names. The invitation link remains valid for seven days; acceptance consumes
+it once and starts a new 24-hour Sanctum session. Its authentication method is
+`email_invitation`, which does not qualify as email OTP for Google linking.
+
+Bruno's `iam/invitations/accept-invitation` stores the returned `authToken` for
+new and existing accounts. The authenticated `/auth/invitations/accept` route
+continues to preserve the current session.
+
+### Profile completion
+
+`User.hasCompleteProfile()` checks that both names are non-blank. `UserResource`
+includes the computed `profile_complete` boolean. `EnsureProfileComplete` blocks
+authenticated business endpoints with HTTP `403`, a translated message, and
+`code: "profile_incomplete"`. This is independent of organization context and
+does not revoke the session. `GET/PATCH /auth/me`, logout, and session listing or
+revocation remain accessible. Profile updates reject supplied null/blank names;
+the two missing fields may be completed in separate requests. Subsequent requests
+use the current database profile, not a cached token claim. The public email-link
+organization flow still requires names for a new account and rejects existing
+incomplete profiles before provisioning. Public invitation acceptance can create
+membership and issue a session before profile completion; its user then passes
+through this same profile gate.
 
 In Bruno, use `auth/request-email-code`, then either
-`auth/verify-email-code-new-user` with names or
-`auth/verify-email-code-existing-user` without names. Copy the emailed OTP into
+`auth/verify-email-code-with-profile` with names or
+`auth/verify-email-code` without names. Copy the emailed OTP into
 `loginCode`; the challenge request stores `loginChallengeId` automatically, and
 successful verification stores `authToken`. These are alternative examples of
 one verification endpoint, and a code can be consumed only once.
@@ -132,7 +238,7 @@ See [member role batches](../modules/iam.md#member-role-batches).
 | PUT | `/v1/iam/invitations/{invitation}/roles` | `auth.api` + `iam_invitation.update` | Replace pending roles while preserving the emailed token. |
 | POST | `/v1/iam/invitations/{invitation}/resend` | `auth.api` + `iam_invitation.update` | Renew the expiry and rotate the token before queuing a new email. |
 | DELETE | `/v1/iam/invitations/{invitation}` | `auth.api` + `iam_invitation.delete` | Cancel a pending invitation, soft-delete its record, and invalidate its token. |
-| POST | `/v1/iam/invitations/accept` | public, auth throttle | Consume the email token, create membership, and assign current offered roles. |
+| POST | `/v1/iam/invitations/accept` | public, auth throttle | Consume the seven-day email token, create membership, assign current offered roles, and issue a 24-hour Sanctum session. |
 
 Create requires `email` and `role_ids`; role replacement requires only
 `role_ids`. At least one active custom role from the current organization is

@@ -68,6 +68,47 @@ Login and authenticated routes do not enforce email verification. The
 registration token only proves control of the email for this organization
 creation flow.
 
+## Google authentication
+
+Google Identity Services is the second authentication method for the same
+`User`. `GoogleIdentityVerifier` uses the official `google/auth` library and
+cached Google public keys to validate credentials. Its `phpseclib/phpseclib`
+dependency handles Google's RSA keys. Configuration is
+`services.google.client_id`, supplied by `GOOGLE_CLIENT_ID`.
+
+`iam_external_identities` stores UUIDv7 IDs, user IDs, provider, canonical
+issuer, subject, and timestamps. Uniqueness prevents one identity from belonging
+to multiple users and multiple Google identities from belonging to one user.
+Identity lookup uses issuer and subject, even when Google later changes the
+email. No Google access/refresh token or ID credential is stored.
+
+`GoogleAuthService` serializes identity creation with a subject advisory lock
+and account creation/linking with the existing email advisory lock. Nonces are
+hashed in `iam_google_auth_challenges`, expire after ten minutes, and are
+consumed in the account/session transaction. Pending challenges retain only
+issuer, subject, and email to prevent switching identities mid-flow.
+
+An existing unlinked account requires email OTP before linking. New Gmail and
+verified Workspace accounts can register directly; third-party email addresses
+require OTP ownership proof first. Missing Google names are stored as null;
+the user and session are created immediately, then `EnsureProfileComplete`
+requires both names through `PATCH /v1/auth/me` before business access.
+`UserResource.profile_complete` exposes the computed state without storing it
+in token metadata. Account read/update, logout, and session management remain
+available. `GoogleAuthService::link()` requires
+a current matching account and an email OTP session issued within ten minutes.
+Successful linking preserves that session. Google login uses
+`AuthService::issueToken(..., 'google')`, including existing session enrichment,
+UUIDv7 IDs, expiration, role preferences, and revocation behavior.
+
+Authenticated creation at `POST /v1/auth/organizations` uses the current user
+as owner and the existing organization provisioner. Authenticated acceptance at
+`POST /v1/auth/invitations/accept` uses the current account's email and the
+existing token acceptance transaction. Both use account scope and work without
+an active organization. Their resource response is a success message by
+default. See the [endpoint map](../api/endpoints.md#google-authentication) for
+payloads, pending results, and Bruno instructions.
+
 ## Email OTP and sessions
 
 `PATCH /v1/auth/me` updates `first_name`, `last_name`, and the optional
@@ -106,8 +147,8 @@ purpose- and challenge-bound HMAC using the application key. The encrypted
 that have been replaced, consumed, exhausted, or expired.
 
 `POST /v1/auth/email-challenge-verifications` takes `challenge_id`, `code` as a
-six-character string, and names for a new account. The code proves ownership
-before account details are required. Existing profiles are preserved even if
+six-character string, and optional names for a new account. A correct code
+creates the user and session before profile completion. Existing profiles are preserved even if
 names are supplied. New users receive `email_verified_at` and no organization
 or membership. Verification consumes the code and issues a 24-hour Sanctum token
 in one transaction; concurrent verification can issue at most one session.
@@ -367,13 +408,19 @@ The frontend link uses `frontend.invitation_acceptance_path` and carries
 `email`, `token`, and the display-only `has_account` flag.
 
 `POST /v1/iam/invitations/accept` is public and rate-limited. It takes `email`
-and `token`. Names are required for a new account and
+and `token`. Names are optional for a new account and
 must be omitted for an existing account. The API rechecks account existence and
 rejects soft-deleted accounts. Acceptance marks `email_verified_at` when absent,
 creates membership and one MemberRole per current offered role, and calls
 `syncRoles()` under the organization's Spatie team scope. The previous scope is
-restored even on failure. No access token is issued; the response is a `201`
-success message directing the recipient to sign in.
+restored even on failure. The response is `201` with the common AuthResource:
+`data.access_token`, `data.token_type`, and `data.user`. The seven-day invitation
+link also proves email ownership for a new 24-hour Sanctum session, labeled
+`session.authentication_method = email_invitation`. Membership creation, token
+consumption, and session issuance commit together; any failure rolls them back.
+Missing names do not block public acceptance. The authenticated user must complete
+the profile through `PATCH /v1/auth/me` before business access. Later Google linking
+still requires a recent email OTP session; an invitation session cannot bypass it.
 
 Acceptance, role replacement, resend, cancellation, and reinvitation serialize
 on the invitation row inside transactions. A PostgreSQL transaction advisory

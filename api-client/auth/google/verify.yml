@@ -1,20 +1,18 @@
 info:
-  name: verify-email-code-new-user
+  name: verify-google-credential
   type: http
-  seq: 5
+  seq: 2
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/auth/email-challenge-verifications"
+  url: "{{baseUrl}}/v1/auth/google-challenge-verifications"
   auth: none
   body:
     type: json
     data: |-
       {
-        "challenge_id": "{{loginChallengeId}}",
-        "code": "{{loginCode}}",
-        "first_name": "Example",
-        "last_name": "User"
+        "challenge_id": "{{googleChallengeId}}",
+        "credential": "{{googleCredential}}"
       }
 
 runtime:
@@ -24,6 +22,9 @@ runtime:
         const token = res.body?.data?.access_token;
         if (res.status === 200 && typeof token === 'string' && token.length > 0) {
           bru.setEnvVar('authToken', token);
+        }
+        if (res.body?.status === 'email_verification_required') {
+          bru.setEnvVar('registrationEmail', res.body.email);
         }
 
 settings:

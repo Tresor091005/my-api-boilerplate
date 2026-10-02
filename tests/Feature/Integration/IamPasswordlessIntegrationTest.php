@@ -95,14 +95,18 @@ it('reuses an existing account without overwriting its profile and verifies its 
         ->and($user->fresh()->email_verified_at)->not->toBeNull();
 });
 
-it('requires names for a new account only after the code proves ownership', function (): void {
+it('issues a verified session before asking a new account to complete its profile', function (): void {
     $challenge = requestPasswordlessCode('new@example.test');
     $payload = ['challenge_id' => $challenge['id'], 'code' => $challenge['job']->code];
-    $this->postJson('/v1/auth/email-challenge-verifications', $payload)->assertUnprocessable()
-        ->assertJsonPath('errors.type', 'EmailAccountException');
-    expect(User::query()->count())->toBe(0)
-        ->and(DB::table('iam_email_login_challenges')->where('id', $challenge['id'])->value('consumed_at'))->toBeNull();
-    $this->postJson('/v1/auth/email-challenge-verifications', [...$payload, 'first_name' => 'New', 'last_name' => 'User'])->assertOk();
+    $response = $this->postJson('/v1/auth/email-challenge-verifications', $payload)->assertOk()
+        ->assertJsonPath('data.user.first_name', null)->assertJsonPath('data.user.last_name', null)
+        ->assertJsonPath('data.user.profile_complete', false);
+    expect(User::query()->count())->toBe(1)
+        ->and(DB::table('iam_email_login_challenges')->where('id', $challenge['id'])->value('consumed_at'))->not->toBeNull();
+    $this->withToken($response->json('data.access_token'))->getJson('/v1/auth/me')->assertOk();
+    $this->postJson('/v1/auth/organizations', [])->assertForbidden()->assertJsonPath('code', 'profile_incomplete');
+    $this->patchJson('/v1/auth/me?response=resource', ['first_name' => 'New', 'last_name' => 'User'])
+        ->assertOk()->assertJsonPath('data.profile_complete', true);
 });
 
 it('consumes a code once and makes the oldest queued email obsolete after resend', function (): void {

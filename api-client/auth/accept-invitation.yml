@@ -1,19 +1,18 @@
 info:
-  name: accept-existing-user
+  name: accept-invitation-as-current-user
   type: http
-  seq: 8
+  seq: 16
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/iam/invitations/accept"
+  url: "{{baseUrl}}/v1/auth/invitations/accept"
+  auth: inherit
   body:
     type: json
     data: |-
       {
-        "email": "{{invitationEmail}}",
         "token": "{{invitationToken}}"
       }
-  auth: none
 
 settings:
   encodeUrl: true

@@ -1,0 +1,28 @@
+info:
+  name: request-google-challenge
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/google-challenges"
+  auth: none
+  body:
+    type: json
+    data: |-
+      {}
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200 && typeof res.body?.challenge_id === 'string') {
+          bru.setEnvVar('googleChallengeId', res.body.challenge_id);
+          bru.setEnvVar('googleNonce', res.body.nonce);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

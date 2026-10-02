@@ -1,0 +1,23 @@
+info:
+  name: create-organization-as-current-user
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/organizations"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "name": "My Company",
+        "currency_code": "XOF",
+        "timezone": "Africa/Porto-Novo"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

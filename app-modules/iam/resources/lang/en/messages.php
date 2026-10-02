@@ -8,8 +8,13 @@ return [
         'tablet'   => 'Tablet',
         'computer' => 'Computer',
     ],
-    'invitation' => ['accepted' => 'Organization joined successfully. Sign in to access it.'],
-    'auth'       => [
+    'invitation' => [
+        'accepted' => 'Organization joined successfully. Sign in to access it.',
+        'joined'   => 'Organization joined successfully. Select a member role to access it.',
+    ],
+    'auth' => [
+        'google_linked'            => 'Google was linked to your account successfully.',
+        'organization_created'     => 'Organization created successfully. Select a member role to access it.',
         'logged_out'               => 'Successfully logged out.',
         'role_switched'            => 'Successfully switched role.',
         'registration_link_sent'   => 'If this address can register an organization, an email has been sent.',

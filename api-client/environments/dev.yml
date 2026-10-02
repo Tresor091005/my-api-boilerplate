@@ -26,3 +26,9 @@ variables:
     name: loginCode
   - secret: true
     name: sessionId
+  - secret: true
+    name: googleChallengeId
+  - secret: true
+    name: googleNonce
+  - secret: true
+    name: googleCredential

@@ -1,5 +1,5 @@
 info:
-  name: verify-email-code-existing-user
+  name: verify-email-code
   type: http
   seq: 6
 

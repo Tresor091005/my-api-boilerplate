@@ -6,7 +6,6 @@ use Lahatre\Shared\Exceptions\StateMachineException;
 use Lahatre\Shared\StateMachine\StateMachine;
 use Lahatre\Shared\StateMachine\TransitionFailure;
 use Lahatre\Shared\StateMachine\TransitionResult;
-use Throwable;
 
 enum StateMachineTestState: string
 {

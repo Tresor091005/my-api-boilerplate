@@ -11,7 +11,7 @@ use Lahatre\Iam\Models\User;
 /** @mixin User */
 class UserProfileResource extends JsonResource
 {
-    /** @return array{first_name: string, last_name: string, email: string} */
+    /** @return array{first_name: string|null, last_name: string|null, email: string} */
     public function toArray(Request $request): array
     {
         return [

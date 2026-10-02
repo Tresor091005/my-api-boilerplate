@@ -1,0 +1,31 @@
+info:
+  name: accept-invitation
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/iam/invitations/accept"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{invitationEmail}}",
+        "token": "{{invitationToken}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const token = res.body?.data?.access_token;
+        if (res.status === 201 && typeof token === 'string' && token.length > 0) {
+          bru.setEnvVar('authToken', token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

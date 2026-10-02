@@ -8,6 +8,11 @@ use Lahatre\Shared\Exceptions\AssertionException;
 
 final class OrganizationOnboardingException extends AssertionException
 {
+    public static function accountUnavailable(): self
+    {
+        return new self(__('iam::exceptions.organization_onboarding.account_unavailable'));
+    }
+
     public static function systemRolesUnavailable(): self
     {
         return new self(__('iam::exceptions.organization_onboarding.system_roles_unavailable'));

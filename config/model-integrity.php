@@ -41,6 +41,10 @@ return [
         'users',
         'iam_users',
         'iam_organization_registration_tokens',
+        // Authentication records belong to an account or a transient proof, not an organization.
+        'iam_external_identities',
+        'iam_google_auth_challenges',
+        'iam_email_login_challenges',
         'iam_roles',
         'iam_permissions',
         'iam_model_has_roles',

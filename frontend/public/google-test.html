@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Google sign-in for Bruno</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 20px; background: #f4f6f9; color: #172333; font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 720px; margin: auto; padding: 28px; background: white; border: 1px solid #dde3eb; border-radius: 12px; }
+    h1 { margin-top: 0; font-size: 25px; }
+    label { display: block; font-weight: 600; margin-top: 18px; }
+    input, textarea { width: 100%; padding: 10px; border: 1px solid #a6b3c4; border-radius: 6px; font: 14px/1.5 monospace; }
+    input:focus, textarea:focus { outline: 2px solid #2458b5; outline-offset: 2px; }
+    button { margin-top: 16px; padding: 10px 16px; border: 0; border-radius: 6px; background: #2458b5; color: white; font: inherit; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    #google-button { margin-top: 20px; }
+    #status { min-height: 24px; color: #43536a; }
+    #status[data-error="true"] { color: #a51f2b; }
+    .hint { color: #43536a; font-size: 14px; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Google sign-in for Bruno</h1>
+    <p>Run <code>request-google-challenge</code> in Bruno, then paste its challenge ID and nonce below. Sign in with Google and copy the credential back into Bruno.</p>
+    <p class="hint">Google must allow this page's origin: <code id="origin"></code>. Nothing is saved in browser storage.</p>
+    <form id="configuration">
+      <label for="client-id">Google Client ID</label>
+      <input id="client-id" required autocomplete="off" placeholder="123456-abc.apps.googleusercontent.com" pattern="[^\s]+\.apps\.googleusercontent\.com">
+      <label for="challenge-id">Challenge ID</label>
+      <input id="challenge-id" required autocomplete="off" placeholder="googleChallengeId from Bruno" pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}">
+      <label for="nonce">Nonce</label>
+      <input id="nonce" required autocomplete="off" placeholder="googleNonce from Bruno" minlength="64" maxlength="64">
+      <button id="prepare" type="submit" disabled>Prepare Google sign-in</button>
+    </form>
+    <div id="google-button"></div>
+    <p id="status" role="status" aria-live="polite">Loading Google sign-in…</p>
+    <section id="result" hidden>
+      <label for="credential">Credential</label>
+      <textarea id="credential" rows="5" readonly spellcheck="false"></textarea>
+      <button id="copy-credential" type="button">Copy credential</button>
+      <label for="payload">Verification request body</label>
+      <textarea id="payload" rows="7" readonly spellcheck="false"></textarea>
+      <button id="copy-payload" type="button">Copy JSON body</button>
+      <p class="hint">Use <code>verify-google-credential</code> in Bruno. For account linking, use the same challenge and credential with <code>link-google-after-email-otp</code> after email OTP login. Challenges expire after 10 minutes and successful verification consumes them.</p>
+    </section>
+  </main>
+  <script>
+    const form = document.querySelector('#configuration');
+    const prepare = document.querySelector('#prepare');
+    const status = document.querySelector('#status');
+    const googleButton = document.querySelector('#google-button');
+    const result = document.querySelector('#result');
+    const credential = document.querySelector('#credential');
+    const payload = document.querySelector('#payload');
+    const clientId = document.querySelector('#client-id');
+    const challengeId = document.querySelector('#challenge-id');
+    const nonce = document.querySelector('#nonce');
+    let generation = 0;
+
+    document.querySelector('#origin').textContent = window.location.origin;
+
+    function showStatus(message, error = false) {
+      status.textContent = message;
+      status.dataset.error = String(error);
+    }
+
+    form.addEventListener('input', () => {
+      generation += 1;
+      googleButton.replaceChildren();
+      result.hidden = true;
+      credential.value = '';
+      payload.value = '';
+      showStatus('Prepare sign-in after entering all three values.');
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const attempt = ++generation;
+      const selectedChallenge = challengeId.value.trim();
+      result.hidden = true;
+      credential.value = '';
+      payload.value = '';
+      googleButton.replaceChildren();
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId.value.trim(),
+          nonce: nonce.value,
+          auto_select: false,
+          callback: (response) => {
+            if (attempt !== generation) {
+              return;
+            }
+            if (typeof response.credential !== 'string' || !response.credential) {
+              showStatus('Google did not return a credential. Try signing in again.', true);
+              return;
+            }
+            credential.value = response.credential;
+            payload.value = JSON.stringify({ challenge_id: selectedChallenge, credential: response.credential }, null, 2);
+            result.hidden = false;
+            showStatus('Credential ready. Copy it into Bruno to verify it with the API.');
+          },
+        });
+        google.accounts.id.renderButton(googleButton, { theme: 'outline', size: 'large', text: 'signin_with' });
+        showStatus('Click the Google button, then choose your account.');
+      } catch {
+        showStatus('Unable to prepare Google sign-in. Check the Client ID and reload the page.', true);
+      }
+    });
+
+    async function copyValue(field) {
+      try {
+        await navigator.clipboard.writeText(field.value);
+        showStatus('Copied. Paste it into Bruno.');
+      } catch {
+        field.focus();
+        field.select();
+        showStatus('Automatic copying is unavailable. Press Cmd+C or Ctrl+C to copy the selected text.');
+      }
+    }
+
+    document.querySelector('#copy-credential').addEventListener('click', () => copyValue(credential));
+    document.querySelector('#copy-payload').addEventListener('click', () => copyValue(payload));
+
+    const sdk = document.createElement('script');
+    sdk.src = 'https://accounts.google.com/gsi/client';
+    sdk.async = true;
+    sdk.onload = () => {
+      prepare.disabled = false;
+      showStatus('Paste your Client ID and the fresh Bruno challenge, then prepare sign-in.');
+    };
+    sdk.onerror = () => showStatus('Unable to load Google sign-in. Check your connection and browser extensions, then reload.', true);
+    document.head.append(sdk);
+  </script>
+</body>
+</html>

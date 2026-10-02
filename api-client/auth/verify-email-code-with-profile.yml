@@ -1,0 +1,33 @@
+info:
+  name: verify-email-code-with-profile
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/auth/email-challenge-verifications"
+  auth: none
+  body:
+    type: json
+    data: |-
+      {
+        "challenge_id": "{{loginChallengeId}}",
+        "code": "{{loginCode}}",
+        "first_name": "Example",
+        "last_name": "User"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const token = res.body?.data?.access_token;
+        if (res.status === 200 && typeof token === 'string' && token.length > 0) {
+          bru.setEnvVar('authToken', token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

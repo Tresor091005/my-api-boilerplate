@@ -13,9 +13,9 @@ final class EmailAccountException extends AssertionException
         return new self(__('iam::exceptions.email_account.unavailable_email'));
     }
 
-    public static function userDetailsRequired(): self
+    public static function profileIncomplete(): self
     {
-        return new self(__('iam::exceptions.email_account.user_details_required'));
+        return new self(__('iam::exceptions.auth.profile_incomplete'));
     }
 
     public static function userDetailsForbidden(): self

@@ -33,9 +33,6 @@ final class EmailAccountService
         if ($user?->trashed()) {
             throw EmailAccountException::unavailableEmail();
         }
-        if (!$user && (!$firstName || !$lastName)) {
-            throw EmailAccountException::userDetailsRequired();
-        }
         if ($user && ($firstName !== null || $lastName !== null)) {
             throw EmailAccountException::userDetailsForbidden();
         }

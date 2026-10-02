@@ -37,6 +37,7 @@ class UserResource extends JsonResource
             'first_name'             => $user->first_name,
             'last_name'              => $user->last_name,
             'email'                  => $user->email,
+            'profile_complete'       => $user->hasCompleteProfile(),
             'default_member_role_id' => $user->default_member_role_id,
             'current_member_role_id' => $this->currentMemberRoleId,
             'member_roles'           => $this->whenLoaded(

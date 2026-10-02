@@ -27,6 +27,9 @@ class RateLimitServiceProvider extends ServiceProvider
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(90)
             ->by($request->user()?->id ?: $request->ip()));
 
+        RateLimiter::for('google-auth', fn (Request $request) => Limit::perMinute(20)
+            ->by($request->ip()));
+
         RateLimiter::for('auth', fn (Request $request) => Limit::perMinute(5)
             ->by($request->ip()));
     }

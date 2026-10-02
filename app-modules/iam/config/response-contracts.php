@@ -5,16 +5,19 @@ declare(strict_types=1);
 $resourceModeContracts = array_fill_keys(
     [
         'lahatre.iam.auth.email-challenges.store',
+        'lahatre.iam.auth.google-challenges.store',
+        'lahatre.iam.auth.google-identities.store',
+        'lahatre.iam.auth.organizations.store',
+        'lahatre.iam.auth.invitations.accept',
         'lahatre.iam.auth.organization-registration-tokens.store',
         'lahatre.iam.auth.organization-registrations.store',
-        'lahatre.iam.invitations.accept',
         'lahatre.iam.auth.logout',
     ],
     ['default_mode' => 'resource'],
 );
 
 $authResourceContracts = array_fill_keys(
-    ['lahatre.iam.auth.email-challenge-verifications.store'],
+    ['lahatre.iam.auth.email-challenge-verifications.store', 'lahatre.iam.auth.google-challenge-verifications.store', 'lahatre.iam.invitations.accept'],
     [
         'default_mode'  => 'resource',
         'default_shape' => 'default',

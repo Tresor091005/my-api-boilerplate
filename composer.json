@@ -12,6 +12,7 @@
         "php": "^8.4",
         "dedoc/scramble": "^0.13.10",
         "geoip2/geoip2": "^3.4",
+        "google/auth": "^1.50",
         "internachi/modular": "^3.0",
         "lahatre/catalog": "*",
         "lahatre/commitment": "*",
@@ -28,6 +29,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "matomo/device-detector": "^6.5",
+        "phpseclib/phpseclib": "^3.0",
         "spatie/laravel-permission": "^7.0",
         "staudenmeir/eloquent-has-many-deep": "^1.22",
         "staudenmeir/laravel-adjacency-list": "^1.26"
