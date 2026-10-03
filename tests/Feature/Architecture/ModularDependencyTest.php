@@ -99,7 +99,6 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         'iam'          => ['shared', 'master', 'organization'],
         'catalog'      => ['shared', 'master', 'inventory', 'library'],
         'customer'     => ['shared', 'master', 'library'],
-        'commitment'   => ['shared', 'catalog', 'customer', 'library'],
     ];
 
     $failures = [];

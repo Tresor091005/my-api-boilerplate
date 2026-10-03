@@ -24,16 +24,10 @@ it('classifies every route with multiple implicit bindings', function (): void {
 
     /**
      * These parameters are independently resolved and their relationship is
-     * verified by the owning query service or controller instead of an Eloquent child binding.
+     * verified by InventoryQueryService instead of an Eloquent child binding.
      */
     $expectedIndependentRoutes = [
         'lahatre.inventory.items.locations.lots.index',
-        'lahatre.commitment.service-commitments.deliverables.show',
-        'lahatre.commitment.service-commitments.deliverables.update',
-        'lahatre.commitment.service-commitments.deliverables.evidence.index',
-        'lahatre.commitment.service-commitments.deliverables.evidence.store',
-        'lahatre.commitment.guest.service-commitments.evidence.files.index',
-        'lahatre.commitment.guest.service-commitments.evidence.files.content',
     ];
 
     $multiBindingRoutes = collect(Route::getRoutes()->getRoutes())

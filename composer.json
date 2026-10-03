@@ -15,7 +15,6 @@
         "google/auth": "^1.50",
         "internachi/modular": "^3.0",
         "lahatre/catalog": "*",
-        "lahatre/commitment": "*",
         "lahatre/customer": "*",
         "lahatre/iam": "*",
         "lahatre/inventory": "*",

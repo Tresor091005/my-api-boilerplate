@@ -56,9 +56,6 @@ return [
     ],
 
     'quantity_bigint_exceptions' => [
-        // Service quantities are decimal display values, not inventory stock in base units.
-        'commitment_deliverables',
-        'commitment_evidence',
     ],
 
     /*
@@ -74,9 +71,6 @@ return [
     'exempt_global_uniqueness' => [
         // Public invitation acceptance resolves the tenant from the secret token.
         'iam_invitations' => ['iam_invitations_token_hash_unique'],
-        // Guests resolve commitments and sessions without a tenant context.
-        'commitment_service_commitments'   => ['commitment_service_commitments_public_reference_unique'],
-        'commitment_guest_access_sessions' => ['commitment_guest_access_sessions_token_hash_unique'],
         'master_unit_groups'               => ['master_unit_groups_name_unique'],
         'master_units'                     => [
             'master_units_code_unique',
