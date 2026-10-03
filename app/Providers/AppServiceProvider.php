@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Doctor\Diagnostics\EnvironmentFileMatchesExample;
+use App\Doctor\Diagnostics\GeoipDatabaseIsAvailable;
+use App\Doctor\Diagnostics\HorizonServiceIsManaged;
+use App\Doctor\Diagnostics\ReverbServiceIsManaged;
+use App\Doctor\Diagnostics\SchedulerServiceIsManaged;
 use Carbon\CarbonImmutable;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -15,6 +20,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
+use Laravel\Doctor\Facades\Doctor;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +43,13 @@ class AppServiceProvider extends ServiceProvider
         $this->configureScramble();
 
         $this->registerStrMacros();
+        Doctor::diagnostics([
+            EnvironmentFileMatchesExample::class,
+            GeoipDatabaseIsAvailable::class,
+            HorizonServiceIsManaged::class,
+            ReverbServiceIsManaged::class,
+            SchedulerServiceIsManaged::class,
+        ]);
     }
 
     /**

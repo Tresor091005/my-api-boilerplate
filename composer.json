@@ -52,6 +52,9 @@
         "rector/rector": "^2.3"
     },
     "autoload": {
+        "exclude-from-classmap": [
+            "/vendor/marc-mabe/php-enum/stubs/"
+        ],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
