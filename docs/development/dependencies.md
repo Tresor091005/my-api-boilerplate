@@ -13,6 +13,8 @@ The current direct versions can be inspected with `composer show --direct`.
   organization/team-scoped roles and permissions.
 - Horizon, Reverb, Telescope, and Scramble provide queue supervision, realtime
   infrastructure, local observability, and generated API documentation.
+- Laravel Doctor provides environment and dependency diagnostics in every
+  installation, including production installations without development packages.
 - `staudenmeir/eloquent-has-many-deep` and
   `staudenmeir/laravel-adjacency-list` support module relationships and
   hierarchical catalog data.

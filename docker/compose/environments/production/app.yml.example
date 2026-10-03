@@ -1,0 +1,68 @@
+# Production example.
+# Include this file from the deployment compose entrypoint when production is ready.
+# It is intentionally not included by the root docker-compose.yml yet.
+x-production-environment: &production-environment
+  APP_ENV: production
+  APP_DEBUG: 'false'
+  TELESCOPE_ENABLED: 'false'
+  LOG_LEVEL: info
+  PHP_OPCACHE_ENABLE: '1'
+  LOG_OUTPUT_LEVEL: info
+
+services:
+  app:
+    # The shared file already points to the published runtime image.
+    # Set IMAGE_TAG in the deployment environment to pin a release.
+    image: lahatre-api:${IMAGE_TAG:-runtime}
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+    environment: *production-environment
+
+  reverb:
+    image: lahatre-api:${IMAGE_TAG:-runtime}
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+    environment: *production-environment
+
+  horizon:
+    image: lahatre-api:${IMAGE_TAG:-runtime}
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+    environment: *production-environment
+
+  scheduler:
+    image: lahatre-api:${IMAGE_TAG:-runtime}
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+    environment: *production-environment
+
+  redis:
+    # Horizon uses Redis for queues. A persistent volume prevents queued jobs
+    # from disappearing when the Redis container is recreated.
+    command:
+      - redis-server
+      - --appendonly
+      - yes
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - volatile-lru
+      - --tcp-backlog
+      - '511'
+      - --timeout
+      - '300'
+      - --loglevel
+      - warning
+    volumes:
+      - redisdata:/data
+
+volumes:
+  redisdata: {}

@@ -1,0 +1,136 @@
+# Shared application services and environment-neutral defaults.
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME must be set}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE must be set}
+    volumes:
+      - dbdata:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - volatile-lru
+      - --tcp-backlog
+      - '511'
+      - --timeout
+      - '300'
+      - --loglevel
+      - warning
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli ping || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  app:
+    image: lahatre-api:runtime
+    restart: unless-stopped
+    environment: &laravel-env
+      FRANKENPHP_CONFIG: ''
+      SERVER_NAME: :8080
+      PHP_UPLOAD_MAX_FILE_SIZE: 30M
+      PHP_POST_MAX_SIZE: 110M
+      CADDY_SERVER_ROOT: /var/www/html/public
+      SSL_MODE: 'off'
+      HEALTHCHECK_PATH: /up
+      AUTORUN_ENABLED: 'false'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ps aux | grep 'frankenphp run --config /etc/frankenphp/Caddyfile' | grep -v grep || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  reverb:
+    image: lahatre-api:runtime
+    restart: unless-stopped
+    command:
+      - php
+      - artisan
+      - reverb:start
+      - --port=6001
+    stop_signal: SIGTERM
+    environment: *laravel-env
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ps aux | grep reverb | grep -v grep || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  horizon:
+    image: lahatre-api:runtime
+    restart: unless-stopped
+    command:
+      - php
+      - artisan
+      - horizon
+    stop_signal: SIGTERM
+    environment: *laravel-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ps aux | grep horizon | grep -v grep || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  scheduler:
+    image: lahatre-api:runtime
+    restart: unless-stopped
+    command:
+      - php
+      - artisan
+      - schedule:work
+    stop_signal: SIGTERM
+    environment: *laravel-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ps aux | grep 'schedule:work' | grep -v grep || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+volumes:
+  dbdata: {}

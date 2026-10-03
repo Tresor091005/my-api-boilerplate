@@ -22,6 +22,7 @@
         "lahatre/master": "*",
         "lahatre/organization": "*",
         "lahatre/shared": "*",
+        "laravel/doctor": "^0.1",
         "laravel/framework": "^13.0",
         "laravel/horizon": "*",
         "laravel/reverb": "^1.0",

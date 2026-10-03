@@ -70,9 +70,9 @@ return [
     */
     'exempt_global_uniqueness' => [
         // Public invitation acceptance resolves the tenant from the secret token.
-        'iam_invitations' => ['iam_invitations_token_hash_unique'],
-        'master_unit_groups'               => ['master_unit_groups_name_unique'],
-        'master_units'                     => [
+        'iam_invitations'    => ['iam_invitations_token_hash_unique'],
+        'master_unit_groups' => ['master_unit_groups_name_unique'],
+        'master_units'       => [
             'master_units_code_unique',
             'master_units_group_id_ratio_unique',
         ],

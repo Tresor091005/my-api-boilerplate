@@ -12,7 +12,7 @@ final readonly class SessionFilterData
     public static function fromArray(array $data): self
     {
         return new self(
-            (int) ($data['per_page'] ?? 50), 
+            (int) ($data['per_page'] ?? 50),
             $data['cursor'] ?? null,
             in_array($data['sort_by'] ?? null, ['id', 'created_at', 'updated_at'], true) ? $data['sort_by'] : 'created_at',
             ($data['sort_order'] ?? 'desc') === 'asc' ? 'asc' : 'desc',

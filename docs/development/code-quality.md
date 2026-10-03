@@ -14,6 +14,12 @@ runs Pint only; the complete check is `composer quality:check`.
   runs.
 - **IDE Helper:** Generates helper files for IDE autocompletion and code
   discovery.
+- **Laravel Doctor:** Checks the current environment, configuration, storage,
+  service connections, migrations, and Composer security advisories. Run
+  `php artisan doctor --format=cli --no-interaction` in the application
+  environment with PostgreSQL and Redis available. A failed diagnostic makes
+  the command exit with a nonzero status. Review the report before using
+  Doctor's optional `--fix` flag, which can change local configuration.
 
 `composer quality:check` runs Rector in dry-run mode, Pint in check mode, and
 PHPStan. `composer quality` applies fixes and regenerates IDE files before

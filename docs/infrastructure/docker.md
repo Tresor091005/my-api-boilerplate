@@ -17,12 +17,25 @@ The application runs on `serversideup/php:8.4-frankenphp`. FrankenPHP uses
 ## 2. Multi-container architecture
 
 To keep development close to production and separate responsibilities, the
-`docker-compose.yml` infrastructure is split into specialized services.
+The root `docker-compose.yml` includes the shared service model in
+`docker/compose/app.yml` and local overrides in
+`docker/compose/environments/dev/app.yml`. The PHP image and startup script live
+in `docker/app/`. Standard `docker compose` commands still run from the project
+root.
 
 ### Application services (shared image)
 
-All these services use the same `Dockerfile` to keep dependencies and code
-consistent:
+All these services use `docker/app/Dockerfile`. Its `base` stage installs the
+shared PHP extensions. The `development` target uses a mounted checkout and
+installs development dependencies when needed. The `runtime` target copies the
+application and installs only production dependencies during the image build.
+The two mode scripts under `docker/app/` run through the Serversideup entrypoint;
+neither runs migrations. The current local Compose build uses `development`,
+the Dockerfile's final target. Environment-specific Compose files can select a
+target explicitly later. The application registers Telescope only when its
+development package is installed, so the `runtime` image boots with `--no-dev`.
+
+Application services:
 
 - **`app`:** Main web server (FrankenPHP/Caddy), published at
   `http://localhost:28417`.
@@ -35,7 +48,9 @@ consistent:
 
 - **`db`:** PostgreSQL 18 (Alpine), published at `localhost:28420` for
   development tools and available to containers at `db:5432`. Tests use the
-  `my_api_boilerplate` database directly and may reset it.
+  `my_api_boilerplate` database directly and may reset it. The named `dbdata`
+  volume mounts at `/var/lib/postgresql`, where PostgreSQL 18 stores its data
+  under `18/docker`; keep the volume when recreating the container.
 - **`redis`:** Redis 8 (Alpine) for cache, queues, and Reverb.
 - **`mailpit`:** Development email capture tool, with its web interface at
   `http://localhost:28419` and internal SMTP server at `mailpit:1025`.
@@ -75,8 +90,9 @@ the `.bashrc` configures an `a` alias (`alias a='php artisan'`).
 
 - **Health checks:** Every service has a health check to ensure dependencies
   such as the database and Redis are ready before startup.
-- **Permissions:** The Dockerfile manages user IDs (`1000:1000`) to avoid
-  permission problems on mounted files.
+- **Permissions:** The development target maps `www-data` to `1000:1000` by
+  default for mounted files. The runtime target keeps the base image's
+  unprivileged `www-data` identity.
 
 ## 7. Session location setup
 

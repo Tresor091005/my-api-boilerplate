@@ -1,0 +1,99 @@
+# Local development builds, source mounts, and published ports.
+x-development-environment: &development-environment
+  APP_ENV: local
+  APP_DEBUG: 'true'
+  TELESCOPE_ENABLED: 'true'
+  LOG_LEVEL: debug
+  PHP_OPCACHE_ENABLE: '0'
+  LOG_OUTPUT_LEVEL: debug
+
+services:
+  db:
+    ports:
+      - 28420:5432
+  app:
+    image: lahatre-api:development
+    environment: *development-environment
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: development
+    ports:
+      - 28417:8080
+    volumes:
+      - ../..:/var/www/html
+  reverb:
+    image: lahatre-api:development
+    environment: *development-environment
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: development
+    ports:
+      - 28418:6001
+    volumes:
+      - ../..:/var/www/html
+  horizon:
+    image: lahatre-api:development
+    environment: *development-environment
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: development
+    volumes:
+      - ../..:/var/www/html
+  scheduler:
+    image: lahatre-api:development
+    environment: *development-environment
+    build:
+      context: ../..
+      dockerfile: docker/app/Dockerfile
+      target: development
+    volumes:
+      - ../..:/var/www/html
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - 28419:8025
+    environment:
+      MAILPIT_SMTP_BIND_ADDR: 0.0.0.0:1025
+      MAILPIT_WEB_BIND_ADDR: 0.0.0.0:8025
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --no-verbose --tries=1 --spider http://localhost:8025/ || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  frontend:
+    image: node:24-alpine
+    restart: unless-stopped
+    working_dir: /demo
+    command:
+      - node
+      - server.mjs
+    ports:
+      - 28421:28421
+    environment:
+      DEMO_HOST: 0.0.0.0
+      DEMO_PORT: '28421'
+      DEMO_API_URL: http://app:8080
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:28421}
+    volumes:
+      - ../../frontend:/demo:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - 'fetch(''http://localhost:28421/config.json'').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
