@@ -1,95 +1,51 @@
-# My API Development Cookbook
+# Lahatre ERP
 
-This project is a personal cookbook and a living record of my best practices for building modern, robust, and scalable APIs. It is a collection of practical choices, architectural patterns, and code snippets that I use in my projects. Consider it my personal playground for showcasing and documenting my craft.
+[Français](#français) · [English](#english)
 
-The main purpose is not to be cloned as a whole, but to serve as a reference and a source of inspiration. You are encouraged to read the code, understand the choices behind it, and copy any part that you find useful for your own projects. This allows others (and myself) to get an idea of how I organize my coding practices.
+## Français
 
-## Guiding Principles
+Lahatre ERP est un ERP modulaire en développement, construit avec PHP et Laravel.
+Il relie identité et organisations, catalogue, clients, stock et fichiers privés
+au sein d'une même application. Son premier parcours métier cible la **vente et
+la livraison**. Les commandes et les documents de livraison restent à construire.
 
-This project documents a specific way of work, guided by the following principles:
+Les huit modules existants portent des besoins concrets de l'ERP. Leur code peut
+également servir de référence ou être adapté à d'autres applications métier et
+SaaS. Ils sont intégrés par des packages Composer locaux ; ils ne sont pas encore
+distribués comme des packages autonomes.
 
-*   **Clean Code:** Writing code that is easy to read, understand, and maintain.
-*   **Solid Architecture:** A structure that is scalable and easy to evolve.
-*   **Testability:** Code that is easy to test at different levels (unit, integration).
-*   **Developer Experience:** A workflow that is enjoyable and productive.
+La [documentation française](https://lahatre-erp-docs.vercel.app/fr/docs) propose recherche, navigation par
+module, exemples et répertoire des routes. Consultez le
+[guide de démarrage](https://lahatre-erp-docs.vercel.app/fr/docs/getting-started/installation) pour installer l’ERP.
 
-## How to use this project
+Le [guide Docker](docs/infrastructure/docker.md) détaille les services et les ports.
+Le client [Bruno](api-client/README.md) accompagne les essais manuels de l'API.
 
-Instead of cloning this repository to start a new project, consider it as a library of ideas. Browse the `app`, `database` and `tests` directories to see concrete implementations. Each feature or component is designed to be as self-contained as possible, so it can be easily understood and adapted.
+## English
 
-## Documentation
+Lahatre ERP is a modular ERP in development, built with PHP and Laravel. It brings
+identity, organizations, catalog, customers, inventory and private files together
+in one application. Its first intended business workflow is **sales and delivery**.
+Orders and delivery documents are still planned.
 
-The documentation index is available in [`docs/README.md`](docs/README.md).
-It covers the architecture, API contracts, development workflow, Docker
-environment, module documentation, decisions, and roadmap.
+The eight existing modules implement concrete ERP needs. Their code can also be
+used as a reference or adapted to other business applications and SaaS products.
+They are integrated through local Composer packages and are not yet independently
+distributed packages.
 
-The application is available at `http://localhost:28417` when the Docker
-environment is running. The setup commands, required environment values, and
-complete list of exposed services and ports are maintained in
-[`docs/infrastructure/docker.md`](docs/infrastructure/docker.md).
+The [English documentation](https://lahatre-erp-docs.vercel.app/en/docs) provides search, module navigation,
+examples and a route directory. Follow the
+[installation guide](https://lahatre-erp-docs.vercel.app/en/docs/getting-started/installation) to set up the ERP.
+Use [Bruno](api-client/README.md) for manual API exploration.
 
-## Local setup
+## Contribution
 
-Create the local environment file and generate an application key:
-
-```bash
-cp .env.example .env
-docker compose run --rm app php artisan key:generate
-```
-
-Before starting Docker, set the PostgreSQL values in `.env` to credentials of
-your choice. `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` must be identical
-for Laravel and the PostgreSQL service; `DB_USERNAME` and `DB_PASSWORD` must
-not be empty because Docker Compose requires them.
-
-The service hostnames are already configured for the Docker network:
-
-- PostgreSQL: `DB_HOST=db`, `DB_PORT=5432`
-- Redis: `REDIS_HOST=redis`
-- Mailpit: `MAIL_HOST=mailpit`, `MAIL_PORT=1025`
-- Reverb: `REVERB_HOST=reverb`, `REVERB_PORT=6001`
-
-Start the environment and initialize the database:
-
-```bash
-docker compose up -d
-docker compose exec -T app php artisan migrate --seed --no-interaction
-```
-
-To enable session locations, configure the MaxMind credentials and optionally
-install the GeoLite2 City database immediately. See
-[session location setup](docs/infrastructure/docker.md#7-session-location-setup)
-for the environment values and initialization command.
-
-To enable Google sign-in, configure `GOOGLE_CLIENT_ID` for a Web application
-OAuth client. See [Google setup](docs/infrastructure/docker.md#8-google-sign-in-setup)
-for the frontend configuration and Bruno workflow.
-
-For an interactive IAM demo, run `docker compose up -d frontend` and open
-`http://localhost:28421/`. See [demo frontend setup](docs/infrastructure/docker.md#9-iam-demo-frontend)
-for supported flows and the separate client service. Bruno remains available
-for API specification and manual tests.
-
-Run the test suite inside the application container:
-
-```bash
-docker compose exec -T app ./vendor/bin/pest --parallel --tia
-```
-
-If TIA fails or its dependency graph is unavailable, use the normal runner:
-
-```bash
-docker compose exec -T app php artisan test --compact
-```
-
-`phpunit.xml` keeps the testing-specific drivers but inherits the PostgreSQL
-host, database name, username, and password from `.env`. Choose a database
-that can safely be reset by tests before running the suite.
-
-## Contributing
-
-While this is primarily a personal project, feedback and discussions are always welcome. If you have suggestions or questions, feel free to open an issue.
+The [documentation index](docs/README.md) separates public guides, contributor
+references and working decisions. Follow the current rules in `.ai/rules/`.
+Behavior changes require affected Pest coverage. Use a disposable PostgreSQL test
+database: the current `phpunit.xml` inherits database credentials from `.env`.
 
 ## License
 
-The code is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT). You can use any part of it in your own projects.
+The project and all eight local modules are licensed under [MIT](LICENSE).
+Third-party dependencies retain their own licenses.

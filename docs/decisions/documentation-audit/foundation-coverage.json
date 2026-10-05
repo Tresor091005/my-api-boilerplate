@@ -1,0 +1,2306 @@
+{
+  "audit": "Inventory and Shared public documentation plus root Architecture/Registries/stubs",
+  "project": "Lahatre ERP",
+  "repo_root": "/Users/imac/Documents/my-api-boilerplate",
+  "captured_at": "2026-10-05T10:34:39.355946+00:00",
+  "scope_complete": true,
+  "method": "Full file review, with targeted rereads for truncated outputs; empty placeholders checked explicitly.",
+  "runtime_tests_executed": [],
+  "mutations": "Only /tmp/lahatre-doc-audit/foundation drafts and audit artifacts. No application/dependency/database/existing-document changes.",
+  "file_count": 265,
+  "counts_by_category": {
+    "module_inventory": 132,
+    "module_shared": 86,
+    "related_root": 14,
+    "root_stubs": 16,
+    "architecture_tests": 15,
+    "registry_tests": 2
+  },
+  "lines_by_category": {
+    "architecture_tests": 1785,
+    "module_inventory": 11280,
+    "module_shared": 5300,
+    "registry_tests": 305,
+    "related_root": 1261,
+    "root_stubs": 441
+  },
+  "missing_paths": [],
+  "files": [
+    {
+      "path": "app-modules/inventory/README.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 156,
+      "bytes": 6886,
+      "sha256": "dbe763d6601c2ad34b51a3f59b8eb0d9fbf7a81a42cb14c6f127ff90cd443d90"
+    },
+    {
+      "path": "app-modules/inventory/composer.json",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 539,
+      "sha256": "cd1d246f3ae7ee51f4c0d857d703446ab46a71eb730b15a15f06760bec0ca262"
+    },
+    {
+      "path": "app-modules/inventory/config/inventory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 7,
+      "bytes": 98,
+      "sha256": "0298176d588078a3d65dfbdc111b4d040aca5b24b9e7595bdd2bafe625d1ae61"
+    },
+    {
+      "path": "app-modules/inventory/config/response-contracts.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 99,
+      "bytes": 2844,
+      "sha256": "322ea24912864cd9e402b991390951f5c7b3465ca15f41ad4fdee3e8696f5cce"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/.gitkeep",
+      "category": "module_inventory",
+      "inspection": "empty_file_verified",
+      "lines": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/InventoryItemFactory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 34,
+      "bytes": 988,
+      "sha256": "498b3ed4f1566df78c278fa62f846a24a59ffe958b30670fbaa179a232580b4e"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/InventoryLocationFactory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 748,
+      "sha256": "2dac4c471acc963fa5db9f6f9f621379c8a965b11b66ff7ec259aa3511caccdd"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/InventoryMovementFactory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 51,
+      "bytes": 2040,
+      "sha256": "0009ea3f78cb44ad214e0b5dff0b7342e9ea9a41eee2339ea1b51d2dc4879794"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/InventoryStockFactory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 43,
+      "bytes": 1514,
+      "sha256": "c1a3cfe3e3cf33c94f31981a5e341f4f5788ad1afa70479d3a94b2c649e18e69"
+    },
+    {
+      "path": "app-modules/inventory/database/factories/InventoryTransactionFactory.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 36,
+      "bytes": 1057,
+      "sha256": "8001e45f1a52caf0ae696425c630ab208807008933c08932a5b217a8df4bde9f"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_03_14_100000_create_all_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 116,
+      "bytes": 5804,
+      "sha256": "df1b35b051c4e81b807dfa8c4d1b26b19f86f61187bcfdcf3277d24d84cb7336"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_04_10_120000_add_active_stock_indexes_to_inventory_stocks.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1373,
+      "sha256": "dd8896684112f4dff73c9286955a9162a67e115103a8d2adfab707100cb5a78d"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_17_150545_add_organization_id_to_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 121,
+      "bytes": 4804,
+      "sha256": "e8a064a1c41e7d37e29218f5702cb9b16d201154be91e45478dfb262470ce130"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_17_160000_add_idempotency_to_inventory_transactions.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 48,
+      "bytes": 1739,
+      "sha256": "c7c465bdee9bc9e89e5e1c1e5329ba9a2b27812a9725a9c1e0e02fa8853c0463"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_18_100000_add_metadata_snapshots_and_reversal_to_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 62,
+      "bytes": 2274,
+      "sha256": "2ede06a86491b9c25dc2433788634551caf91bad798b06195d20dd3665040496"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_18_110000_add_exact_costs_to_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 2001,
+      "sha256": "6154ba76f9493213dbd9786b5c3c960f6e52c96dc04d94b9860a3c9518920507"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_18_120000_add_link_id_to_inventory_movements.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 25,
+      "bytes": 646,
+      "sha256": "5ef57b96b3dd076401176ef12d5ecec18726fbcce38a23d2008fd27aa6c5fa22"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_07_19_100000_add_expiration_policy_to_inventory_items.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 606,
+      "sha256": "578f2fb738fcdc01112ac3d3c634872313d01a3397667b845d846de1ef54346d"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_11_000000_fix_inventory_transaction_indexes.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "bytes": 1642,
+      "sha256": "6f9debfc6b7d1e0f5e6a023f56bb737b6eda2fdff951e0b259a3984636b51300"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_11_000001_add_reversal_transaction_fk_index.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 611,
+      "sha256": "ece8a3ede7c52fda0e3bc42d7c2bf640abdb4e9ee7dca5ac1a8cdf7e0c57ceda"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_13_180000_rename_inventory_item_active_flag.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 614,
+      "sha256": "0e1efd2121b586981fa93ca0214c2ed5b3dc65b40a2bf96753f68c3f303796bd"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_27_082250_add_exchange_metadata_and_require_currency_to_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 39,
+      "bytes": 1347,
+      "sha256": "68c7b51187d6a1fe2a3a23430a201bdb56a30edfb76998e4f62602079af6cdf5"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_28_000000_add_aggregate_integrity_constraints_to_inventory_tables.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 112,
+      "bytes": 4875,
+      "sha256": "3339f695d54a57431c0fc419980026aaf3c7b14bd773987cca4ccabb2cca2133"
+    },
+    {
+      "path": "app-modules/inventory/database/migrations/2026_08_28_133937_change_inventory_expiration_dates_to_civil_dates.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 674,
+      "sha256": "aa7c418eac257eb2accede221fae7e5af6b5f25f988da3c2933b7a6485287067"
+    },
+    {
+      "path": "app-modules/inventory/database/seeders/.gitkeep",
+      "category": "module_inventory",
+      "inspection": "empty_file_verified",
+      "lines": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "app-modules/inventory/docs/crud.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 635,
+      "sha256": "d210b16ed9902594c96818f3d17158a0fb52eac33801fd47ef8f37910dde150e"
+    },
+    {
+      "path": "app-modules/inventory/docs/error-mapping.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 15,
+      "bytes": 714,
+      "sha256": "866a7886e6f829f966276492ae8714109bc5ef9975c66e26a14676ad7bf0e263"
+    },
+    {
+      "path": "app-modules/inventory/docs/getting-started.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 46,
+      "bytes": 2377,
+      "sha256": "5008ac1f9011cba0b556a6dc7a26caff33954b2f8a09414c367cacffdb750495"
+    },
+    {
+      "path": "app-modules/inventory/docs/models.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 67,
+      "bytes": 3920,
+      "sha256": "dfe6e8ac565631a9b4e1754e22a7f06e6d20afccea5a206706ae385863e5dd17"
+    },
+    {
+      "path": "app-modules/inventory/docs/movements.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 93,
+      "bytes": 4341,
+      "sha256": "742881372678b653e9d489277ed72bde6009b614e6a7376bab008829d507262c"
+    },
+    {
+      "path": "app-modules/inventory/docs/payloads.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 42,
+      "bytes": 2494,
+      "sha256": "c30d5f0ef39812b5a132e5f2d85dc7d45fa514ed89ca1e5494d084d9d9689690"
+    },
+    {
+      "path": "app-modules/inventory/docs/plans/events-and-follow-ups.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 425,
+      "sha256": "89015c72cdf1944b190984a84de035a36d69902250b0e44db48d8fdcf2d3850a"
+    },
+    {
+      "path": "app-modules/inventory/docs/preview.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 10,
+      "bytes": 573,
+      "sha256": "ce41a2ff612e8c7c34655fa94799608bf9371c42d1eca1f73e83f5ad4d5d03b0"
+    },
+    {
+      "path": "app-modules/inventory/docs/reading.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 52,
+      "bytes": 2803,
+      "sha256": "85dbb3cb52b82db2e3eea8f3b9ce3d8b04a2c6ff5e2ecb58997efe8eb5d643fa"
+    },
+    {
+      "path": "app-modules/inventory/docs/reversals.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 1522,
+      "sha256": "c4dd7964a92e529f8784ddca728aa70cc465b6418e712d8c47fd7512900214f2"
+    },
+    {
+      "path": "app-modules/inventory/docs/specs/thresholds-and-alerts.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 284,
+      "bytes": 8689,
+      "sha256": "aed4d0f90496ec1f014a22007280bd9931609d1e0ed06d3d458f8f8940f67e7b"
+    },
+    {
+      "path": "app-modules/inventory/docs/stock-metadata.md",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 1314,
+      "sha256": "82e55032a3a4ba077e7c8be29cbaf41b159a9adbc1bc42e3e1bbb4c82e8216f0"
+    },
+    {
+      "path": "app-modules/inventory/resources/lang/en/.gitkeep",
+      "category": "module_inventory",
+      "inspection": "empty_file_verified",
+      "lines": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "app-modules/inventory/resources/lang/en/exceptions.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 3504,
+      "sha256": "f8eed91dfb8c60378f2338d8c34622d7c57bd44def8aa11be48663ba5d14d26f"
+    },
+    {
+      "path": "app-modules/inventory/resources/lang/en/validation.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 42,
+      "bytes": 4625,
+      "sha256": "6536e39fa571268dc395a62145d215dd18b8729290b9bc514e39ca8f70804d72"
+    },
+    {
+      "path": "app-modules/inventory/routes/inventory-routes.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 27,
+      "bytes": 1400,
+      "sha256": "e2c285a8f0e4eab2abf3f3019a70f37041fdb2e700d03049be8fb178861db422"
+    },
+    {
+      "path": "app-modules/inventory/src/Contracts/HasInventoryItem.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 272,
+      "sha256": "30db9312d082ddafc9d89649afbc17bed6fb5011a688512ec1c1a9ed7d827f52"
+    },
+    {
+      "path": "app-modules/inventory/src/Contracts/HasInventoryLocation.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 14,
+      "bytes": 245,
+      "sha256": "4dc845c6a304d12d55a3e9856ca93c117c68b65274333d7968b693dbe1fdf074"
+    },
+    {
+      "path": "app-modules/inventory/src/Contracts/InventoryInterface.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 89,
+      "bytes": 3551,
+      "sha256": "b253dd4c113a0a45cdbe0fb1a07e449aa39b5f40ee88b9b134753190d001e60c"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryItemConfigurationData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 843,
+      "sha256": "7eb87921c82e6d4a73aaa222c262bafd9619f66518d0233d7089aff8f4de8184"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryItemConfigurationUpdateData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 60,
+      "bytes": 1859,
+      "sha256": "1af2e1f970af547f3b5424b2f1163789eb5fa227d3bfc01e9fa0aefd53fd7d1c"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryLocationConfigurationData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 20,
+      "bytes": 417,
+      "sha256": "bf05c202d3c2180163aa5e93b5acaf57634539c30baa6ae2c12c5ee429cb4930"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryLotFilterData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 29,
+      "bytes": 792,
+      "sha256": "4809a8ff516618c7c0d75d49914c7862949f51fb944ee00dfb7add8fca5b4c1f"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryMovementFilterData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 43,
+      "bytes": 1440,
+      "sha256": "91cc46373df7ac2cc5b1058c51b63f190b71f4f2438103cab8eb900d3a77bcfe"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryStockFilterData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1157,
+      "sha256": "807be851fd126a3ee471487f70c3423afd3bbfec3fcc6a189a6bdb6c44022ba9"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryStockSummaryFilterData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 760,
+      "sha256": "c3b532596cb4e66d7cc5f62461fa9751f25ef4a1cee72308d8adb6b36df3344c"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/InventoryTransactionFilterData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1118,
+      "sha256": "08afccb8b0249458c6fff8ad88e05d9c2e4ae3d9edb7480d37e9d5599e4d1e19"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/MovementData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 93,
+      "bytes": 3510,
+      "sha256": "70ee73862013d1c7a5fa52efde8e7ce9f3e784a45e0ef1d314415c44a90cda49"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/MovementExecutionContextData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 659,
+      "sha256": "a6e7d66a6b754ca5575c4b34811644546784b8eb8a6c3ec7b90b44e54a672772"
+    },
+    {
+      "path": "app-modules/inventory/src/Data/TransactionData.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 55,
+      "bytes": 1864,
+      "sha256": "1a7610863e3c205b0083d1c976bf5b63abf6481e51c2f1584ab5ac0a0a39b6d4"
+    },
+    {
+      "path": "app-modules/inventory/src/Enums/DeductionStrategy.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 180,
+      "sha256": "c47b661fe8e3f6f5927aa807316bd4fa185f26d4d7ecee6992aab330f5be616f"
+    },
+    {
+      "path": "app-modules/inventory/src/Enums/MovementType.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 141,
+      "sha256": "8076275c554b7863d9e865469dac0827a221b064ec30eb63a946cb711b4f66ef"
+    },
+    {
+      "path": "app-modules/inventory/src/Enums/TransactionType.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 13,
+      "bytes": 212,
+      "sha256": "0e864196f4ab00f22d292e83ddfec9f6699e43fedafd7b6f634c391e94aafee0"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/AdjustmentAverageCostUnavailableException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 47,
+      "bytes": 1430,
+      "sha256": "9849b0b883ebeef5bf493df7615d6956b781912f7ea6b9bd22007db124d301fd"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/AdjustmentNoOpException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 585,
+      "sha256": "9fa06f32f0872a49a3b497df399beca075a259c15b8030ec5dcf34d422ad8f22"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/BaseUnitNotFoundException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 614,
+      "sha256": "80f13bf34128d293366b5e10046ff82c20ef4f18b1c7d8df23555e3f7e9662f6"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/BaseUnitRatioIntegrityException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 620,
+      "sha256": "0605fbe4a5b6b4c08750ea65f84f47b2477971353e4ba8117085af0b2e2336e3"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/IdempotencyKeyReuseException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 641,
+      "sha256": "c526b2c180088c03e41c1a7aecc4f426be93f3b8fab88cd37187b9890d7b9fe8"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/InboundCostRequiredException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 595,
+      "sha256": "8efb6ca314f83760511aa682458138d1b6a17e07cd777eceae10118bb97b0605"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/InsufficientStockException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 914,
+      "sha256": "6f3d9510fd01e15dab0305a31e08cc1ae1d9b32a43f9b75b4fe8b6e8ed0d9515"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/InventoryItemException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 640,
+      "sha256": "00063814c355ef25f19ec75e27027f82c62cdfe9c1feb1f6035bdfe96ad8ee12"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/InventoryLocationException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 18,
+      "bytes": 450,
+      "sha256": "037d9543856bd130a0d152936387730848fe59fc5c37698870127b0abd5463c7"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/OrganizationScopeException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 523,
+      "sha256": "5ea6205884b862e83e4cbd207d2fb1b31560092dc0fd52527d170feeabffcfa4"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/PreviewRollbackException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 9,
+      "bytes": 192,
+      "sha256": "40dc3fb670eee31654141a3cccf6e4e07b13d0c27f71ed9f40a047302f6aaf88"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/ReversalException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 80,
+      "bytes": 2328,
+      "sha256": "3bc5a97f4fdc700d1f68d78b7c0722cdd2f7119e97094952c3a70fa0c8bca103"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/TransferBalanceException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 28,
+      "bytes": 752,
+      "sha256": "0071baa455400ad45817ee2add981091fefffc2dc0822d8b47276e1e5d275d1e"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/TransferDistributionException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 39,
+      "bytes": 1018,
+      "sha256": "208b76535854121b82ce21accd5c09b7aa370a5f6f4b8ee873bc7ae502f784b9"
+    },
+    {
+      "path": "app-modules/inventory/src/Exceptions/UnitGroupMismatchException.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 775,
+      "sha256": "b71f2d384a28722a964efe8f569cec211a1ee1934544c0255bfef9e24f86613f"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Controllers/InventoryMovementController.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 1238,
+      "sha256": "26af57f9ae09b62557adce49f67f26909bf754e9ded3a91c6819a3381610f168"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Controllers/InventoryStockController.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 86,
+      "bytes": 3462,
+      "sha256": "82cc1f2d9e3765573f75e37d52c05c891f245510a4e7ffadc7a1587102700345"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Controllers/InventoryTransactionController.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 45,
+      "bytes": 1695,
+      "sha256": "9ca31e0a2b0da0dce21003c2b72f578fd4f0c2074d04237e4d473693b8a562d1"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/InventoryLotFilterRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 791,
+      "sha256": "47d5cc142dab537b638d319f44b7cf8f665fadb830525cd0f7b4a3beae8d4953"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/InventoryMovementFilterRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1298,
+      "sha256": "9f4ec9314eff15fc1dd5ee237f81534a5a468092559878d42684fcf13757404b"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/InventoryStockFilterRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1198,
+      "sha256": "8813a890ecf74c21c4b02d4b72ec3ccb0c11d8cc80bcd4983205d3044db4a692"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/InventoryStockSummaryFilterRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 40,
+      "bytes": 1128,
+      "sha256": "2c071979cbddfda5e4eacd3178e3e8b481cedf91a6c11a7ee68310dd210970ad"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/InventoryTransactionFilterRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "bytes": 1395,
+      "sha256": "3c287e27e7cb2415907c6d96d1f65ceafb4546ff1dac59de9f6f8323e29e2c1b"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Requests/UpdateInventoryStockMetadataRequest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 604,
+      "sha256": "e3ae35150a2aa76973b24fffcc08894c09940ef6e2449d19d0c606983f7f06fc"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryItemLocationLotsResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 995,
+      "sha256": "02fabde2651d2f4c9b2cafe3a790cd67cdee40b47c8328bb22d66c36751fe1a9"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryItemResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 57,
+      "bytes": 1917,
+      "sha256": "7bc226e59258653630ff69f2bdda1d5756d7ba1e19240b496472dd84f9de6ff5"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryLocationResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 738,
+      "sha256": "7faa988fabe50a832c4c944a2c1d000acc05d0206acb84f2cb3f6e9a3a6234f7"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryMovementCollection.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 247,
+      "sha256": "6e721255f51ebb73a19ee5904b9381cf55c940e6be3e69b6bfea1d3f4b9f30df"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryMovementResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 69,
+      "bytes": 2564,
+      "sha256": "3753113c89f3dbcf93b3b6cd47458943e756a0437c46d36d58efbff9367da05c"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryStockCollection.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 241,
+      "sha256": "904de3f900dcb6d15eb2fb05c013c930871a9880008061d45ef730ff71fb2a0b"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryStockResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 98,
+      "bytes": 3317,
+      "sha256": "24f25294fbf85bfaf4515134dcce1df358e230ef3deac8aab7f92c0d37501723"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventorySummaryCollection.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 245,
+      "sha256": "6b5ce0f3daf4dd3a076dac17637a9be6701defce8414799588d0af861ef7cfeb"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventorySummaryResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 1081,
+      "sha256": "95fb4822304314160c9e1ca17d8b8efd2ce2921f07a69b096185817278f53d24"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryTransactionCollection.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 253,
+      "sha256": "c5a128d30a4af1ff6d09bd63ddcc485a68b8e277a71d8750c768c8ea2b71be1f"
+    },
+    {
+      "path": "app-modules/inventory/src/Http/Resources/InventoryTransactionResource.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "bytes": 1242,
+      "sha256": "b0de4f020aea22abfde2e271e6306f8f35445caa86b2b2826b5b7f5464b6c870"
+    },
+    {
+      "path": "app-modules/inventory/src/Models/InventoryItem.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 132,
+      "bytes": 5229,
+      "sha256": "695115adeb72417a0cc37effa92a77d414687e43e1d350e843f57e14253c87a2"
+    },
+    {
+      "path": "app-modules/inventory/src/Models/InventoryLocation.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 112,
+      "bytes": 4250,
+      "sha256": "98d944935073db8762c8b3c07c22a22a587af4b709608d85e2b0a9a697a85f63"
+    },
+    {
+      "path": "app-modules/inventory/src/Models/InventoryMovement.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 148,
+      "bytes": 5588,
+      "sha256": "71909e2dcab3a5f338fa636d4fe44ad8d004b2b1c08aa3111cfa7ac7e45ce079"
+    },
+    {
+      "path": "app-modules/inventory/src/Models/InventoryStock.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 140,
+      "bytes": 5167,
+      "sha256": "8b000cdc5d41615c4d46dfe52cb43f42b1200fc26fba2cb96f168e5e4ee458fe"
+    },
+    {
+      "path": "app-modules/inventory/src/Models/InventoryTransaction.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 109,
+      "bytes": 4265,
+      "sha256": "5936ff2164abda0c91e981bd5fc44a749a447e6e7dc93b498f2e6f5f821082a8"
+    },
+    {
+      "path": "app-modules/inventory/src/Policies/InventoryMovementPolicy.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 394,
+      "sha256": "22c974e2b27831e34129a59668ae669679fa5c428d035aa495f57687056ba9a4"
+    },
+    {
+      "path": "app-modules/inventory/src/Policies/InventoryStockPolicy.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 526,
+      "sha256": "669c93559dee399fd8d7ae6f3d905349fc72dd5bc7d836d0cb1590818f818cdb"
+    },
+    {
+      "path": "app-modules/inventory/src/Policies/InventoryTransactionPolicy.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 566,
+      "sha256": "f2e7e86fd847c24f1df90cc94016af9d21691fc7073d0acd5bc55504f30dd3d8"
+    },
+    {
+      "path": "app-modules/inventory/src/Providers/InventoryServiceProvider.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 21,
+      "bytes": 525,
+      "sha256": "f5cdb80966b7197c9ce21071d878f7cbf3cae9df7a7458adc3eeb0733059403a"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/InventoryQueryService.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 291,
+      "bytes": 10618,
+      "sha256": "dbf4a8d6810aa2a9f001fbdea8886328cd3c16906695ac2016c528ae64fe020b"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/InventoryService.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 1127,
+      "bytes": 47664,
+      "sha256": "6c864e55d5ecee10989083cddc3a51bc62fe2f570d7cf3b569bc871f310c508f"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/Item/ManageInventoryItemService.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 278,
+      "bytes": 11183,
+      "sha256": "2100c132307eeaf65ff9f20232e760197e83490c92ccf5fa7a930a2f2b089cae"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/Location/ManageInventoryLocationService.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 182,
+      "bytes": 7093,
+      "sha256": "76386a8a39d15e769e04dd22787239af39109dd36c2ba56eb00f4a4f39a5364b"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/Stock/ManageInventoryStockService.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 34,
+      "bytes": 1019,
+      "sha256": "0694988b5aee3507286c7a3a0d79d2d0061195f75ca7a1925ac67fcd95dced5b"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/TransactionErrorKeyMapper.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 122,
+      "bytes": 3875,
+      "sha256": "a8527f5a39ba6d85b3d2bdaea060a5d9553b8b97e0c65c7d2be3eaf583255871"
+    },
+    {
+      "path": "app-modules/inventory/src/Services/TransactionPayloadHasher.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 69,
+      "bytes": 2343,
+      "sha256": "2376a3afd656c21687cb135137273ef57a057c571fe0a485f196796807432c3c"
+    },
+    {
+      "path": "app-modules/inventory/src/Traits/InteractsWithInventoryItem.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 36,
+      "bytes": 856,
+      "sha256": "593a5837b8368dcacf7c1cc71e758106987e50609aace27967d02bb491310800"
+    },
+    {
+      "path": "app-modules/inventory/src/Traits/InteractsWithInventoryLocation.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 36,
+      "bytes": 896,
+      "sha256": "418bcd8a98a10b2b9370404041a05e3e504ebef6deb7bc7b03416dd9267cbc4a"
+    },
+    {
+      "path": "app-modules/inventory/src/Validation/InventoryItemPayloadRules.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 94,
+      "bytes": 3051,
+      "sha256": "4286fc885dc19be33ce2d10a7e4454ef88bfc7117735d94b05d21e843e591ac5"
+    },
+    {
+      "path": "app-modules/inventory/src/Validation/TransactionValidator.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 615,
+      "bytes": 26099,
+      "sha256": "0872ef0099a2fe5f3a5f7a8966037c5c7907954f5fad5bf1e83557f51f275b8a"
+    },
+    {
+      "path": "app-modules/inventory/tests/Concerns/InteractsWithInventoryTestFixtures.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 142,
+      "bytes": 5773,
+      "sha256": "652b8a699159baaa4b47f931cfb2f7cd1337e89a46299ae6f5b32739211b22c8"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/AdjustmentTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 290,
+      "bytes": 11824,
+      "sha256": "58446b27c135699caaf27084f71da39883ce8aec8ee4147a8a1d329fa2d9692f"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/ExpirationPolicyTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 215,
+      "bytes": 9220,
+      "sha256": "8cf1248ecea4d2ec31712eba7fc4d36192da45d26693ae5436102fe99b6b44fb"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/IdempotencyTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 127,
+      "bytes": 5030,
+      "sha256": "d5404eb03b8ab912e113d34689224cbb8a3ef872a556cb3fb41654571bad4651"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/InTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 334,
+      "bytes": 13387,
+      "sha256": "51ffc34fd03ded620e7e8967953b7f223ed56d8e55a2be705d2d799f33be5f5b"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/InventoryAggregateIntegrityTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 163,
+      "bytes": 6681,
+      "sha256": "df0c0911af59508c7f9a427153f1bbd915d64b783e85059bc2e491d857d013e8"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/InventoryMorphRelationsTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 75,
+      "bytes": 2719,
+      "sha256": "30e77a3ff9e2cef098dcf27192276418e969cff07e58451d7aed43cd4efc51e8"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/InventoryReadEndpointsTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 338,
+      "bytes": 14511,
+      "sha256": "90f91ece1422b7937a6fd55f2b8083f68aad3e300176d9c37f34feafb61ace45"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/InventoryServiceTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 357,
+      "bytes": 14926,
+      "sha256": "1684d96843d96024f66bf67eb387d2e03b50e9e76b078c9515ed9a059b2f30b7"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/OutTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 394,
+      "bytes": 16327,
+      "sha256": "57694f87d1f21f2839a177f4f2b0df885ff0afe9984904408d96c732b621025d"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/PreviewTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 186,
+      "bytes": 7168,
+      "sha256": "0debdee6826548951cdb6161df21853800c36f9587e17385653dbd087b675097"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/ReversalTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 209,
+      "bytes": 9180,
+      "sha256": "ce284352d17f4d29f56851d3b09b82401c054d61df55b153c46d5b8355eebf40"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/TransactionErrorKeyMapperTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 58,
+      "bytes": 2131,
+      "sha256": "21ded17c86607dbb7237377a857d45efaf20a3b59f5e03c0bb1bccbd53598d95"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/TransferTransactionTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 213,
+      "bytes": 9052,
+      "sha256": "5b0e997435739af5ca800d66d9c2440dfad9101010a2078df38213e7ad61d6f0"
+    },
+    {
+      "path": "app-modules/inventory/tests/Feature/Inventory/ValidationTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 588,
+      "bytes": 23952,
+      "sha256": "3d7cbfc1d155aaa86f56e9bbd7770836173f6420fdc624e9c8a0b2165335137a"
+    },
+    {
+      "path": "app-modules/inventory/tests/Fixtures/TestInventoryAltMaterial.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 7,
+      "bytes": 142,
+      "sha256": "ddfbe16dc342f33d2233492d9d37ca3c282db7f3cdd1cd4036d96cd566d4e0e5"
+    },
+    {
+      "path": "app-modules/inventory/tests/Fixtures/TestInventoryMaterial.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 53,
+      "bytes": 1222,
+      "sha256": "2bfe45a3d05388f4af648fb9bf2dbaaab5a257f453e55564ac06e3dbca13e10c"
+    },
+    {
+      "path": "app-modules/inventory/tests/Fixtures/TestInventoryWarehouse.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 40,
+      "bytes": 953,
+      "sha256": "250bd2fbab19e35e52ce443fe46d3da4c584a53cf960e0c2dd794b4cb0668af2"
+    },
+    {
+      "path": "app-modules/inventory/tests/Unit/Data/InventoryDataTest.php",
+      "category": "module_inventory",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 1175,
+      "sha256": "574cc6d61a2f8dfe99f632d0315f8a1ee407f83ff4eecd234ddfe5fc2180d352"
+    },
+    {
+      "path": "app-modules/shared/composer.json",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 28,
+      "bytes": 610,
+      "sha256": "5c6dcb7bb17fa7d40d59c5084f302e712585de2b31432ff8e9ca3de2b7f6d0fa"
+    },
+    {
+      "path": "app-modules/shared/config/business-numbering.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 15,
+      "bytes": 270,
+      "sha256": "1acac551af8ef123bd1ff3e7185598c8d4b35844af85290019437139aee7d3ca"
+    },
+    {
+      "path": "app-modules/shared/database/migrations/2026_08_21_201913_create_shared_business_number_counters_table.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 861,
+      "sha256": "876030d819503b0acb9b0c28d8bb3101258ad2914052e19f24bc58017eff071e"
+    },
+    {
+      "path": "app-modules/shared/resources/lang/en/.gitkeep",
+      "category": "module_shared",
+      "inspection": "empty_file_verified",
+      "lines": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "app-modules/shared/resources/lang/en/console.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 757,
+      "sha256": "19dd63aef68604e3ae0a65f73cecf11c607c1f386d9d71d8123cf39558440cbf"
+    },
+    {
+      "path": "app-modules/shared/resources/lang/en/exceptions.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 3762,
+      "sha256": "1dd06c35645af5d495d61791bfd712d1c739b61ddc6adcad3fa4d6005e23ccd3"
+    },
+    {
+      "path": "app-modules/shared/resources/lang/en/validation.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 19,
+      "bytes": 1296,
+      "sha256": "467725e82307b37c5394ffe21684d6800807be9a14168210d7efbb85c47cf35d"
+    },
+    {
+      "path": "app-modules/shared/resources/views/.gitkeep",
+      "category": "module_shared",
+      "inspection": "empty_file_verified",
+      "lines": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/HelpersListCommand.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 125,
+      "bytes": 3630,
+      "sha256": "c7464099cd90bb6486185ecd3d572a20b8543bb8deecd86ee74ae8ee0693661a"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeApiResource.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 212,
+      "bytes": 7817,
+      "sha256": "6e91084f3decb9a1d9bf1af82018876fad17c6abe0670e7cb52d209d00b7e8c2"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeClass.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 13,
+      "bytes": 276,
+      "sha256": "dc1f686b74ad1806b52fd73b1ea5663b1266e7807869336e08f88f70d0668d9a"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeController.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 76,
+      "bytes": 2798,
+      "sha256": "29418bb45abf55e916e86fb5c2d4a3cb42089b87a2c0a6df0c5e444ded9acc22"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeEnum.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 546,
+      "sha256": "11ebc8aad78a8e7563125deec54d68960f95ed5cb88f52c0a9d52aab3654238e"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeInterface.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 565,
+      "sha256": "7931e5017220b0fb53c5da400151e14729053ffef8118d74a6adef4d66ceb941"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeJobMiddleware.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 584,
+      "sha256": "82b4e71f1a61a395e7ed8d4ed5086abbe6f5e5ca6766048135b3815fc825f809"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeModel.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 59,
+      "bytes": 1674,
+      "sha256": "fba58fd8fee658f2f1daadea4a9c2b38d9c8bfd7302f689c5becd9756383f9de"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakePolicy.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 130,
+      "bytes": 3267,
+      "sha256": "748cad9515d297b68280191dda544215b3e28501b438c779499beb8e09432506"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeScope.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 558,
+      "sha256": "63f5607ade8714c132d41519044b7a1f8eb5cc71930dc6567a0e223e02aad5ba"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeService.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 67,
+      "bytes": 1490,
+      "sha256": "5b358d24d54aa0df5cf166064f91ad51b106711de9cbd201db7ff833c948bc32"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 45,
+      "bytes": 1293,
+      "sha256": "1ea68db91993b8a5a5efe77ff246cb885b6f687b709dd8fe790a1c144310c72b"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeTrait.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 550,
+      "sha256": "17d185df9f099a5d569aec475f67816cd374dad5494bd1ded61f25714d72af2e"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/Make/MakeView.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 22,
+      "bytes": 533,
+      "sha256": "2c52fd959eb0d8c8e6e649f864f6be090f1460a8b4ddb6c52e57639e72cfed23"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/MorphMapCacheCommand.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 39,
+      "bytes": 804,
+      "sha256": "46d7f3a9924324b09c46d2c447275a079252f5521acdb161457532084b8a9650"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/MorphMapClearCommand.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "bytes": 753,
+      "sha256": "0448c8ea294a2ac1c6b06132d64f99d40849dfc9bce4ae1beaea4aa960eb8b79"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/ResponseContractCacheCommand.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 578,
+      "sha256": "cefbf49137c79342b87fedcdacea8dc3194f1c03ded6b27093e25fb670832c53"
+    },
+    {
+      "path": "app-modules/shared/src/Console/Commands/ResponseContractClearCommand.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 579,
+      "sha256": "25627bffef406bba857ac3935c820c14641e0112039fc928c7d7981e98c22bea"
+    },
+    {
+      "path": "app-modules/shared/src/Data/MissingValue.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 67,
+      "bytes": 1465,
+      "sha256": "ad3dea84586f1a596aea509354868d0bda32c73a434d126183651ef4f559bed1"
+    },
+    {
+      "path": "app-modules/shared/src/Data/MissingValueReader.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 899,
+      "sha256": "42bdfc1d31b3b6641db51ecd2b71d5fb9ac00bc42d8e763592a90fb91af62f63"
+    },
+    {
+      "path": "app-modules/shared/src/Data/functions.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 600,
+      "sha256": "f55785ee9a45860875e3627d677aa9e2fb6fbe1ec24e8cf16f3bbd301357c2af"
+    },
+    {
+      "path": "app-modules/shared/src/Database/Factories/Concerns/ResolvesOrganizationId.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 1050,
+      "sha256": "a9979eedd7100d58f3426dee3372c9abf0fd936c66e07f5a1bdda4455d8db032"
+    },
+    {
+      "path": "app-modules/shared/src/Enums/QueueName.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 149,
+      "sha256": "9795f23400e9ccd47f4690ddee85fc766fd56d2826855ccb7bfe16c00a73563d"
+    },
+    {
+      "path": "app-modules/shared/src/Exceptions/AssertionException.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 540,
+      "sha256": "63ecd3d2c4a618062313e08cc7198f28d7b5720bf329a7225916d2c01ccb00c8"
+    },
+    {
+      "path": "app-modules/shared/src/Exceptions/BusinessNumberException.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "bytes": 972,
+      "sha256": "75817b1030805514eb4e733df93d2dc62b036c2f368f8665cfdfeee6c3193cac"
+    },
+    {
+      "path": "app-modules/shared/src/Exceptions/StateMachineException.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 110,
+      "bytes": 3310,
+      "sha256": "8c998567906f663add68a334d87d819ff6fdab91a5ef1b45faa1f2d1f34a302b"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Resources/BaseCollection.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 25,
+      "bytes": 643,
+      "sha256": "bf650fc0ba63d4d797ba04f51fbb0ccf2367b3024c0d0810802a600ee062604e"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseContext.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 69,
+      "bytes": 1553,
+      "sha256": "fc9ade6780e1321fc72826a1868a98f566634de23eb8e8f82287b045cdfc28ff"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseContract.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 93,
+      "bytes": 2828,
+      "sha256": "9f9516b96e8b84d2b4f28c9feab13d964ed29c90539a58b99e782e27b05182b0"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseInclude.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 530,
+      "sha256": "43bd028b02cad4f9af2dc4c38b07d7e8f96fbcc53435defe387f88ce682c96c4"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseMode.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 16,
+      "bytes": 320,
+      "sha256": "cf14ce7f04b560b7576dffb255c7a9b789fbf5b1d47563ff9bae0df7713245c5"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseResponder.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 906,
+      "sha256": "507baec158eac09e5beb2bea00e2d1789fac7c806d17a99c717ad3fe5664b82a"
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseShape.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 76,
+      "bytes": 2297,
+      "sha256": "1ebf5d227b5f70c42c4347e4eac613e033da69ef902eaab810e9ae91bd71de6a"
+    },
+    {
+      "path": "app-modules/shared/src/Models/Authenticatable.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 756,
+      "sha256": "b3b26008cf97da16dcc45bcd6431a6e3de7f7ebf976d9e1deea785f112c9f1c9"
+    },
+    {
+      "path": "app-modules/shared/src/Policies/BasePolicy.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 44,
+      "bytes": 1268,
+      "sha256": "7b7d2894836b56ddd5d992b28e9fc18773ba169125ce6d8ad7bc4fbc49fc220c"
+    },
+    {
+      "path": "app-modules/shared/src/Providers/SharedServiceProvider.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 106,
+      "bytes": 4579,
+      "sha256": "dd6fddce68903c9b3bb39540e88ca780fb7bf205f4888223b16e2f03f84a6917"
+    },
+    {
+      "path": "app-modules/shared/src/Registries/MorphMapRegistry.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 169,
+      "bytes": 4400,
+      "sha256": "7120560e539e14fec28aec893b17731a9dc089f771b198f31d9bd2aac7d4dc64"
+    },
+    {
+      "path": "app-modules/shared/src/Registries/ResponseContractRegistry.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 268,
+      "bytes": 8283,
+      "sha256": "2dde0c822550c5e8e8f88bd6093b784fb3e44eaef72060fb248ef0da2ebd968d"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/BulkExists.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 136,
+      "bytes": 4502,
+      "sha256": "bbea652bace01f6c9983e127c6f9f2eccaaded96d447b22294e1b2cc709bdc6c"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/BulkUnique.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 113,
+      "bytes": 3480,
+      "sha256": "6621d573816abc31f92bf7568fc00b3c97afa4385330371d173a20bdc122179f"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/IanaTimezone.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 611,
+      "sha256": "3d77e633e2c6bad33197612ed05998233f03bd9d6708f6e4ed838472852f051a"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/LocalTime.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 42,
+      "bytes": 1142,
+      "sha256": "73d64b650ec40f8a5029eabc8143a0412abe29d2064c3e8610723d7f6a0052ec"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/Rfc3339Utc.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 64,
+      "bytes": 2055,
+      "sha256": "e3ad4f817ac4fe91c88173e9764833c84ace2f9113ec59e5c4687e9500238b7e"
+    },
+    {
+      "path": "app-modules/shared/src/Rules/YmdDate.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 43,
+      "bytes": 1130,
+      "sha256": "406922788019e58fad7028964de9c97ce6cf7a5f71a7695ec6c98a234e7fa791"
+    },
+    {
+      "path": "app-modules/shared/src/Services/BusinessNumberService.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 248,
+      "bytes": 8809,
+      "sha256": "5ddaab93ff157ab3376873c43457d511885d247abd1d701766561c5b646379c5"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/Actor.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 119,
+      "bytes": 3269,
+      "sha256": "ff82639bd3f3dd262d84174ce667f2aef14de463c3836d7c25658f984bae3b1c"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/State.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 92,
+      "bytes": 2195,
+      "sha256": "e1bbeb4b5480dbdf927f3e0a6918d6508c3cf7e5868258f23cc1d43f133bf449"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/StateMachine.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 177,
+      "bytes": 4867,
+      "sha256": "8dcfc466ab3e7b290065b57cebdfbcba23f911d513edb9c4e09861237a32c71b"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/StateMachineValue.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 25,
+      "bytes": 444,
+      "sha256": "691280383dde21278ae5861b87eb605fea390d4653490c91fed830bbad398198"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/Transition.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 611,
+      "sha256": "ae0e75ca7a4c7ae7c16807f70aedd6f56e2a940956ab3fc1f2e106822d178fbb"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/TransitionFailure.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 322,
+      "sha256": "30b419d1053e373884c15dec9b44587dac089631ead21484a0107ba484507976"
+    },
+    {
+      "path": "app-modules/shared/src/StateMachine/TransitionResult.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 16,
+      "bytes": 264,
+      "sha256": "74ee8209b7f198ca354b1cd9f6d664a96c318b66d8587705dfd8e9865b81bb1d"
+    },
+    {
+      "path": "app-modules/shared/src/Support/DeterministicCursorPagination.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 131,
+      "bytes": 4537,
+      "sha256": "3253238bd6b5908d7d6a6e63cbc0a219551e90de5d777b80f56c49619a9a2c4b"
+    },
+    {
+      "path": "app-modules/shared/src/Support/HandleGenerator.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 56,
+      "bytes": 1230,
+      "sha256": "faaa1831f852202ddc3aa3c015fc319dc8a9519dd126b41d499cb9ee9a98460c"
+    },
+    {
+      "path": "app-modules/shared/src/Support/ModelFinder.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 69,
+      "bytes": 2364,
+      "sha256": "cf86465d7eed2c2e94f7719919f64f79766ed44c7a51b31392bf3906793a2690"
+    },
+    {
+      "path": "app-modules/shared/src/Support/OrganizationScopeResolver.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 67,
+      "bytes": 1912,
+      "sha256": "814772042434662afbca48766d221deb897782950e08d7bc8b065b29ac420753"
+    },
+    {
+      "path": "app-modules/shared/src/Support/SkuGenerator.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 28,
+      "bytes": 581,
+      "sha256": "3364b447229beec8eae59a4fc1bc8f9bbf2bb2fdce96d701179c6bc0ad17b97e"
+    },
+    {
+      "path": "app-modules/shared/src/Traits/SharedTraits.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 14,
+      "bytes": 236,
+      "sha256": "15af8c6e0989d046488a5a7a234728c2883054d4c5defdc6893705ba38dba883"
+    },
+    {
+      "path": "app-modules/shared/src/helpers.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 71,
+      "bytes": 2238,
+      "sha256": "f288a9d21dbd6d5939eac7983d83125fbbc87b689d2751ffd27f1d8cab474acb"
+    },
+    {
+      "path": "app-modules/shared/stubs/api-collection.stub",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 208,
+      "sha256": "6ece6389b4ec862e9845b109efa049ad043103efff36c02b70c779f2b3eb76d3"
+    },
+    {
+      "path": "app-modules/shared/stubs/api-resource.stub",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 19,
+      "bytes": 343,
+      "sha256": "ae7cc395ad54dacc04a2fdacf41c63740f3bd894827d743655bcf7f216d95689"
+    },
+    {
+      "path": "app-modules/shared/stubs/policy.stub",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 68,
+      "bytes": 1623,
+      "sha256": "895e7e1ffacb7ecacf8546dd31f9f302e672cb77e1003d28c308125256d235d2"
+    },
+    {
+      "path": "app-modules/shared/stubs/service.stub",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 16,
+      "bytes": 397,
+      "sha256": "2bb8bde9c166262305722304c914c143c507fd43f10189db8586b50b5940d095"
+    },
+    {
+      "path": "app-modules/shared/tests/Feature/BusinessNumberConcurrencyTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 114,
+      "bytes": 3206,
+      "sha256": "27967797d74671fcb276db68c2f803533be80f1e3b650afc0d5105469a8b3dfe"
+    },
+    {
+      "path": "app-modules/shared/tests/Feature/BusinessNumberTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 314,
+      "bytes": 10801,
+      "sha256": "1b8d512e977d5b370bbb9e31b8adb42c7c4b39fd203b1d29a12198b1da087707"
+    },
+    {
+      "path": "app-modules/shared/tests/Feature/Factories/ResolvesOrganizationIdTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 46,
+      "bytes": 1328,
+      "sha256": "b7ded7255acf9e18c40965c2379dca8e23139e6f1457a6458c3fdeef764a34be"
+    },
+    {
+      "path": "app-modules/shared/tests/Feature/Providers/SharedServiceProviderTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 12,
+      "bytes": 152,
+      "sha256": "c2217ac4c7032f0357e030d7a4a3c84c192b22690c1516145d2cde40d9cbf67a"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/Data/MissingValueReaderTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 715,
+      "sha256": "1c805f8ea0cad636294c3cabb2ba28a9f58e09b18aee39a700d71d3ba3ca5ce6"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/Data/MissingValueTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 57,
+      "bytes": 1706,
+      "sha256": "a7758674c8fcbe624d5152cf1103c8cf135e22ef3b1102cfc0f36a787078d60c"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/Helpers/StableCursorPaginateTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 140,
+      "bytes": 4582,
+      "sha256": "5707cb39cf259ce5257e1c37b5e7ac3aad6df1142a547daba1eb827b8474f731"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/IanaTimezoneTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 18,
+      "bytes": 588,
+      "sha256": "14dafcc788b974463793d403bf398561f95581605b74f17f5f04d8bf7d9abe35"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/LocalTimeTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 18,
+      "bytes": 666,
+      "sha256": "317791818b4ce72e6a9bfa3eb18a21cc2544d55efd334743238e5784b7488940"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/ResponseContextTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 843,
+      "sha256": "34766a81a308516c9cf9239435dd68818c7698e059ae4e9face25cca865a9b26"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/ResponseContractTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 58,
+      "bytes": 2311,
+      "sha256": "010c68166682d9eab6d55411c5f0e679b17c4447e97a44b4e5179ad061b132ec"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/ResponseResponderTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 53,
+      "bytes": 1907,
+      "sha256": "5c134003bcdb06d7e9126673300aef93f49d4343f3eaca39aae5b117a192aa67"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/Rfc3339UtcTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 1061,
+      "sha256": "d0f51ff2f3874b8113e69b8e24443b3e81bcbb3d51446553d235c6b1e09ee758"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/StateMachine/StateMachineTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 202,
+      "bytes": 8353,
+      "sha256": "9940c9c3f1cbfd863387fb37ee0dd42acec01c4859b279d3e28ee230d5726167"
+    },
+    {
+      "path": "app-modules/shared/tests/Unit/YmdDateTest.php",
+      "category": "module_shared",
+      "inspection": "full_file_read",
+      "lines": 29,
+      "bytes": 813,
+      "sha256": "fa4c7c31737825cf8b240566d0d07ae8c012289430d459f3fb8c9cba456fdc52"
+    },
+    {
+      "path": "app/Http/Middleware/ForceJsonResponse.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 466,
+      "sha256": "77118d37b0e7748336b02a96cf038b09700208b2daa3625691eb127cbf625f41"
+    },
+    {
+      "path": "app/Http/Middleware/ResolveResponseContext.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 58,
+      "bytes": 1753,
+      "sha256": "4522cf43069ecb1943934b33dad071303f8cfb849f5243b9984c566a5b550a13"
+    },
+    {
+      "path": "bootstrap/app.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 75,
+      "bytes": 3013,
+      "sha256": "d2e64f12ebf8396c64eb12013ea573230f2d46e84e74ff31fdcddd704ec635aa"
+    },
+    {
+      "path": "config/api-responses.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 169,
+      "sha256": "74f6ce5a45271b2dd840405c751d03e6d0845db20eae75f28fdcddefa76e8ec8"
+    },
+    {
+      "path": "config/model-integrity.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 154,
+      "bytes": 6439,
+      "sha256": "e36533e7c7d412d4e1c7e63914917ce62fc66521599e6f788de122d4879e2559"
+    },
+    {
+      "path": "docs/api/responses-and-errors.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 177,
+      "bytes": 5680,
+      "sha256": "6f5b33c4310837356002ca8e1ef6abfec7314908fd403ef03d8d701e4c1d0cb1"
+    },
+    {
+      "path": "docs/architecture/application-layers.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 73,
+      "bytes": 3747,
+      "sha256": "200055e16c399939ccf77ceb7eeb30c40ab99842f2857e3e87f0e7f611fc64dd"
+    },
+    {
+      "path": "docs/architecture/coding-rules/exceptions.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 45,
+      "bytes": 1815,
+      "sha256": "e15e37cc374685f098fe57bef081706a6dded443d5a2ca6fd0e3b687452ef90f"
+    },
+    {
+      "path": "docs/architecture/data-model.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 103,
+      "bytes": 5294,
+      "sha256": "1cfd952ca6ff33d68bc75d3496c02ad7b5e1279ad1eac36f5c10397f90b5adc1"
+    },
+    {
+      "path": "docs/architecture/data/form-requests-and-data.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 180,
+      "bytes": 5403,
+      "sha256": "58f31e1efb3df0bd82d96422dd36cb43779379adfa4ba47eaa3e8c69b3c39b30"
+    },
+    {
+      "path": "docs/development/caching-and-consistency.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 58,
+      "bytes": 2403,
+      "sha256": "04a0342cc92e6d7845f5fd7b49222531924a48af41b3b6b6bed448aca129a5cb"
+    },
+    {
+      "path": "docs/development/testing-and-generation.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 55,
+      "bytes": 2257,
+      "sha256": "4e8da4420d3e6a66d7b2cee324e7b5f44f887f0dd79bd061e3b77b2e393d8bdf"
+    },
+    {
+      "path": "docs/modules/shared.md",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 220,
+      "bytes": 9893,
+      "sha256": "c73d875829f319bd4b9a3ac058e502dca6000e8d30d2d8ef1f852d242ff1d48b"
+    },
+    {
+      "path": "stubs/controller.api.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 52,
+      "bytes": 1361,
+      "sha256": "0d023c56622ca2929c8b8020038915ba0993e5772c1f75080638bea2a3ee5b27"
+    },
+    {
+      "path": "stubs/controller.model.api.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 53,
+      "bytes": 1463,
+      "sha256": "8f9a47478ae9155b45a213a10ffd83c7e9420ede55785892a0680a3d49128e43"
+    },
+    {
+      "path": "stubs/controller.model.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 48,
+      "bytes": 1035,
+      "sha256": "beda5d39a2cb982d288d99eaed68ce2fcb31e64ea7f1712ced66d345cc58f03b"
+    },
+    {
+      "path": "stubs/controller.plain.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 16,
+      "bytes": 279,
+      "sha256": "16abf8a6f588d35f1cee0c47b33ac1ed31a609ab031c91c9bb90d530ac20618e"
+    },
+    {
+      "path": "stubs/controller.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 47,
+      "bytes": 911,
+      "sha256": "f266bb5e506c830dfd2e1931297a7016a711b15e7417e1a0316beb35a5c2f095"
+    },
+    {
+      "path": "stubs/factory.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 470,
+      "sha256": "19d6d844d715253c5a3d63b0bba53314ed92f79b3657438bbf15640d5b831923"
+    },
+    {
+      "path": "stubs/migration.create.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 498,
+      "sha256": "2960594742a6bbb4dcb7fbdaac8e2d6c9a834f70e316790ff2ab437c50974f5a"
+    },
+    {
+      "path": "stubs/migration.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 20,
+      "bytes": 387,
+      "sha256": "baf42a9c342c9cbc2b194b9f374321f36f1615d5c575b4b7b7968af4fa1fe724"
+    },
+    {
+      "path": "stubs/migration.update.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 565,
+      "sha256": "56715262f946c54797ed8224e49b1b8c09e389827d9c53b691a04863311f4b54"
+    },
+    {
+      "path": "stubs/model.morph-pivot.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 21,
+      "bytes": 363,
+      "sha256": "2792e9423b83fa5e07b1619e36495e6bc91c16e70b6b09067d3169baed8639db"
+    },
+    {
+      "path": "stubs/model.pivot.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 25,
+      "bytes": 412,
+      "sha256": "775c9dd174015849b00bb17d80407fb1672c9ce93b964fe41d618c2a33f766ba"
+    },
+    {
+      "path": "stubs/model.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 547,
+      "sha256": "661859a985dc61d58ebb74d068ef994d2c1da64ebc9624d59dd2847a444e4a66"
+    },
+    {
+      "path": "stubs/pest.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 8,
+      "bytes": 189,
+      "sha256": "e260e92416ffd92d34c1f605bae5f8cb525e753038c983e777fafcf77e661e8a"
+    },
+    {
+      "path": "stubs/pest.unit.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 7,
+      "bytes": 114,
+      "sha256": "32901d1b48115bbf707a9faaba38b81c270b70a9290bf7a2a21476ffd05702ff"
+    },
+    {
+      "path": "stubs/request.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 478,
+      "sha256": "988473bb024287a91fa0172912951c93f7748125e04e731b888d9fffc06dadab"
+    },
+    {
+      "path": "stubs/seeder.stub",
+      "category": "root_stubs",
+      "inspection": "full_file_read",
+      "lines": 15,
+      "bytes": 258,
+      "sha256": "3c0f74da86b41b2d0aa601d90e8c581c19fc8d9e9be1804d503fce1a8c0e7fab"
+    },
+    {
+      "path": "tests/Feature/Architecture/AssertionExceptionContractTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 65,
+      "bytes": 1861,
+      "sha256": "5511b3ef6ac155b38159692fa279f0e4b4360713a438eb5d7bc9ffdf69ef3997"
+    },
+    {
+      "path": "tests/Feature/Architecture/DatabaseIntegrityTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 478,
+      "bytes": 16577,
+      "sha256": "5a0fc66ee02f3fd45823dbc233fd84b1ab2a36f5c8b6b7df171aa81764c83bed"
+    },
+    {
+      "path": "tests/Feature/Architecture/FactoryDiscoveryTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 969,
+      "sha256": "b3fff5882e4746d102db684a143a06f27a381b12c0776ac53da526964d3f889b"
+    },
+    {
+      "path": "tests/Feature/Architecture/GeneratorCommandsTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 174,
+      "bytes": 7970,
+      "sha256": "63ad9b95f544406d5284df73965a0c5845ca35361492664bcd2b0a7ecc35b42a"
+    },
+    {
+      "path": "tests/Feature/Architecture/LocalizationIntegrityTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 75,
+      "bytes": 2805,
+      "sha256": "1f8c96220e7145f0d9e50c0aa48770a4718037f82e2c371e279cb7a5ac5922eb"
+    },
+    {
+      "path": "tests/Feature/Architecture/ModelIntegrityTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 376,
+      "bytes": 14438,
+      "sha256": "0981f1cdcf140c00e09666f3d6ce916fa5d774b6178bd1bf1905df7debd86cec"
+    },
+    {
+      "path": "tests/Feature/Architecture/ModularDependencyTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 208,
+      "bytes": 6387,
+      "sha256": "44b5be96464f0169c15d78eb49b24e2271f8e3ce3ac082c6484c63d7f13291a8"
+    },
+    {
+      "path": "tests/Feature/Architecture/MorphMapTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 961,
+      "sha256": "036bd3e4a3f24215353c091b8b8f803cc251285f985716e34d63a2236ce1b079"
+    },
+    {
+      "path": "tests/Feature/Architecture/NestedResourceRouteScopingTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 56,
+      "bytes": 2545,
+      "sha256": "d0f23fb8d14159da0f9552fea789616e4fea934c9cc7e28cb789ba945e6e7896"
+    },
+    {
+      "path": "tests/Feature/Architecture/NoBareExceptionThrowTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 858,
+      "sha256": "62d30788e6f384f8eb3d22378de684ddeda0baed76437bd0eba603173f0b37bc"
+    },
+    {
+      "path": "tests/Feature/Architecture/OptionalDevelopmentProvidersTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 960,
+      "sha256": "3b9bbe06318037d196a71b34c56ff0d1adc9ac01797a9b20fa46a02d1cad4427"
+    },
+    {
+      "path": "tests/Feature/Architecture/ResourceOrganizationExposureTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 30,
+      "bytes": 993,
+      "sha256": "d4579e74bd30721cd01f0b1e43b2c1a57e34669c6ddb8b674e23ab4e380328ca"
+    },
+    {
+      "path": "tests/Feature/Architecture/ResourceUserExposureTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 27,
+      "bytes": 1136,
+      "sha256": "1e8bff0bec491e305fe8935110de771ed9d098da83cf55afd45bcd1038b4e664"
+    },
+    {
+      "path": "tests/Feature/Architecture/ResponseContractTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 88,
+      "bytes": 3084,
+      "sha256": "2876f0e0096344a006528c091828d53a05c119d1e3ba5111987274a1b4f81293"
+    },
+    {
+      "path": "tests/Feature/Architecture/RouteNamingTest.php",
+      "category": "architecture_tests",
+      "inspection": "full_file_read",
+      "lines": 81,
+      "bytes": 2483,
+      "sha256": "589d1455073ff2a1b61d53c1467a1a37a6bf1c18005e17d524b59500eff97386"
+    },
+    {
+      "path": "tests/Feature/Integration/ResponseContractIntegrationTest.php",
+      "category": "related_root",
+      "inspection": "full_file_read",
+      "lines": 28,
+      "bytes": 882,
+      "sha256": "f7e8e0df33a4eb587001a44025c943b8d422cfb1aec243c4fa4a0222a4d50dd4"
+    },
+    {
+      "path": "tests/Feature/Registries/MorphMapCacheTest.php",
+      "category": "registry_tests",
+      "inspection": "full_file_read",
+      "lines": 121,
+      "bytes": 3314,
+      "sha256": "18e4e174141a7ca3876d84cb3d73edd2702777b5da75ebcec9dabcf184d952ed"
+    },
+    {
+      "path": "tests/Feature/Registries/ResponseContractCacheTest.php",
+      "category": "registry_tests",
+      "inspection": "full_file_read",
+      "lines": 184,
+      "bytes": 7633,
+      "sha256": "8a8c10ec1d7b5446baf3105da2ebfe6333996e5f317a2372370f700425f87070"
+    }
+  ],
+  "instruction_files": [
+    {
+      "path": "AGENTS.md",
+      "inspection": "full_file_read",
+      "lines": 133,
+      "sha256": "51ed224a21c9c1909581fb567eb83926873bbcbee0be716f4d14c440ff5cdd75"
+    },
+    {
+      "path": ".agents/CODEBASE_RULES.md",
+      "inspection": "full_file_read",
+      "lines": 85,
+      "sha256": "7ba3c6313b8da90f8b44c08523fa518913f1f4c64cc758ecad43bf07be9f8513"
+    },
+    {
+      "path": ".ai/rules/index.md",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "sha256": "ef2ac70785f0aafc149114c028731fc81ff397bad5d18018cd42211df7bfddba"
+    },
+    {
+      "path": ".ai/rules/domain-services-data.md",
+      "inspection": "full_file_read",
+      "lines": 106,
+      "sha256": "31215bbd0124790d19ab3677c0dfbf07d0a4ab2b616b3dfb0947569e36bde0f3"
+    },
+    {
+      "path": ".ai/rules/extension-points.md",
+      "inspection": "full_file_read",
+      "lines": 57,
+      "sha256": "b1aa93f73dc6a94a831612ab621fa0b8053136fcc09ea2d712431c89f91261d3"
+    },
+    {
+      "path": ".ai/rules/http-api.md",
+      "inspection": "full_file_read",
+      "lines": 125,
+      "sha256": "81147abe59a6fcf9f027595fb98b17c0aed6255f4fc070ef078027a43cb33678"
+    },
+    {
+      "path": ".ai/rules/inventory-tenancy.md",
+      "inspection": "full_file_read",
+      "lines": 37,
+      "sha256": "c0fae70f3d602e1f0ef71113752ba8aa2500514590cf564e3cfd7a8140ea7ac9"
+    },
+    {
+      "path": ".ai/rules/localization.md",
+      "inspection": "full_file_read",
+      "lines": 72,
+      "sha256": "d6ed0fa253101ceedb8de2163397d2d2cf42b812100075ff45a3b98a1da1217e"
+    },
+    {
+      "path": ".ai/rules/module-architecture.md",
+      "inspection": "full_file_read",
+      "lines": 62,
+      "sha256": "4a57f647126906d00908200363a6b9e5603f59a561fb6335bb4240f7904f37ac"
+    },
+    {
+      "path": ".ai/rules/persistence-tenancy.md",
+      "inspection": "full_file_read",
+      "lines": 107,
+      "sha256": "7ab4ba034bc6997bcd355ff76aaa57c9e50bb4fd9a2305c6f01ea4f907439f50"
+    },
+    {
+      "path": ".ai/rules/date-time-conventions.md",
+      "inspection": "full_file_read",
+      "lines": 57,
+      "sha256": "770065cd876e8e4f0c0e0e5e86a0d2e4347b560a3b9bc4db01b78306cd024c48"
+    },
+    {
+      "path": ".ai/rules/testing.md",
+      "inspection": "full_file_read",
+      "lines": 103,
+      "sha256": "2c50164de5f0e43e5e72e77bb000eedf2cdb0ca8d5a98e093420aa74b5ab42ed"
+    },
+    {
+      "path": ".ai/rules/validation.md",
+      "inspection": "full_file_read",
+      "lines": 91,
+      "sha256": "854aa73185446d708f083ed5f0bafb84755829a265b6d3e916afbc09dcdc75a3"
+    },
+    {
+      "path": ".ai/rules/documentation-and-language.md",
+      "inspection": "full_file_read",
+      "lines": 77,
+      "sha256": "5e0f5a836184d14fa15c79983d653e0cd079fe75549fcdbb2af17182511422a2"
+    }
+  ],
+  "external_instruction_files": [
+    {
+      "path": "/Users/imac/.agents/skills/unslop/SKILL.md",
+      "inspection": "full_file_read"
+    }
+  ],
+  "partial_external_evidence": [
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Validation/Validator.php",
+      "inspection": "targeted functions isValidatable and isNotNullIfMarkedAsNullable"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Validation/Concerns/ValidatesAttributes.php",
+      "inspection": "targeted validateRequired"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Routing/Console/ControllerMakeCommand.php",
+      "inspection": "targeted buildClass and search for custom import tokens"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Console/GeneratorCommand.php",
+      "inspection": "targeted buildClass/replaceNamespace and search for custom import tokens"
+    },
+    {
+      "path": "vendor/internachi/modular/src/Console/Commands/Make/MakeController.php",
+      "inspection": "search for custom import tokens and replacements"
+    },
+    {
+      "path": "vendor/internachi/modular/src/Console/Commands/Make/MakeModel.php",
+      "inspection": "search for stub path resolution"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Foundation/Console/ModelMakeCommand.php",
+      "inspection": "targeted getStub/resolveStubPath"
+    }
+  ],
+  "drafts": {
+    "en": [
+      "content/en/modules/inventory/adapters.mdx",
+      "content/en/modules/inventory/index.mdx",
+      "content/en/modules/inventory/previews-and-reversals.mdx",
+      "content/en/modules/inventory/reading.mdx",
+      "content/en/modules/inventory/transactions.mdx",
+      "content/en/modules/inventory/valuation.mdx",
+      "content/en/modules/shared/data-and-validation.mdx",
+      "content/en/modules/shared/developer-tools.mdx",
+      "content/en/modules/shared/identity-and-context.mdx",
+      "content/en/modules/shared/index.mdx",
+      "content/en/modules/shared/numbering.mdx",
+      "content/en/modules/shared/response-contracts.mdx",
+      "content/en/modules/shared/state-machines.mdx"
+    ],
+    "fr": [
+      "content/fr/modules/inventory/adapters.mdx",
+      "content/fr/modules/inventory/index.mdx",
+      "content/fr/modules/inventory/previews-and-reversals.mdx",
+      "content/fr/modules/inventory/reading.mdx",
+      "content/fr/modules/inventory/transactions.mdx",
+      "content/fr/modules/inventory/valuation.mdx",
+      "content/fr/modules/shared/data-and-validation.mdx",
+      "content/fr/modules/shared/developer-tools.mdx",
+      "content/fr/modules/shared/identity-and-context.mdx",
+      "content/fr/modules/shared/index.mdx",
+      "content/fr/modules/shared/numbering.mdx",
+      "content/fr/modules/shared/response-contracts.mdx",
+      "content/fr/modules/shared/state-machines.mdx"
+    ]
+  },
+  "validation_artifact": "validation.json",
+  "report_artifact": "report.md"
+}

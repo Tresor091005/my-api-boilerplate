@@ -3,7 +3,7 @@
     "description": "Private, tenant-scoped file library for Lahatre applications.",
     "type": "library",
     "version": "1.0",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {},
     "autoload": {
         "psr-4": {

@@ -20,7 +20,11 @@ http:
 runtime:
   scripts:
     - type: after-response
-      code: bru.setEnvVar('roleId', res.body.data.id)
+      code: |-
+        const id = res.body?.data?.id;
+        if (res.status >= 200 && res.status < 300 && typeof id === "string") {
+          bru.setEnvVar("roleId", id);
+        }
 
 settings:
   encodeUrl: true

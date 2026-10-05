@@ -1,7 +1,7 @@
 opencollection: 1.0.0
 
 info:
-  name: api-client
+  name: Lahatre ERP
 config:
   proxy:
     inherit: true

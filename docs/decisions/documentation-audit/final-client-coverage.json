@@ -1,0 +1,1228 @@
+{
+  "yamlVersion": "2.9.1",
+  "nodeVersion": "v24.14.0",
+  "counts": {
+    "yamlFiles": 92,
+    "requests": 69,
+    "jsonBodies": 35,
+    "emptyBodies": 1,
+    "responseScripts": 14,
+    "definedVariables": 22
+  },
+  "files": [
+    {
+      "path": "api-client/auth/accept-invitation.yml",
+      "sha256": "959021233369d7c6c74dbf46fb6f09c9373fd4b9eec829fecb771227d2b02dbb",
+      "bytes": 332,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/clear-default-member-role.yml",
+      "sha256": "a253a6b80f9a680ce84f777d2ed4357de5c5a635db08212754b6e13b113fdb91",
+      "bytes": 327,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/create-organization.yml",
+      "sha256": "fdb6e2b079647d246103bbc54f6861930258fde0d50e5d80d5baff648d1412a7",
+      "bytes": 392,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/current-permissions.yml",
+      "sha256": "8d85b1ea4ec6fbc53e58ccc36fa39da5ea7fee5d43a0b920f8a18a61493c40b4",
+      "bytes": 262,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/email-challenge.yml",
+      "sha256": "beb9a0a74868281a0aec9c93975401a68eb1da42350841bb42d25c5df731c877",
+      "bytes": 534,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/folder.yml",
+      "sha256": "643c1d121d7d781ff5b5ebdb8db8b48b6d029db07235698e56d38178b596d15d",
+      "bytes": 69,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/google/challenge.yml",
+      "sha256": "f4dbe608f7b585ce0af6e714bce51877063472bd93c9c8648c5a69547e5f4c19",
+      "bytes": 550,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/google/folder.yml",
+      "sha256": "ef0e7cdbf77db63145617908fba7b641aa19a63e558ad165187670ce6fe479bf",
+      "bytes": 72,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/google/link.yml",
+      "sha256": "08a03e9437977a611b0f24d3088c68fbdc35b668be9b9abe48edeeb805255ecf",
+      "bytes": 379,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/google/verify.yml",
+      "sha256": "ea41f546339558262a56cc11be86f476d82bb4f9c577078235a1607cbd6232f2",
+      "bytes": 837,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/logout.yml",
+      "sha256": "31ff98afb5326841eb5ce9ca577cfeca9f5a80937e1ec197fd89d4d8b5e7ff4b",
+      "bytes": 202,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/me.yml",
+      "sha256": "dbb16a9d69b88995925f6deac192383d765544898c43dbd63516e97ff36b0d9c",
+      "bytes": 192,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/organization-registration-token.yml",
+      "sha256": "8e12f55f54bac340688fb7e537f1b97ef489b2ffec86b081fed22e59ccc12c32",
+      "bytes": 385,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/register-organization-existing-user.yml",
+      "sha256": "c835c49b01246eb1d6125b7e44ecbd5ecee147aeec95ff07de1c3da572e6c4f3",
+      "bytes": 578,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/register-organization-new-user.yml",
+      "sha256": "e298832a88444e4b1362fa1ac37cb2379894df1771d826c935a7d90c06d59fb2",
+      "bytes": 634,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/sessions/delete-all.yml",
+      "sha256": "b2f14d510835a3e6a90b8280d82e16b79904710b1e3c06f18dcfa8a246908d07",
+      "bytes": 209,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/sessions/delete.yml",
+      "sha256": "b55d60c94952d757b2559922bb5180af937b3cd9c7fb6424819931c667a001bd",
+      "bytes": 219,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/sessions/folder.yml",
+      "sha256": "2b830d79a029fa46a052ec73f9af84a1ee1ab6185b06000a64a1eeb8d0eff898",
+      "bytes": 74,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/sessions/list.yml",
+      "sha256": "6b58a46f388a9d01e37697f4b15c0ce77eb25d5a54b8dc9774194a59d41663ba",
+      "bytes": 212,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/set-default-member-role.yml",
+      "sha256": "0545e5db61575bb3c896f72d904974a701f862fdd5f13e576b884613a9ea2e87",
+      "bytes": 339,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/switch-member-role.yml",
+      "sha256": "c30bd2e3da7f1078e4cd4764557308a309f3aa29a1b4135e31d571ec136d1565",
+      "bytes": 322,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/update-me.yml",
+      "sha256": "d2da6d8492a271a6155836c3aea9002816514ec4dfc46ed962c8afaad39a971f",
+      "bytes": 333,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/verify-email-code-with-profile.yml",
+      "sha256": "5a69ceb7e088176a2db3d45fa33f24140e144f2adb8add81f91cc90931bf0150",
+      "bytes": 692,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/auth/verify-email-code.yml",
+      "sha256": "f0fcf60d6fe24d936c6178dfda8b8ef13cb0de6ac8dfadd6cb8d3e14359bab31",
+      "bytes": 617,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/bundle/folder.yml",
+      "sha256": "b26d557906fdfa292fb8c6ba1974d3e454ef728a0c3dd715fc599671c957f519",
+      "bytes": 71,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/bundle/list.yml",
+      "sha256": "ffa28fff6ec36c02ee92cc10987ba80f1265eb2388bae94f384cf0aa582c9671",
+      "bytes": 232,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/create.yml",
+      "sha256": "5907600cedf3287b6ef063ffbdbcf260afe316076095b4601d94a62a9b17614b",
+      "bytes": 593,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/delete.yml",
+      "sha256": "e704451eb44b7138d4c42f84c413a324c71af008aeb9a2c53293f002f46038d8",
+      "bytes": 225,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/folder.yml",
+      "sha256": "67f11244b014240a7e00918908688fb89fa6b01be52bcec1e2803cdc7b28d48d",
+      "bytes": 73,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/list.yml",
+      "sha256": "1ee275c9e0f2daa61ab85ff0d66fef049c291f3f6007b2388159077b1a657016",
+      "bytes": 205,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/show.yml",
+      "sha256": "0a6328dcfe64d627bc1ee24a5d94c3f4c578318a49b4be422d4fcc06e3d16e57",
+      "bytes": 220,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/category/update.yml",
+      "sha256": "416ded9fb7db93525fd5fe8c6e136d6cea0958f689f25a6791590c9722301cbf",
+      "bytes": 338,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/folder.yml",
+      "sha256": "350c7cc9b0a5c08d2679f3bc3e300f040d4d630a7860bd61b3aa0cb4d376106f",
+      "bytes": 72,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/create.yml",
+      "sha256": "a2689cfd9a7db8687027607bf71f7c6c42f9a82be87f50143fbb3f330a5ebf2a",
+      "bytes": 575,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/delete.yml",
+      "sha256": "ad047f6750a0ed6bf42e4bfcc3bd57bba067038cfa37c81a43f1d23cd1ce7b6b",
+      "bytes": 245,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/folder.yml",
+      "sha256": "3b53c5882b2fe38acc49cd992aa6e854589966b01bc57d9fd0f18516d73e58f0",
+      "bytes": 77,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/list.yml",
+      "sha256": "5636501dfc0cb71349c82eb905300bd3ce6cf05093375bb8820a1bc2979bd107",
+      "bytes": 222,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/show.yml",
+      "sha256": "ee8bcf636f878336f6003c06c9ceabdaeddf13865c6d017d3e3f80c03a8f0c9b",
+      "bytes": 240,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option-value/update.yml",
+      "sha256": "9ced9f34fcb4a5486834f3ed1ac03565712cc77d5dac56457ddc5d1b5ed9a650",
+      "bytes": 319,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/create.yml",
+      "sha256": "e8969537849947740b5b2d9452ca61c671c09face4e35237660e299f182e530f",
+      "bytes": 590,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/delete.yml",
+      "sha256": "551fabf5940a386719a84c5dc800f2dfa9e4b71a66b67b996cd0932293438f1f",
+      "bytes": 220,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/folder.yml",
+      "sha256": "95d88e303fcfa9285cf514d33c07f7a305330380ea497fcea549e38d0659ba79",
+      "bytes": 71,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/list.yml",
+      "sha256": "d0a5f69bb3a348083917485af51c23b66ff7db0ca150af4236a122a0aa6b3c65",
+      "bytes": 202,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/show.yml",
+      "sha256": "bddf940f8d841de8ad1ceacdb5d71f12c94eeb549f7afa78bed7f3ca9977affb",
+      "bytes": 215,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/option/update.yml",
+      "sha256": "32fd167c1c7fbbc34652fff163ba91de5dd48ad29eb64cd34b5a5e3386394e17",
+      "bytes": 331,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product-variant/create.yml",
+      "sha256": "63b569f00e0369ff7a6b26a96d5e137ffe94d88c973b21c446aea3c2b5ff581a",
+      "bytes": 1018,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product-variant/folder.yml",
+      "sha256": "24d6885b3dc1d87d3d97412907a5e0c6e2e7d9b3ca96dc83c0eba1a50143d691",
+      "bytes": 80,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product-variant/list.yml",
+      "sha256": "d4504c50096eb0eb90e5d8bc05c27e69ab1ac6e8951cd93d4a4465531f54c351",
+      "bytes": 226,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product-variant/show.yml",
+      "sha256": "bbdb4f494106a9c71c62ebd10f92d93306997ba8f37423e7df77118c0afb503a",
+      "bytes": 240,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product-variant/update.yml",
+      "sha256": "19bdd8d692d1176b0b6abe38ebe9a7c87407a3831667472de2a5a9a0fd57ddf1",
+      "bytes": 570,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product/create.yml",
+      "sha256": "c38b74c1e822ea1ebb43f28d0344fd0a9ad93f254ebf20fb19002cea274ec3eb",
+      "bytes": 1375,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product/folder.yml",
+      "sha256": "c722915607424891fd2aad8b3ad15f9d825c78997a2f8ce129d0c3a0231bd2de",
+      "bytes": 72,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product/list.yml",
+      "sha256": "50f334d55cfad6f9d5336e5a851776e92af7f057bff6ca3d49a6067430639937",
+      "bytes": 203,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/catalog/product/show.yml",
+      "sha256": "c46fe63410c96c6ed7267312fe8c2ae8614f50ab2fc899d7c4dbe9eab86ab599",
+      "bytes": 217,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/environments/example.yml",
+      "sha256": "eda7ea9046f34319ec0b4fc2cef9b1059eaa7ccba6bd872d41286f988046da07",
+      "bytes": 909,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/folder.yml",
+      "sha256": "ff3a381e8b6ab65b2940b3322faa5593229ef1c7854975d63e947479071983da",
+      "bytes": 68,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/accept.yml",
+      "sha256": "71d3425d379a432d4c6d90a464f5a9bd69b8f415d132c5103d4841251d190a48",
+      "bytes": 604,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/create.yml",
+      "sha256": "85276de6b9cfd949963df721949a64acbdae978d4bc2b2a26e6258d77531db2e",
+      "bytes": 620,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/delete.yml",
+      "sha256": "de5caecb3700d256bc02842975278c2b5146939fd7f96102a3d0ea623e0acc46",
+      "bytes": 224,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/folder.yml",
+      "sha256": "abc10f2f72fcabcf86baa495a45246299d0b4ed706b3450ba2e71b0b4cf0640c",
+      "bytes": 76,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/list.yml",
+      "sha256": "9f0bf1a1de84c73dd709ebabef625f64f44592ed0c7f56dde6ec634b6f1e26ac",
+      "bytes": 303,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/replace-roles.yml",
+      "sha256": "5828422a51f38cb0705cd1e3b50259c60b120894debe4e5d79ce75e543cd8607",
+      "bytes": 373,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/resend-email.yml",
+      "sha256": "9bbabccb5d778446b81b9e6b6f1dd3fcc2a1d94b165972694b4d5c3be2539d8c",
+      "bytes": 235,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/invitations/show.yml",
+      "sha256": "6774f61164a168a3f936434c2f64629ef802732a1e57ae17a9e9ae7d85528dc0",
+      "bytes": 233,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/delete.yml",
+      "sha256": "4415118434f21b76347adccbb0d625fbe4718461ee613de0d2f56b8df033d8f0",
+      "bytes": 241,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/folder.yml",
+      "sha256": "7ee9f43ae4fcd1eed191d71fafed9de05c4db73bd4ad18ff1ea3a514a98cbee5",
+      "bytes": 85,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/list.yml",
+      "sha256": "587c296f3b4a621042278a16fd1f544c1b094cd00ede2d3a0e7e6db32c34a032",
+      "bytes": 244,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/create.yml",
+      "sha256": "e698d72f3f5484f580712562a382d1cd7d9bd49c6bf582ff4351ce607d2855b8",
+      "bytes": 404,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/delete.yml",
+      "sha256": "ba570f266156f48ec1505d7585564dd2a1dcb37b4248834e0b37e31c8ba750cf",
+      "bytes": 374,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/folder.yml",
+      "sha256": "9cb0840bc492bfe49c7c4609155c55073f5d3af2e9fbd9abf81bef888094f231",
+      "bytes": 77,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/update.yml",
+      "sha256": "68d154acf3ae04cc9e1aea8b2e162e03b8b29e02f9a6ae9d2d0a3702c7c9dcb2",
+      "bytes": 419,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/show.yml",
+      "sha256": "e18575dc662734b33dd313046ff0e188470bde6240f4c8f032a93af2521221ae",
+      "bytes": 257,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/organization-members/update.yml",
+      "sha256": "1af81dd073c896eb08ea2d19d40fe53206b2ff41ee90f0841a681ec70d2d9dd5",
+      "bytes": 337,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/permissions/folder.yml",
+      "sha256": "f9cfe6a2b2d70c333d228b50a60202f96ecaac950440a293babb8e00ff4d4596",
+      "bytes": 76,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/permissions/list.yml",
+      "sha256": "edbdbcb681c71e3c5904534fda47556160cc46bba7378d746bb197fd94246006",
+      "bytes": 202,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/create.yml",
+      "sha256": "9193d1a0bf09acc8c57e3352576bf7ba1b0af115f4f4cbd98815bbc9ff48d418",
+      "bytes": 648,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/delete.yml",
+      "sha256": "97a112fb257cbd7ef790e2413a276ddc04810184925bdad452ccc03038844ed0",
+      "bytes": 212,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/folder.yml",
+      "sha256": "968d630036dfdc8baf8e680ccdf0d34c6ff06095a408a322b7de1298b7505338",
+      "bytes": 70,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/list.yml",
+      "sha256": "7008aeccbad1f49fbc6f14e675d1a118f634c7e336b4b3274115e891a2c8ba2b",
+      "bytes": 310,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/show.yml",
+      "sha256": "3bb73d6cf5cbe3b1122963733105cf695860a35807193a164c8052feadc3d6b6",
+      "bytes": 227,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/iam/roles/update.yml",
+      "sha256": "10e515f8fab19ed670c676c3d25160dded93714008b352781256d6f07942d293",
+      "bytes": 376,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/currency/folder.yml",
+      "sha256": "4d3343a9e986a60ab44d79dfb62fd7426255ab3ad4367fb94442304f7f3a17b1",
+      "bytes": 73,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/currency/list.yml",
+      "sha256": "bc64f869995206796750adeee4fb6dc7aab6d3be3069efae166c8414713169b8",
+      "bytes": 204,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/folder.yml",
+      "sha256": "0fe4323e48abf3cdbb062dc3e563282fec4a6551f1ba97e1492d209c999d3d9d",
+      "bytes": 71,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/unit/folder.yml",
+      "sha256": "378ceba7e2614ce0edd12356ead2b7dba93b935e536a45e4c601f3473ae79a54",
+      "bytes": 69,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/unit/list.yml",
+      "sha256": "68bee1c9013366ccd37a178af317129d7dc0457dd08164e06855e08031886a23",
+      "bytes": 429,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/master/unit/upsert.yml",
+      "sha256": "733784041c66403df18b91d9577e382710116019f726366df3b7cc7ccc573a3e",
+      "bytes": 729,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/opencollection.yml",
+      "sha256": "a66fc28153028b13d78867bd3fea29f5088bd3668e1d3ad325db11048649564a",
+      "bytes": 371,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/organization/folder.yml",
+      "sha256": "79c7db4b476ac8a4e09ec8b425af22cb981444ef58143ff28997ae5a8a316252",
+      "bytes": 77,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/organization/settings/folder.yml",
+      "sha256": "ca25243cb02acf577d4492980f9bd2f0fc2d12035d2aec677bc9d9c5ba19143f",
+      "bytes": 73,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/organization/settings/show.yml",
+      "sha256": "3c9d52b92b7772eb74bbe872c6ff284afa6149445c7db6e5e78b200e0debaad8",
+      "bytes": 208,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/organization/settings/update.yml",
+      "sha256": "e4a38be9d51ada4c143753193246eac76daf7e2e0049f910787cd03de2f2088a",
+      "bytes": 316,
+      "inspection": "read entire current YAML"
+    },
+    {
+      "path": "api-client/README.md",
+      "sha256": "7075a1bd6828b72238c9fe38a421af29bea444320e493a4f61e531faa6773dad",
+      "bytes": 1666,
+      "inspection": "read"
+    },
+    {
+      "path": "docs/site/content/docs/en/api/bruno.mdx",
+      "sha256": "30b8a1b8fc05533663883e1ad80eac854b61fbdef9a2a6e1cbfcd63fd3e66f08",
+      "bytes": 5572,
+      "inspection": "read"
+    },
+    {
+      "path": "docs/site/content/docs/fr/api/bruno.mdx",
+      "sha256": "1708dfafa2968048c9737dadc61d59783a9169380dabc513733dd480980eb952",
+      "bytes": 6027,
+      "inspection": "read"
+    },
+    {
+      "path": "tests/Feature/Integration/ApiRequestContextIntegrationTest.php",
+      "sha256": "855918ec4b7ae4b16ec88a1d625607315740a7e9170dc105205dcecff302dfa0",
+      "bytes": 7625,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "5032c975f4c9207226dbad51cc9783a87fa73f78ed3b659d2c4737b91761b3ee",
+      "bytes": 199,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/public/app.js",
+      "sha256": "71f4d78d912f7c6999a95bf77bba3a13eb524ea2beaf54a114c284ab7737d8ac",
+      "bytes": 27038,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/public/google-test.html",
+      "sha256": "5d7b0eb838ade90519afa4125138976a8323aaca89a369c35a46943d526ab041",
+      "bytes": 6813,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/public/index.html",
+      "sha256": "261ac9f4ab0223f6fd4c0df504d259038c8d7e32ac02d338ae563c73aa716840",
+      "bytes": 886,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/public/styles.css",
+      "sha256": "475a82c634a1471feb5032839e13651711d784b8a059c6663bbc28b6e66ed38d",
+      "bytes": 3519,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/server.mjs",
+      "sha256": "b3de59c9af200ec9c501c15fa9489f9dd31e429a81c96f028433c33b6cf7d18d",
+      "bytes": 4806,
+      "inspection": "read"
+    },
+    {
+      "path": "frontend/server.test.mjs",
+      "sha256": "db6cb926c397541d897b20066117dc6996a380378ae02a7aa40a3c62c49037ce",
+      "bytes": 5281,
+      "inspection": "read"
+    }
+  ],
+  "requests": [
+    {
+      "path": "api-client/auth/accept-invitation.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/invitations/accept",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/clear-default-member-role.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/auth/me?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/create-organization.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/organizations",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/current-permissions.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/auth/current-permissions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/email-challenge.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/email-challenges",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/google/challenge.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/google-challenges",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/google/link.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/google-identities",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/google/verify.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/google-challenge-verifications",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/logout.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/logout",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/me.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/auth/me",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/organization-registration-token.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/organization-registration-tokens",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/register-organization-existing-user.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/organization-registrations",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/register-organization-new-user.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/organization-registrations",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/sessions/delete-all.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/auth/sessions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/sessions/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/auth/sessions/{{sessionId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/sessions/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/auth/sessions?per_page=20",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/set-default-member-role.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/auth/me?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/switch-member-role.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/switch-member-role",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/update-me.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/auth/me?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/auth/verify-email-code-with-profile.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/email-challenge-verifications",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/auth/verify-email-code.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/auth/email-challenge-verifications",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/catalog/bundle/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/bundles?include=items",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/category/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/catalog/categories?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/category/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/catalog/categories/{{categoryId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/category/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/categories",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/category/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/categories/{{categoryId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/category/update.yml",
+      "method": "PUT",
+      "url": "{{baseUrl}}/v1/catalog/categories/{{categoryId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option-value/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}/values?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option-value/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}/values/{{optionValueId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option-value/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}/values",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option-value/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}/values/{{optionValueId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option-value/update.yml",
+      "method": "PUT",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}/values/{{optionValueId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/catalog/options?response=resource&include=values",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/options",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/option/update.yml",
+      "method": "PUT",
+      "url": "{{baseUrl}}/v1/catalog/options/{{optionId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product-variant/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/catalog/products/{{productId}}/variants?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product-variant/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/products/{{productId}}/variants",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product-variant/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/products/{{productId}}/variants/{{variantId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product-variant/update.yml",
+      "method": "PUT",
+      "url": "{{baseUrl}}/v1/catalog/products/{{productId}}/variants/{{variantId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/catalog/products?response=resource&include=variants",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/products",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/catalog/product/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/catalog/products/{{productId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/accept.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/iam/invitations/accept",
+      "auth": "none"
+    },
+    {
+      "path": "api-client/iam/invitations/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/iam/invitations?response=resource&include=roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/iam/invitations/{{invitationId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/invitations?per_page=20",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/replace-roles.yml",
+      "method": "PUT",
+      "url": "{{baseUrl}}/v1/iam/invitations/{{invitationId}}/roles?response=resource&include=roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/resend-email.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/iam/invitations/{{invitationId}}/resend",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/invitations/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/invitations/{{invitationId}}?include=roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/organization-members?per_page=20&include=member_roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/update.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}/member-roles?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}?include=member_roles",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/organization-members/update.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/iam/organization-members/{{organizationMemberId}}?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/permissions/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/permissions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/roles/create.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/iam/roles?response=resource&include=permissions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/roles/delete.yml",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/v1/iam/roles/{{roleId}}",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/roles/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/roles?per_page=20",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/roles/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/iam/roles/{{roleId}}?include=permissions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/iam/roles/update.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/iam/roles/{{roleId}}?response=resource&include=permissions",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/master/currency/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/master/currencies",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/master/unit/list.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/master/units?group=bottle",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/master/unit/upsert.yml",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/master/units/upsert?response=resource",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/organization/settings/show.yml",
+      "method": "GET",
+      "url": "{{baseUrl}}/v1/organization/settings",
+      "auth": "inherit"
+    },
+    {
+      "path": "api-client/organization/settings/update.yml",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/v1/organization/settings?response=resource",
+      "auth": "inherit"
+    }
+  ],
+  "scripts": [
+    {
+      "path": "api-client/auth/email-challenge.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/auth/google/challenge.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/auth/google/verify.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/auth/verify-email-code-with-profile.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/auth/verify-email-code.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/catalog/category/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/catalog/option-value/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/catalog/option/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/catalog/product-variant/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/catalog/product/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/iam/invitations/accept.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/iam/invitations/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/iam/roles/create.yml",
+      "type": "after-response"
+    },
+    {
+      "path": "api-client/master/unit/upsert.yml",
+      "type": "after-response"
+    }
+  ],
+  "emptyBodies": [
+    "api-client/auth/current-permissions.yml"
+  ],
+  "errors": [],
+  "excluded": [
+    "api-client/environments/dev.yml (not opened; no values read or displayed)"
+  ],
+  "limits": [
+    "No business HTTP calls.",
+    "No database access.",
+    "Application Feature tests read and syntax-checked only."
+  ],
+  "checks": {
+    "yaml": "92 parsed using yaml 2.9.1",
+    "json": "35 valid bodies; one intentionally empty GET body",
+    "variables": "All placeholders declared by example.yml",
+    "frontendSyntax": "server.mjs, server.test.mjs, app.js and Google helper inline script passed",
+    "phpSyntax": "ApiRequestContextIntegrationTest.php passed",
+    "scripts": {
+      "checks": 127,
+      "issues": [
+        {
+          "file": "api-client/auth/google/challenge.yml",
+          "case": "missing nonce captured without string guard"
+        }
+      ],
+      "results": [
+        {
+          "path": "api-client/auth/email-challenge.yml",
+          "successVariables": [
+            "loginChallengeId"
+          ]
+        },
+        {
+          "path": "api-client/auth/google/challenge.yml",
+          "successVariables": [
+            "googleChallengeId",
+            "googleNonce"
+          ]
+        },
+        {
+          "path": "api-client/auth/google/verify.yml",
+          "successVariables": [
+            "authToken",
+            "registrationEmail"
+          ]
+        },
+        {
+          "path": "api-client/auth/verify-email-code-with-profile.yml",
+          "successVariables": [
+            "authToken"
+          ]
+        },
+        {
+          "path": "api-client/auth/verify-email-code.yml",
+          "successVariables": [
+            "authToken"
+          ]
+        },
+        {
+          "path": "api-client/catalog/category/create.yml",
+          "successVariables": [
+            "categoryId"
+          ]
+        },
+        {
+          "path": "api-client/catalog/option-value/create.yml",
+          "successVariables": [
+            "optionValueId"
+          ]
+        },
+        {
+          "path": "api-client/catalog/option/create.yml",
+          "successVariables": [
+            "optionId"
+          ]
+        },
+        {
+          "path": "api-client/catalog/product-variant/create.yml",
+          "successVariables": [
+            "variantId"
+          ]
+        },
+        {
+          "path": "api-client/catalog/product/create.yml",
+          "successVariables": [
+            "productId",
+            "variantId"
+          ]
+        },
+        {
+          "path": "api-client/iam/invitations/accept.yml",
+          "successVariables": [
+            "authToken"
+          ]
+        },
+        {
+          "path": "api-client/iam/invitations/create.yml",
+          "successVariables": [
+            "invitationId"
+          ]
+        },
+        {
+          "path": "api-client/iam/roles/create.yml",
+          "successVariables": [
+            "roleId"
+          ]
+        },
+        {
+          "path": "api-client/master/unit/upsert.yml",
+          "successVariables": [
+            "unitGroupId"
+          ]
+        }
+      ]
+    }
+  },
+  "reviewNotes": [
+    "ApiRequestContext test permission suspicion retracted: OptionValueController.destroy authorizes parent update, already granted.",
+    "Node server tests were read but not executed; no HTTP calls made.",
+    "Google verification success-status guard is present in final inspected YAML."
+  ]
+}

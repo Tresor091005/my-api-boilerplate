@@ -23,7 +23,7 @@ runtime:
         if (res.status === 200 && typeof token === 'string' && token.length > 0) {
           bru.setEnvVar('authToken', token);
         }
-        if (res.body?.status === 'email_verification_required') {
+        if (res.status === 200 && res.body?.status === 'email_verification_required' && typeof res.body.email === 'string') {
           bru.setEnvVar('registrationEmail', res.body.email);
         }
 

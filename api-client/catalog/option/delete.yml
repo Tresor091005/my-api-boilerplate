@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/v1/catalog/options/019d3645-aaaa-7000-8000-000000000001"
+  url: "{{baseUrl}}/v1/catalog/options/{{optionId}}"
   auth: inherit
 
 settings:
@@ -13,15 +13,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-
-examples:
-  - name: success
-    request:
-      url: "{{baseUrl}}/v1/catalog/options/019d3645-aaaa-7000-8000-000000000001"
-      method: DELETE
-    response:
-      status: 204
-      statusText: No Content
-      body:
-        type: text
-        data: ""

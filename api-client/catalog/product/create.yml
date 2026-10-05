@@ -5,47 +5,53 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/catalog/products"
+  url: "{{baseUrl}}/v1/catalog/products?response=resource&include=variants"
   body:
     type: json
     data: |-
       {
-        "name": "MINA",
-        "is_active": true,
+        "name": "Everyday T-shirt",
         "variants": [
           {
-            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "unit_group_id": "{{unitGroupId}}",
             "is_active": true,
-            "should_manage_stock": true,
             "options": [
               {
-                "name": "Kali",
-                "value": "proper"
+                "name": "color",
+                "value": "white"
               }
             ]
           },
           {
-            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "unit_group_id": "{{unitGroupId}}",
             "is_active": false,
-            "should_manage_stock": true,
             "options": [
               {
-                "name": "ee",
-                "value": "proper4"
+                "name": "color",
+                "value": "navy"
               },
               {
-                "name": "sezaz",
-                "value": "cggf"
-              },
-              {
-                "name": "a",
-                "value": "bbb"
+                "name": "size",
+                "value": "m"
               }
             ]
           }
         ]
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const id = res.body?.data?.id;
+        if (res.status >= 200 && res.status < 300 && typeof id === "string") {
+          bru.setEnvVar("productId", id);
+        }
+        const variantId = res.body?.data?.variants?.[0]?.id;
+        if (res.status >= 200 && res.status < 300 && typeof variantId === "string") {
+          bru.setEnvVar("variantId", variantId);
+        }
 
 settings:
   encodeUrl: true

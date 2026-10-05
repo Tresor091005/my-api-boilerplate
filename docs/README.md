@@ -1,7 +1,14 @@
-# Project documentation
+# Lahatre ERP documentation
 
-This directory contains the stable technical documentation, project decisions,
-development workflows, and current roadmap.
+The bilingual MDX site contains the public reading guides. Start with
+[French](https://lahatre-erp-docs.vercel.app/fr/docs) or [English](https://lahatre-erp-docs.vercel.app/en/docs).
+Website sources are maintained separately.
+
+This directory also retains contributor references and earlier design documents.
+Some predate the current contracts. The new public guides and executable source
+resolve those discrepancies; historical blueprints are not current API specifications.
+The internal [author questionnaire](decisions/documentation-author-questions.md) and
+[audit](decisions/documentation-audit/README.md) are excluded from the site.
 
 ## Start here
 
@@ -67,10 +74,10 @@ development workflows, and current roadmap.
 
 ## Source-of-truth boundaries
 
-- Stable developer documentation lives in this directory.
-- Module-specific behavior belongs in the module's `README.md` and `docs/`
-  directory.
-- Architectural rules for agents live in `.ai/rules/` and `.agents/`; they are
-  not duplicated here.
-- Decisions and temporary design notes live in [decisions](decisions/) and
-  should be promoted to stable documentation when they become settled.
+- Public reading guides are maintained in the separate documentation website.
+- Requests, services, Resources, routes and tests define current application contracts.
+- Contributor references live in this directory and module `README.md`/`docs` files.
+  Older blueprints must be checked against current source before implementation.
+- Agent rules live in `.ai/rules/` and `.agents/`.
+- Decisions, author questions and audit evidence live in [decisions](decisions/).
+  They are not imported by the public documentation site.

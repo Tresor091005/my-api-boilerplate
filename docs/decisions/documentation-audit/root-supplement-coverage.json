@@ -1,0 +1,355 @@
+{
+  "scope": [
+    "root config PHP not previously covered",
+    "root migrations",
+    "root seeders",
+    "direct root Feature tests"
+  ],
+  "requested_files": 36,
+  "configuration_files": 21,
+  "migration_files": 6,
+  "seeder_files": 1,
+  "direct_feature_tests": 8,
+  "files": [
+    {
+      "path": "app/Providers/RateLimitServiceProvider.php",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "fca020c1b4afc33a188cad0aea3bffbf42a24bc0aa3fd80465d17ce10d3220a1",
+      "bytes": 838
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_02_13_213852_create_permission_tables.php",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "fb09dab43718c1124a640b94d9244008c17b1e6389c4aef5d58cb101d5787f94",
+      "bytes": 6198
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_03_29_093345_create_organization_membership_tables.php",
+      "inspection": "schema excerpt in this pass; complete migration read in primary audit",
+      "requested_root_scope": false,
+      "sha256": "7e731e55fcaaafccb336fd0a4fd8b5ab9ab3aaafa18a8b19cfae4e393202c4a8",
+      "bytes": 2100
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_01_102929_create_email_login_challenges_and_remove_user_passwords.php",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "86c4e63a2f5cee3b3d3a4f02239c07236a78c446168e7ddec943613c346173fc",
+      "bytes": 892
+    },
+    {
+      "path": "app-modules/iam/routes/iam-routes.php",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "5c4889a2b1886fb4a8279791d6a5480b84939cb04f0afb18baf92525691bffcc",
+      "bytes": 5726
+    },
+    {
+      "path": "app-modules/iam/src/Models/User.php",
+      "inspection": "table-binding excerpt in this pass; complete model read in primary audit",
+      "requested_root_scope": false,
+      "sha256": "3ddb57950cfd5aeef1ef42cc1824666beab6b394cccea41273b4240660eff7d5",
+      "bytes": 4823
+    },
+    {
+      "path": "config/api-responses.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "74f6ce5a45271b2dd840405c751d03e6d0845db20eae75f28fdcddefa76e8ec8",
+      "bytes": 169
+    },
+    {
+      "path": "config/app-modules.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "fe2b0e3370380bb294ace0f52d32633f4a39c22ff95f89ed752cab49e6e051c8",
+      "bytes": 3413
+    },
+    {
+      "path": "config/app.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "196f4003eb7cf4b1091286653d744b2f2e0e6c3ea39024e629a345bd2cb6768d",
+      "bytes": 4299
+    },
+    {
+      "path": "config/auth.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "294caef42738d3608c60d1eb35281321b0c5a12e55249c46ed236926b8360e53",
+      "bytes": 4016
+    },
+    {
+      "path": "config/broadcasting.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "ae7e21051ca6c80912b6be1e65c16523af12f096c1bef31242afb3ae23a7c797",
+      "bytes": 2747
+    },
+    {
+      "path": "config/cache.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "18b63a714ae25e3d8bbf6a29633ee51a5baa8dcaafb8c0a9a696c3c627473fe4",
+      "bytes": 4111
+    },
+    {
+      "path": "config/cors.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "c24815858c3a08cba6439c6d3fef877e5ae2572d4e1d5dd23f6b253d1e4dad32",
+      "bytes": 673
+    },
+    {
+      "path": "config/database.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "c2f4ead033f91684fa28748e472ace5ad959c15ff2e1865354b9fee7288354f8",
+      "bytes": 7670
+    },
+    {
+      "path": "config/doctor.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "fc8ac0f005959f301960a74c33da30cd1f1c1c9e872977fd693b61a282e9dbc3",
+      "bytes": 1337
+    },
+    {
+      "path": "config/filesystems.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "ca14517a4680a9f53e9b0c0469943a0bc6031054b68af5e2c6cb97830bfe24f5",
+      "bytes": 2735
+    },
+    {
+      "path": "config/horizon.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "efd30baebab5a62e557613767e294018fdbfe8a16ace62c44722b3886f089870",
+      "bytes": 8487
+    },
+    {
+      "path": "config/ide-helper.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "e0b766df7aee899eabaf592ced77e49718de4dfb51956c220e77f2a12af3e568",
+      "bytes": 12091
+    },
+    {
+      "path": "config/logging.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "05836742a8f30d584183ed75f9d53ec1d670277908c12dda834dc4127b391b2d",
+      "bytes": 4686
+    },
+    {
+      "path": "config/mail.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "7cee1e550baa0d64db0dd501b5eecb846ef4729291426f2151301b223b7eb3ac",
+      "bytes": 3701
+    },
+    {
+      "path": "config/model-integrity.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "e36533e7c7d412d4e1c7e63914917ce62fc66521599e6f788de122d4879e2559",
+      "bytes": 6439
+    },
+    {
+      "path": "config/queue.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "7d4aba9ef1df5d572ab6f92d33dea2a5fd9d31f1e68c5cfb9fa8a33e870c6ae2",
+      "bytes": 4351
+    },
+    {
+      "path": "config/reverb.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "0942784cada913b1edd44ba8bcb80828a13417e25bf38a59d4adc2ea0295da26",
+      "bytes": 3558
+    },
+    {
+      "path": "config/sanctum.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "1cfd3f8f8c869b33cf25d5f340a79d4d98fd1e90fce637f3a5af15f26dad1c6e",
+      "bytes": 3155
+    },
+    {
+      "path": "config/scramble.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "88b7908372f0f85a5ae619cd3e05b30539146804abf6ad5f48dadc6e7c6290c9",
+      "bytes": 4941
+    },
+    {
+      "path": "config/session.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "b476af3826c3bd839e26ee8d33905e4ba4a278a86dc284f518d29e2e0f867f54",
+      "bytes": 7874
+    },
+    {
+      "path": "config/telescope.php",
+      "inspection": "complete executable configuration body; generic comments omitted in compact views",
+      "requested_root_scope": true,
+      "sha256": "2a324c16faa557b9afe7d3faea71bf16d57e426944a8281c676cf4299fd10a44",
+      "bytes": 7821
+    },
+    {
+      "path": "database/.gitignore",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "e758642d95e83e907e010b6e46b07b3f953c7cef11fe5ebefc2a77b9d7b4d5f7",
+      "bytes": 10
+    },
+    {
+      "path": "database/migrations/0001_01_01_000000_create_users_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "c20bd221368c2f809ecb32da7c61423e22a463cb9a06c3067a6ca471ccc14811",
+      "bytes": 1121
+    },
+    {
+      "path": "database/migrations/0001_01_01_000001_create_cache_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "6ba48c5b5a8a425c31456a48a8090cad3ec1751a3b8e289033c109ff63bee50c",
+      "bytes": 875
+    },
+    {
+      "path": "database/migrations/0001_01_01_000002_create_jobs_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "86403fd053c46a9b0d5a7496aedf15b1c9dff8b7145acc028384ad19d8629f53",
+      "bytes": 1838
+    },
+    {
+      "path": "database/migrations/2026_01_17_113402_create_personal_access_tokens_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "5e22095528e7f4ab4cf27235eef5b898ed20b0e508d4e40f09e4288bc1ef15e0",
+      "bytes": 910
+    },
+    {
+      "path": "database/migrations/2026_02_12_152859_create_sessions_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "8e4894038f35a5d9deefee1b9ff21988d5a682be1e167f8a03da7f3492c19f98",
+      "bytes": 815
+    },
+    {
+      "path": "database/migrations/2026_02_12_234951_create_telescope_entries_table.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "b51bb628fb7476a64a4afb9c7b48aefa2640b795a7b647d2ef48f9e62d3a4f0c",
+      "bytes": 2095
+    },
+    {
+      "path": "database/seeders/DatabaseSeeder.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "381ec490eabe316ebdd68ff3913e5ea8a246c2ddf3584101e4c9dd5b0f1157f0",
+      "bytes": 2758
+    },
+    {
+      "path": "docs/site/content/docs/en/api/index.mdx",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "e7ceaf30410ce696396647564d8fa47c7e985d135ab1ad4c83e2309000a8bde4",
+      "bytes": 2016
+    },
+    {
+      "path": "docs/site/content/docs/en/api/routes/auth.mdx",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "29b1c7bffb4b47a4b699ca0bca66fd2c9328c8e7590fe9748be11da1d1649418",
+      "bytes": 3856
+    },
+    {
+      "path": "docs/site/content/docs/en/development/operations.mdx",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "b3c1c493af94884afd57f81443ade966e8ee82e80362e7c6ffdc75644732d025",
+      "bytes": 2997
+    },
+    {
+      "path": "docs/site/content/docs/fr/api/routes/auth.mdx",
+      "inspection": "read in full",
+      "requested_root_scope": false,
+      "sha256": "7cb9f094d8ccf5f193343a3bd57f24235e905c6fe0cfec418f025568135347a5",
+      "bytes": 3887
+    },
+    {
+      "path": "tests/Feature/AssertionExceptionRenderTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "9788d883878facf022db00b13271d500e3802ae69b0533fa476db89e7ad59c8b",
+      "bytes": 1378
+    },
+    {
+      "path": "tests/Feature/BundleEndpointsIntegrationTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "0b2503a8ca9bb1256d2516df7485f930318a3a5ec35656e8f49b5ca2f7873d1d",
+      "bytes": 15210
+    },
+    {
+      "path": "tests/Feature/DatabaseSeederTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "32814b0d259527095b1d2ca303f6f6da426a3a84c729620fcb15843d6641e437",
+      "bytes": 1245
+    },
+    {
+      "path": "tests/Feature/DoctorConfigurationTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "450b76ee9ba8f998633f897fba826e0df372f0ee63c688a53ee7319ec2a3828f",
+      "bytes": 1373
+    },
+    {
+      "path": "tests/Feature/MorphPermissionTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "c02e8a880cf551b0662ffc817ea8f355d9bdffc6ec58c037198d18b45a7d7eb7",
+      "bytes": 2665
+    },
+    {
+      "path": "tests/Feature/NotesIntegrationTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "423112c56fbf6bd137c4a9b86c9986db91208b07ac8d5990a46bea9a94afb02b",
+      "bytes": 22444
+    },
+    {
+      "path": "tests/Feature/RateLimitTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "6f08d02f41baec108d4819cf95aa01af6c9a3505cb2aaa906a870300c89a6ca5",
+      "bytes": 4402
+    },
+    {
+      "path": "tests/Feature/ServiceEndpointsIntegrationTest.php",
+      "inspection": "read in full",
+      "requested_root_scope": true,
+      "sha256": "5f7c88dc7bb807101abcd7fb0f0d3cb65018472820a9dd49fb9fce05b621714c",
+      "bytes": 6198
+    }
+  ],
+  "previously_covered_config": [
+    "config/frontend.php",
+    "config/services.php"
+  ],
+  "root_app_models": [],
+  "php_tests_executed": false,
+  "database_mutated": false,
+  "excluded_sensitive_files": [
+    ".env",
+    "api-client/environments/dev.yml"
+  ]
+}

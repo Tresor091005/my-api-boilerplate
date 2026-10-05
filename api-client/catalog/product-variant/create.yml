@@ -5,30 +5,39 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/v1/catalog/products/019d63b5-6f9b-710e-8767-5d813e277f62/variants"
+  url: "{{baseUrl}}/v1/catalog/products/{{productId}}/variants?response=resource"
   body:
     type: json
     data: |-
       {
         "variants": [
           {
-            "unit_group_id": "019d5da7-8646-7102-ba3b-f00c19fb7c96",
+            "unit_group_id": "{{unitGroupId}}",
             "is_active": true,
-            "should_manage_stock": true,
+            "inventory": { "stock_tracking_enabled": true, "is_expirable": false, "deduction_strategy": "fifo" },
             "options": [
               {
                 "name": "color",
-                "value": "black"
+                "value": "forest"
               },
               {
-                "name": "storage",
-                "value": "256gb"
+                "name": "size",
+                "value": "m"
               }
             ]
           }
         ]
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const id = res.body?.data?.[0]?.id;
+        if (res.status >= 200 && res.status < 300 && typeof id === "string") {
+          bru.setEnvVar("variantId", id);
+        }
 
 settings:
   encodeUrl: true

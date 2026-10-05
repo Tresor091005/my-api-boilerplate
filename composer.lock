@@ -2348,7 +2348,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2380,7 +2380,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2412,7 +2412,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2444,7 +2444,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2476,7 +2476,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "description": "Private, tenant-scoped file library for Lahatre applications.",
             "transport-options": {
@@ -2509,7 +2509,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2541,7 +2541,7 @@
                 }
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,
@@ -2577,7 +2577,7 @@
                 ]
             },
             "license": [
-                "proprietary"
+                "MIT"
             ],
             "transport-options": {
                 "symlink": true,

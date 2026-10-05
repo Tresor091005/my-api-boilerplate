@@ -1,0 +1,2439 @@
+{
+  "scope": [
+    "catalog",
+    "customer",
+    "library"
+  ],
+  "module_files": 315,
+  "files": [
+    {
+      "path": "app-modules/catalog/README.md",
+      "inspection": "read",
+      "sha256": "7822618f3e736da1de002c9a4c2ae1dfc0dcd78ea9cd4892d9ba93bf21f8f1eb",
+      "bytes": 6966
+    },
+    {
+      "path": "app-modules/catalog/composer.json",
+      "inspection": "read",
+      "sha256": "90acff2492c4dc4d4489388a21863d6acb7f073f96653bb9675920d936620ea6",
+      "bytes": 525
+    },
+    {
+      "path": "app-modules/catalog/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "ac95354cb7367b47e73a641c8ab45f574a00186e7cf070fb143705210d6cd805",
+      "bytes": 8505
+    },
+    {
+      "path": "app-modules/catalog/database/factories/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/catalog/database/factories/BundleFactory.php",
+      "inspection": "read",
+      "sha256": "57f8435d0f49f01e3a0c494d7a1c6ab3bcbf12f44f2c2c7bdc16a3cbe5e4e6e2",
+      "bytes": 932
+    },
+    {
+      "path": "app-modules/catalog/database/factories/BundleItemFactory.php",
+      "inspection": "read",
+      "sha256": "ef0b70cbcfffbcb65b4e435a335be83e8aca0866b5d4a034d5ed66a66ed2921d",
+      "bytes": 1481
+    },
+    {
+      "path": "app-modules/catalog/database/factories/BundleStockOperationFactory.php",
+      "inspection": "read",
+      "sha256": "c8f8481fc4fab109d55243c7ba98e06548bd6bbb7091cbbc1a865c08cab8fcce",
+      "bytes": 1343
+    },
+    {
+      "path": "app-modules/catalog/database/factories/CatalogItemFactory.php",
+      "inspection": "read",
+      "sha256": "5b96d024f4406a9c6d67206ce8d72a541c531bf8af3123d208daefe0f88819df",
+      "bytes": 1481
+    },
+    {
+      "path": "app-modules/catalog/database/factories/CategoryFactory.php",
+      "inspection": "read",
+      "sha256": "0312950616c7cb84bb376dbbd1048436477d002c14dae3ce39a65c06484dac06",
+      "bytes": 751
+    },
+    {
+      "path": "app-modules/catalog/database/factories/OptionFactory.php",
+      "inspection": "read",
+      "sha256": "a91722d89b0ac741efc2f273fb7104fc8595dfa88420261cd93365ab3a4e2aed",
+      "bytes": 596
+    },
+    {
+      "path": "app-modules/catalog/database/factories/OptionValueFactory.php",
+      "inspection": "read",
+      "sha256": "43df399daebdf45bd56a4f9ca022431c7eca5ae02f1959bf6ef760565188296f",
+      "bytes": 726
+    },
+    {
+      "path": "app-modules/catalog/database/factories/ProductCategoryFactory.php",
+      "inspection": "read",
+      "sha256": "b0c070f69b130dad772fd613e32c23e887a57fb4301f315a3d9312c72a5c4c2c",
+      "bytes": 820
+    },
+    {
+      "path": "app-modules/catalog/database/factories/ProductFactory.php",
+      "inspection": "read",
+      "sha256": "219e51192058cf3897189d68fa34bf90557fa77e1bcc07f14b63d288d66f1727",
+      "bytes": 710
+    },
+    {
+      "path": "app-modules/catalog/database/factories/ProductVariantFactory.php",
+      "inspection": "read",
+      "sha256": "9e40628322b9f344cdb772ef68d83774f6101b2b04dea4d1c80afe589b9817ea",
+      "bytes": 1051
+    },
+    {
+      "path": "app-modules/catalog/database/factories/ServiceDeliverableTemplateFactory.php",
+      "inspection": "read",
+      "sha256": "10944ec1c469e4f4ea2afc174e91f3e6c5d023502ab119c2386161f8ce5dd769",
+      "bytes": 1064
+    },
+    {
+      "path": "app-modules/catalog/database/factories/ServiceFactory.php",
+      "inspection": "read",
+      "sha256": "fa6aec0714794df5893bd12238904995b411adf8ee55b6d606955146266db6ed",
+      "bytes": 971
+    },
+    {
+      "path": "app-modules/catalog/database/factories/StockLocationFactory.php",
+      "inspection": "read",
+      "sha256": "6f2b3edc341b9935d1fb5ab4cb7cdfb21414f2ab374cd57a1b1a4cebd433eba6",
+      "bytes": 573
+    },
+    {
+      "path": "app-modules/catalog/database/factories/StockTransferFactory.php",
+      "inspection": "read",
+      "sha256": "ab3aaa5bdaa080c6317f425c86694c60881f762b66e249bddd87fbf2d2fd4b2f",
+      "bytes": 1143
+    },
+    {
+      "path": "app-modules/catalog/database/factories/StockTransferLineFactory.php",
+      "inspection": "read",
+      "sha256": "9e89873680006f2c68e208ab88f47eb3d467b520cff2690012d49b07e8f7ebb8",
+      "bytes": 1809
+    },
+    {
+      "path": "app-modules/catalog/database/factories/VariantOptionValueFactory.php",
+      "inspection": "read",
+      "sha256": "40c10c76120ebaa4ca50443e6f29ad2ab69a2b8005b527776c17ef435e151a3e",
+      "bytes": 1101
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_02_08_195604_create_all_catalog_tables.php",
+      "inspection": "read",
+      "sha256": "77180adf97e246f6b3f7991c8ac7aa49bf21d2f8e7714da0b99ecc8ece9e89d9",
+      "bytes": 7959
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_03_08_172458_update_catalog_product_variants_table_clean_up.php",
+      "inspection": "read",
+      "sha256": "e565cffccb78e2ced8fdffa194696775c2b616451fe6d50832158ccaff9bfcda",
+      "bytes": 2096
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_03_24_120000_rename_catalog_product_variants_manage_stock_to_should_manage_stock.php",
+      "inspection": "read",
+      "sha256": "54720df0c95a961a06dd6e002884cbe1bd1e3a7a18614f5f5b59c78bb3817401",
+      "bytes": 722
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_04_28_120000_add_soft_deletes_to_catalog_categories.php",
+      "inspection": "read",
+      "sha256": "625e8666c502314224ae26e6cbab1c19146beeb24f5f6146eb0a2461792cfa17",
+      "bytes": 1694
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_04_28_130000_add_soft_deletes_to_catalog_products.php",
+      "inspection": "read",
+      "sha256": "b99805983180b3470904a29d60b76117bf2364619ac0c2140873311ebf440127",
+      "bytes": 1239
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_04_28_140000_add_soft_deletes_to_catalog_product_variants.php",
+      "inspection": "read",
+      "sha256": "a0649dc2c8945d7fc3e8aec59b2321da384ae9e34254c4cc965a761ff79945d0",
+      "bytes": 2295
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_04_28_150000_add_soft_deletes_to_catalog_options_and_values.php",
+      "inspection": "read",
+      "sha256": "b687a23d38a6df2d5c544a5bdddb7c9fe661c91c2b801ab497d3cfdf7ced15fc",
+      "bytes": 3822
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_05_09_120000_add_soft_deletes_to_catalog_bundles_and_items.php",
+      "inspection": "read",
+      "sha256": "d2556200e7742910fee64aece33d7a618ffa314dea7b84e7d513bb682f8f464c",
+      "bytes": 4226
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_08_13_180100_remove_should_manage_stock_from_product_variants.php",
+      "inspection": "read",
+      "sha256": "3705d7633fd3f83d24aab1ea61d409eb9465b39949e55b24c92df0666b1c539e",
+      "bytes": 633
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_08_17_135911_add_organization_scope_to_catalog_pivots.php",
+      "inspection": "read",
+      "sha256": "47103a0e90cfedc1b8f294746a60622ba01feeb84d9eba19cb42ffebfa3ece4d",
+      "bytes": 9183
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_08_31_091049_create_catalog_items_and_share_product_variant_identity.php",
+      "inspection": "read",
+      "sha256": "9bf0d9cdd71a4d72be1f9b13e655f5feb04665337565c43b6876b096c8f76611",
+      "bytes": 4864
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_02_110000_create_catalog_stock_locations_table.php",
+      "inspection": "read",
+      "sha256": "bd3fa16fc73d496981e80ce715d2dd4cb12f76f86b5daa01daf4265c85ee2ca7",
+      "bytes": 1396
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_02_120000_create_catalog_bundle_stock_operations_table.php",
+      "inspection": "read",
+      "sha256": "fb9fcf8262dd3b7577d0917bbaf81bdc2dc31ef422fcb7679146a78cd399106f",
+      "bytes": 2768
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_03_104930_remove_is_active_from_catalog_products_table.php",
+      "inspection": "read",
+      "sha256": "797b58eca7b5ba8445f26d75a50a5c85eb52e5a16f63b2575e1976a2838a4a04",
+      "bytes": 595
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_04_093159_create_catalog_stock_transfers_table.php",
+      "inspection": "read",
+      "sha256": "7c1690d2559289c7a90b9e5e4be8cf3883c5805a7f1cecd75ef5a2f7c8488fe8",
+      "bytes": 2990
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_04_093200_create_catalog_stock_transfer_lines_table.php",
+      "inspection": "read",
+      "sha256": "1641fea78c97ee2a76ee6dfb333e6609419d7a3df1268de10667dc81f899a93b",
+      "bytes": 2927
+    },
+    {
+      "path": "app-modules/catalog/database/migrations/2026_09_04_120000_create_catalog_services_tables.php",
+      "inspection": "read",
+      "sha256": "e550eb07353f0bed1c85c23eb5c3353fce3000d090309cd9eb592eae8917f23f",
+      "bytes": 2891
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/BundleSeeder.php",
+      "inspection": "read",
+      "sha256": "54bd23985f8b6e688de84a9456dec4b265046c2409dad28322fd7d9f1581a455",
+      "bytes": 5303
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/CategorySeeder.php",
+      "inspection": "read",
+      "sha256": "3343fadf4917755132b8e7e7b7cf3f32d45ac94652019424aaf87a7ca768a554",
+      "bytes": 3736
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/InventoryDemoSeeder.php",
+      "inspection": "read",
+      "sha256": "eadb13186b7d20d79e7003a52e7a65e24105d0b671892dfcaebb1ce1221e35c1",
+      "bytes": 2565
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/OptionSeeder.php",
+      "inspection": "read",
+      "sha256": "30e8774a2531f077c0c0b398f34f65156b1bf6ba68965b11671ef5e0b01d7e13",
+      "bytes": 2556
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/ProductSeeder.php",
+      "inspection": "read",
+      "sha256": "5bd05861bbe4ae4035c4435c4e7cb8f64f0df6e15b157fe2d7e5816b393f211e",
+      "bytes": 10854
+    },
+    {
+      "path": "app-modules/catalog/database/seeders/StockLocationSeeder.php",
+      "inspection": "read",
+      "sha256": "ff017162d3c7916f21a882b6899cfae2edf83cd02f8132000be3f942c7562a57",
+      "bytes": 1800
+    },
+    {
+      "path": "app-modules/catalog/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "8b27b3305260a81f4d3530e04dda3cebb1b33b919f9bfa74439c6d5d7cf270b4",
+      "bytes": 3565
+    },
+    {
+      "path": "app-modules/catalog/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "dd25a2dbb9b2ff13bbd8d54b2e0abc3859ccccde37b2db700bc2bf24ba22d6e1",
+      "bytes": 1694
+    },
+    {
+      "path": "app-modules/catalog/resources/views/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/catalog/routes/catalog-routes.php",
+      "inspection": "read",
+      "sha256": "25688c6d009d3140722a7ee3a057e2ca32ed035d9c165d9087d1e2f03e2331cd",
+      "bytes": 5044
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/BundleAssertion.php",
+      "inspection": "read",
+      "sha256": "30c608933bc8a580024ce790b871d1d708844ee8c2306eadcdd5c0f11be03e6f",
+      "bytes": 5720
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/CategoryAssertion.php",
+      "inspection": "read",
+      "sha256": "aa255d22bc674a8765e54cedcf400d142ed084494a0f7b5eb3126c7b466cd8d8",
+      "bytes": 1575
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/OptionAssertion.php",
+      "inspection": "read",
+      "sha256": "40db9d14488e06b48da6fe3a933e8e8ad34e3a758185591bc2199d40c35cbce4",
+      "bytes": 690
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/OptionValueAssertion.php",
+      "inspection": "read",
+      "sha256": "a0c3aebbae4861498cbc2c1a788b6c7e76c1992589063f65615c5ff47dfd91c9",
+      "bytes": 1361
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/ProductVariantAssertion.php",
+      "inspection": "read",
+      "sha256": "bfb7f210ff343ded8439c441dba66705e2d6bb139935d3176cd227c0eaad1527",
+      "bytes": 1561
+    },
+    {
+      "path": "app-modules/catalog/src/Assertions/ServiceAssertion.php",
+      "inspection": "read",
+      "sha256": "92afb2d2dae6374fb9105cf3db4aa2a6ad283d81693f86ae227027a19b06703d",
+      "bytes": 2122
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleData.php",
+      "inspection": "read",
+      "sha256": "dc6b216044bf2a0e8614f7d2f8c77c3d445411e63c61d672d0a7912d72cad782",
+      "bytes": 1820
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleFilterData.php",
+      "inspection": "read",
+      "sha256": "e9df72a02c0d6102733137cbf9d8f25f4d528aca956cc83f4ec28be93e750f12",
+      "bytes": 1255
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleItemData.php",
+      "inspection": "read",
+      "sha256": "d076bdb240eb13e97758d9b11714c4c5d823a57b816a71a104c8d84d08fac299",
+      "bytes": 689
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleItemQuantityData.php",
+      "inspection": "read",
+      "sha256": "6c73bdb496d38f2d04f11c69b095247161d8fe88348ee3a0f47235fa69d50530",
+      "bytes": 468
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleStockOperationComponentData.php",
+      "inspection": "read",
+      "sha256": "bcff13923b7e5b936bb84bad804ee92d64522e1ee3b5a3838fb5473eeb296ccf",
+      "bytes": 852
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleStockOperationData.php",
+      "inspection": "read",
+      "sha256": "b283161044acba0a09d22c25a5f2c8f52a60820fcdf83421177b5d13deba53e2",
+      "bytes": 2216
+    },
+    {
+      "path": "app-modules/catalog/src/Data/BundleStockOperationFilterData.php",
+      "inspection": "read",
+      "sha256": "fb2b3616128e739d4d13e17ae7c111d02abf6694b5a51aef939e056285deb7b5",
+      "bytes": 1090
+    },
+    {
+      "path": "app-modules/catalog/src/Data/CatalogItemData.php",
+      "inspection": "read",
+      "sha256": "0c73d18247adfe292183eaa5e36d9c2b29c707b8505ee6722814db136dc16130",
+      "bytes": 363
+    },
+    {
+      "path": "app-modules/catalog/src/Data/CatalogItemUpdateData.php",
+      "inspection": "read",
+      "sha256": "b27d54c962549ea2358d2996ecc4e39046ca3eaea20b3d5af4bbb7d510633911",
+      "bytes": 421
+    },
+    {
+      "path": "app-modules/catalog/src/Data/CategoryData.php",
+      "inspection": "read",
+      "sha256": "2faf373c24543d902ae24b36606de00c6c9deb46dd8a5c40a537e0b145df1afb",
+      "bytes": 922
+    },
+    {
+      "path": "app-modules/catalog/src/Data/CategoryFilterData.php",
+      "inspection": "read",
+      "sha256": "ceb098d62410c904fc5f42338c8488962dbf77a9f0144d1a5d9d82b805031614",
+      "bytes": 1067
+    },
+    {
+      "path": "app-modules/catalog/src/Data/OptionData.php",
+      "inspection": "read",
+      "sha256": "27b52c936fde9789000f53216f2e0f41fad862e601987d0cb418958f031f3039",
+      "bytes": 796
+    },
+    {
+      "path": "app-modules/catalog/src/Data/OptionFilterData.php",
+      "inspection": "read",
+      "sha256": "7ae0f64abff2631872ea80e60c0dae79831710a4c2b3724d9c996b704a4c75fd",
+      "bytes": 712
+    },
+    {
+      "path": "app-modules/catalog/src/Data/OptionValueData.php",
+      "inspection": "read",
+      "sha256": "0c2905337f8367761e46a1c7828b7fadae7714055a7071519395df481c0c1056",
+      "bytes": 917
+    },
+    {
+      "path": "app-modules/catalog/src/Data/OptionValueFilterData.php",
+      "inspection": "read",
+      "sha256": "cc79db0dd97f290d0a3f107760eedd4b1059c892cad9f4054b88d250dca60dea",
+      "bytes": 561
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductData.php",
+      "inspection": "read",
+      "sha256": "2f0e93940289134c3851d88de4a2f07067fe8a9efd3d4af0aae4989024d5d92a",
+      "bytes": 1426
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductFilterData.php",
+      "inspection": "read",
+      "sha256": "61f90b8e86b8179861ac99016dc22515ee2d96822a81880b15b435d9c0bc0400",
+      "bytes": 1117
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductVariantActivationData.php",
+      "inspection": "read",
+      "sha256": "ef890a5c71446eca67d0f7a876e0caf21523a8c1f7d21277d7a98fa2e0b3d287",
+      "bytes": 406
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductVariantBatchData.php",
+      "inspection": "read",
+      "sha256": "933287f8b5f0a6ac7c180888560e6797664d5ad1f9c8a8d3e77eac7f06ae9d63",
+      "bytes": 629
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductVariantData.php",
+      "inspection": "read",
+      "sha256": "7f4c60767bcc150c077cc5b19778af892dc05d5a2cb613f64ecd96300dfcbd1a",
+      "bytes": 1325
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductVariantFilterData.php",
+      "inspection": "read",
+      "sha256": "3c847d782e354ca8eed5b8c849496281af6078e424a9fddb941c8c1186a0a918",
+      "bytes": 1074
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ProductVariantUpdateData.php",
+      "inspection": "read",
+      "sha256": "ee29b548412c41175998fdff93391384f89ef574b616799b27f9ca414b8459ce",
+      "bytes": 1746
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ServiceData.php",
+      "inspection": "read",
+      "sha256": "f7685d7e496684836f6460f2db48e1284b45d1124ab33f96ce4721120b5f20b6",
+      "bytes": 1498
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ServiceDeliverableTemplateData.php",
+      "inspection": "read",
+      "sha256": "0a778743e6801c45ec744a2f7f1d4ca8cb7ab284713572c1109c14dad25061f5",
+      "bytes": 602
+    },
+    {
+      "path": "app-modules/catalog/src/Data/ServiceFilterData.php",
+      "inspection": "read",
+      "sha256": "8f555dc98695d649af7b4296f35d0ab073daf81f360b66aa18ed2bbb6218f721",
+      "bytes": 1257
+    },
+    {
+      "path": "app-modules/catalog/src/Data/StockLocationData.php",
+      "inspection": "read",
+      "sha256": "512763815e36ebbf5415ce246f9d0c4895178ab71a4fe42ec6cba251ac310504",
+      "bytes": 1048
+    },
+    {
+      "path": "app-modules/catalog/src/Data/StockLocationFilterData.php",
+      "inspection": "read",
+      "sha256": "0d421874584d2d7694d9ebcd9c4e5d01ce0373202bfc8345ed69fdb3b250b8cf",
+      "bytes": 974
+    },
+    {
+      "path": "app-modules/catalog/src/Data/StockTransferData.php",
+      "inspection": "read",
+      "sha256": "53a1f5503ee3e740182769f8c4fcbe4924dc822995537f74fd70396df670c5ad",
+      "bytes": 767
+    },
+    {
+      "path": "app-modules/catalog/src/Data/StockTransferFilterData.php",
+      "inspection": "read",
+      "sha256": "20fdc6f3b02e7267f13b7542586af75abf4630c5198498de2ae484b3dd30f5f2",
+      "bytes": 852
+    },
+    {
+      "path": "app-modules/catalog/src/Data/StockTransferLineData.php",
+      "inspection": "read",
+      "sha256": "269a94f6793d62e268ef8597221bbec2c2a4d31f6ae8c738e561d5dda8e4a8f3",
+      "bytes": 904
+    },
+    {
+      "path": "app-modules/catalog/src/Enums/BundleStockOperationStatus.php",
+      "inspection": "read",
+      "sha256": "b6df6d0956dfb9008ca84147c083a3fe29e4b417aece36b99f743cb9dc7c4f7c",
+      "bytes": 171
+    },
+    {
+      "path": "app-modules/catalog/src/Enums/BundleStockOperationType.php",
+      "inspection": "read",
+      "sha256": "5bfd046ef6d4d0c2bb18da03148b58aa871ed1df5fe14d6a09ef06a4ea780dea",
+      "bytes": 165
+    },
+    {
+      "path": "app-modules/catalog/src/Enums/CatalogItemType.php",
+      "inspection": "read",
+      "sha256": "6c7ba5c6a9053cba50ee5f3a095cd3825baa84fab6eab9e0278ad4b2680efa93",
+      "bytes": 1896
+    },
+    {
+      "path": "app-modules/catalog/src/Enums/StockTransferStatus.php",
+      "inspection": "read",
+      "sha256": "7913501103f1ba3f2ae422d3d44872af5dc047bf63e4e02bb417f35e0fa4c7ae",
+      "bytes": 198
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/BundleException.php",
+      "inspection": "read",
+      "sha256": "b53cf75f73ede6e6b263a91bf335e4c145c5f0e3888fa4bfa122867ef646700d",
+      "bytes": 3124
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/CatalogFileException.php",
+      "inspection": "read",
+      "sha256": "7b973133198550207c0488fc2578fe4d4e1eac6c123b643089dc157b341b8df0",
+      "bytes": 504
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/CatalogItemException.php",
+      "inspection": "read",
+      "sha256": "281def20c2ebbf2c8140ef4d6ae656c649de35ca41dff70a141e9ab2e405d854",
+      "bytes": 600
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/CatalogServiceException.php",
+      "inspection": "read",
+      "sha256": "96d6fc6cc598768892a0109fe2a98f3aea97442b040756500c0e2f957bf697af",
+      "bytes": 1005
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/CategoryException.php",
+      "inspection": "read",
+      "sha256": "d16b78ac4f35b416fffa7d42d8bdf783b38b6fbbbb07794714b44d24dad57621",
+      "bytes": 1143
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/OptionException.php",
+      "inspection": "read",
+      "sha256": "296003522ef2668a84f442b1f43fdf8111e8e9cc525aca0db185971f08144f69",
+      "bytes": 547
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/OptionValueException.php",
+      "inspection": "read",
+      "sha256": "9a5c1b69afccadc49310f405235f696b5c1854704c46fa5ff435a22e59d9312c",
+      "bytes": 971
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/ProductVariantException.php",
+      "inspection": "read",
+      "sha256": "7744d86c01a59ea94d132e03cfe85603956513c6c5bdc8d62d937474f75424f7",
+      "bytes": 1051
+    },
+    {
+      "path": "app-modules/catalog/src/Exceptions/StockTransferException.php",
+      "inspection": "read",
+      "sha256": "8bdac73e56d515bff137e5717eab31bd1b2ee37a4094040ad47215aa3dc0be6a",
+      "bytes": 970
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/BundleController.php",
+      "inspection": "read",
+      "sha256": "39be297cf9d0ebea1365a33570683a727b58097db4d557ae00d8d631218c264a",
+      "bytes": 2692
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/BundleItemController.php",
+      "inspection": "read",
+      "sha256": "44c554171e8ac5ab77cb90379b3209421eb3d9d20667b193b0ac68b63e79e0c7",
+      "bytes": 2214
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/BundleStockOperationController.php",
+      "inspection": "read",
+      "sha256": "a8f310ac5bd80ee717324762847d9c643cb207f487d1b1a67466734755bf5ff0",
+      "bytes": 2839
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/CategoryController.php",
+      "inspection": "read",
+      "sha256": "4f711db912f8b97eef3c43aa16ff0161a7e5d77b83532a09fb42fbcdc090e369",
+      "bytes": 2677
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/OptionController.php",
+      "inspection": "read",
+      "sha256": "48f3e7b80670076a6f297fade40d68d49a129eb6ff20148bb045fc41b9769bb8",
+      "bytes": 2581
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/OptionValueController.php",
+      "inspection": "read",
+      "sha256": "8431255a520f7c1750da4d03a34d83154ff666d9fe95c8b80469a3f9ec81362e",
+      "bytes": 3035
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/ProductController.php",
+      "inspection": "read",
+      "sha256": "2e8ac5c3f707a28d1edfa5afb53bcd19f772b3feea184cfdee59b395602337a2",
+      "bytes": 2652
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/ProductFileController.php",
+      "inspection": "read",
+      "sha256": "bbcee1de1c93f2d2407eaf2bbb703bcf464ef52f38c8849d4fad62a32db7eb19",
+      "bytes": 2585
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/ProductVariantController.php",
+      "inspection": "read",
+      "sha256": "6eb3ad388c513a853866ecb9aa55aa94fbcdd541a184d6a7ef4a3d856c8ae303",
+      "bytes": 3755
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/ServiceController.php",
+      "inspection": "read",
+      "sha256": "125c669293eb552e50bda48a551323a518a78665ce2f8447f270bf15caf972f6",
+      "bytes": 2785
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/ServiceFileController.php",
+      "inspection": "read",
+      "sha256": "d788fd6a911cf87288024ce4e6c0ee9bb2b1890b3d3436c38b815b762590f5d4",
+      "bytes": 2585
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/StockLocationController.php",
+      "inspection": "read",
+      "sha256": "d82d8ba2ea90cc3dd5791994ee3d29a2da48c358c0096f2a99a79af4e082b133",
+      "bytes": 2968
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Controllers/StockTransferController.php",
+      "inspection": "read",
+      "sha256": "2dda69e3c2a19a430f508330cac253833a8e6474668929afd418f578d1f8fb20",
+      "bytes": 3323
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleCreateRequest.php",
+      "inspection": "read",
+      "sha256": "a0ccafa14cd127a50cfcc58c3e547f95dd66547840b7975a872cd7e726556db2",
+      "bytes": 2298
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleFilterRequest.php",
+      "inspection": "read",
+      "sha256": "05407e1879ae666a6f4648ec31110136a3fc8a453d0d0e56975ceee3be8cfe17",
+      "bytes": 956
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleItemCreateRequest.php",
+      "inspection": "read",
+      "sha256": "2ad430e631536a8f8c7a251fc5975e6da2d30708500d4e6d28292af10d5782f8",
+      "bytes": 1456
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleItemDeleteRequest.php",
+      "inspection": "read",
+      "sha256": "a12bb558f02fea005b8a366e45d43ca2d6b8e487a7aeb7800b4e94e5c9690e8c",
+      "bytes": 960
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleItemUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "2075fa7c14f1cd324dfafe0d2b3294800f3c1a3b84e02d51585a09378ef1744b",
+      "bytes": 511
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleStockOperationCreateRequest.php",
+      "inspection": "read",
+      "sha256": "2bb7c4ea5d1d036ccefef6f82ceba581b617597a3f5280597485b75b7392f09d",
+      "bytes": 2108
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleStockOperationFilterRequest.php",
+      "inspection": "read",
+      "sha256": "0016f71ae78f166f758fa4a66b20c3a27101edb97db76a1b69255a26d3dcb3ad",
+      "bytes": 992
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/BundleUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "738d8f6eba8c004dcef1c153c6e055b1cb14ee6826e224cd594adff8d266bc88",
+      "bytes": 1738
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/CategoryFilterRequest.php",
+      "inspection": "read",
+      "sha256": "47422303ec4dff465a4af791c42201e2dd1adec8c0b592d4166c2a7fcb35fcb6",
+      "bytes": 919
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/CategoryRequest.php",
+      "inspection": "read",
+      "sha256": "303f022024c2f07b11127e23195277e023d2e6af0cd80498a17382de392ccc73",
+      "bytes": 1276
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/OptionFilterRequest.php",
+      "inspection": "read",
+      "sha256": "8d980dee07a2201c632f470835d4144c29ae89f42da7d706a1f152e973a1e7ac",
+      "bytes": 741
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/OptionRequest.php",
+      "inspection": "read",
+      "sha256": "b2639f9ef1e370a6218c6a63919b74de2290d18f9c271571ad6124f67a5cab31",
+      "bytes": 1667
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/OptionValueFilterRequest.php",
+      "inspection": "read",
+      "sha256": "e3a787a7622e141bb78bb3dba75b3c6772a7e93cde648f871ad567da6b24ce52",
+      "bytes": 634
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductFilterRequest.php",
+      "inspection": "read",
+      "sha256": "e3948ab9bc429880f3cdb837550a882293170fb0d6097128bc1a7432c80acf24",
+      "bytes": 984
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductRequest.php",
+      "inspection": "read",
+      "sha256": "bc36fd358cd0f1748198fdf229d6425a0f2cd40802124d73bd2708946db9e9da",
+      "bytes": 4557
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductVariantActivationRequest.php",
+      "inspection": "read",
+      "sha256": "262a5ff2478d71583fe2dd3d757b44ebc953740fcbd2919d8432658c4cfd887b",
+      "bytes": 442
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductVariantCreateRequest.php",
+      "inspection": "read",
+      "sha256": "4086b2047368d0a6a5591553839baf422ffe772e49cf7e64e9476db8acbf3c74",
+      "bytes": 4105
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductVariantFilterRequest.php",
+      "inspection": "read",
+      "sha256": "800424b8f24414052d4e20ebdc282fb1a148077330adc581d046ef4b6e23e54c",
+      "bytes": 751
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ProductVariantUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "dbf5334ef698ef52a785ce0cda27ffd3c38ad2aac2e0186b42b17810abe0f4f0",
+      "bytes": 2947
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ServiceCreateRequest.php",
+      "inspection": "read",
+      "sha256": "9de4a051f0822190a652fcbf7b70cf2ef410d04ef008f6e27b5e78f30bb5579d",
+      "bytes": 2320
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ServiceFilterRequest.php",
+      "inspection": "read",
+      "sha256": "6c9a237b0c1f69d015ccac0b3da4c5d9711b630782646e4df849f060e0fba311",
+      "bytes": 957
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/ServiceUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "fb70209b615abc67baa0ea7e29334b30972ff9a3f9bce4d389410cfe1dbeab5c",
+      "bytes": 2391
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/StockLocationFilterRequest.php",
+      "inspection": "read",
+      "sha256": "cb41b472275a79c6c350a001004ea12c76123681665feb77becded70ee52326c",
+      "bytes": 881
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/StockLocationRequest.php",
+      "inspection": "read",
+      "sha256": "2d5d6eed498fe7fef17c027c363e254c8ce53778b9b210954a29eebfc8332e5d",
+      "bytes": 842
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/StockTransferFilterRequest.php",
+      "inspection": "read",
+      "sha256": "2ea6e9b36f5fb47b6603b862ecea3ae724ecfe9b1f46c639554d7ac7bab557c5",
+      "bytes": 828
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/StockTransferRequest.php",
+      "inspection": "read",
+      "sha256": "61448bfd4f2c379e178b79790926c908b60ce3e0f4c93d46fca2ee1b6f4e3c30",
+      "bytes": 1643
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/StoreOptionValueRequest.php",
+      "inspection": "read",
+      "sha256": "53a1100ad0c1a1d25a28deebeee7a388b4dbf239364f21d093fe08a4755075b8",
+      "bytes": 1009
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Requests/UpdateOptionValueRequest.php",
+      "inspection": "read",
+      "sha256": "0d0fd0702a36d65b6c54da2525942b96bef5582488e96656368bc33f20a20664",
+      "bytes": 1305
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/BundleCollection.php",
+      "inspection": "read",
+      "sha256": "49518b9ed9ebadbfd73fc9350a71a12425dfc49d22b946700161cc5cfda8b463",
+      "bytes": 223
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/BundleItemResource.php",
+      "inspection": "read",
+      "sha256": "6b68ed978c35c9d7fde0311f47bf6ac752030a8d5769240ca8481662146befcb",
+      "bytes": 1749
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/BundleResource.php",
+      "inspection": "read",
+      "sha256": "2634ef3ba1a92370ce27a5aa6d26db8ab867fda9b565fed2410cabbe75a57d90",
+      "bytes": 1013
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/BundleStockOperationCollection.php",
+      "inspection": "read",
+      "sha256": "732293dc09da1b82538d9b20f4f1c8262ddcf3a416dc9fef7ec9a5cac8529c2a",
+      "bytes": 251
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/BundleStockOperationResource.php",
+      "inspection": "read",
+      "sha256": "df24b3a71208670f0257afccd43e32a7e95748f5ba10e41f04942eb1a622e4ad",
+      "bytes": 1365
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/CategoryCollection.php",
+      "inspection": "read",
+      "sha256": "52a427038336e864bb8194b7bbdb2e11b02a1e44402e6ca24bb5055c6e6e2be4",
+      "bytes": 227
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/CategoryResource.php",
+      "inspection": "read",
+      "sha256": "bdda4301aa06ecf2adf1637e1b922df15b695d760ca2206d8125ff55523cdb81",
+      "bytes": 1745
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/Concerns/RendersCatalogItem.php",
+      "inspection": "read",
+      "sha256": "776d379de3c98ab293439d7ca8c893e6ebcbd78775ebf66eb8a2ef85990c88be",
+      "bytes": 1837
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/OptionCollection.php",
+      "inspection": "read",
+      "sha256": "408cb241df722b05292102cbdf7ec3271b76164db6362de1e666321d0a61bd3b",
+      "bytes": 223
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/OptionResource.php",
+      "inspection": "read",
+      "sha256": "864edbf3ab46721e5e0b25e80501d0b140741737d5cbb5edc85d22384380e735",
+      "bytes": 801
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/OptionValueResource.php",
+      "inspection": "read",
+      "sha256": "7294bf6a08d7ca342f55616d14e4624766774646695db1b93c9d468cd07adc3f",
+      "bytes": 912
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ProductCollection.php",
+      "inspection": "read",
+      "sha256": "7a00a94a4a7705e962ca05d8351b49a9c25ff2e8bd2ba7c9cd1a9e8ab5441d73",
+      "bytes": 225
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ProductResource.php",
+      "inspection": "read",
+      "sha256": "d529b3f6c0d791063d0b4f5a97d726fcebba8a326a026cc778e58e784f620300",
+      "bytes": 2714
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ProductVariantCollection.php",
+      "inspection": "read",
+      "sha256": "bb724a79552e27ebe8bade301db5e9da70f554bd9e932e2f9eb6d6780af4121b",
+      "bytes": 239
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ProductVariantResource.php",
+      "inspection": "read",
+      "sha256": "53bd312a2a8bd515b45bb247f49f86c68a2262489634c56732d5fc98f5fc700e",
+      "bytes": 1587
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ServiceCollection.php",
+      "inspection": "read",
+      "sha256": "b4338bf62d135cadccb3b7fc1cc3da1a61e8ce6e9aaf99e93687ef89a21ddc13",
+      "bytes": 225
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ServiceDeliverableTemplateResource.php",
+      "inspection": "read",
+      "sha256": "d92e39c4562b6f778452150c2cdaf46aec63201e3a43e64427e670bc7e7919b3",
+      "bytes": 575
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/ServiceResource.php",
+      "inspection": "read",
+      "sha256": "5b8555244b1ac16f495c354faa239acf170be63b485588877d380b86074849d1",
+      "bytes": 1895
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/StockLocationCollection.php",
+      "inspection": "read",
+      "sha256": "ddd474319c8a5444fa9d293fffa68aa2901350b45297eaeeecafe1f910a52573",
+      "bytes": 237
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/StockLocationResource.php",
+      "inspection": "read",
+      "sha256": "afeab86da6c3620dff63696c8bc1e187705da287645de0a28c935ce8d3ffad24",
+      "bytes": 914
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/StockTransferCollection.php",
+      "inspection": "read",
+      "sha256": "148ff2199dd9c8648a4b1562a0e594d1b478e709e2e81746f7c247091dab895d",
+      "bytes": 237
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/StockTransferLineResource.php",
+      "inspection": "read",
+      "sha256": "b38a70025b03fc0094f1f0b99f5ee7d46a6ba4234c6460d8d185dd7aa7623867",
+      "bytes": 1625
+    },
+    {
+      "path": "app-modules/catalog/src/Http/Resources/StockTransferResource.php",
+      "inspection": "read",
+      "sha256": "de842dc2fbe1dd05c44d91bcd7a37243ba7589f230a6e5b229455e25f1c8487f",
+      "bytes": 1506
+    },
+    {
+      "path": "app-modules/catalog/src/Models/Bundle.php",
+      "inspection": "read",
+      "sha256": "48e9702f763dba73ba03ab3be39483c42c2a84dc16c27a10ce5fbacb07951308",
+      "bytes": 3191
+    },
+    {
+      "path": "app-modules/catalog/src/Models/BundleItem.php",
+      "inspection": "read",
+      "sha256": "9b3ca3610e705f0c5355e650c1c646a6a4eb4a234c3c4bdecc45b52b468546b2",
+      "bytes": 3430
+    },
+    {
+      "path": "app-modules/catalog/src/Models/BundleStockOperation.php",
+      "inspection": "read",
+      "sha256": "e633420b866e9eba9eea120a9e187f6779b5f8b4d75ec964fff6dfb2c61d7563",
+      "bytes": 4664
+    },
+    {
+      "path": "app-modules/catalog/src/Models/CatalogItem.php",
+      "inspection": "read",
+      "sha256": "6fc4763541af62e66ab4c09164fa17216f7ec04ec2197cb863bdfa282370aabf",
+      "bytes": 3361
+    },
+    {
+      "path": "app-modules/catalog/src/Models/Category.php",
+      "inspection": "read",
+      "sha256": "ff3ddd2b3f7b5eb9c2b76d6d1c9d272035e0fac0c55183c12d3e9ff3cf8180a4",
+      "bytes": 8033
+    },
+    {
+      "path": "app-modules/catalog/src/Models/Option.php",
+      "inspection": "read",
+      "sha256": "b6de0495bfec68e66292d2927f3bdc456146aba507c6f5a0a85f227166843a96",
+      "bytes": 3018
+    },
+    {
+      "path": "app-modules/catalog/src/Models/OptionValue.php",
+      "inspection": "read",
+      "sha256": "3de34e51e1e09dcfed731676e436b3c2c3826a9aa1179053b788ad7d2547162a",
+      "bytes": 3134
+    },
+    {
+      "path": "app-modules/catalog/src/Models/Product.php",
+      "inspection": "read",
+      "sha256": "682f6edcc4c65169100b339a58adc0b992eadc95acf9a3f3d02a3c7c90e67ca2",
+      "bytes": 5332
+    },
+    {
+      "path": "app-modules/catalog/src/Models/ProductCategory.php",
+      "inspection": "read",
+      "sha256": "49adf6de9e144953fd428f741f744b68d505afd5a7790542130489be14619b1c",
+      "bytes": 1962
+    },
+    {
+      "path": "app-modules/catalog/src/Models/ProductVariant.php",
+      "inspection": "read",
+      "sha256": "baef6d003126674864221581093c76714209e7c7541d79dce4dda988ed2410f6",
+      "bytes": 4757
+    },
+    {
+      "path": "app-modules/catalog/src/Models/Service.php",
+      "inspection": "read",
+      "sha256": "043b50e2e5c762b4d185e3c36efbba717c8a849155091b4ec6c453c284b2a8d8",
+      "bytes": 4345
+    },
+    {
+      "path": "app-modules/catalog/src/Models/ServiceDeliverableTemplate.php",
+      "inspection": "read",
+      "sha256": "52ce12254ce15ceb9fff25fbd2934316a009582e1cd7b1c331a1ef1c85f36121",
+      "bytes": 2800
+    },
+    {
+      "path": "app-modules/catalog/src/Models/StockLocation.php",
+      "inspection": "read",
+      "sha256": "4ed6aa5c4435b1bfe4ed5ae060329e0d25a3f441492a2e104c4d1ba83f114842",
+      "bytes": 3165
+    },
+    {
+      "path": "app-modules/catalog/src/Models/StockTransfer.php",
+      "inspection": "read",
+      "sha256": "51b19eaf2b96fef510c851595bf5ffb520cfc263d384f69a8d60da27dc8fd73c",
+      "bytes": 5120
+    },
+    {
+      "path": "app-modules/catalog/src/Models/StockTransferLine.php",
+      "inspection": "read",
+      "sha256": "575f414f380a01d5328aad0f889d71942986b643cf386753b4fbd3557beac010",
+      "bytes": 4461
+    },
+    {
+      "path": "app-modules/catalog/src/Models/VariantOptionValue.php",
+      "inspection": "read",
+      "sha256": "93b6c356a6e6ad12cc091f525d3e4a5366cd4ff21521e41d73bd912a93e483eb",
+      "bytes": 2853
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/BundlePolicy.php",
+      "inspection": "read",
+      "sha256": "61fe3e420528045657b90bf09a0f4dd62699a3e238512eff0294127202edaa61",
+      "bytes": 1905
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/CategoryPolicy.php",
+      "inspection": "read",
+      "sha256": "2df4ecf1235514ebc5ec761b9ca2d2a1fb2a8b6c7a6f4f4d5e6fec482d3973a0",
+      "bytes": 1624
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/OptionPolicy.php",
+      "inspection": "read",
+      "sha256": "eaf388b01b95b761d733f8e686b05a46e06fda2d6a157a1a2db1d72c8fcb8b20",
+      "bytes": 1095
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/ProductPolicy.php",
+      "inspection": "read",
+      "sha256": "ee18e67f6adca3059eff101595cdabb2d5c9da19a4aa74c589254190d8d4ce36",
+      "bytes": 2062
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/ServicePolicy.php",
+      "inspection": "read",
+      "sha256": "6eefede69a06d0da557e64bccdadc1e32d86a061898fcb9b61da267ecb39daa0",
+      "bytes": 1621
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/StockLocationPolicy.php",
+      "inspection": "read",
+      "sha256": "0d5f462a5e1ccbd74ad2f0fa8ff4ad72fd11ca0146cdb71782d8ba441f498309",
+      "bytes": 1669
+    },
+    {
+      "path": "app-modules/catalog/src/Policies/StockTransferPolicy.php",
+      "inspection": "read",
+      "sha256": "c9ee6b3a498a3c4cd986cc8f94bb0b7ddbf7a6bde49dc951de989fc53678e51d",
+      "bytes": 1216
+    },
+    {
+      "path": "app-modules/catalog/src/Providers/CatalogServiceProvider.php",
+      "inspection": "read",
+      "sha256": "06723c6d3ad2d41d227246dd155a4a34689c2781c0f7aeb28fa2175459e9d32a",
+      "bytes": 246
+    },
+    {
+      "path": "app-modules/catalog/src/Rules/ValidBundleItems.php",
+      "inspection": "read",
+      "sha256": "80380aecfdc5f8a1f99899f5d734821f751ab688ff5cc1990be384b1ed2e06f8",
+      "bytes": 4588
+    },
+    {
+      "path": "app-modules/catalog/src/Rules/ValidServiceDeliverableTemplates.php",
+      "inspection": "read",
+      "sha256": "95775ca2e2c7cfdfb071961c29ab31a6ede7eb3ba70f2981666a3772eab26451",
+      "bytes": 2935
+    },
+    {
+      "path": "app-modules/catalog/src/Services/BundleService.php",
+      "inspection": "read",
+      "sha256": "3abc0349d49bda09ac7f76dc65eda8f501e3cb64eeeab0990b5e4c4e2a572ea0",
+      "bytes": 16128
+    },
+    {
+      "path": "app-modules/catalog/src/Services/BundleStockOperationService.php",
+      "inspection": "read",
+      "sha256": "aa54e7b65001bda4655cdf64060447a20d7ecf92a615db4b63cbd331d81e4981",
+      "bytes": 23285
+    },
+    {
+      "path": "app-modules/catalog/src/Services/CatalogFileService.php",
+      "inspection": "read",
+      "sha256": "caee1cda8e1f294a92f97a45244bcc11403a24bd7cb43b4d8819a7f483159d07",
+      "bytes": 2862
+    },
+    {
+      "path": "app-modules/catalog/src/Services/CategoryService.php",
+      "inspection": "read",
+      "sha256": "83265f55fc5634f295b8251070c1ecacc5c1da7e06ba77d64cede438e59f3b44",
+      "bytes": 3615
+    },
+    {
+      "path": "app-modules/catalog/src/Services/Option/TransactionalOptionService.php",
+      "inspection": "read",
+      "sha256": "87c424ccb7ef62d4cd2a6b5061c085c90b85bd4c607c3f60a30d393125e45f33",
+      "bytes": 6273
+    },
+    {
+      "path": "app-modules/catalog/src/Services/OptionService.php",
+      "inspection": "read",
+      "sha256": "865310d8b567dc4ad95890d827627338d316a868c121e606d42a4c8af347333c",
+      "bytes": 2771
+    },
+    {
+      "path": "app-modules/catalog/src/Services/OptionValueService.php",
+      "inspection": "read",
+      "sha256": "035a034787ab065f959e4696b3c32a3d2e7725a08688883051b731da51a0ca7f",
+      "bytes": 2592
+    },
+    {
+      "path": "app-modules/catalog/src/Services/ProductService.php",
+      "inspection": "read",
+      "sha256": "61043aa45d9d9d36c0157eda1d52e6d85e993db73b188a00bdb6d5256edd7f26",
+      "bytes": 4704
+    },
+    {
+      "path": "app-modules/catalog/src/Services/ProductVariantService.php",
+      "inspection": "read",
+      "sha256": "d33a0bc055f5bd5aa42e8266ebed39cc8fb26e84bb0564336ffc73c5ff129ec3",
+      "bytes": 5942
+    },
+    {
+      "path": "app-modules/catalog/src/Services/ServiceService.php",
+      "inspection": "read",
+      "sha256": "343431f79a14ec23660c1d5dc41d1f25a4a4bcd2712b7c65821b77f790a60be0",
+      "bytes": 9946
+    },
+    {
+      "path": "app-modules/catalog/src/Services/StockLocationService.php",
+      "inspection": "read",
+      "sha256": "14d7e51962c97d93d92efc555327a1e536f1b4258a7460a44612383b2574d392",
+      "bytes": 5916
+    },
+    {
+      "path": "app-modules/catalog/src/Services/StockTransferService.php",
+      "inspection": "read",
+      "sha256": "26c8c42a2346c7dcdb70f5297b79a825bbf0745a2a32dc6361b32239ea946818",
+      "bytes": 14125
+    },
+    {
+      "path": "app-modules/catalog/src/Services/TransactionalCatalogItemService.php",
+      "inspection": "read",
+      "sha256": "311d17125a86dde353c574f0a3dce373d9d53d64e9acbca7311c73994be84ecc",
+      "bytes": 5490
+    },
+    {
+      "path": "app-modules/catalog/src/Services/Variant/TransactionalProductVariantService.php",
+      "inspection": "read",
+      "sha256": "15f72e213c1ce04e8f5a79f72b21a7d9e719d0e34d5da8a471fecb778b547a1d",
+      "bytes": 5620
+    },
+    {
+      "path": "app-modules/catalog/tests/Concerns/InteractsWithCatalogTenantContext.php",
+      "inspection": "read",
+      "sha256": "dea09087d24397dfa2e84d944b5570091b51622887dca85e4efc50a846132652",
+      "bytes": 1498
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/BundleEndpointsTest.php",
+      "inspection": "read",
+      "sha256": "77b9e92b349ba163ddd306396e2b98f7e7a9e9396264badcee8ee090dca43b3c",
+      "bytes": 14241
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/BundleStockOperationServiceTest.php",
+      "inspection": "read",
+      "sha256": "32cf17ac2a111894f35b792ea63a8c177178abe2e17e3cda7d340fa084bce753",
+      "bytes": 14959
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/CategoryServiceTest.php",
+      "inspection": "read",
+      "sha256": "8d201ec5bb9a426105f4516b619986d8d834448fa81b516e25d2dabe80c12f22",
+      "bytes": 3554
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/OptionServiceTest.php",
+      "inspection": "read",
+      "sha256": "7d7d9aca3625efef8810df2213829cde2018d7c15ce327eebf7f5d1d9e4e1c67",
+      "bytes": 3215
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/OptionValueServiceTest.php",
+      "inspection": "read",
+      "sha256": "aba829a2850b4266696351fac39884cb866da5be0b93d00c227011c5330bd959",
+      "bytes": 4998
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/ProductServiceTest.php",
+      "inspection": "read",
+      "sha256": "2cfdf79ccf783c2af5f97959b0cffd8291b146da9b71fe2123eba0c56eec7379",
+      "bytes": 8811
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/ProductVariantServiceTest.php",
+      "inspection": "read",
+      "sha256": "78107e9cc035569c773805a94b2b43f8d75f38a32a70469ad62c284c77e250e1",
+      "bytes": 19573
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/Providers/CatalogServiceProviderTest.php",
+      "inspection": "read",
+      "sha256": "6faeebd0719adc913a309020c2eb7c3875dff9b4771dbbb341ee4270ef374633",
+      "bytes": 154
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/ServiceEndpointsTest.php",
+      "inspection": "read",
+      "sha256": "51962dcfe10f2075772282a09248b14708ec947da8879b46388e492ba8072cc9",
+      "bytes": 5423
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/StockLocationServiceTest.php",
+      "inspection": "read",
+      "sha256": "259796d044a3a54ef64d6702e8dc6186f2763059caf5f427f82ba511bffc2ba6",
+      "bytes": 4810
+    },
+    {
+      "path": "app-modules/catalog/tests/Feature/StockTransferServiceTest.php",
+      "inspection": "read",
+      "sha256": "28fa1f488dff940e2dbd3143bb0f01ec28aa4e32a2e4fffd055aa5eed8473733",
+      "bytes": 8590
+    },
+    {
+      "path": "app-modules/catalog/tests/Unit/Assertions/CatalogAssertionsTest.php",
+      "inspection": "read",
+      "sha256": "8a73bad5138bf5f9f177e5857f42ddebb58bd647dc6a9e0e68a798313e3b8bf6",
+      "bytes": 3076
+    },
+    {
+      "path": "app-modules/catalog/tests/Unit/CatalogItemTypeTest.php",
+      "inspection": "read",
+      "sha256": "fbfefcc3d83ad82d86e72968c5e019eee8e4a966b049b4a0243e21b60f8770ff",
+      "bytes": 3143
+    },
+    {
+      "path": "app-modules/catalog/tests/Unit/Data/ProductDataTest.php",
+      "inspection": "read",
+      "sha256": "faf41f0d49b8156563a0f612f959ae8f858c1c69616fc33599bf5cdadadb465d",
+      "bytes": 944
+    },
+    {
+      "path": "app-modules/customer/composer.json",
+      "inspection": "read",
+      "sha256": "f94839b8cc1d83def9669534eddedda49b14f2c9d6f307f1f5ce7c0483c4a884",
+      "bytes": 532
+    },
+    {
+      "path": "app-modules/customer/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "e62bb173b791444877fcd7b31114c55c7a4b979a7a1498d8f39d1ec0f5a7d866",
+      "bytes": 1525
+    },
+    {
+      "path": "app-modules/customer/database/factories/CustomerFactory.php",
+      "inspection": "read",
+      "sha256": "073255928649055e6429b7a90b5e0724832bf34f8debc56ace6158e4823bda21",
+      "bytes": 810
+    },
+    {
+      "path": "app-modules/customer/database/migrations/2026_08_28_172940_create_customer_customers_table.php",
+      "inspection": "read",
+      "sha256": "9d771fc5ea09b59a51c9d4ab6db19ad76e79b03a6359a44ac5754bc0b5cf4a97",
+      "bytes": 1234
+    },
+    {
+      "path": "app-modules/customer/database/seeders/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/customer/database/seeders/CustomerSeeder.php",
+      "inspection": "read",
+      "sha256": "7d627b0759297f9fe595a224e969f7074d9f6bad6c8ce14df70f9de024798d77",
+      "bytes": 3805
+    },
+    {
+      "path": "app-modules/customer/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "72ee1adefa97b946a84d1ee70e08d993dee2ffdfc9002af500cb8a359343e963",
+      "bytes": 130
+    },
+    {
+      "path": "app-modules/customer/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "99a5c3b00197a32f98dd05f00490b915a4b660f7413d4df2449bca1a06200a0c",
+      "bytes": 150
+    },
+    {
+      "path": "app-modules/customer/resources/views/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/customer/routes/customer-routes.php",
+      "inspection": "read",
+      "sha256": "e020a542beabe0fefdaa91b71795a6875c320311aa0c8c6539fa47e8f113b989",
+      "bytes": 2011
+    },
+    {
+      "path": "app-modules/customer/src/Data/CustomerData.php",
+      "inspection": "read",
+      "sha256": "d4a1b1ef088d80302b137379776c6a94394e420921b3380d054b585240d50622",
+      "bytes": 879
+    },
+    {
+      "path": "app-modules/customer/src/Data/CustomerFilterData.php",
+      "inspection": "read",
+      "sha256": "3ea062459a9d475dc7da36ae11239b69a8e64eb317206bfeb7757df0fe97534f",
+      "bytes": 891
+    },
+    {
+      "path": "app-modules/customer/src/Enums/CustomerType.php",
+      "inspection": "read",
+      "sha256": "120fa892a40552653a70d007126f7e1bef2542ffef4bd0da7aed79146f65bd8c",
+      "bytes": 164
+    },
+    {
+      "path": "app-modules/customer/src/Exceptions/CustomerFileException.php",
+      "inspection": "read",
+      "sha256": "6295d7a2d8c765776ab95cb5927e9c7b96b598d27784df4acd50194375606d31",
+      "bytes": 512
+    },
+    {
+      "path": "app-modules/customer/src/Http/Controllers/CustomerAddressController.php",
+      "inspection": "read",
+      "sha256": "bb66f9507b84ad9ae1a45d0934b17c0a5d2c5ea409d21f9d0f61c89e0edc08bf",
+      "bytes": 2129
+    },
+    {
+      "path": "app-modules/customer/src/Http/Controllers/CustomerContactController.php",
+      "inspection": "read",
+      "sha256": "7390c207bbfab899487ba23934aa55beb88b3ff4bf35a2d1060bd6b8d2988c19",
+      "bytes": 2114
+    },
+    {
+      "path": "app-modules/customer/src/Http/Controllers/CustomerController.php",
+      "inspection": "read",
+      "sha256": "a5edea387972cd2db5ecfc302da2091a6e1e0af0e9ca80cf239b87b4b7fea981",
+      "bytes": 2682
+    },
+    {
+      "path": "app-modules/customer/src/Http/Controllers/CustomerFileController.php",
+      "inspection": "read",
+      "sha256": "d4c236d19de75a21ee85ce1ceeaf1f46df757b2f0945430b0e2cf3ad2621c194",
+      "bytes": 1517
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/AddressCreateRequest.php",
+      "inspection": "read",
+      "sha256": "46ef0189ebcf6a32b77d559e82adc877d5af9d093630f5010f5f1d95fd65052f",
+      "bytes": 870
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/AddressDeleteRequest.php",
+      "inspection": "read",
+      "sha256": "282aa0055030e0d22e5a7b526220c0c1f9f903acee3d8bb1d8e6a150c970bca5",
+      "bytes": 496
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/AddressUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "8d9e05b5bedf02afab0c4a79d36f74b9eb754d52069d13618f38b402b4425a6e",
+      "bytes": 568
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/ContactCreateRequest.php",
+      "inspection": "read",
+      "sha256": "9b8171aa9cf0ae736ed6ed05c220d8a1ad7fc6047539da8054dc6e4c411bd742",
+      "bytes": 868
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/ContactDeleteRequest.php",
+      "inspection": "read",
+      "sha256": "370e1d1116a89e6c5be6ab1577a1ae536672222a0741101ea72f368e9399aace",
+      "bytes": 496
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/ContactUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "937a79fa14e9ce918afe133d2f5bc41f57d9ed7b3f3498be6729efb791e419b9",
+      "bytes": 603
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/CustomerFilterRequest.php",
+      "inspection": "read",
+      "sha256": "d8b8d55bd2a527cc0d3be769310e808773696330c2249e9e8a13bb5f3ffae31a",
+      "bytes": 726
+    },
+    {
+      "path": "app-modules/customer/src/Http/Requests/CustomerRequest.php",
+      "inspection": "read",
+      "sha256": "dff5d793a9e63c8359aba0b85b64a0e7b79b5c30be108e293ea6b5802d22230b",
+      "bytes": 1307
+    },
+    {
+      "path": "app-modules/customer/src/Http/Resources/CustomerCollection.php",
+      "inspection": "read",
+      "sha256": "ab78d97fd303e20ff3f1876b87cb1ab34848654fc41208217cf6ea5227b0ca7a",
+      "bytes": 228
+    },
+    {
+      "path": "app-modules/customer/src/Http/Resources/CustomerResource.php",
+      "inspection": "read",
+      "sha256": "59e90883b988efa1dfc0ba274b88e5f018668df944fcecb0254cc4c202e45e7c",
+      "bytes": 1661
+    },
+    {
+      "path": "app-modules/customer/src/Models/Customer.php",
+      "inspection": "read",
+      "sha256": "39fee75e6e6096334c593cbfdaed06519fb28c8f0ed3d80e0ec76ef32b60eada",
+      "bytes": 4016
+    },
+    {
+      "path": "app-modules/customer/src/Policies/CustomerPolicy.php",
+      "inspection": "read",
+      "sha256": "ba6482324f77eb02e47931a9dc9c06556288bf847feafa21675833596b61af7e",
+      "bytes": 1626
+    },
+    {
+      "path": "app-modules/customer/src/Providers/CustomerServiceProvider.php",
+      "inspection": "read",
+      "sha256": "d7ffdc0571bfea1771a71689df3fb3b9d224b7c17fbfd8e3fde6cc105609559f",
+      "bytes": 248
+    },
+    {
+      "path": "app-modules/customer/src/Services/CustomerFileService.php",
+      "inspection": "read",
+      "sha256": "23a8d7b1a682c2adbff67ffa4964cf2345bc1f6c98bda3922abd75f0f6867ec2",
+      "bytes": 1319
+    },
+    {
+      "path": "app-modules/customer/src/Services/CustomerService.php",
+      "inspection": "read",
+      "sha256": "ee0e9a92e7069f913b0b4df69bce46e1442b9c2e4573200637212935cb925f32",
+      "bytes": 4077
+    },
+    {
+      "path": "app-modules/customer/tests/Concerns/InteractsWithCustomerTenantContext.php",
+      "inspection": "read",
+      "sha256": "c06229cd85154a03d8f6e3d534e44232032ed559b1bd9f37520494ebd4029146",
+      "bytes": 1503
+    },
+    {
+      "path": "app-modules/customer/tests/Feature/CustomerTest.php",
+      "inspection": "read",
+      "sha256": "28bf4078ac10e9ba7f066b78f127693f213b0723873238e39e952cb83f2e6913",
+      "bytes": 7471
+    },
+    {
+      "path": "app-modules/library/composer.json",
+      "inspection": "read",
+      "sha256": "dcf5758391f5276061d675ce00579d59f57e893a48df152b8e1aecd6f79efd4d",
+      "bytes": 709
+    },
+    {
+      "path": "app-modules/library/config/library.php",
+      "inspection": "read",
+      "sha256": "6aa19124f42802655441ecfbd7078263cd5205768bcb48d2afc259d99370b25d",
+      "bytes": 1862
+    },
+    {
+      "path": "app-modules/library/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "2aa6a47ee5144951f32f1114315bcf38964b3cc920a6a9f016c85cb024ce60f2",
+      "bytes": 725
+    },
+    {
+      "path": "app-modules/library/database/factories/FileAttachmentFactory.php",
+      "inspection": "read",
+      "sha256": "c24f344029ec3612f98dd3927481f890a830db18f3c3e46ca9d6469ed46fb75b",
+      "bytes": 2066
+    },
+    {
+      "path": "app-modules/library/database/factories/FileFactory.php",
+      "inspection": "read",
+      "sha256": "fcb2023270983844faf004b7b1e7d5a63b554f3de4d23f32c358438c40e95d5d",
+      "bytes": 1207
+    },
+    {
+      "path": "app-modules/library/database/factories/FolderFactory.php",
+      "inspection": "read",
+      "sha256": "3dbbffcfd5d58a794fd4c6166f95e1920752d47c9aa14da62078493cb8060414",
+      "bytes": 601
+    },
+    {
+      "path": "app-modules/library/database/migrations/2026_09_09_210000_create_library_tables.php",
+      "inspection": "read",
+      "sha256": "3269312589b130e5b92e777d4530ab5dea7a7d9c5d7112097291aa275337cb2c",
+      "bytes": 4328
+    },
+    {
+      "path": "app-modules/library/database/migrations/2026_09_23_151157_drop_library_file_storage_status.php",
+      "inspection": "read",
+      "sha256": "e140ee5bd3e6371d750888eb1145701f72d196a65124b25bf152e969ed2d6d70",
+      "bytes": 759
+    },
+    {
+      "path": "app-modules/library/database/migrations/2026_09_24_061615_create_library_file_attachments_table.php",
+      "inspection": "read",
+      "sha256": "4cce244ee2221c7a56eed84bd8430ece13d0230fdd2fada0cb064a03cb63a247",
+      "bytes": 1639
+    },
+    {
+      "path": "app-modules/library/database/migrations/2026_09_24_063334_repair_library_legacy_indexes.php",
+      "inspection": "read",
+      "sha256": "207204f55cce96931e8262592d23c9db07f6d10e18726c220f4ce0acf0f5612a",
+      "bytes": 853
+    },
+    {
+      "path": "app-modules/library/database/seeders/.gitkeep",
+      "inspection": "empty placeholder",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/library/database/seeders/FileAttachmentSeeder.php",
+      "inspection": "read",
+      "sha256": "3276ab35d6636b35dcbcc996f7696551cd98ded0b4b9f162b9291b9c2ec45fe9",
+      "bytes": 284
+    },
+    {
+      "path": "app-modules/library/resources/lang/en/console.php",
+      "inspection": "read",
+      "sha256": "ec87a6d76d887d62097e2a255301a775a2e4cf2abb3e1042aa715fa1a9ff98e4",
+      "bytes": 509
+    },
+    {
+      "path": "app-modules/library/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "21fbf1c3dd96551ff8a6c9bbd700811333f5eee8b5257ce19eb52c34e71e4605",
+      "bytes": 2116
+    },
+    {
+      "path": "app-modules/library/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "00bbce1593a21c3848e507c9a297e150a4120ec6ad3cbe4a50333c1d520e2a85",
+      "bytes": 152
+    },
+    {
+      "path": "app-modules/library/routes/library-routes.php",
+      "inspection": "read",
+      "sha256": "af8ec1221173e865b661dc4babfc82595ed640bd5a31849e93c7fa08ce3a94b2",
+      "bytes": 860
+    },
+    {
+      "path": "app-modules/library/src/Assertions/FileAssertion.php",
+      "inspection": "read",
+      "sha256": "fba6e1bd54a52beaafe4827d39eaffaf2d766af33a1fc6e139bc08d3b94f45bc",
+      "bytes": 1882
+    },
+    {
+      "path": "app-modules/library/src/Assertions/FolderAssertion.php",
+      "inspection": "read",
+      "sha256": "e8a19e505a91394c283499f7830baf28dfc9a902e038760a0d3439b3468a3447",
+      "bytes": 3941
+    },
+    {
+      "path": "app-modules/library/src/Console/Commands/ReconcileLibraryCommand.php",
+      "inspection": "read",
+      "sha256": "bce530c266bd480581d6771d8595db140de43a6bb0efece1a127f67fac1f0547",
+      "bytes": 2327
+    },
+    {
+      "path": "app-modules/library/src/Contracts/HasFileSlots.php",
+      "inspection": "read",
+      "sha256": "86c24e982169682a25f65e261ad365ee8378036e560ab73b46bf230689731ebb",
+      "bytes": 303
+    },
+    {
+      "path": "app-modules/library/src/Contracts/LibraryInterface.php",
+      "inspection": "read",
+      "sha256": "a675a74154000d74facc4ad32031d23075cfc6ea519bea038d3d98ebe7dbfe0c",
+      "bytes": 1175
+    },
+    {
+      "path": "app-modules/library/src/Data/FileFilterData.php",
+      "inspection": "read",
+      "sha256": "5e37fff0baaed5662bfed1cb0dbfb70af46aa6e1b5cc0982b55d8c93807ab6f7",
+      "bytes": 1027
+    },
+    {
+      "path": "app-modules/library/src/Data/FileUpdateData.php",
+      "inspection": "read",
+      "sha256": "2fd8143ecbfb8195eafe0f3d4e120fd9b8d77d8aa70b82703380f8bcb2f78a7a",
+      "bytes": 716
+    },
+    {
+      "path": "app-modules/library/src/Data/FileUploadData.php",
+      "inspection": "read",
+      "sha256": "be7205f8d075d4792e2802b860f8183a3e05404eef1eb9ddf5a39fb3bd61baa1",
+      "bytes": 642
+    },
+    {
+      "path": "app-modules/library/src/Data/FolderCreateData.php",
+      "inspection": "read",
+      "sha256": "efb8b730438ec95ea874121538d26e6625d5b993591d084fc954ffa174aa0626",
+      "bytes": 456
+    },
+    {
+      "path": "app-modules/library/src/Data/FolderFilterData.php",
+      "inspection": "read",
+      "sha256": "f801030ccfbe609ceb4bca84cbf96dccb89e77f96c6745d861793212c48c88d0",
+      "bytes": 788
+    },
+    {
+      "path": "app-modules/library/src/Data/FolderUpdateData.php",
+      "inspection": "read",
+      "sha256": "8a08089d99e343519d8c7b938155a872910e10e4acb53a5c195ba37eea5b5d9b",
+      "bytes": 718
+    },
+    {
+      "path": "app-modules/library/src/Enums/FileKind.php",
+      "inspection": "read",
+      "sha256": "5de29efe456024dd230651da9648880149a54a55481740c2ea027f3b3db264ee",
+      "bytes": 1757
+    },
+    {
+      "path": "app-modules/library/src/Exceptions/LibraryException.php",
+      "inspection": "read",
+      "sha256": "4c455ccc021df82f202123d3a4b92662284a8e4e1d73eaebdbb0d16dce708eea",
+      "bytes": 5204
+    },
+    {
+      "path": "app-modules/library/src/Http/Controllers/FileController.php",
+      "inspection": "read",
+      "sha256": "45d82db3d0b3b9c516d4c19a3f88231d883e605604cf8de1b3d5222d272a053b",
+      "bytes": 3699
+    },
+    {
+      "path": "app-modules/library/src/Http/Controllers/FolderController.php",
+      "inspection": "read",
+      "sha256": "355ba36df86f3cae9c857b9a878edfc7faac5387d9b5f3d5fb8e0b4936405f47",
+      "bytes": 2697
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/AttachmentListRequest.php",
+      "inspection": "read",
+      "sha256": "9529baaad21ab7cd6a57359023efb6c0dc9db8baa3f25786b84debd9e513ba10",
+      "bytes": 594
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FileFilterRequest.php",
+      "inspection": "read",
+      "sha256": "f8ce2aff345509067e2f450058e14e1a90d5d02c4dd129621de617ccf5a51d6d",
+      "bytes": 1172
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FileListRequest.php",
+      "inspection": "read",
+      "sha256": "981a5973f40d51e15928284e3622072b427a162a0abac5f88f1dbbcc7994c3ff",
+      "bytes": 617
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FileUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "1a87e88d2affd9bac1ed71d4ed380d9138876aee4050bad11887c81657d6135a",
+      "bytes": 1086
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FileUploadRequest.php",
+      "inspection": "read",
+      "sha256": "73ec6a454d01f28e10b423013acf807bfd936e634766fcd62ce1e5a8c92013dc",
+      "bytes": 2132
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FolderCreateRequest.php",
+      "inspection": "read",
+      "sha256": "c7a68f1ce87d88da8b61ff89b03b944faea3de4648b62157fce41b02c8889602",
+      "bytes": 963
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FolderFilterRequest.php",
+      "inspection": "read",
+      "sha256": "2e66caa7f767500fa2feba5707a67928485c7966cfd146663cd036327f6eb08f",
+      "bytes": 995
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/FolderUpdateRequest.php",
+      "inspection": "read",
+      "sha256": "0341917f954e42c143770c8da2e6e4a043d009902b7e4cb5d0891c4033acc5b3",
+      "bytes": 951
+    },
+    {
+      "path": "app-modules/library/src/Http/Requests/SingleFileRequest.php",
+      "inspection": "read",
+      "sha256": "16a0076a93f7f73467e0e08ac5c0091840febb1a98648b156714aca8a8772e40",
+      "bytes": 546
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/FileAttachmentResource.php",
+      "inspection": "read",
+      "sha256": "609294be04a236b37fa1835fbbd8a3827c2cd6030c2419bf442244e3c803ebe5",
+      "bytes": 1145
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/FileCollection.php",
+      "inspection": "read",
+      "sha256": "92a9870c2f7c5ff182e7f2f3c71e390d61794e5102a14503debfd1222ee2792b",
+      "bytes": 219
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/FileResource.php",
+      "inspection": "read",
+      "sha256": "030c8b0e83558e878b64bab080e2c44ab43ff513962db05d09da650938558c77",
+      "bytes": 937
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/FolderCollection.php",
+      "inspection": "read",
+      "sha256": "3184f67ff4006334a7d84cc194edd53b3b0b733428c78f26dda5fea937328938",
+      "bytes": 223
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/FolderResource.php",
+      "inspection": "read",
+      "sha256": "fff99764efa318815d0eb90f996986cff135e181ae61c96ae3a82b7d0ae4c64b",
+      "bytes": 610
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/TrashFileCollection.php",
+      "inspection": "read",
+      "sha256": "3de71a228260a68ba5dd882c1b04614a251e50bad29ffffd9f31259c1d0d3996",
+      "bytes": 229
+    },
+    {
+      "path": "app-modules/library/src/Http/Resources/TrashFileResource.php",
+      "inspection": "read",
+      "sha256": "78df92e50a57290535881e25c301c35d0ab3b9899eb551f9f7a875b684a907a1",
+      "bytes": 898
+    },
+    {
+      "path": "app-modules/library/src/Http/Responses/PrivateFileResponseFactory.php",
+      "inspection": "read",
+      "sha256": "5423eb4ef567b8f5af96b5126decc1317753ee4f79d505a9e0837ca5dfdd4f43",
+      "bytes": 3259
+    },
+    {
+      "path": "app-modules/library/src/Models/File.php",
+      "inspection": "read",
+      "sha256": "e03c3640a8617eb019e505f825092f2bc025fb4f70b1417b806868f40cccda41",
+      "bytes": 4279
+    },
+    {
+      "path": "app-modules/library/src/Models/FileAttachment.php",
+      "inspection": "read",
+      "sha256": "428acdebdab086fc7b5231ce17deae538a2e217c742f18a0bf0048ffa1cfdfcb",
+      "bytes": 2088
+    },
+    {
+      "path": "app-modules/library/src/Models/Folder.php",
+      "inspection": "read",
+      "sha256": "e343c535329aaa51e58176eac457a5ba363b760d85e49a6fc834e3385fa9f06e",
+      "bytes": 6336
+    },
+    {
+      "path": "app-modules/library/src/Policies/FilePolicy.php",
+      "inspection": "read",
+      "sha256": "cb08536ab9e49614d2715107006327754e19a33ff3e10e1cc4ff45b8e02722b0",
+      "bytes": 1107
+    },
+    {
+      "path": "app-modules/library/src/Policies/FolderPolicy.php",
+      "inspection": "read",
+      "sha256": "8ce9a78cad9f614b7b43830cf88bbfc01570aae7f4443d33023f83ef483f2c4b",
+      "bytes": 1095
+    },
+    {
+      "path": "app-modules/library/src/Providers/LibraryServiceProvider.php",
+      "inspection": "read",
+      "sha256": "d3ce0c0103bb4d08d87a1c03fafa11404382bc9cc5232b5b9d9fbf1e7ff66898",
+      "bytes": 1145
+    },
+    {
+      "path": "app-modules/library/src/Services/AttachmentService.php",
+      "inspection": "read",
+      "sha256": "7da7edfff3c0671af80c603f077c1fead0fdc6e53dd6b8b8f3bf069055817fbe",
+      "bytes": 10731
+    },
+    {
+      "path": "app-modules/library/src/Services/FileService.php",
+      "inspection": "read",
+      "sha256": "52a7883f8c462c6ec5701fe5f8ad8750c4bfe0a6c816c6133301ed27bf5184a1",
+      "bytes": 15717
+    },
+    {
+      "path": "app-modules/library/src/Services/FolderService.php",
+      "inspection": "read",
+      "sha256": "0e68a35b6c67eaa9875cce88c3c49ae00e6737d10300d345ada41f1610e99e2d",
+      "bytes": 4450
+    },
+    {
+      "path": "app-modules/library/src/Services/LibraryMaintenanceService.php",
+      "inspection": "read",
+      "sha256": "7cbc17fc4dcb749dece0c27c8f28b40e40be5e93854e74c62937c08200f25597",
+      "bytes": 9441
+    },
+    {
+      "path": "app-modules/library/src/Services/LibraryService.php",
+      "inspection": "read",
+      "sha256": "ed94ea993b42a82e53441ad1c589babda33a3ae2695fe3554efaf0e8a3715fe2",
+      "bytes": 2152
+    },
+    {
+      "path": "app-modules/library/src/Traits/InteractsWithFile.php",
+      "inspection": "read",
+      "sha256": "13b689b1595e0ee13507facd2501d079d83c2da9765973ef6126dff1a8475160",
+      "bytes": 944
+    },
+    {
+      "path": "app-modules/library/src/ViewData/LibraryReconciliationReport.php",
+      "inspection": "read",
+      "sha256": "05f4d14f6559238a7f016c88f8f6bbdce262d3da0cc579fe4dea7f174f5ea40a",
+      "bytes": 1110
+    },
+    {
+      "path": "app-modules/library/tests/Feature/FolderEndpointsTest.php",
+      "inspection": "read",
+      "sha256": "d55518390279fbd416944af5f2cb548e227a5e4356f08b8f5e4935550f8e0d06",
+      "bytes": 6052
+    },
+    {
+      "path": "app-modules/library/tests/Unit/FileKindTest.php",
+      "inspection": "read",
+      "sha256": "3acf97a529b078ddf00bd50f9da20f0eef83537fc3a5e9405d6e205424ef6de4",
+      "bytes": 540
+    },
+    {
+      "path": "tests/Feature/Integration/CustomerRelationsIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "c9a199d483840dc8c3ccce499a19a4bc13a42d993a07f998c41c003ba3e4ea2a",
+      "bytes": 4461
+    },
+    {
+      "path": "tests/Feature/Integration/LibraryIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "193916ee8199e7b55c2e41fd6173fe5b078019f6140fb32c88be646f4ae49362",
+      "bytes": 23797
+    },
+    {
+      "path": "tests/Feature/Integration/FileAttachmentsIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "7a0349eb4958b62cef2c7fb50ca3abee2dfe5330db103671ee9ce21fb0373207",
+      "bytes": 26692
+    },
+    {
+      "path": "tests/Feature/Integration/CatalogAuthorizationIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "a1d194278f082fa2ba2034834a304ba8204bd4cf0ce78fd8c5021acd6147515a",
+      "bytes": 4980
+    },
+    {
+      "path": "tests/Feature/Integration/CatalogTenancyIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "09277aa75ab81b7d5622aa257c5f79b55d2dce542fcb4ecf4c5a280d6fe4a07e",
+      "bytes": 25189
+    },
+    {
+      "path": "tests/Feature/BundleEndpointsIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "0b2503a8ca9bb1256d2516df7485f930318a3a5ec35656e8f49b5ca2f7873d1d",
+      "bytes": 15210
+    },
+    {
+      "path": "tests/Feature/ServiceEndpointsIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "5f7c88dc7bb807101abcd7fb0f0d3cb65018472820a9dd49fb9fce05b621714c",
+      "bytes": 6198
+    },
+    {
+      "path": "app-modules/master/src/Services/AddressService.php",
+      "inspection": "read",
+      "sha256": "7c91a638059a84d0e82eebf87cf3fc23802629af71c470b785bb9ed5aa0b5be8",
+      "bytes": 5932
+    },
+    {
+      "path": "app-modules/master/src/Services/ContactService.php",
+      "inspection": "read",
+      "sha256": "c387da76fe2c3043962e86f664167f2714adb66064291d7a2dd433b5887d00a7",
+      "bytes": 5799
+    },
+    {
+      "path": "app-modules/master/src/Validation/AddressPayloadRules.php",
+      "inspection": "read",
+      "sha256": "72b65162e22e0e7bef0d371b46fb657636c8aa3983aafb8d037f5bbdabfe822a",
+      "bytes": 1920
+    },
+    {
+      "path": "app-modules/master/src/Validation/ContactPayloadRules.php",
+      "inspection": "read",
+      "sha256": "67ef69512c66dace3910b9e8384142b925c6e62289d7551617c6b7d2bccf2629",
+      "bytes": 1406
+    },
+    {
+      "path": "app-modules/master/src/Enums/ContactType.php",
+      "inspection": "read",
+      "sha256": "975825d4babd1864cd90a9587f8f5899ed46e8f84e57ef7c37674032fb1586a9",
+      "bytes": 205
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/AddressResource.php",
+      "inspection": "read",
+      "sha256": "714f67bb872fe8ee85c2230e37759fbb852002fcd1014dd73d0b126cea01a7da",
+      "bytes": 603
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/ContactResource.php",
+      "inspection": "read",
+      "sha256": "f75527e833f461608d4cdb1eddb961b14c8e0e15a275228675d613d27aa5c409",
+      "bytes": 560
+    },
+    {
+      "path": "app-modules/organization/src/Contracts/OrganizationInterface.php",
+      "inspection": "read",
+      "sha256": "7a04c6a84c59ebde3506b8cbffc1fc5f2c5d079024437acba5c82f95c6e99fac",
+      "bytes": 1066
+    },
+    {
+      "path": "app-modules/organization/src/Services/OrganizationService.php",
+      "inspection": "read",
+      "sha256": "f0965f3110fde54f9d92a978fd96ec2709e3cb8317e2f8e5486e129314ebdc68",
+      "bytes": 2880
+    },
+    {
+      "path": "docs/modules.md",
+      "inspection": "read",
+      "sha256": "3fc60a2f2b9c08e856a0445cf798af5a7d1e8f06e1f9edc49327ba2e423a15c7",
+      "bytes": 3394
+    },
+    {
+      "path": "docs/architecture/data-model.md",
+      "inspection": "read",
+      "sha256": "1cfd952ca6ff33d68bc75d3496c02ad7b5e1279ad1eac36f5c10397f90b5adc1",
+      "bytes": 5294
+    },
+    {
+      "path": "docs/features/catalog-categories.md",
+      "inspection": "read",
+      "sha256": "0a7714cb8573e77331d080f500122878469280dbf3efba6d1780a03ea426b332",
+      "bytes": 9474
+    },
+    {
+      "path": "docs/features/catalog-units.md",
+      "inspection": "read",
+      "sha256": "86e7362f3e952e72023fed733099559f4f07250d911510377c8108273bc546ef",
+      "bytes": 4140
+    },
+    {
+      "path": "docs/roadmap.md",
+      "inspection": "read",
+      "sha256": "9f13bc1054729151a0bc99de5283f158117c720e13ed0a85964101cee13ccc22",
+      "bytes": 5673
+    },
+    {
+      "path": "docs/api/endpoints.md",
+      "inspection": "relevant sections read",
+      "sections": "Catalog, Customer and Library sections",
+      "sha256": "f87579278ec0d5e9f83dc04f1e110a19f7c9a1cd97763e0e479f8560f1c4f334",
+      "bytes": 26485
+    },
+    {
+      "path": "app/Providers/AppServiceProvider.php",
+      "inspection": "relevant sections read",
+      "sections": "string normalization macros",
+      "sha256": "b37afebc42b448d46f3a0f5b7bedf43bd1a231c179e65bf49b0195e49efd7911",
+      "bytes": 5965
+    },
+    {
+      "path": ".env.example",
+      "inspection": "relevant sections read",
+      "sections": "Library environment settings",
+      "sha256": "5c5a01c658e10b97b988e16d7ce22987ee2fb49bb104263f60ca85cfe710157b",
+      "bytes": 4061
+    },
+    {
+      "path": "docs/site/content/docs/en/index.mdx",
+      "inspection": "read",
+      "sha256": "606d7153836a475eb2d44fde76fa0a9ae7218016a9e1572ba2f36834d32cb9d5",
+      "bytes": 2861
+    },
+    {
+      "path": "docs/site/content/docs/fr/index.mdx",
+      "inspection": "read",
+      "sha256": "8ba6c62eed47a8015b07bb58c2dd8ff4c8c7b662616496669acadb094ffee9fc",
+      "bytes": 3200
+    },
+    {
+      "path": "docs/site/content/docs/en/project-status.mdx",
+      "inspection": "read",
+      "sha256": "ef870a22269d32757ce84e32975f5bd543d861b161399bcdf476e35148357340",
+      "bytes": 2564
+    },
+    {
+      "path": "docs/site/content/docs/fr/project-status.mdx",
+      "inspection": "read",
+      "sha256": "10ecd9246096802023cb3b3ac13301c5da059d688953954336d7831a12945deb",
+      "bytes": 2815
+    },
+    {
+      "path": "api-client/environments/example.yml",
+      "inspection": "read",
+      "sha256": "eda7ea9046f34319ec0b4fc2cef9b1059eaa7ccba6bd872d41286f988046da07",
+      "bytes": 909
+    },
+    {
+      "path": "api-client/catalog/bundle/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "b26d557906fdfa292fb8c6ba1974d3e454ef728a0c3dd715fc599671c957f519",
+      "bytes": 71
+    },
+    {
+      "path": "api-client/catalog/bundle/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "ffa28fff6ec36c02ee92cc10987ba80f1265eb2388bae94f384cf0aa582c9671",
+      "bytes": 232
+    },
+    {
+      "path": "api-client/catalog/category/create.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "fe90ac1b7db4c8c9951d9e76f466b1a414035ef96ccd86edaad5cec99ab358f3",
+      "bytes": 593
+    },
+    {
+      "path": "api-client/catalog/category/delete.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "e704451eb44b7138d4c42f84c413a324c71af008aeb9a2c53293f002f46038d8",
+      "bytes": 225
+    },
+    {
+      "path": "api-client/catalog/category/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "67f11244b014240a7e00918908688fb89fa6b01be52bcec1e2803cdc7b28d48d",
+      "bytes": 73
+    },
+    {
+      "path": "api-client/catalog/category/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "1ee275c9e0f2daa61ab85ff0d66fef049c291f3f6007b2388159077b1a657016",
+      "bytes": 205
+    },
+    {
+      "path": "api-client/catalog/category/show.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "0a6328dcfe64d627bc1ee24a5d94c3f4c578318a49b4be422d4fcc06e3d16e57",
+      "bytes": 220
+    },
+    {
+      "path": "api-client/catalog/category/update.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "5d1e51607cd2ca6db75140224b467d79bf483231b7a774ed3fb816609a1c9a57",
+      "bytes": 328
+    },
+    {
+      "path": "api-client/catalog/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "350c7cc9b0a5c08d2679f3bc3e300f040d4d630a7860bd61b3aa0cb4d376106f",
+      "bytes": 72
+    },
+    {
+      "path": "api-client/catalog/option/create.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "9d3d1a16b676e09efe5bd59243f3a34ba3f68fd8dff125d35732ea827313d727",
+      "bytes": 619
+    },
+    {
+      "path": "api-client/catalog/option/delete.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "551fabf5940a386719a84c5dc800f2dfa9e4b71a66b67b996cd0932293438f1f",
+      "bytes": 220
+    },
+    {
+      "path": "api-client/catalog/option/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "95d88e303fcfa9285cf514d33c07f7a305330380ea497fcea549e38d0659ba79",
+      "bytes": 71
+    },
+    {
+      "path": "api-client/catalog/option/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "d0a5f69bb3a348083917485af51c23b66ff7db0ca150af4236a122a0aa6b3c65",
+      "bytes": 202
+    },
+    {
+      "path": "api-client/catalog/option/show.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "bddf940f8d841de8ad1ceacdb5d71f12c94eeb549f7afa78bed7f3ca9977affb",
+      "bytes": 215
+    },
+    {
+      "path": "api-client/catalog/option/update.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "0e9cbcb50b0b9b766beba40f36deaf0f9bbc15042f444924313916996ae3ba18",
+      "bytes": 322
+    },
+    {
+      "path": "api-client/catalog/option-value/create.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "343e957aefa7cb43f087ff6da7543c29a02902b289958d4ce7c8ecf335a0094b",
+      "bytes": 577
+    },
+    {
+      "path": "api-client/catalog/option-value/delete.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "ad047f6750a0ed6bf42e4bfcc3bd57bba067038cfa37c81a43f1d23cd1ce7b6b",
+      "bytes": 245
+    },
+    {
+      "path": "api-client/catalog/option-value/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "3b53c5882b2fe38acc49cd992aa6e854589966b01bc57d9fd0f18516d73e58f0",
+      "bytes": 77
+    },
+    {
+      "path": "api-client/catalog/option-value/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "5636501dfc0cb71349c82eb905300bd3ce6cf05093375bb8820a1bc2979bd107",
+      "bytes": 222
+    },
+    {
+      "path": "api-client/catalog/option-value/show.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "ee8bcf636f878336f6003c06c9ceabdaeddf13865c6d017d3e3f80c03a8f0c9b",
+      "bytes": 240
+    },
+    {
+      "path": "api-client/catalog/option-value/update.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "fb5ba2987818aaa8bd2121e99f7ca5f08c88206f168a4e4e0da6551246ca3067",
+      "bytes": 322
+    },
+    {
+      "path": "api-client/catalog/product/create.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "949a25ced7b8e3f5fab6fc56c57c92f964fa1be5d2f14092a9658b70d4d469b4",
+      "bytes": 1460
+    },
+    {
+      "path": "api-client/catalog/product/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "c722915607424891fd2aad8b3ad15f9d825c78997a2f8ce129d0c3a0231bd2de",
+      "bytes": 72
+    },
+    {
+      "path": "api-client/catalog/product/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "50f334d55cfad6f9d5336e5a851776e92af7f057bff6ca3d49a6067430639937",
+      "bytes": 203
+    },
+    {
+      "path": "api-client/catalog/product/show.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "c46fe63410c96c6ed7267312fe8c2ae8614f50ab2fc899d7c4dbe9eab86ab599",
+      "bytes": 217
+    },
+    {
+      "path": "api-client/catalog/product-variant/create.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "66271e124f8683aab89a7bb2f35b8d1a51dcef6c824ad14b33751ea155c9777c",
+      "bytes": 1024
+    },
+    {
+      "path": "api-client/catalog/product-variant/folder.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "24d6885b3dc1d87d3d97412907a5e0c6e2e7d9b3ca96dc83c0eba1a50143d691",
+      "bytes": 80
+    },
+    {
+      "path": "api-client/catalog/product-variant/list.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "d4504c50096eb0eb90e5d8bc05c27e69ab1ac6e8951cd93d4a4465531f54c351",
+      "bytes": 226
+    },
+    {
+      "path": "api-client/catalog/product-variant/show.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "bbdb4f494106a9c71c62ebd10f92d93306997ba8f37423e7df77118c0afb503a",
+      "bytes": 240
+    },
+    {
+      "path": "api-client/catalog/product-variant/update.yml",
+      "inspection": "variables, HTTP payload and response scripts",
+      "sha256": "617071f9c7902a819340a81a7d98486604ff2087ea8f02be168f3015f53eff97",
+      "bytes": 616
+    }
+  ],
+  "limitations": [
+    "Application tests not executed by this audit agent.",
+    "No live database inspected.",
+    "Generated IDE annotations in some models skipped for semantic analysis.",
+    "No application or existing documentation files edited."
+  ],
+  "drafts": [
+    {
+      "module": "catalog",
+      "slug": "index",
+      "sources": [
+        "app-modules/catalog/routes/catalog-routes.php",
+        "app-modules/catalog/src/Enums/CatalogItemType.php",
+        "app-modules/catalog/config/response-contracts.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "categories-options",
+      "sources": [
+        "app-modules/catalog/src/Services/CategoryService.php",
+        "app-modules/catalog/src/Assertions/CategoryAssertion.php",
+        "app-modules/catalog/src/Services/OptionService.php",
+        "app-modules/catalog/src/Services/OptionValueService.php",
+        "app-modules/catalog/tests/Feature/OptionServiceTest.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "products-variants",
+      "sources": [
+        "app-modules/catalog/src/Http/Requests/ProductRequest.php",
+        "app-modules/catalog/src/Http/Requests/ProductVariantCreateRequest.php",
+        "app-modules/catalog/src/Services/ProductService.php",
+        "app-modules/catalog/src/Services/ProductVariantService.php",
+        "tests/Feature/Integration/CatalogTenancyIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "services",
+      "sources": [
+        "app-modules/catalog/src/Http/Requests/ServiceCreateRequest.php",
+        "app-modules/catalog/src/Http/Requests/ServiceUpdateRequest.php",
+        "app-modules/catalog/src/Services/ServiceService.php",
+        "tests/Feature/ServiceEndpointsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "bundles-assembly",
+      "sources": [
+        "app-modules/catalog/src/Services/BundleService.php",
+        "app-modules/catalog/src/Services/BundleStockOperationService.php",
+        "app-modules/catalog/src/Http/Requests/BundleStockOperationCreateRequest.php",
+        "app-modules/catalog/tests/Feature/BundleStockOperationServiceTest.php",
+        "tests/Feature/BundleEndpointsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "locations-transfers",
+      "sources": [
+        "app-modules/catalog/src/Services/StockLocationService.php",
+        "app-modules/catalog/src/Services/StockTransferService.php",
+        "app-modules/catalog/src/Http/Requests/StockTransferRequest.php",
+        "app-modules/catalog/tests/Feature/StockTransferServiceTest.php"
+      ]
+    },
+    {
+      "module": "catalog",
+      "slug": "images",
+      "sources": [
+        "app-modules/catalog/src/Services/CatalogFileService.php",
+        "app-modules/catalog/src/Models/Product.php",
+        "app-modules/catalog/src/Models/Service.php",
+        "tests/Feature/Integration/FileAttachmentsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "customer",
+      "slug": "index",
+      "sources": [
+        "app-modules/customer/routes/customer-routes.php",
+        "app-modules/customer/config/response-contracts.php",
+        "app-modules/customer/src/Models/Customer.php",
+        "app-modules/customer/src/Policies/CustomerPolicy.php"
+      ]
+    },
+    {
+      "module": "customer",
+      "slug": "identity",
+      "sources": [
+        "app-modules/customer/src/Http/Requests/CustomerRequest.php",
+        "app-modules/customer/src/Services/CustomerService.php",
+        "app-modules/customer/database/migrations/2026_08_28_172940_create_customer_customers_table.php",
+        "app-modules/customer/tests/Feature/CustomerTest.php"
+      ]
+    },
+    {
+      "module": "customer",
+      "slug": "addresses-contacts",
+      "sources": [
+        "app-modules/customer/src/Http/Controllers/CustomerAddressController.php",
+        "app-modules/customer/src/Http/Controllers/CustomerContactController.php",
+        "app-modules/master/src/Services/AddressService.php",
+        "app-modules/master/src/Services/ContactService.php",
+        "tests/Feature/Integration/CustomerRelationsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "customer",
+      "slug": "pictures",
+      "sources": [
+        "app-modules/customer/src/Services/CustomerFileService.php",
+        "app-modules/customer/src/Models/Customer.php",
+        "app-modules/customer/src/Http/Controllers/CustomerFileController.php",
+        "tests/Feature/Integration/FileAttachmentsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "library",
+      "slug": "index",
+      "sources": [
+        "app-modules/library/routes/library-routes.php",
+        "app-modules/library/src/Http/Resources/FileResource.php",
+        "app-modules/library/config/response-contracts.php",
+        "app-modules/library/src/Services/FileService.php"
+      ]
+    },
+    {
+      "module": "library",
+      "slug": "uploading-private-content",
+      "sources": [
+        "app-modules/library/src/Http/Requests/FileUploadRequest.php",
+        "app-modules/library/src/Services/FileService.php",
+        "app-modules/library/src/Http/Responses/PrivateFileResponseFactory.php",
+        "app-modules/library/config/library.php",
+        "tests/Feature/Integration/LibraryIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "library",
+      "slug": "folders-trash-restore",
+      "sources": [
+        "app-modules/library/src/Services/FolderService.php",
+        "app-modules/library/src/Assertions/FolderAssertion.php",
+        "app-modules/library/src/Services/FileService.php",
+        "app-modules/library/tests/Feature/FolderEndpointsTest.php",
+        "tests/Feature/Integration/LibraryIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "library",
+      "slug": "attachment-integration",
+      "sources": [
+        "app-modules/library/src/Contracts/HasFileSlots.php",
+        "app-modules/library/src/Contracts/LibraryInterface.php",
+        "app-modules/library/src/Services/AttachmentService.php",
+        "app-modules/library/src/Http/Resources/FileAttachmentResource.php",
+        "tests/Feature/Integration/FileAttachmentsIntegrationTest.php"
+      ]
+    },
+    {
+      "module": "library",
+      "slug": "quotas-maintenance",
+      "sources": [
+        "app-modules/library/config/library.php",
+        "app-modules/library/src/Console/Commands/ReconcileLibraryCommand.php",
+        "app-modules/library/src/Services/LibraryMaintenanceService.php",
+        "app-modules/library/src/Providers/LibraryServiceProvider.php",
+        "tests/Feature/Integration/LibraryIntegrationTest.php"
+      ]
+    }
+  ],
+  "integration_review": {
+    "catalog_yamls": 30,
+    "json_bodies": 9,
+    "response_scripts": 5,
+    "application_endpoints_called": 0,
+    "dev_values_accessed": false
+  }
+}

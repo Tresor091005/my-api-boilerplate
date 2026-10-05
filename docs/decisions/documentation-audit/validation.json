@@ -1,0 +1,33 @@
+{
+  "public_pages": 144,
+  "pages_per_locale": 72,
+  "locales": [
+    "fr",
+    "en"
+  ],
+  "route_entries_per_locale": 161,
+  "json_examples": 50,
+  "repository_source_references": 494,
+  "exported_links_and_anchors": 3324,
+  "site_build": "passed",
+  "typescript": "passed during final Next build",
+  "markdown_file_links": "passed",
+  "route_table_structure": "passed",
+  "public_private_reference_scan": "passed",
+  "bruno": {
+    "requests": 69,
+    "json_nonempty_bodies": 35,
+    "scripts": 14,
+    "response_capture_checks": 89,
+    "placeholders": "all defined by example",
+    "live_api_calls": 0
+  },
+  "frontend_node_tests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "composer_validate": "valid with existing unbounded-constraint warnings",
+  "browser": "Desktop/mobile screenshots inspected; French search and result navigation, mobile menu and locale preservation checked.",
+  "php_application_tests": "not executed; configured database is not isolated",
+  "published": false
+}

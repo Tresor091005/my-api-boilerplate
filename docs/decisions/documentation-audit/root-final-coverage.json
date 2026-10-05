@@ -1,0 +1,1042 @@
+{
+  "audit": "Final root source/documentation inspection",
+  "project": "Lahatre ERP",
+  "captured_at": "2026-10-05T10:52:17.985291+00:00",
+  "input_manifest": "/tmp/lahatre-doc-audit/root-inspection-paths.json",
+  "requested_selection_complete": true,
+  "requested_file_count": 53,
+  "requested_total_lines": 3589,
+  "file_count": 90,
+  "counts_by_category": {
+    "additional_runtime_evidence": 17,
+    "requested_root_scope": 53,
+    "reviewed_public_global_pages": 20
+  },
+  "method": "Full text inspection of every selected root file and all public global EN/FR MDX pages. Related runtime config and source read to verify claims. No inferred metadata-only coverage.",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 13,
+      "bytes": 171,
+      "sha256": "cffcb67808cd7bc715f7813001bdbf0791c12dbf38d2992f8b72af52bc635688"
+    },
+    {
+      "path": ".env.example",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 163,
+      "bytes": 4054,
+      "sha256": "d49c5c7ec7e8a253c3e74e78d1c2b84cbc4fb0cc6e5c85bd5a3c45c246b80358"
+    },
+    {
+      "path": "app/Console/Commands/EnvironmentCheck.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 62,
+      "bytes": 1819,
+      "sha256": "79968225b546cf7ffa5ed3edd20c368997db5641369da4c970d0ba841c2b921e"
+    },
+    {
+      "path": "app/Console/Commands/EnvironmentFormat.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 117,
+      "bytes": 3261,
+      "sha256": "0154df7368fb300120ee78fb20a131c27c8be1ad2ced4c40838995c74bb91a2a"
+    },
+    {
+      "path": "app/Console/Commands/SortModelPhpDocs.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 149,
+      "bytes": 4812,
+      "sha256": "bfdf3c7c6651663005c21555a81b46cee2a1afad62f037d4f5c36da226ca448e"
+    },
+    {
+      "path": "app/Doctor/Diagnostics/EnvironmentFileMatchesExample.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 66,
+      "bytes": 2144,
+      "sha256": "b4d177f4f6955316a26a5884dac30653c38606185856e82a43fb376d892c1e3a"
+    },
+    {
+      "path": "app/Doctor/Diagnostics/GeoipDatabaseIsAvailable.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 78,
+      "bytes": 2376,
+      "sha256": "c7a82eb2f702f009f95ee6b1f3fd50b2f1c79f7e8e98d0c9ee8f9d342993430a"
+    },
+    {
+      "path": "app/Doctor/Diagnostics/HorizonServiceIsManaged.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 1367,
+      "sha256": "0c03321ab2387a28417c08e014d8f1ec1be24c5d0ac93d303ef5dbb14f34544b"
+    },
+    {
+      "path": "app/Doctor/Diagnostics/ReverbServiceIsManaged.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 1359,
+      "sha256": "09cb9b56e7f98b67f132ccd4398389ee8ce32ecc686c78632c1ff8db1478b764"
+    },
+    {
+      "path": "app/Doctor/Diagnostics/SchedulerServiceIsManaged.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 1383,
+      "sha256": "6b72eb37663f5c50fffc91be4d170c96700d7c1f6f5d2ea2da2f6fc7de1bcefa"
+    },
+    {
+      "path": "app/Http/Controllers/Controller.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 10,
+      "bytes": 103,
+      "sha256": "09e5cac5a69959ccf23d756cda697b993df937c106655d124ff27ca5fe24a705"
+    },
+    {
+      "path": "app/Providers/AppServiceProvider.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 163,
+      "bytes": 5965,
+      "sha256": "b37afebc42b448d46f3a0f5b7bedf43bd1a231c179e65bf49b0195e49efd7911"
+    },
+    {
+      "path": "app/Providers/HorizonServiceProvider.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 875,
+      "sha256": "6ed6f0f381850e8d01e473540b3f0c5638fcc466ba46dca6eff6fa1198499dff"
+    },
+    {
+      "path": "app/Providers/RateLimitServiceProvider.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 36,
+      "bytes": 838,
+      "sha256": "fca020c1b4afc33a188cad0aea3bffbf42a24bc0aa3fd80465d17ce10d3220a1"
+    },
+    {
+      "path": "app/Providers/TelescopeServiceProvider.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 64,
+      "bytes": 1622,
+      "sha256": "959f2e3ccd20cac0e8776a349a3901cb299183ba42584bcef857d27577fac495"
+    },
+    {
+      "path": "app/Support/EnvironmentFileInspector.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 84,
+      "bytes": 2236,
+      "sha256": "da7e3f85294bb01a58ba606ffc5a4482956d9e9637ea6a2feacf175e1f68242b"
+    },
+    {
+      "path": "bootstrap/app.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 75,
+      "bytes": 3013,
+      "sha256": "d2e64f12ebf8396c64eb12013ea573230f2d46e84e74ff31fdcddd704ec635aa"
+    },
+    {
+      "path": "bootstrap/providers.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 21,
+      "bytes": 521,
+      "sha256": "c27aa2f2332d995bf9fa72bf8c1606282d8e540401bbe968fb9da4505d489c70"
+    },
+    {
+      "path": "composer.json",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 165,
+      "bytes": 5328,
+      "sha256": "f3220d4bed8ac831e85b4935de48f67df09194a8d38891a9e34991982640647d"
+    },
+    {
+      "path": "config/app.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 128,
+      "bytes": 4299,
+      "sha256": "196f4003eb7cf4b1091286653d744b2f2e0e6c3ea39024e629a345bd2cb6768d"
+    },
+    {
+      "path": "config/doctor.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 48,
+      "bytes": 1337,
+      "sha256": "fc8ac0f005959f301960a74c33da30cd1f1c1c9e872977fd693b61a282e9dbc3"
+    },
+    {
+      "path": "config/horizon.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 261,
+      "bytes": 8487,
+      "sha256": "efd30baebab5a62e557613767e294018fdbfe8a16ace62c44722b3886f089870"
+    },
+    {
+      "path": "config/queue.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 131,
+      "bytes": 4351,
+      "sha256": "7d4aba9ef1df5d572ab6f92d33dea2a5fd9d31f1e68c5cfb9fa8a33e870c6ae2"
+    },
+    {
+      "path": "config/reverb.php",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 97,
+      "bytes": 3558,
+      "sha256": "0942784cada913b1edd44ba8bcb80828a13417e25bf38a59d4adc2ea0295da26"
+    },
+    {
+      "path": "docker-compose.yml",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 4,
+      "bytes": 98,
+      "sha256": "1f453cfb380041429485f34bda75dfe60fe533223b2c8a691913f47a745d3c2f"
+    },
+    {
+      "path": "docker/app/Dockerfile",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 48,
+      "bytes": 1203,
+      "sha256": "1d2e5574b8525b0e4fbfdda704dbdcd2469c248e075071e12f5d976dcec51f82"
+    },
+    {
+      "path": "docker/app/entrypoint.development.sh",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 15,
+      "bytes": 469,
+      "sha256": "dc39d818cfcf4cdfbdd4f10801938363474dc8ab763a582e72053680e0c00d1f"
+    },
+    {
+      "path": "docker/app/entrypoint.runtime.sh",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 209,
+      "sha256": "04f4d4ec6f344e3610e146d2e51ac4535f5cd0d1b293bad6cd8492faf4167833"
+    },
+    {
+      "path": "docker/compose/app.yml",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 136,
+      "bytes": 3186,
+      "sha256": "8d86b56d188903931eba8179505e9856f59e73e60769e97025d7655e120bedd5"
+    },
+    {
+      "path": "docker/compose/environments/dev/app.yml",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 99,
+      "bytes": 2431,
+      "sha256": "3c379e3063d08fcd1967bd46424e716d4e4cbcd005f022eec06f302abba1c1fe"
+    },
+    {
+      "path": "docs/README.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 83,
+      "bytes": 4150,
+      "sha256": "a29e9776a5a25bfc7766e6a429eb10c42ee5ba5d76392f7bf221f1d7a1200796"
+    },
+    {
+      "path": "docs/api/README.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 6,
+      "bytes": 226,
+      "sha256": "1c1edd2eafdd9637cc875b62b42aa5d9a70d84bd89d8d049f2c5884bf0bc0f6f"
+    },
+    {
+      "path": "docs/api/rate-limiting.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 74,
+      "bytes": 2619,
+      "sha256": "8ac48bdd4cac89193c7344f0b2b01cea5e534bfb51dceddf0f3ce747bf513223"
+    },
+    {
+      "path": "docs/architecture/README.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 11,
+      "bytes": 471,
+      "sha256": "88ec4f3d75eb044b630270777eb990a4d3075c04a620439d7c55bf145e2333da"
+    },
+    {
+      "path": "docs/architecture/application-runtime.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 137,
+      "bytes": 6607,
+      "sha256": "3bc639185c2e891b764f391cfa1443b0d9c5c48d87690d6f874bb6908b8c5e01"
+    },
+    {
+      "path": "docs/architecture/coding-rules/language-and-documentation.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 28,
+      "bytes": 1501,
+      "sha256": "a951bd72bb932f126f175c6773eea1a0a13f6db5df592e53fe653bdc064604ab"
+    },
+    {
+      "path": "docs/architecture/coding-rules/naming-conventions.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 111,
+      "bytes": 2364,
+      "sha256": "8102c52f5e24d12564a6d9846ced5e7f099f06d596559843e17379b9713aa531"
+    },
+    {
+      "path": "docs/architecture/database/migrations.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 43,
+      "bytes": 2035,
+      "sha256": "09e1468ef92124360140b11a486cc434bc5b5a7187902726e65083a02fbc2a82"
+    },
+    {
+      "path": "docs/architecture/database/models.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 59,
+      "bytes": 2893,
+      "sha256": "a61905452f4d155f7cb53836f9059d7cbd94b69fdd9d46904e45f5774af630ee"
+    },
+    {
+      "path": "docs/architecture/date-time-conventions.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 122,
+      "bytes": 5239,
+      "sha256": "bda8261a0b1b55aab3cff350099eb5833efb8f8076ac194a278f6bdca0b0c040"
+    },
+    {
+      "path": "docs/authentication/sanctum.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 133,
+      "bytes": 5023,
+      "sha256": "4755862ed55ad2645904299b65de94b27793f8948abab4fc2161c4d4f5ee858c"
+    },
+    {
+      "path": "docs/broadcasting/reverb.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 42,
+      "bytes": 1859,
+      "sha256": "94d529a2416c9894c81b7f0d534097d72e5fca60ba739dabbc2a99db0fb9e989"
+    },
+    {
+      "path": "docs/decisions/form-requests-data-migration.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 1135,
+      "sha256": "0a60e0f3ccf3e4a1eb83ba59f6aee4ba9215fd6996f4c6a3dcf1f01810981b40"
+    },
+    {
+      "path": "docs/development/README.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 13,
+      "bytes": 561,
+      "sha256": "5a643483f96785de76096b9cdb61e228acd62cac5a49fe0453b04f4d09f83165"
+    },
+    {
+      "path": "docs/development/agent-instruction-follow-up.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 119,
+      "bytes": 7443,
+      "sha256": "c4f74111d8fe8d2a2cd9778b729cf72fd19349b0c9ef26feaf0aa1d282b3c1ce"
+    },
+    {
+      "path": "docs/development/async-and-communication.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 73,
+      "bytes": 3572,
+      "sha256": "ef98d2bc510fe650c9c60af2eb6f242e3f517d6d006e54006cc41e948949ccc4"
+    },
+    {
+      "path": "docs/development/code-quality.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 26,
+      "bytes": 1433,
+      "sha256": "a2981f797be1023b21313d9cb03ed8523b19022f45a740371379d798dc8d5735"
+    },
+    {
+      "path": "docs/development/debugging/telescope.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 41,
+      "bytes": 1655,
+      "sha256": "999315448644cc4aad6333428160ca4d092cdc3fc476a27bdcf59ceaf78ae6d2"
+    },
+    {
+      "path": "docs/development/dependencies.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 32,
+      "bytes": 1724,
+      "sha256": "0befc1506efec1ca853b20a4d1830ecf6a1bd0c3e04135b7ae2c7d1083609cbb"
+    },
+    {
+      "path": "docs/development/documentation/scramble.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 14,
+      "bytes": 617,
+      "sha256": "0934d3a1e2f04f4a1ee0327922e9d64467b78106ff39cc16f0dcb90165287b19"
+    },
+    {
+      "path": "docs/development/observability.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 1516,
+      "sha256": "f4566cd947bcafb43a42844d39cb3e38af6446b8fcce43cf1c12981e2f47d986"
+    },
+    {
+      "path": "docs/development/tools.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 51,
+      "bytes": 2291,
+      "sha256": "75c1bc30959e5b3c7d486954fe0ecd0275cd5432018bc024c614c92b630c51d1"
+    },
+    {
+      "path": "docs/development/validation-limits.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 23,
+      "bytes": 1352,
+      "sha256": "742a21e25e497381cb4b2ffb40852242f09c10a08590fc2549d783944cb4bebd"
+    },
+    {
+      "path": "docs/features/README.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 7,
+      "bytes": 244,
+      "sha256": "19d5f5f95372a0aa32d71e053d7db82f01bfe5e9d8ed6fbb4faaecb3ad591d05"
+    },
+    {
+      "path": "docs/infrastructure/docker.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 229,
+      "bytes": 11275,
+      "sha256": "c8ec24f6184a7e6fbaf44ab0e1fa1e08432663ae211f78ec57b49bbb91190b71"
+    },
+    {
+      "path": "docs/modules/iam.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 446,
+      "bytes": 28479,
+      "sha256": "248d3bb99066051510780c24c9ccff1365b71e9d1e45936b7c9f4cee1ddb97f2"
+    },
+    {
+      "path": "docs/modules/master.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 84,
+      "bytes": 4126,
+      "sha256": "6e73fd15e3d145af1eab37e7de3630e21a452ec9173cb5c27f686b53dac69160"
+    },
+    {
+      "path": "docs/modules/organization.md",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 38,
+      "bytes": 1992,
+      "sha256": "dc296ed5b24575eb8ac0ad0cb12a5a690ef0cb453965d75dc32baa624e5fb072"
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/data-tenancy.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 2704,
+      "sha256": "99a724dd53bfa975f51de22546c6f95dca8030997bc55d1009d1f84a6041aa6d"
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/dates.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 1633,
+      "sha256": "766ba72be44079ae1dcdfaa28c0497f41e280b2eef8d48b6326d10559e0c3d94"
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/index.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 46,
+      "bytes": 2736,
+      "sha256": "eeef53b30677e9853da8fde64df42ddaea24a8e4ca9249ff47e923611cba89f5"
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/modules.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 2374,
+      "sha256": "b1954059bb75dcaeee56d2796cd9b045cd5018ffc1edb3c2aca11692c81b9216"
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/reuse.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 1948,
+      "sha256": "13933772c0ad1122ffc4b7e93cc44adb88961bedf709460ba608776d28d2a4fd"
+    },
+    {
+      "path": "docs/site/content/docs/en/development/documentation.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 41,
+      "bytes": 2296,
+      "sha256": "d2b93b6e83f55522cb1bc39bdb118ba91ffff9c13c51d3a8f07202e0d1463ec2"
+    },
+    {
+      "path": "docs/site/content/docs/en/development/index.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 897,
+      "sha256": "a3094cdf6e06fc7c2485c95d2658f9b1cce081a3e3078cfe9239153025d4ee49"
+    },
+    {
+      "path": "docs/site/content/docs/en/development/operations.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 2997,
+      "sha256": "b3c1c493af94884afd57f81443ade966e8ee82e80362e7c6ffdc75644732d025"
+    },
+    {
+      "path": "docs/site/content/docs/en/development/testing.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 51,
+      "bytes": 2613,
+      "sha256": "6e6dbeebf45693b3a4fe8c12a85c8744a25f09cc4bd98fb0f4de923035527838"
+    },
+    {
+      "path": "docs/site/content/docs/en/getting-started/installation.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 66,
+      "bytes": 2649,
+      "sha256": "82aa7d3bd52d122919e4e6d5257418cc9bdee822eb5c4682bf0e90fda4890758"
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/data-tenancy.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 35,
+      "bytes": 2951,
+      "sha256": "0b4ca82092b6fb352e9924eeb724e402476744c0b1c2e27b415fd8057358ddf9"
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/dates.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 24,
+      "bytes": 1808,
+      "sha256": "dfab12d58c060dc9c013c995b01307977edf7d4ae341acc6d2a059f6fb72b945"
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/index.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 46,
+      "bytes": 3094,
+      "sha256": "373aa78acf5c57bc066093e25359b5a36521dd245d6c47f3d0b8bc69419458a4"
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/modules.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 31,
+      "bytes": 2642,
+      "sha256": "c841e06e876160baa1811e8d319e62ea2e1650947e442a3fd53f7559255c7dbf"
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/reuse.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 2093,
+      "sha256": "0c58ca39b5c276016a98e3c16931c1e36fb9e4377e4da5f830fdb283dff4a457"
+    },
+    {
+      "path": "docs/site/content/docs/fr/development/documentation.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 41,
+      "bytes": 2402,
+      "sha256": "003bd37ebeb3eaf1f4efb94927b066225f8fcc880f54a4f819d6a1659125b4f9"
+    },
+    {
+      "path": "docs/site/content/docs/fr/development/index.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 17,
+      "bytes": 950,
+      "sha256": "8262e6bf481529f8950b1dec23a9e8ff25ce024ac6fcb2a6a8737b991a0cbb56"
+    },
+    {
+      "path": "docs/site/content/docs/fr/development/operations.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 49,
+      "bytes": 3235,
+      "sha256": "ac1cce12da1f1fab8aef7c1b4054acc7505ffa75b4b2381eeca9a546e13b25b2"
+    },
+    {
+      "path": "docs/site/content/docs/fr/development/testing.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 51,
+      "bytes": 2771,
+      "sha256": "517f1d921cde78d9a70a73deeec596dfee295321ad0d8668d05c72193307f655"
+    },
+    {
+      "path": "docs/site/content/docs/fr/getting-started/installation.mdx",
+      "category": "reviewed_public_global_pages",
+      "inspection": "full_file_read",
+      "lines": 66,
+      "bytes": 2865,
+      "sha256": "47ec821c75f3f77a3a96dee8c8913497ad6d5d5e36327a43bb880e8f460626aa"
+    },
+    {
+      "path": "docs/site/next.config.mjs",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 14,
+      "bytes": 349,
+      "sha256": "3b92a4b23cbc3eb6ab0adbacc07400af0fcb1a91836045541e046b59bc1cc5bb"
+    },
+    {
+      "path": "docs/site/package.json",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 33,
+      "bytes": 830,
+      "sha256": "decba253adad70c2f8d6e90be45cab1ae027ce9749333c631e53fa8c022be2af"
+    },
+    {
+      "path": "frontend/package.json",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 10,
+      "bytes": 199,
+      "sha256": "5032c975f4c9207226dbad51cc9783a87fa73f78ed3b659d2c4737b91761b3ee"
+    },
+    {
+      "path": "phpunit.xml",
+      "category": "additional_runtime_evidence",
+      "inspection": "full_file_read",
+      "lines": 36,
+      "bytes": 1455,
+      "sha256": "70f86c5f2e951ea2f0599c1d5bc79a31c529fc9fdec77ac345ea5633b021b42c"
+    },
+    {
+      "path": "routes/api.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 3,
+      "bytes": 32,
+      "sha256": "0f47689a54b62f2fa99240ff0e081920bad20dc3779b24d76f16e7709eecbed3"
+    },
+    {
+      "path": "routes/channels.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 7,
+      "bytes": 176,
+      "sha256": "a8988843376c5c8ba02289f0653c8bd7f8a49f1cf3797ae47e16d3f2c30a0339"
+    },
+    {
+      "path": "routes/console.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 10,
+      "bytes": 242,
+      "sha256": "ed7498862cfa2ee95b008becf1abdd58feab37be1cb414d441de43aaa6feb395"
+    },
+    {
+      "path": "routes/web.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 9,
+      "bytes": 204,
+      "sha256": "3c651517f95ceea27ba3a1fa9e2ed44e5df74a0b6da2486c9bad11aeed123324"
+    },
+    {
+      "path": "tests/Fixtures/GeoIP/LICENSE-APACHE",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 202,
+      "bytes": 11360,
+      "sha256": "aac73b3148f6d1d7111dbca32099f68d26c644c6813ae1e4f05f6579aa2663fe"
+    },
+    {
+      "path": "tests/Fixtures/GeoIP/LICENSE-MIT",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 19,
+      "bytes": 1064,
+      "sha256": "1df87b7d02b61565af885de9c6368651d0ffd1893b2d289ecaae725e9ac2f914"
+    },
+    {
+      "path": "tests/Pest.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 122,
+      "bytes": 3958,
+      "sha256": "8898f4d40771c99baf8816a6afea6282846bd3bf8a8d5b1a61125408d854392d"
+    },
+    {
+      "path": "tests/TestCase.php",
+      "category": "requested_root_scope",
+      "inspection": "full_file_read",
+      "lines": 70,
+      "bytes": 1189,
+      "sha256": "59a389bc25dc7b14fc4eb93ccfe3865ec75aacd804ca55b73aa20611e538860f"
+    }
+  ],
+  "excluded_input_paths": [
+    {
+      "path": "api-client/.gitignore",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/accept-invitation.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/clear-default-member-role.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/create-organization.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/current-permissions.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/email-challenge.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/google/challenge.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/google/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/google/link.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/google/verify.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/logout.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/me.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/organization-registration-token.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/register-organization-existing-user.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/register-organization-new-user.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/sessions/delete-all.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/sessions/delete.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/sessions/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/sessions/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/set-default-member-role.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/switch-member-role.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/update-me.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/verify-email-code-with-profile.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/auth/verify-email-code.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/accept.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/create.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/delete.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/replace-roles.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/resend-email.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/invitations/show.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/delete.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/create.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/delete.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/member-roles/update.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/show.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/organization-members/update.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/permissions/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/permissions/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/create.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/delete.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/show.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/iam/roles/update.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/currency/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/currency/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/unit/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/unit/list.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/master/unit/upsert.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/opencollection.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/organization/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/organization/settings/folder.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/organization/settings/show.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "api-client/organization/settings/update.yml",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/package.json",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/public/app.js",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/public/google-test.html",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/public/index.html",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/public/styles.css",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/server.mjs",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "frontend/server.test.mjs",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "tests/Feature/Integration/ApiRequestContextIntegrationTest.php",
+      "reason": "outside the delegated root-final path filter"
+    },
+    {
+      "path": "tests/Fixtures/GeoIP/GeoIP2-City-Test.mmdb",
+      "reason": "Binary GeoIP fixture explicitly excluded; adjacent licenses read in full."
+    },
+    {
+      "path": "tests/Unit/.gitkeep",
+      "reason": "outside the delegated root-final path filter"
+    }
+  ],
+  "partial_external_evidence": [
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Broadcasting/BroadcastManager.php",
+      "inspection": "targeted routes registration, lines75-94"
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Broadcasting/Broadcasters/Broadcaster.php",
+      "inspection": "targeted verifyUserCanAccessChannel and retrieveUser"
+    }
+  ],
+  "runtime_commands_executed": [],
+  "db_mutations": false,
+  "source_edits": false,
+  "report": "root-final-report.md"
+}

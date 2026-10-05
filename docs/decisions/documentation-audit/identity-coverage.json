@@ -1,0 +1,2313 @@
+{
+  "scope": [
+    "iam",
+    "organization",
+    "master"
+  ],
+  "module_files": 325,
+  "files": [
+    {
+      "path": ".agents/CODEBASE_RULES.md",
+      "inspection": "read",
+      "sha256": "7ba3c6313b8da90f8b44c08523fa518913f1f4c64cc758ecad43bf07be9f8513",
+      "bytes": 4378
+    },
+    {
+      "path": ".ai/rules/date-time-conventions.md",
+      "inspection": "read",
+      "sha256": "770065cd876e8e4f0c0e0e5e86a0d2e4347b560a3b9bc4db01b78306cd024c48",
+      "bytes": 3422
+    },
+    {
+      "path": ".ai/rules/documentation-and-language.md",
+      "inspection": "read",
+      "sha256": "5e0f5a836184d14fa15c79983d653e0cd079fe75549fcdbb2af17182511422a2",
+      "bytes": 4153
+    },
+    {
+      "path": ".ai/rules/domain-services-data.md",
+      "inspection": "read",
+      "sha256": "31215bbd0124790d19ab3677c0dfbf07d0a4ab2b616b3dfb0947569e36bde0f3",
+      "bytes": 9636
+    },
+    {
+      "path": ".ai/rules/extension-points.md",
+      "inspection": "read",
+      "sha256": "b1aa93f73dc6a94a831612ab621fa0b8053136fcc09ea2d712431c89f91261d3",
+      "bytes": 3301
+    },
+    {
+      "path": ".ai/rules/http-api.md",
+      "inspection": "read",
+      "sha256": "81147abe59a6fcf9f027595fb98b17c0aed6255f4fc070ef078027a43cb33678",
+      "bytes": 7940
+    },
+    {
+      "path": ".ai/rules/index.md",
+      "inspection": "read",
+      "sha256": "ef2ac70785f0aafc149114c028731fc81ff397bad5d18018cd42211df7bfddba",
+      "bytes": 2380
+    },
+    {
+      "path": ".ai/rules/localization.md",
+      "inspection": "read",
+      "sha256": "d6ed0fa253101ceedb8de2163397d2d2cf42b812100075ff45a3b98a1da1217e",
+      "bytes": 5317
+    },
+    {
+      "path": ".ai/rules/module-architecture.md",
+      "inspection": "read",
+      "sha256": "4a57f647126906d00908200363a6b9e5603f59a561fb6335bb4240f7904f37ac",
+      "bytes": 4640
+    },
+    {
+      "path": ".ai/rules/persistence-tenancy.md",
+      "inspection": "read",
+      "sha256": "7ab4ba034bc6997bcd355ff76aaa57c9e50bb4fd9a2305c6f01ea4f907439f50",
+      "bytes": 8236
+    },
+    {
+      "path": ".ai/rules/testing.md",
+      "inspection": "read",
+      "sha256": "2c50164de5f0e43e5e72e77bb000eedf2cdb0ca8d5a98e093420aa74b5ab42ed",
+      "bytes": 7613
+    },
+    {
+      "path": ".ai/rules/validation.md",
+      "inspection": "read",
+      "sha256": "854aa73185446d708f083ed5f0bafb84755829a265b6d3e916afbc09dcdc75a3",
+      "bytes": 9230
+    },
+    {
+      "path": "app/Providers/RateLimitServiceProvider.php",
+      "inspection": "read",
+      "sha256": "fca020c1b4afc33a188cad0aea3bffbf42a24bc0aa3fd80465d17ce10d3220a1",
+      "bytes": 838
+    },
+    {
+      "path": "app-modules/customer/routes/customer-routes.php",
+      "inspection": "read",
+      "sha256": "e020a542beabe0fefdaa91b71795a6875c320311aa0c8c6539fa47e8f113b989",
+      "bytes": 2011
+    },
+    {
+      "path": "app-modules/iam/composer.json",
+      "inspection": "read",
+      "sha256": "3204bc1016cfc8a4da888824ae4169331fa252efa5fa66b92b628b2848100fdd",
+      "bytes": 497
+    },
+    {
+      "path": "app-modules/iam/config/permission.php",
+      "inspection": "read",
+      "sha256": "7fef6d0ead6e4c7d709c3aa560d3afffda719b856df4a146d8cf4c51815124ab",
+      "bytes": 7156
+    },
+    {
+      "path": "app-modules/iam/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "c4a8971159e55c5eb30332f9975a96e48ca9578e3df4e8e66941852f52eca868",
+      "bytes": 4333
+    },
+    {
+      "path": "app-modules/iam/config/system-permissions.php",
+      "inspection": "read",
+      "sha256": "f29e092d653d4e5d001c4b602f9e8c25e7eb4bc8196422fbab301f8c8674ba03",
+      "bytes": 746
+    },
+    {
+      "path": "app-modules/iam/database/factories/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/iam/database/factories/ExternalIdentityFactory.php",
+      "inspection": "read",
+      "sha256": "9a33a04723d2bb440ffe8a112ee69eb9a468bebeb3081e9261928087ec5dbc39",
+      "bytes": 608
+    },
+    {
+      "path": "app-modules/iam/database/factories/InvitationFactory.php",
+      "inspection": "read",
+      "sha256": "882d62d2494436980c0c1697f0199c498de5e0447e24dc1c6d1a2a68349f8410",
+      "bytes": 681
+    },
+    {
+      "path": "app-modules/iam/database/factories/MemberRoleFactory.php",
+      "inspection": "read",
+      "sha256": "c7269fca4bea382440ffff07a989b985e63c8e28866c41d3bd471647c3276072",
+      "bytes": 805
+    },
+    {
+      "path": "app-modules/iam/database/factories/OrganizationMemberFactory.php",
+      "inspection": "read",
+      "sha256": "b8fdc0b360299d0f20813d83aa151a877b01257b473881a88609085bcbb5e5f1",
+      "bytes": 730
+    },
+    {
+      "path": "app-modules/iam/database/factories/PermissionFactory.php",
+      "inspection": "read",
+      "sha256": "a71c049944d3eaae9265b05f8ca09966eb188100249b005de77870df339aa6aa",
+      "bytes": 525
+    },
+    {
+      "path": "app-modules/iam/database/factories/RoleFactory.php",
+      "inspection": "read",
+      "sha256": "62e858a68d1f672f309bca6a05ebb8aecc8d87f3948f52fcc1a1370e6a994cf0",
+      "bytes": 630
+    },
+    {
+      "path": "app-modules/iam/database/factories/UserFactory.php",
+      "inspection": "read",
+      "sha256": "824a264d94896d836bf336063cb2062fb79db5f07f4762f78a889dde86031680",
+      "bytes": 884
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_02_11_201034_add_metadata_to_personal_access_tokens.php",
+      "inspection": "read",
+      "sha256": "d2a84e69cfc0450bcef9e9010b7ae17c7982020c4dc3cf851ab7c24e0f3e8df1",
+      "bytes": 667
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_02_13_213852_create_permission_tables.php",
+      "inspection": "read",
+      "sha256": "fb09dab43718c1124a640b94d9244008c17b1e6389c4aef5d58cb101d5787f94",
+      "bytes": 6198
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_03_29_093345_create_organization_membership_tables.php",
+      "inspection": "read",
+      "sha256": "7e731e55fcaaafccb336fd0a4fd8b5ab9ab3aaafa18a8b19cfae4e393202c4a8",
+      "bytes": 2100
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_05_09_130000_add_soft_deletes_to_iam_membership_tables.php",
+      "inspection": "read",
+      "sha256": "fe4b3bdac252d9c73f460bd15b455b4af9e379fb1fa59521536c197bf20e0b5d",
+      "bytes": 4982
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_08_21_113000_add_organization_identity_to_iam_organization_members_table.php",
+      "inspection": "read",
+      "sha256": "9e907ed555862c3d984873ee54f24d665e6924a698e547611e64d40a5002ae6b",
+      "bytes": 536
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_09_29_110555_add_soft_deletes_to_iam_roles_table.php",
+      "inspection": "read",
+      "sha256": "8ef170c4e01f0e983d962e8d036808630ad50c7c6b865094f18fbfb5b3b644ae",
+      "bytes": 865
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_09_29_144002_create_iam_organization_registration_tokens_table.php",
+      "inspection": "read",
+      "sha256": "02fe9ed0edc2977276f8775fccaca371f8ec7891d9761bda8d3468fc1e9cde83",
+      "bytes": 746
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_09_30_091303_create_iam_invitations_tables.php",
+      "inspection": "read",
+      "sha256": "5b03cb19f5f972b592af9030bb4306757128db9e5ade52b9dc953b9d5e90edc3",
+      "bytes": 1926
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_09_30_164549_add_is_active_to_iam_access_tables.php",
+      "inspection": "read",
+      "sha256": "17392b85b5b13366137f3303d4b77f954b28e8e40f298a0239cf312d500c3eca",
+      "bytes": 792
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_01_102929_create_email_login_challenges_and_remove_user_passwords.php",
+      "inspection": "read",
+      "sha256": "86c4e63a2f5cee3b3d3a4f02239c07236a78c446168e7ddec943613c346173fc",
+      "bytes": 892
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_02_094521_add_default_member_role_id_to_iam_users_table.php",
+      "inspection": "read",
+      "sha256": "1d094ecffb080416c1dbe6a6e6838322acf56d06ab8e1a88bb400d83e23f1763",
+      "bytes": 674
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_02_104931_create_iam_google_authentication_tables.php",
+      "inspection": "read",
+      "sha256": "e3ac1bb386fbbe72ecfa0a812d4f1568708202a170eabff050fa1d5edabcfcdd",
+      "bytes": 1189
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_02_110846_scope_user_default_member_role_index_to_non_deleted_users.php",
+      "inspection": "read",
+      "sha256": "61617e051e2b2809b62cb45b8afdfd303fec9d10eb1f8304e767954f83612af2",
+      "bytes": 452
+    },
+    {
+      "path": "app-modules/iam/database/migrations/2026_10_02_143138_make_iam_user_names_nullable.php",
+      "inspection": "read",
+      "sha256": "fe07f34d6a7c5849be3a2523571e844eb57ffcf5e62dd1484d772b0b9d9d4035",
+      "bytes": 487
+    },
+    {
+      "path": "app-modules/iam/database/seeders/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/iam/database/seeders/InvitationSeeder.php",
+      "inspection": "read",
+      "sha256": "1d8fd21628745f212b5c6ce05a62ef0e63cbe3f9ada854cc7e9675dc6be4c6fb",
+      "bytes": 926
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/console.php",
+      "inspection": "read",
+      "sha256": "a879c11a43d1d0d19e34d83812862b09b64626fbe606a0b048289ccba8d31cd4",
+      "bytes": 1422
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "6ec11eee978983a91377d86a793cd7a1bbcdf2add5caf905746031880553cbb3",
+      "bytes": 4336
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/messages.php",
+      "inspection": "read",
+      "sha256": "df243312a082fd412b3e605b80de1b375a1dc767bf67aae83d81d98b465f46d2",
+      "bytes": 1145
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/notifications.php",
+      "inspection": "read",
+      "sha256": "16e7a566b5fc480c0a3ed4bae6a4c7787783987a02d81268148f59a2e0ba53b1",
+      "bytes": 723
+    },
+    {
+      "path": "app-modules/iam/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "b67ca2255e11949aa4ada402fb2d77035620be737c820b3aafa2bfba325d332b",
+      "bytes": 309
+    },
+    {
+      "path": "app-modules/iam/resources/views/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/iam/routes/iam-routes.php",
+      "inspection": "read",
+      "sha256": "5c4889a2b1886fb4a8279791d6a5480b84939cb04f0afb18baf92525691bffcc",
+      "bytes": 5726
+    },
+    {
+      "path": "app-modules/iam/src/Auth/AuthContext.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "00bde0c886e5a32896ae1c6c711868915adb76f88d2b795601c726286f0ca323",
+      "bytes": 2805
+    },
+    {
+      "path": "app-modules/iam/src/Auth/PersonalAccessToken.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "553e12aa915994f50c23582225fff9952179f146c9a259a7835700bc79e0f36e",
+      "bytes": 2927
+    },
+    {
+      "path": "app-modules/iam/src/Console/Commands/DiscoverSysPermissions.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b59d522d3b0cf274e0ae04d1482a82acef6b3209f205becf381fff70c7e7152a",
+      "bytes": 3933
+    },
+    {
+      "path": "app-modules/iam/src/Console/Commands/UpdateGeoipDatabase.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "42da9b414b53fab9cae169d69359732f34c971574ad11ee6a740696183e81b47",
+      "bytes": 952
+    },
+    {
+      "path": "app-modules/iam/src/Data/GoogleAuthenticationData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "a487915b9840d6a51251a9d873cf8c5bd128eaf6f4f84721396bd755a49d6dec",
+      "bytes": 535
+    },
+    {
+      "path": "app-modules/iam/src/Data/InvitationAcceptanceData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6af048bfc6d6215eb9400927b7c2d3aae85436ed454d82b74fecc757b29876b1",
+      "bytes": 571
+    },
+    {
+      "path": "app-modules/iam/src/Data/InvitationData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e9f07772b37bebab76ec06564b47d2763f3042849d86858a3a517e7c66c52a37",
+      "bytes": 397
+    },
+    {
+      "path": "app-modules/iam/src/Data/InvitationFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "521c9c079ec3d193f2079559fba5845d0fccaadbc5200c73f84725b7b3c62baf",
+      "bytes": 837
+    },
+    {
+      "path": "app-modules/iam/src/Data/LoginData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b0f2e3332e5af21f0d5df93e3c268201d094fdc2265b04f9ec55c7e76e63bd40",
+      "bytes": 508
+    },
+    {
+      "path": "app-modules/iam/src/Data/MemberRoleCreateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1ed2587059a5fb42a522bf9f2939b8c5ed51a684caa088f738ec7c6dba9dbda3",
+      "bytes": 425
+    },
+    {
+      "path": "app-modules/iam/src/Data/MemberRoleDeleteData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "311fd2a1bbc2f185aa52dd8bbe39128bebe5ba7358b63efc752dfddec46bc33f",
+      "bytes": 384
+    },
+    {
+      "path": "app-modules/iam/src/Data/MemberRoleUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "935e3f8ae9d1c5b43a376e868a8fde7df511a5c93c3427d194761a10ae251bf2",
+      "bytes": 434
+    },
+    {
+      "path": "app-modules/iam/src/Data/OrganizationMemberFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "11b99f8cf88719d64a28f477f50c905b2be54e7e4ff6645b8d9b4fa16be175cc",
+      "bytes": 765
+    },
+    {
+      "path": "app-modules/iam/src/Data/OrganizationMemberUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ea88da5544ac75517616688e5bd45547d78b17835d69f9d77cd5583bff11f953",
+      "bytes": 341
+    },
+    {
+      "path": "app-modules/iam/src/Data/OrganizationRegistrationData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "658f63b9cec8cb215335581258a3a0e91d6163a37f5b126ac6afdbe8b9777207",
+      "bytes": 739
+    },
+    {
+      "path": "app-modules/iam/src/Data/RoleData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d8d947db2044793031181af7eac38504b35dc10a04427f3b0f73e201a38d8f78",
+      "bytes": 1087
+    },
+    {
+      "path": "app-modules/iam/src/Data/RoleFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "09950cb14f8f2b3f1a7864b9be0236156b7feaef454f9379ffa5cba6c99b83c4",
+      "bytes": 621
+    },
+    {
+      "path": "app-modules/iam/src/Data/SessionData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3bbf17a1bf8fb1bd2d7a96603fca2d6c7e63d238105144dd3f55d38480f9168f",
+      "bytes": 819
+    },
+    {
+      "path": "app-modules/iam/src/Data/SessionFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "00c3bb3860e8a7addc4c90be5aa3db7337456334f2e629cab7f506a300344be0",
+      "bytes": 663
+    },
+    {
+      "path": "app-modules/iam/src/Data/UserUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "022a3ce10283b250c74e4a1f0cea7648b699a8d095444f82d82c109c0180166e",
+      "bytes": 721
+    },
+    {
+      "path": "app-modules/iam/src/Enums/SysRole.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3177ab21dbc26c1c03de6844c02eadafb958c3b986b7d45cae29e04347f3f6c2",
+      "bytes": 130
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/EmailAccountException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "02468454e85ae93ff3c7af97d2431d1abbfcaecb9d42526e7061cbd08489adf8",
+      "bytes": 722
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/EmailLoginException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "23122b3881d1293c601896b4d29a3be0dc3152581c3abb87dc21e5930b18c033",
+      "bytes": 409
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/GeoipUpdateException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ea2dbe325a27dcb368ea351423a6c08cb4a585d5c5392c29d1368347268e1cbc",
+      "bytes": 836
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/GoogleAuthException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "74c69b5da2adeb8632b283fc00cbd5ca0a6e07f998902a3578cd07242c8c4fb1",
+      "bytes": 1309
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/InvitationException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "13badd25be7b7d8d238723753c56dd8cb93084ee9617f0818822003a66770647",
+      "bytes": 1108
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/MemberRoleException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4b41c4be213b503d14818526726c898a7905c4a7a2fdc2c1f7b66a1006c9ad74",
+      "bytes": 1035
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/OrganizationMemberException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "939a3dfaa95c8d226b5e7efe9e12cd20f36910e2b7cfcb7f82af02d8095e946c",
+      "bytes": 559
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/OrganizationOnboardingException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "a4d36c1c7159e9545a269e77004fe000dc7b73af02961ad98a5b305d2a0f67a3",
+      "bytes": 794
+    },
+    {
+      "path": "app-modules/iam/src/Exceptions/RoleException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5d379b178799642ffd6ba0f6b880a902981e359573e4d0fee812401fc648331f",
+      "bytes": 1091
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/AuthController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b2d8a2377aab0042f493760feff07213a4723ed340c7114205f4274e34b693a5",
+      "bytes": 5226
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/EmailLoginController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "416f787ec129266e74958943880e76eaded830382eae321f71ea4293312c6401",
+      "bytes": 1435
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/GoogleAuthController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b9af0cdb3d4436c17145798a24a35cf5533c05c4d154c95aaebbd1dbc49f1ca2",
+      "bytes": 1856
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/InvitationAcceptanceController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1be13d9162d2aa7480261f7827bf3cff69b5610be2eb3fdf79b95413f60b7370",
+      "bytes": 1744
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/InvitationController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "441988ce819fbee8dc7db3979d827cb655b6b8cdf5d28160d686f09ce5a6cf2b",
+      "bytes": 2881
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/MemberRoleController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c3e1b05f92c7990e62c2ed27c98276fd7328a406501b6243dadece1d34fe418d",
+      "bytes": 2129
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/OrganizationMemberController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2f4959511be016b0e695eb85775fc5d3e128e3573b0185acfb1e3f3955611918",
+      "bytes": 2349
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/PermissionController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6c92b5713cccaa1f4824d56911898a7c7ebd0c11b2245b64279c8f68be3f6b52",
+      "bytes": 926
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/RoleController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f186685efe01b8fc0f724422d3e9edea1fa2dd09cddd002db214e515da3a1d35",
+      "bytes": 2405
+    },
+    {
+      "path": "app-modules/iam/src/Http/Controllers/SessionController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "098f52807c85a72e3d719a4cf61c17188170e093949906d6d355d51a08922867",
+      "bytes": 1458
+    },
+    {
+      "path": "app-modules/iam/src/Http/Middleware/EnsureGoogleRequestOrigin.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0612cd2613e51bc51e0bfea76471474bfa625633fea5e12d55fba9dc914f23b1",
+      "bytes": 953
+    },
+    {
+      "path": "app-modules/iam/src/Http/Middleware/EnsureProfileComplete.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "33da4963c213996968aad86641b794090e766d6876be82cce2fc2a9940b319eb",
+      "bytes": 747
+    },
+    {
+      "path": "app-modules/iam/src/Http/Middleware/ResolveAuthContext.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0566b5ad5efa297ad7bc9a8cd442e28c7a45d720d455e641c0ba1d4c3aeb3595",
+      "bytes": 1958
+    },
+    {
+      "path": "app-modules/iam/src/Http/Middleware/SetTeamPermissionsId.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "14e6d41efadd111fca59aaffde1acff963a26ed5be1920024782976581594397",
+      "bytes": 902
+    },
+    {
+      "path": "app-modules/iam/src/Http/Middleware/TrackSessionActivity.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "36e8dd01e8f4af1605fca302effa0d6903b131831d659d2f169c10116724382e",
+      "bytes": 858
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/AuthenticatedInvitationAcceptanceRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "05ba68a7b21f609966c733da88db0387aca5a408e2a413a84a3681541a445224",
+      "bytes": 344
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/AuthenticatedOrganizationCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "bc101afce00c02cb59973df14c15ed7f645a7c2b3541806e5b1ab20ca4e88a86",
+      "bytes": 1057
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/EmailChallengeRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "43eb6a65095f65c322ea73f10c3e53de0a38eee1f7b940587c34b592741f8948",
+      "bytes": 563
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/EmailChallengeVerificationRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1b5457f14f5e64b1792841bb8171fbddcc27ff9be1f47464c0d5df7d4cc6da37",
+      "bytes": 871
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/GoogleAuthenticationRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d1180d9c0cfdb6804b8ba03bca997c94dde198becec822d18b47e31cf4e8550d",
+      "bytes": 856
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/InvitationAcceptanceRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c97ff1c21686bcdb9cc2d83640dca60ed81a24daf7345df4c831a84da82002b4",
+      "bytes": 2575
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/InvitationCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "20c40b207428d918dff78f79f6f8075d903042cb6c117114a5312141d7fe9701",
+      "bytes": 540
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/InvitationFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "85be6a9451017ef682311ab19d964716629471284f1ef03206eb5b429d2aae9b",
+      "bytes": 753
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/InvitationRolesRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d75b9e18303bda9626359ac674c771f7dd683a471b2b4f85c5cfdcc2363a004e",
+      "bytes": 826
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/MemberRoleCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "46b495ca9e55112ed65f7899d96ebb984e9aea1cadeba613da381d18876fdb38",
+      "bytes": 876
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/MemberRoleDeleteRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ab9b44e1a810fb810caa514ae6f33576a56c21661f0f7b196829e3d0d10012be",
+      "bytes": 958
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/MemberRoleUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "82f4db09d5259670db0f9b0c713344077058abd9f1ab9d09c55882cee0daf651",
+      "bytes": 1016
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/OrganizationMemberFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6e17d41fb04f626fd826c846fb5a7f6f02337c2315081dd1cfaace1a4676b1cc",
+      "bytes": 684
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/OrganizationMemberUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2c2ccb00cb4409342822a907cded12f0de60af40742c5015ba7d2aef4b27f650",
+      "bytes": 358
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/OrganizationRegistrationRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "00fb9e7712bace269cfc51995074fa6cb9a3ffee5b3ccc6fc194ac5f353c0307",
+      "bytes": 3817
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/OrganizationRegistrationTokenRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "507c9ad924123577d61d86ce75c5959669c0cd0e246d1114f4ecfec624f4304b",
+      "bytes": 687
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/RoleCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0e1867ec03ab0414fd2ea8121a30407d5e0574e50a1c6eda94e9b07b332fd4e6",
+      "bytes": 1516
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/RoleFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0a615ae251bdd4bc709cc791d09b7ed79aad65d5d706a9a260bf2f1d798452e8",
+      "bytes": 672
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/RoleUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "985016867942fc1552e5a4b630371e355eb6b7776c25ab33d799daae737b31ab",
+      "bytes": 1632
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/SessionFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ded6fdf90d4a6f4191c0d334022ef2dc5807b9d4529796eeceb2ee2eace3b16d",
+      "bytes": 587
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/SwitchMemberRoleRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1e688256a5a37a5966663a73b2ac4d2f97fa91627e44efd26dc6ee6c48a56d26",
+      "bytes": 374
+    },
+    {
+      "path": "app-modules/iam/src/Http/Requests/UserUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "8cd74c7764db116dd372b8d667b55ebcc53c493ef6245efe0ecc43099c468306",
+      "bytes": 881
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/AuthResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "912027f8b1a1d852f063462d55038462bf9c10ff916ba1f4ee7eb7066f234a53",
+      "bytes": 771
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/InvitationCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "aa662d453a8e5715b242dd151b64deb981b043b7dfa95a53ff678aa4f39c7308",
+      "bytes": 227
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/InvitationResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f02ebc2f7c08c5655284d272c01bb8a03d43a9fad79a8aa9696f73202fe478ca",
+      "bytes": 776
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/MemberRoleCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3b55db647c1355534a666ec88371e2425694b6180157e61ca97a17d7e83e0513",
+      "bytes": 227
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/MemberRoleResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e251a6ec03a7636c88bd2bd4156b06ad8e60c9c327c12dc1a82f6a8dfd43daec",
+      "bytes": 714
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/OrganizationMemberCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b96690a4e3e731e9d4419cbb095a52933f8673c3a70b03e3bb5ff099deb7cb24",
+      "bytes": 243
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/OrganizationMemberResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "58bf0e60be3a400a519906969b6675ac658823213cc8d4954bca706ec1dbee3f",
+      "bytes": 836
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/PermissionResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6de3e42fb2db8d9d8ae0ad12fda950874e1736e0fe38f5296da9f96c04ca8d84",
+      "bytes": 532
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/RoleCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9a7fc32c593aa3dd4fd5e21b3644e39764d033d5485777a02e787001938ba429",
+      "bytes": 215
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/RoleResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4fdbe48a4a1d34aecf3003f7088882731a9df39adb9b930bdf6c64478b5a31ae",
+      "bytes": 790
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/SessionCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "eb6afd01b82745f100ea78c58f914ebd4c4a8c45848a9972d6e7a98d1dd05755",
+      "bytes": 221
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/SessionResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c194a03a99b4e8b8b562f57199e0ff062670fc12f9445194d9ad73851b0b6d04",
+      "bytes": 1214
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/UserProfileResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6fbc8475d397dcc09fe9249a84515f6a2ff77831204918240950d71dd181554f",
+      "bytes": 567
+    },
+    {
+      "path": "app-modules/iam/src/Http/Resources/UserResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5b3eeb8df9efa2d8928ee91701fbdb8843b12bc565a04e036be6fcbff24fe3be",
+      "bytes": 3274
+    },
+    {
+      "path": "app-modules/iam/src/Integrations/GeoipDatabaseUpdater.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f2512ba30c10fad57a118a926a6eac1b9569322991da48541eba90a041b74485",
+      "bytes": 7447
+    },
+    {
+      "path": "app-modules/iam/src/Integrations/GoogleIdentityVerifier.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "05fce87e3df486b09b65b8c658951524da67e0903158cbe0bfe58ff67bae7b39",
+      "bytes": 4095
+    },
+    {
+      "path": "app-modules/iam/src/Integrations/SessionDeviceDetector.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2d44265c0110373528a2255f9dc7ed7599bf1fd7b86061d93cf97ea993cfb9b4",
+      "bytes": 1899
+    },
+    {
+      "path": "app-modules/iam/src/Integrations/SessionGeoLocator.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e64335fe51248533734c8625fd16d9fdb79f1f64b2766f908272a11950391b65",
+      "bytes": 1687
+    },
+    {
+      "path": "app-modules/iam/src/Jobs/EnrichSession.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "738119906a29b11254853d286a37234448dcb532210d5aa5907438c63fa1c03c",
+      "bytes": 1002
+    },
+    {
+      "path": "app-modules/iam/src/Jobs/SendInvitationLink.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2148a9eaa87ae56c617391bf5370575b535a54f75dae01a2bf69dd2dbdafe451",
+      "bytes": 936
+    },
+    {
+      "path": "app-modules/iam/src/Jobs/SendLoginCode.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "a33c2f4334ddd306c0c8c1ec12ffafee2eb4e731e4c7db185992b4919d86e218",
+      "bytes": 870
+    },
+    {
+      "path": "app-modules/iam/src/Jobs/SendOrganizationRegistrationLink.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c5b2e969446fcee5648c3b2e72838ccec3a61b762440a1f16c2b748c39d8b7be",
+      "bytes": 921
+    },
+    {
+      "path": "app-modules/iam/src/Models/ExternalIdentity.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "95f0e5c5ee381836d7e61b044a8f460fa0df0d2388ab222b9005d9157d8c643c",
+      "bytes": 1286
+    },
+    {
+      "path": "app-modules/iam/src/Models/Invitation.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "970cf43106d8161c1efa4bc096e20e6261d80e0dd485a62111acdc71ac23320b",
+      "bytes": 1640
+    },
+    {
+      "path": "app-modules/iam/src/Models/MemberRole.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5afb5805fefeaafcfa4e17313242e996e723dd7f2b20e1da5fdb0784b05a739d",
+      "bytes": 4678
+    },
+    {
+      "path": "app-modules/iam/src/Models/OrganizationMember.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "207a102cccce7064e5b043f1895e95b842816f1f8079d5101ae55ce112838fc1",
+      "bytes": 3117
+    },
+    {
+      "path": "app-modules/iam/src/Models/Permission.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "33669f4551b81e049d116ba48b23bcc5e22787d194461ea388c22b64eee29dd6",
+      "bytes": 2544
+    },
+    {
+      "path": "app-modules/iam/src/Models/Role.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6f41879bf32326264d219863daf7355c04b310f1b07ef49ad913f5947ab188e3",
+      "bytes": 2473
+    },
+    {
+      "path": "app-modules/iam/src/Models/User.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3ddb57950cfd5aeef1ef42cc1824666beab6b394cccea41273b4240660eff7d5",
+      "bytes": 4823
+    },
+    {
+      "path": "app-modules/iam/src/Notifications/EmailLoginCodeNotification.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "966e936c0efc680209a637fa59f91a84114e2d25eb5afbc82f1e6ded1f19af29",
+      "bytes": 729
+    },
+    {
+      "path": "app-modules/iam/src/Notifications/InvitationLinkNotification.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0ba6846cab00495fea0c46e78bda6e210f3af3696fbd3172ebc603b53456188d",
+      "bytes": 1010
+    },
+    {
+      "path": "app-modules/iam/src/Notifications/OrganizationRegistrationLinkNotification.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d8f1bcb9f89b1f8422fe911a923ca74c018c57c85dbcd1f75a4d79a314cf5fc1",
+      "bytes": 982
+    },
+    {
+      "path": "app-modules/iam/src/Policies/InvitationPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2b9e4c9308303d00ebf4ee96ba890ab68048072c423eaa7499af53b546ffd17f",
+      "bytes": 1123
+    },
+    {
+      "path": "app-modules/iam/src/Policies/OrganizationMemberPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4262930899eb5ef45f19c57f28c5650e65915e100225c84e454f916bbbded2d5",
+      "bytes": 1060
+    },
+    {
+      "path": "app-modules/iam/src/Policies/PermissionPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4d158b0dad48cc56441fa9fb26b2361ee271ce399eea5d86522c1252add1f009",
+      "bytes": 432
+    },
+    {
+      "path": "app-modules/iam/src/Policies/RolePolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "8a1e1bb1573fc56c01f1bf59f0502122ff4d7364102d2e34658219e59f409c6e",
+      "bytes": 2079
+    },
+    {
+      "path": "app-modules/iam/src/Policies/UserPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "eaac3314a051a6686474fc619787c7785f6463397ad003aebead4c6c68a44ba0",
+      "bytes": 736
+    },
+    {
+      "path": "app-modules/iam/src/Providers/IamServiceProvider.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "53d4adaedab50b60db2523a40b288cb5fbbf3602d7cda4e387e484558aa680fa",
+      "bytes": 2513
+    },
+    {
+      "path": "app-modules/iam/src/Services/AuthService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0f453ab3e7f1af32a0b2b2467f8487e82d8f21ae58dedfd7bbef2723ea4fd7d7",
+      "bytes": 5128
+    },
+    {
+      "path": "app-modules/iam/src/Services/EmailAccountService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9d19d894c4359b172bed27e92769fe53b531f24c6889c80d791547b8e078d6f2",
+      "bytes": 1627
+    },
+    {
+      "path": "app-modules/iam/src/Services/EmailLoginService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1a3818f28bf68c1528e798a251013ef0246ed3ff3dfafe2e76035a8af0b3b408",
+      "bytes": 5127
+    },
+    {
+      "path": "app-modules/iam/src/Services/GoogleAuthService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d19b153ba0f90b3fdcdecebdee4fe69f1be6fde52b0acc429c4f8d38671bd7e6",
+      "bytes": 8258
+    },
+    {
+      "path": "app-modules/iam/src/Services/InvitationService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "cfba7f59fa6c3de10674d34deafb482da41052ff8a21a6db078b94a81473cbfb",
+      "bytes": 12239
+    },
+    {
+      "path": "app-modules/iam/src/Services/MemberRoleDeletionService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "011f90cdcda85d0e638648cf82aaa4d1b89d53ba2980764f4793956eaee16cc6",
+      "bytes": 2999
+    },
+    {
+      "path": "app-modules/iam/src/Services/MemberRoleService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9fc2cedf51b9462ac37207b6b89b73eb990bdb26b2654737da4c00b67cad3595",
+      "bytes": 6935
+    },
+    {
+      "path": "app-modules/iam/src/Services/OrganizationMemberService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6857434ff371256c9908b853d5b6265a5d50c7f15314f265f0786e461799a1a1",
+      "bytes": 4767
+    },
+    {
+      "path": "app-modules/iam/src/Services/OrganizationOnboardingService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3e5dc2a40517ed8e7d04d456ffdf9ff0a0e9db9cf8127f81c299d3ccf6c1f0f1",
+      "bytes": 6446
+    },
+    {
+      "path": "app-modules/iam/src/Services/PermissionService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "cb38d0bf28c92203b7d8ed9c3971c1f0fcc9f93735953b658c2020f866949b1f",
+      "bytes": 423
+    },
+    {
+      "path": "app-modules/iam/src/Services/RoleService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "02b2359504d625d3519f87c3b9df700b870a9e78a4924b805b217678a66238dd",
+      "bytes": 7226
+    },
+    {
+      "path": "app-modules/iam/src/Services/SessionService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f4e184e7108e81eb2a4d573b4c3b57e5dd72726e97ffb17179ac1375b060c219",
+      "bytes": 5207
+    },
+    {
+      "path": "app-modules/iam/tests/Feature/AuthServiceTest.php",
+      "inspection": "read",
+      "sha256": "0c505259722b9d9898b34e89581c40f0c4b669afa181a3e105b59cdebe688e93",
+      "bytes": 4590
+    },
+    {
+      "path": "app-modules/iam/tests/Feature/GeoipDatabaseUpdateTest.php",
+      "inspection": "read",
+      "sha256": "bc25f187def5ef002e591a7952e92d1c42a585af9bd463a981364b6d1cdc6a0f",
+      "bytes": 9416
+    },
+    {
+      "path": "app-modules/iam/tests/Feature/Providers/IamServiceProviderTest.php",
+      "inspection": "read",
+      "sha256": "ba04f6dba9641de070c3d8247bcc9aca9e3005a3f0e224a40770b040b3532833",
+      "bytes": 146,
+      "notes": "Provider test is a TODO placeholder."
+    },
+    {
+      "path": "app-modules/iam/tests/Unit/RoleActivationDataTest.php",
+      "inspection": "read",
+      "sha256": "055440882329543a053c4965bd13e56984f33d712dce49cda2c2cdeee6756938",
+      "bytes": 1448
+    },
+    {
+      "path": "app-modules/master/composer.json",
+      "inspection": "read",
+      "sha256": "8dcf407beb85158f004d04619ebd1d3cfc51b2ce260e965335b6daaa9c8d274e",
+      "bytes": 518
+    },
+    {
+      "path": "app-modules/master/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "7a5d645e5d5cad99150bb7baec23d3aee501b794f3d0c7c882b5d3938ee40801",
+      "bytes": 2181
+    },
+    {
+      "path": "app-modules/master/database/factories/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/master/database/factories/AddressFactory.php",
+      "inspection": "read",
+      "sha256": "36437e554788731bfa74068067cd26712b1c5354f596d4d03102b19302e7a603",
+      "bytes": 745
+    },
+    {
+      "path": "app-modules/master/database/factories/ContactFactory.php",
+      "inspection": "read",
+      "sha256": "d7bee8876948b76786dd4b5014296fcd7feb6f1e7c5747c91006ce939e505b68",
+      "bytes": 731
+    },
+    {
+      "path": "app-modules/master/database/factories/CurrencyFactory.php",
+      "inspection": "read",
+      "sha256": "0b7b863849bfe0a7d02422355596cecad8645b029481aa01c454bb5ae5de73f1",
+      "bytes": 670
+    },
+    {
+      "path": "app-modules/master/database/factories/LabelFactory.php",
+      "inspection": "read",
+      "sha256": "0f5b81e0d32f069958e146c5d46271e339a1c01671ee23a521ac95cafa802f32",
+      "bytes": 1041
+    },
+    {
+      "path": "app-modules/master/database/factories/LabelableFactory.php",
+      "inspection": "read",
+      "sha256": "d604be2d01722d232e846a2c6a539188b23b5c52333a279eeab6f5f673903cfb",
+      "bytes": 510
+    },
+    {
+      "path": "app-modules/master/database/factories/NoteFactory.php",
+      "inspection": "read",
+      "sha256": "955ab997ffcefdd256a3d4e27b562b3226eb6ba09bef8340a2da592439019c6c",
+      "bytes": 1428
+    },
+    {
+      "path": "app-modules/master/database/factories/NoteMentionFactory.php",
+      "inspection": "read",
+      "sha256": "a5542ab9409b6b20e739d65bd89308212fabb2fa9ac9ee17a4e32f1274bda072",
+      "bytes": 1223
+    },
+    {
+      "path": "app-modules/master/database/factories/UnitFactory.php",
+      "inspection": "read",
+      "sha256": "27111f6c9d3bc8bc4298af00ffb8320da332520d6003a5f83c6fe6bf741a74e1",
+      "bytes": 720
+    },
+    {
+      "path": "app-modules/master/database/factories/UnitGroupFactory.php",
+      "inspection": "read",
+      "sha256": "b0941dae5b451536d794b99e2dda9ef3298216fd82b212a87c59ea5f14dec04c",
+      "bytes": 426
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_01_01_000000_create_master_tables.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "cad1c4b061e61aec226e29f39a3809b005f5b469cca6cc80f92bffa271df5989",
+      "bytes": 2046
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_03_07_195200_seed_master_initial_data.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "b2549b3aaf0b90d6c7990ef838d6d95dc3a281844b917dd4bd5b1cb354a86df8",
+      "bytes": 5268
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_03_24_100000_make_master_units_indexes_partial.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "4ae25c9319b35c8fce089fccc2e3aea989bc456d68c62998cb3c8c69e4c3d645",
+      "bytes": 870
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_04_12_123615_add_tenant_id_to_master_units_tables.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "4a60cf792592d48fa63a1363ffe356a11509c4b8a869950657589d99e57fce73",
+      "bytes": 6374
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_04_18_100000_create_master_labels_tables.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "f1228d8784f5a2680856fff473a99804643d4a6be740599388db4842e5dbf4c8",
+      "bytes": 2043
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_05_09_140000_add_soft_deletes_to_master_currencies.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "300aa7486bd99ff0e118a610827c88cf16c2271bd135b78692f74575c804f641",
+      "bytes": 787
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_08_14_141324_add_organization_id_to_master_labelables_table.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "db87309b2e312384b1a162b2281c7af4d2eae8f29ea9c1d2bce58648fef6145a",
+      "bytes": 2074
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_08_14_193434_fix_master_labelables_tenant_unique_index.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "4898395fd4573ac972ec91a43f0264464bfcc09cb6139e572400210baf8f83c4",
+      "bytes": 1247
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_08_21_113016_create_master_notes_table.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "00f917f991bb3542342f82ccf602a72ca1ac16fd5285c90157ec6014b6901fd0",
+      "bytes": 4710
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_08_28_172941_create_master_addresses_table.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "d758dc6463a7288e4cb700224cc26455e17fd80b5634c5fa221ba4063592e54c",
+      "bytes": 1476
+    },
+    {
+      "path": "app-modules/master/database/migrations/2026_08_28_172942_create_master_contacts_table.php",
+      "inspection": "migration up body and constraints read; rollback selectively inspected",
+      "sha256": "242df0e91441a604521af84f8b8e6a47b2fa844dc660307f5eb2f8bd7b3e0537",
+      "bytes": 1432
+    },
+    {
+      "path": "app-modules/master/database/seeders/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/master/resources/lang/en/console.php",
+      "inspection": "read",
+      "sha256": "751e7dd75798eca53b9795509aa6f2a3e37e8bd08e2105dad03d9d2ce424849d",
+      "bytes": 333
+    },
+    {
+      "path": "app-modules/master/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "44ea88998e3db4c8d61cab25cbe9720d7fb6fe8c8b8ba7d03ce929df99530cb3",
+      "bytes": 3976
+    },
+    {
+      "path": "app-modules/master/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "5e245a3db6e8f324d46f3b0f18053b839d2889f023c713d2f6f95b28bec73565",
+      "bytes": 674
+    },
+    {
+      "path": "app-modules/master/routes/master-routes.php",
+      "inspection": "read",
+      "sha256": "97a0cd3e9e9a94d26d74de4a3af5b94c316a2ac460ab1709d01898bb53e006c4",
+      "bytes": 1712
+    },
+    {
+      "path": "app-modules/master/src/Assertions/UnitAssertion.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5de23e757fb47c40fe5a6ca73abbcdfd13f6816da85703aba0ef42fec389156c",
+      "bytes": 4007
+    },
+    {
+      "path": "app-modules/master/src/Console/Commands/PruneExpiredNotesCommand.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c72ef8533877b7ce371b80c9539fe543141ebc7ed650ae31f39ab469f7687d24",
+      "bytes": 1045
+    },
+    {
+      "path": "app-modules/master/src/Contracts/MasterInterface.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0c608ec78acf7d3d9356272454b1f8a7dfdc77ea2edc3c7d0d663458129cbf64",
+      "bytes": 1109
+    },
+    {
+      "path": "app-modules/master/src/Data/AddressCreateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "cee9a9c114a49bd850b5498e1931db849da606c19354613830e3fb77ae64374d",
+      "bytes": 617
+    },
+    {
+      "path": "app-modules/master/src/Data/AddressUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9633b20d01d84cfd709e8c145a2ff7ba19bb755912102306daf20d1ff7ab2959",
+      "bytes": 825
+    },
+    {
+      "path": "app-modules/master/src/Data/ContactCreateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "280530f8cd80f7aa61891cf104d35ccf25f33bd716349660376f13e0f111fa4c",
+      "bytes": 603
+    },
+    {
+      "path": "app-modules/master/src/Data/ContactUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e660493626fc4f29bcca6a5ba1e591e4b08c12375847c3c3fbf69f1563cbb4f8",
+      "bytes": 873
+    },
+    {
+      "path": "app-modules/master/src/Data/CurrencyFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "12ad54e416ab4e31becc2f233b9700b3136e18e14a61a3a868361eba5c74ed8d",
+      "bytes": 770
+    },
+    {
+      "path": "app-modules/master/src/Data/LabelCreateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "a6976984b7d41f81910f6e2b552a58c17e41a12fdfcbcaa01abc26626b9d801b",
+      "bytes": 548
+    },
+    {
+      "path": "app-modules/master/src/Data/LabelFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3001474744219e80fe0ea392406059da8044441e9268ee9bda7499554e19fad1",
+      "bytes": 774
+    },
+    {
+      "path": "app-modules/master/src/Data/LabelReorderData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e9d96a716c0d9c4b06bd0f7f7cb22802f312545f9e4c1b657ad8ded1b589d318",
+      "bytes": 451
+    },
+    {
+      "path": "app-modules/master/src/Data/LabelUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2e367594faa2538cf19b376be4fc9924c2ade1799e6ad03501ab75afc89168d0",
+      "bytes": 335
+    },
+    {
+      "path": "app-modules/master/src/Data/NoteCreateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ade27dd7e7c8ca9bb0212879810ac1da450bf9da47f989a02e66f631d8c4be7f",
+      "bytes": 1336
+    },
+    {
+      "path": "app-modules/master/src/Data/NoteFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "64226049dc88e6a9027337cb9e41b6c3a5ec5903b35727c2fff9f85eac9d1675",
+      "bytes": 991
+    },
+    {
+      "path": "app-modules/master/src/Data/NoteMentionData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "76d40ee63b10e8751d56a5892f4aa6487aa651a92dc7c4ff0f7836d318eff543",
+      "bytes": 473
+    },
+    {
+      "path": "app-modules/master/src/Data/NoteUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d911839c3e77698c9120d1e6729058960b9b7bf3d601e89c77645e259242e60e",
+      "bytes": 1122
+    },
+    {
+      "path": "app-modules/master/src/Data/NoteVisibilityUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "56c4dfca8d37f7a622a04eb8d4becfe231e07e4884eb4a5400c23d8ce0e5f481",
+      "bytes": 711
+    },
+    {
+      "path": "app-modules/master/src/Data/UnitData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b9434963a5d2ba26dd5edc97f3f502ba632d169a42861b96318618cecffb198f",
+      "bytes": 634
+    },
+    {
+      "path": "app-modules/master/src/Data/UnitFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d98437a02f8b4b55a1076e810e252fd3de0157857c509b5c427ca693de811854",
+      "bytes": 1035
+    },
+    {
+      "path": "app-modules/master/src/Data/UnitUpsertData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "22da2041e462966dd23e23116d8606b91447cd01706ab2e2bbeda3e5dcc58b3b",
+      "bytes": 801
+    },
+    {
+      "path": "app-modules/master/src/Enums/ContactType.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "975825d4babd1864cd90a9587f8f5899ed46e8f84e57ef7c37674032fb1586a9",
+      "bytes": 205
+    },
+    {
+      "path": "app-modules/master/src/Enums/NoteKind.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1c2390b08a7959df956512eb513ec10dc7f5ce9f7f36b9dd008be5cd3ebebc25",
+      "bytes": 208
+    },
+    {
+      "path": "app-modules/master/src/Enums/NoteVisibility.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2fb259804fbb1bb73fae4802feb8e4d2a24e7063d7d7d9f4afd3ea4be1fb43ba",
+      "bytes": 202
+    },
+    {
+      "path": "app-modules/master/src/Exceptions/AddressException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d1ebf5adf94e3bb67c060a38d1d9168b57e64d3002a4283f3dcd6337f8482a9f",
+      "bytes": 881
+    },
+    {
+      "path": "app-modules/master/src/Exceptions/ContactException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "05a3d312a2a9702ac31a92723999fbc09a252d401ad8caf0281b0ec3662e3759",
+      "bytes": 878
+    },
+    {
+      "path": "app-modules/master/src/Exceptions/LabelException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "103d32826f74c89840693deaa296f6f76e54c6aff61e267738ac3b559d3638ed",
+      "bytes": 2273
+    },
+    {
+      "path": "app-modules/master/src/Exceptions/NoteException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "63272b31d4adf9f5b583990b11b79910b84ba4488d329d30fa75067e5119cab3",
+      "bytes": 2279
+    },
+    {
+      "path": "app-modules/master/src/Exceptions/UnitException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "da0b9ad51df4b58493e2928100b1eb02aa9e2cda7953f1b5b3b67bdba70f192a",
+      "bytes": 2243
+    },
+    {
+      "path": "app-modules/master/src/Http/Controllers/CurrencyController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7c55738af2b651200991707a783de5e031834f078d5c7525212a33b8b814c1f5",
+      "bytes": 1106
+    },
+    {
+      "path": "app-modules/master/src/Http/Controllers/LabelController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5f31b88e5fb4bf50110096c28f2c1ea801d368e09a0568f8aad9a63c4e47721c",
+      "bytes": 2622
+    },
+    {
+      "path": "app-modules/master/src/Http/Controllers/NoteController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b51f804352f453fd27253de22c286f3280d8ab8bae5007622d6a933af3f3ca66",
+      "bytes": 4349
+    },
+    {
+      "path": "app-modules/master/src/Http/Controllers/UnitController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "fad6464b49935427602f66978a333b86913295439ba6d4880c86f2e603ae9eb7",
+      "bytes": 1571
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/CurrencyFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b9d1e9f7a86a89a88aef297d31d05b27edec23f980a4dcb675b91248eef2bf0a",
+      "bytes": 800
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/LabelCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6cb2b0b1cf176d030f9e0a83e2aff2704f3e9f6608f91b1c3971799f171786f8",
+      "bytes": 721
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/LabelFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f9518534a6cc67f7c58097c468391b6401c342e382549727891e0c9416c861d0",
+      "bytes": 811
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/LabelReorderRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9b6f47ab6ffc184b339c5bea07dd561cc4c4c1605c3d8094f5279702fac5ee33",
+      "bytes": 604
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/LabelUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "8682328b7925904924d8d639a4aa97dbc8869ec776550e9103a2ec515ce876af",
+      "bytes": 1181
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/NoteCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3b2a2773e9900362f2a0346c04ef1e923c01df63246f01e9619099fb61b85622",
+      "bytes": 1264
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/NoteIndexRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9aed9e9f7a27703dd3490c23fbe59fb07f47e282e17dbdf6709a55a620e02216",
+      "bytes": 856
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/NoteMentionRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2b34e3e28a5371bc55999c1359755249572c473a864a3cc2b62b9dd51de3798c",
+      "bytes": 501
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/NoteUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "b3c28de7e908ae7ae839cba58b65b0f8da03e363cff0189b11a78d6e58b03d22",
+      "bytes": 659
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/NoteVisibilityUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "955a9593933911917ff3ae4d8d8c7edf97364dbcf1afa19a0e557cd45518e0f2",
+      "bytes": 807
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/UnitFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ef3cd64aa5960a07f9c53d55fa07ee6406da159be99cf3ad2d13535e48796a62",
+      "bytes": 921
+    },
+    {
+      "path": "app-modules/master/src/Http/Requests/UnitUpsertRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4738cea793ada67229aa2e1f27ec19bab6184ca1f6f1df4469a3f7963d845822",
+      "bytes": 2017
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/AddressResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "714f67bb872fe8ee85c2230e37759fbb852002fcd1014dd73d0b126cea01a7da",
+      "bytes": 603
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/ContactResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f75527e833f461608d4cdb1eddb961b14c8e0e15a275228675d613d27aa5c409",
+      "bytes": 560
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/CurrencyCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "997b91c497352ab90b24df16c6be120cd3ba11ee5776f68f604ee9a220e0caac",
+      "bytes": 226
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/CurrencyResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6060f6170eac931d3b26cdb3dac625f116cb02b2f5d5dcccad479024ae4e962e",
+      "bytes": 615
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/LabelCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "fb02f2da98c6723c9e213bcebd5cbeb51971fa78abe8c641cd1269886a812bc2",
+      "bytes": 220
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/LabelResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0d024d7f0c657251bfabe114c95af3d3e546e39722cabe80e59d2129b3131625",
+      "bytes": 689
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/NoteCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "85a57aa4f8a187bbbf131fa679e88051e5646999ab3a7435e9ba211c87fa6e50",
+      "bytes": 218
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/NoteResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0d982c50152261deaef38530d5b751c6dc7394c5345a8d85dc075c0935e76b4c",
+      "bytes": 2165
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/UnitCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f868dee67ab368ed9bbff0b726485e083f5730e9fa1b3cb6cdb268e001d9492b",
+      "bytes": 218
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/UnitGroupResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "16ef8e6d16938b2e34cd1df6b336fc7b0c7201603de384e232e12da545e8802c",
+      "bytes": 699
+    },
+    {
+      "path": "app-modules/master/src/Http/Resources/UnitResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ffe1d4dace1c52f3ae4c688f87f3bd2903c816c82ba479e57e75c2775c33b9d3",
+      "bytes": 738
+    },
+    {
+      "path": "app-modules/master/src/Models/Address.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ba4ba583106bd6e20e6e6350e6b56208ac0c07cdff5709fe182eb31fb61964e8",
+      "bytes": 2977
+    },
+    {
+      "path": "app-modules/master/src/Models/Contact.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7c3977763a4c7aba58126550d15248d4a5eb5faad66d7293a7e01651298a9a3a",
+      "bytes": 2847
+    },
+    {
+      "path": "app-modules/master/src/Models/Currency.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "59fabee5e1ad3fc8b833de715e28a00b80e50c06c778b92c6a9edc7f5e05c01d",
+      "bytes": 2133
+    },
+    {
+      "path": "app-modules/master/src/Models/Label.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9f83348ea5e8413e4fd7b36c5088a14eb1fc6e0e35750c08b1b2b3bc83427970",
+      "bytes": 2928
+    },
+    {
+      "path": "app-modules/master/src/Models/Labelable.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "bdca4cd98a8d5124e03ad9f48c4ac702ac10eb83d1b247a189bc380edfcf52c1",
+      "bytes": 2079
+    },
+    {
+      "path": "app-modules/master/src/Models/Note.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4f2bdd358e56febda3c174f841dd1479714344e71dc825fd7a4f27ab88bff795",
+      "bytes": 4670
+    },
+    {
+      "path": "app-modules/master/src/Models/NoteMention.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "d23c6639ba047092070dbbeaf652e671364b704e255274331bf6604da13a0c39",
+      "bytes": 2454
+    },
+    {
+      "path": "app-modules/master/src/Models/Unit.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4fedffe17d11436481f9cf54f725fa52c5775eaf08783934f661cb64fc2a657a",
+      "bytes": 2673
+    },
+    {
+      "path": "app-modules/master/src/Models/UnitGroup.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c1dbd155fe2a695f3d99da7f6cf598a73fd3cea4e7555e1f7450400086a9aab8",
+      "bytes": 2600
+    },
+    {
+      "path": "app-modules/master/src/Policies/CurrencyPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "65f969ebef2b070039ea753d234c32d74d40fc7a3de33c273d04d61583688532",
+      "bytes": 1493
+    },
+    {
+      "path": "app-modules/master/src/Policies/LabelPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e7a11356bfe659e0a340bde22d7621f9579a73fb884ff88d3519558e956e7368",
+      "bytes": 1718
+    },
+    {
+      "path": "app-modules/master/src/Policies/NotePolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "8689d75b4120bedf8a0f1c81e51ff2cfc13a709df56088e9b0037c8656b45d01",
+      "bytes": 3218
+    },
+    {
+      "path": "app-modules/master/src/Policies/UnitPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5db02659dc7be4760a78dfd622d9349bd3a13c8cb6aa475af08197b724dfdf09",
+      "bytes": 659
+    },
+    {
+      "path": "app-modules/master/src/Providers/MasterServiceProvider.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "fae061519c98ba0dd7bc5bc715f5e63c85ee2adfa9b2d8edeb5b7b5dcb961222",
+      "bytes": 905
+    },
+    {
+      "path": "app-modules/master/src/Services/AddressService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7c91a638059a84d0e82eebf87cf3fc23802629af71c470b785bb9ed5aa0b5be8",
+      "bytes": 5932
+    },
+    {
+      "path": "app-modules/master/src/Services/ContactService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c387da76fe2c3043962e86f664167f2714adb66064291d7a2dd433b5887d00a7",
+      "bytes": 5799
+    },
+    {
+      "path": "app-modules/master/src/Services/CurrencyService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "0dbb9811a615a0b87eccd7851d02eda1c379fdf8e5621c196b532095953cf1a2",
+      "bytes": 829
+    },
+    {
+      "path": "app-modules/master/src/Services/LabelService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c8050132901b0a89a161bd832ad7f30748d887fddfa83b1b1878b81760c154f6",
+      "bytes": 15472
+    },
+    {
+      "path": "app-modules/master/src/Services/MasterService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c73ba93292b36641b4373e59163378e03225a539332c414b289e78236d9eedb6",
+      "bytes": 2196
+    },
+    {
+      "path": "app-modules/master/src/Services/NoteService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "2fa48810e17c7945eff426c1793f5a3a7af1f022c6abe87af17badb302c551e0",
+      "bytes": 15846
+    },
+    {
+      "path": "app-modules/master/src/Services/UnitService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "9f5e7a2c6641436efc6588f320bdfdc144c24593f8a0bde1dd31c0aa07a1dc14",
+      "bytes": 5728
+    },
+    {
+      "path": "app-modules/master/src/Support/NoteTargetResolver.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1318ea88dc0feebe4a94257cab2f47fb719e6db698474d0d4fccbc966b1f96d2",
+      "bytes": 2017
+    },
+    {
+      "path": "app-modules/master/src/Support/PreciseConversion.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7b56ca3a85d4397cbbfe52c2dc359ba391a8f8c9f2dfb5834849e64e41428e53",
+      "bytes": 3081
+    },
+    {
+      "path": "app-modules/master/src/Support/UnitCache.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "43f12b75656ad3fb65c845957822da60af079f7b61b85551133f301251fb2cf9",
+      "bytes": 5431
+    },
+    {
+      "path": "app-modules/master/src/Traits/InteractsWithAddresses.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "afad3a8b46c8b6b5a8f161d6b0744dfdf2d45a71379d3988f24b32bb785519dc",
+      "bytes": 1348
+    },
+    {
+      "path": "app-modules/master/src/Traits/InteractsWithContacts.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "8fe38471f1eda3e3d071201acf805e91a3307e812bc8917d99f080570cc26538",
+      "bytes": 1340
+    },
+    {
+      "path": "app-modules/master/src/Traits/InteractsWithLabels.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c27b48d560f1fe5609f33b3b2f9bba100a4fb7b34be42dd2a0bdec72ba6b54bf",
+      "bytes": 5514
+    },
+    {
+      "path": "app-modules/master/src/Validation/AddressPayloadRules.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "72b65162e22e0e7bef0d371b46fb657636c8aa3983aafb8d037f5bbdabfe822a",
+      "bytes": 1920
+    },
+    {
+      "path": "app-modules/master/src/Validation/ContactPayloadRules.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "67ef69512c66dace3910b9e8384142b925c6e62289d7551617c6b7d2bccf2629",
+      "bytes": 1406
+    },
+    {
+      "path": "app-modules/master/src/Validation/LabelPayloadRules.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3de6ab47fd4c21584d73fc29d185e355926c4d02a652ef8c7b49d52b6f8ce1a7",
+      "bytes": 2898
+    },
+    {
+      "path": "app-modules/master/tests/Concerns/InteractsWithMasterTenantContext.php",
+      "inspection": "read",
+      "sha256": "b1003f767dc9cdc85b8e8703773b74e4f8068e521cdd27251467fca466979e91",
+      "bytes": 1493
+    },
+    {
+      "path": "app-modules/master/tests/Feature/LabelScopesTest.php",
+      "inspection": "read",
+      "sha256": "006b9ef59e7f7053760532dd380381793613353dedb7bb84b065d9231dafdab1",
+      "bytes": 4267
+    },
+    {
+      "path": "app-modules/master/tests/Feature/LabelServiceTest.php",
+      "inspection": "read",
+      "sha256": "3946bb4111b0864c815f4c8d2582251744052c774e7f88dfad548efdda4dfda3",
+      "bytes": 14536
+    },
+    {
+      "path": "app-modules/master/tests/Feature/NotesEndpointsTest.php",
+      "inspection": "read",
+      "sha256": "dd0aba9ea5f1f16130870f4d188bc0187d0ed334a718bfd9982a0f07157dcdaf",
+      "bytes": 285
+    },
+    {
+      "path": "app-modules/master/tests/Feature/Providers/MasterServiceProviderTest.php",
+      "inspection": "read",
+      "sha256": "d667978257d04c2b93ffe2260d14d1a4e92a6fce97c53859156d949d1b660aa2",
+      "bytes": 152,
+      "notes": "Provider test is a TODO placeholder."
+    },
+    {
+      "path": "app-modules/master/tests/Feature/UnitServiceTest.php",
+      "inspection": "read",
+      "sha256": "3f50f13f161daf051359e74009f4de50b7b03f7c19385c510d62c8856c79785e",
+      "bytes": 6939
+    },
+    {
+      "path": "app-modules/master/tests/Support/Models/TestLabelableCurrency.php",
+      "inspection": "read",
+      "sha256": "50f3db2e0edf647edda456adc8633f31b9aa989b53fbe3c8738b3df28d6707c3",
+      "bytes": 348
+    },
+    {
+      "path": "app-modules/master/tests/Support/Models/TestLabelableUnit.php",
+      "inspection": "read",
+      "sha256": "a9f264d68ff09a55b9b0070d2ee5e183022d3e3e9f18b05ae757b616fedf9abd",
+      "bytes": 332
+    },
+    {
+      "path": "app-modules/master/tests/Unit/Support/UnitCacheTest.php",
+      "inspection": "read",
+      "sha256": "8fd27c418cac490e239633348cab6f7975b58a90ca15a6fb6c9589d25dc2433e",
+      "bytes": 6479
+    },
+    {
+      "path": "app-modules/organization/composer.json",
+      "inspection": "read",
+      "sha256": "e2baf6ec86653b19edbaabd1cc55ee8345cd071f8af58f5b3eb8962a8ff2c3d7",
+      "bytes": 560
+    },
+    {
+      "path": "app-modules/organization/config/response-contracts.php",
+      "inspection": "read",
+      "sha256": "aba3390c3e58fd85f17674a4a27af39c44344925d5f869665140d888d790d0bc",
+      "bytes": 639
+    },
+    {
+      "path": "app-modules/organization/database/factories/ExchangeRateFactory.php",
+      "inspection": "read",
+      "sha256": "30660bad3ace2e35afdaf6cda9b536043d76699ce4e4ca70915941402c895d48",
+      "bytes": 765
+    },
+    {
+      "path": "app-modules/organization/database/factories/OrganizationFactory.php",
+      "inspection": "read",
+      "sha256": "095b6a061a67e1b3943d2cd5ba3c22bfb3766fcf7e05dd55bae69a4dffaa1cb7",
+      "bytes": 652
+    },
+    {
+      "path": "app-modules/organization/database/factories/OrganizationSettingFactory.php",
+      "inspection": "read",
+      "sha256": "dadccac35f20e834d281f9cda1eabc10349cf998d55c89cfb629a21d0a35caa2",
+      "bytes": 631
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_02_08_072721_set_up_organization_module.php",
+      "inspection": "read",
+      "sha256": "88ca95e48a2b4c26cf2d5877ce6a4f0fa28051f5ea8c6edbd409e43acf960cfe",
+      "bytes": 638
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_08_26_135842_create_organization_exchange_rates_table.php",
+      "inspection": "read",
+      "sha256": "4d9361972da35efc029268e1eeadaffc5607907ccfdb140b83a7802aad54970b",
+      "bytes": 2058
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_08_26_140001_add_functional_currency_to_organization_organizations_table.php",
+      "inspection": "read",
+      "sha256": "af0e68f6bb5208bcab054b42e02a792f9523504d61a28596946a2fbd61b470c4",
+      "bytes": 1610
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_08_26_141000_create_organization_settings_table.php",
+      "inspection": "read",
+      "sha256": "eaf7b77e846e49e71d0d5a8bc178c8f48bbfbcd1a4ab89e444ff4aabcab66312",
+      "bytes": 1692
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_08_28_153904_add_timezone_to_organization_settings_table.php",
+      "inspection": "read",
+      "sha256": "621e83f7efb23407583891aeeb9ee4aa426485365f0925b2182d3e7fdc962ed7",
+      "bytes": 626
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_09_10_120448_add_storage_quota_bytes_to_organization_settings_table.php",
+      "inspection": "read",
+      "sha256": "2372860b3c84fe1f8e274dbb0c5e8eb94fc76f0a110d938d4e2ce7c7ff88fe36",
+      "bytes": 610
+    },
+    {
+      "path": "app-modules/organization/database/migrations/2026_09_29_115616_add_owner_id_to_organization_organizations_table.php",
+      "inspection": "read",
+      "sha256": "01523fab3a5b9cf3571ad04ad719bc7e485beb57b288d95edf566eb4cdf8625c",
+      "bytes": 917
+    },
+    {
+      "path": "app-modules/organization/database/seeders/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/organization/docs/exchange-rates.md",
+      "inspection": "read",
+      "sha256": "1c50733769be9158921d05e6c608d19bf74f2aea09bff283521cf1cdb8f94e3e",
+      "bytes": 1916
+    },
+    {
+      "path": "app-modules/organization/resources/lang/en/.gitkeep",
+      "inspection": "empty placeholder verified",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "app-modules/organization/resources/lang/en/exceptions.php",
+      "inspection": "read",
+      "sha256": "e378f2e008e79cc97fb3f7123791966741bc94162a3626ee4d33ac15a2ca95f4",
+      "bytes": 1266
+    },
+    {
+      "path": "app-modules/organization/resources/lang/en/validation.php",
+      "inspection": "read",
+      "sha256": "b4ff36824dfe3a577e9f5b6ffbed27fd676eb6cafe9a97d9ce1e910512c0cdf2",
+      "bytes": 128
+    },
+    {
+      "path": "app-modules/organization/routes/organization-routes.php",
+      "inspection": "read",
+      "sha256": "48f0c2e094990d9a4b7d3137c99151d26e06dc2d85a5af71cb5d84be26ca277e",
+      "bytes": 731
+    },
+    {
+      "path": "app-modules/organization/src/Contracts/OrganizationInterface.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7a04c6a84c59ebde3506b8cbffc1fc5f2c5d079024437acba5c82f95c6e99fac",
+      "bytes": 1066
+    },
+    {
+      "path": "app-modules/organization/src/Data/ExchangeRateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6ecd9410084fc17284c5b344f5b684ef1232dcf685adeb76dcd92559cf4b2485",
+      "bytes": 937
+    },
+    {
+      "path": "app-modules/organization/src/Data/ExchangeRateFilterData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "805cbe0410a116c2d93da883231840c1688a0f3635e2355a8211139d188d1acc",
+      "bytes": 1248
+    },
+    {
+      "path": "app-modules/organization/src/Data/ExchangeRateUpdateData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "c42254d74d18558a84655295e7cdeff7a6c542d20345b92343fcd41c387a8071",
+      "bytes": 529
+    },
+    {
+      "path": "app-modules/organization/src/Data/OrganizationData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5551e839762d14453b461328a584c54692c2d7a756332500376ac79031b39c6b",
+      "bytes": 551
+    },
+    {
+      "path": "app-modules/organization/src/Data/OrganizationSettingsData.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "1cef757eaf00977936f0f53a282128621bb60a0aeb55deeddb00d18a04db85df",
+      "bytes": 770
+    },
+    {
+      "path": "app-modules/organization/src/Enums/ExchangeRateContext.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "83abb2caf9e0b69490051dc7f53eb2903eaf961ec9ee6d41546ef3ae419374ce",
+      "bytes": 139
+    },
+    {
+      "path": "app-modules/organization/src/Exceptions/OrganizationException.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "695a9b7ad6073f32025e0d8b707ff58bd440a14d3dd227bd3835cde01bd4c505",
+      "bytes": 2729
+    },
+    {
+      "path": "app-modules/organization/src/Http/Controllers/ExchangeRateController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "eba8962bab08324a7e516071dee75d02763a4750214fc4cdaa2455a0b53bcbf8",
+      "bytes": 2803
+    },
+    {
+      "path": "app-modules/organization/src/Http/Controllers/OrganizationSettingsController.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "5497d1585caa770b17d14dfbf203188406c7748e981d575d475819b39fad1b60",
+      "bytes": 1499
+    },
+    {
+      "path": "app-modules/organization/src/Http/Requests/ExchangeRateCreateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "e4013a4dab5e818e66f3b654fa23a24e60e8119ece60801ff85ec10aa7b8bfd6",
+      "bytes": 2595
+    },
+    {
+      "path": "app-modules/organization/src/Http/Requests/ExchangeRateFilterRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "95a0c6ccd04f38079d63ef74e9088a17eb661236af2d98ce8c3aa5afe67b29d0",
+      "bytes": 1481
+    },
+    {
+      "path": "app-modules/organization/src/Http/Requests/ExchangeRateUpdateRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "77bc5c52ec396a5d8454750e6a83dae8507d7121ba2c4bf1b1aa8584e626b323",
+      "bytes": 625
+    },
+    {
+      "path": "app-modules/organization/src/Http/Requests/OrganizationSettingsRequest.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "4e09950d64cd7e7e04edbab0a3e8895b26bd96ad6eab15598dfe300812fcd337",
+      "bytes": 1323
+    },
+    {
+      "path": "app-modules/organization/src/Http/Resources/ExchangeRateCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "cb41cf22ee165dbcbb3c683f70053e7c6d3534df17d829253df00b63df92e66d",
+      "bytes": 240
+    },
+    {
+      "path": "app-modules/organization/src/Http/Resources/ExchangeRateResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "3c8c15d9036d47cc9cad67cb3cc3a822555e531184799e14ca443f875553f3ff",
+      "bytes": 954
+    },
+    {
+      "path": "app-modules/organization/src/Http/Resources/OrganizationSettingsResource.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "67d4d685eddb7bde6c19cd891d662bfe734e3ee91c2f6a7319522227ffa65c6c",
+      "bytes": 1154
+    },
+    {
+      "path": "app-modules/organization/src/Models/ExchangeRate.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "73a35fa4656cf8afb456796590f044bab9ffd07aece7da307eec6db7c9fcd841",
+      "bytes": 2850
+    },
+    {
+      "path": "app-modules/organization/src/Models/Organization.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "6c9f97a9881cf296b5be9bef9443b8428a04c34f337cf8efbfc3102875390f95",
+      "bytes": 2497
+    },
+    {
+      "path": "app-modules/organization/src/Models/OrganizationSetting.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "7b8e9ba55e2b93c49054b245dcddb75c1cddf0ee7dead5154e7228713d968c06",
+      "bytes": 2790
+    },
+    {
+      "path": "app-modules/organization/src/Policies/ExchangeRatePolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ce0523ca6fe1ea9a3b8e2c03185d33e4410d0fa7b97332ed133a817e234c9763",
+      "bytes": 1670
+    },
+    {
+      "path": "app-modules/organization/src/Policies/OrganizationSettingPolicy.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "ab9488765c4e21aa3376999858bdeb0266832f053133fb15f4205365327461b9",
+      "bytes": 570
+    },
+    {
+      "path": "app-modules/organization/src/Providers/OrganizationServiceProvider.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "a1467299e64ab0002d28f69f57214ba591ff321a04c0490be61bd5c14f5ead25",
+      "bytes": 462
+    },
+    {
+      "path": "app-modules/organization/src/Services/ExchangeRateService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f4319cc971276068bbd732d8e9acad9540bae4e2cf2d2250db3fafba95af4aa8",
+      "bytes": 11702
+    },
+    {
+      "path": "app-modules/organization/src/Services/OrganizationService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f0965f3110fde54f9d92a978fd96ec2709e3cb8317e2f8e5486e129314ebdc68",
+      "bytes": 2880
+    },
+    {
+      "path": "app-modules/organization/src/Services/OrganizationSettingsService.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "f61fda64d30c4e5fe9da0363783cc1611bfd60415b7889122d35b5a73e4aea12",
+      "bytes": 2706
+    },
+    {
+      "path": "app-modules/organization/tests/Feature/ExchangeRateApiTest.php",
+      "inspection": "read",
+      "sha256": "3aa1cdfac358856ca9ffed63701f3a4e40dae223e011e45f96de48844189c5e4",
+      "bytes": 7536
+    },
+    {
+      "path": "app-modules/organization/tests/Feature/OrganizationSettingsApiTest.php",
+      "inspection": "read",
+      "sha256": "990c9035af85f83e43431e716f600d3d2c58b9306f299a218b3aa9c8e84ed0f1",
+      "bytes": 7472
+    },
+    {
+      "path": "app-modules/shared/src/Http/Resources/BaseCollection.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "bf650fc0ba63d4d797ba04f51fbb0ccf2367b3024c0d0810802a600ee062604e",
+      "bytes": 643
+    },
+    {
+      "path": "app-modules/shared/src/Http/Responses/ResponseResponder.php",
+      "inspection": "read; some views omitted imports/comments after contract-focused full views",
+      "sha256": "507baec158eac09e5beb2bea00e2d1789fac7c806d17a99c717ad3fe5664b82a",
+      "bytes": 906
+    },
+    {
+      "path": "bootstrap/app.php",
+      "inspection": "read",
+      "sha256": "d2e64f12ebf8396c64eb12013ea573230f2d46e84e74ff31fdcddd704ec635aa",
+      "bytes": 3013
+    },
+    {
+      "path": "config/frontend.php",
+      "inspection": "read",
+      "sha256": "8a9dded2e26cae1570685bcb9192661867fec2a03287cbfe88c79e9e83bd9cf9",
+      "bytes": 257
+    },
+    {
+      "path": "config/services.php",
+      "inspection": "read",
+      "sha256": "6e236ea0c92371965fa011d97ef97cbed185153e05e3c575b6e291938f086a38",
+      "bytes": 1386
+    },
+    {
+      "path": "docs/architecture/data-model.md",
+      "inspection": "read",
+      "sha256": "1cfd952ca6ff33d68bc75d3496c02ad7b5e1279ad1eac36f5c10397f90b5adc1",
+      "bytes": 5294
+    },
+    {
+      "path": "docs/features/catalog-units.md",
+      "inspection": "read",
+      "sha256": "86e7362f3e952e72023fed733099559f4f07250d911510377c8108273bc546ef",
+      "bytes": 4140
+    },
+    {
+      "path": "docs/iam/permissions.md",
+      "inspection": "read",
+      "sha256": "1ee8c5f01944a3f220ae8eb606f0685dcce35c823dc0a21fef48c773c2ee93a6",
+      "bytes": 7256
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/data-tenancy.mdx",
+      "inspection": "read",
+      "sha256": "99a724dd53bfa975f51de22546c6f95dca8030997bc55d1009d1f84a6041aa6d",
+      "bytes": 2704
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/dates.mdx",
+      "inspection": "read",
+      "sha256": "766ba72be44079ae1dcdfaa28c0497f41e280b2eef8d48b6326d10559e0c3d94",
+      "bytes": 1633
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/index.mdx",
+      "inspection": "read",
+      "sha256": "eeef53b30677e9853da8fde64df42ddaea24a8e4ca9249ff47e923611cba89f5",
+      "bytes": 2736
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/modules.mdx",
+      "inspection": "read",
+      "sha256": "b1954059bb75dcaeee56d2796cd9b045cd5018ffc1edb3c2aca11692c81b9216",
+      "bytes": 2374
+    },
+    {
+      "path": "docs/site/content/docs/en/architecture/reuse.mdx",
+      "inspection": "read",
+      "sha256": "13933772c0ad1122ffc4b7e93cc44adb88961bedf709460ba608776d28d2a4fd",
+      "bytes": 1948
+    },
+    {
+      "path": "docs/site/content/docs/en/getting-started/first-request.mdx",
+      "inspection": "read",
+      "sha256": "ad7b6611715adbb73ff8096c2c5391eb83a409434419ef99f525849e0195ab4e",
+      "bytes": 2367
+    },
+    {
+      "path": "docs/site/content/docs/en/getting-started/index.mdx",
+      "inspection": "read",
+      "sha256": "5ad1c64f299f29480e91e36f59b96007ecded57dc67f7fa133bd43cbb0a7935c",
+      "bytes": 1240
+    },
+    {
+      "path": "docs/site/content/docs/en/getting-started/installation.mdx",
+      "inspection": "read",
+      "sha256": "82aa7d3bd52d122919e4e6d5257418cc9bdee822eb5c4682bf0e90fda4890758",
+      "bytes": 2649
+    },
+    {
+      "path": "docs/site/content/docs/en/getting-started/troubleshooting.mdx",
+      "inspection": "read",
+      "sha256": "106367780b08a8408e3ccc418d8977235004ea0f2e6170702ffd2c5f968c74ea",
+      "bytes": 2325
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/data-tenancy.mdx",
+      "inspection": "read",
+      "sha256": "0b4ca82092b6fb352e9924eeb724e402476744c0b1c2e27b415fd8057358ddf9",
+      "bytes": 2951
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/dates.mdx",
+      "inspection": "read",
+      "sha256": "dfab12d58c060dc9c013c995b01307977edf7d4ae341acc6d2a059f6fb72b945",
+      "bytes": 1808
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/index.mdx",
+      "inspection": "read",
+      "sha256": "373aa78acf5c57bc066093e25359b5a36521dd245d6c47f3d0b8bc69419458a4",
+      "bytes": 3094
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/modules.mdx",
+      "inspection": "read",
+      "sha256": "c841e06e876160baa1811e8d319e62ea2e1650947e442a3fd53f7559255c7dbf",
+      "bytes": 2642
+    },
+    {
+      "path": "docs/site/content/docs/fr/architecture/reuse.mdx",
+      "inspection": "read",
+      "sha256": "0c58ca39b5c276016a98e3c16931c1e36fb9e4377e4da5f830fdb283dff4a457",
+      "bytes": 2093
+    },
+    {
+      "path": "docs/site/content/docs/fr/getting-started/first-request.mdx",
+      "inspection": "read",
+      "sha256": "5645216ca1371046efd77e94bad653f76dec263f17884dfea4ee0dfea9427753",
+      "bytes": 2492
+    },
+    {
+      "path": "docs/site/content/docs/fr/getting-started/index.mdx",
+      "inspection": "read",
+      "sha256": "2cacfc476ca2d29085c0e7b53c9e7cf971b5123fb7339a891b0781c4016ba0cd",
+      "bytes": 1359
+    },
+    {
+      "path": "docs/site/content/docs/fr/getting-started/installation.mdx",
+      "inspection": "read",
+      "sha256": "58fd4c8e13debfd6768517bfdc2509441f8b27eb18519478f6af241c6c902014",
+      "bytes": 2810
+    },
+    {
+      "path": "docs/site/content/docs/fr/getting-started/troubleshooting.mdx",
+      "inspection": "read",
+      "sha256": "3b0831ef418d068b4601e90408961f27377954fb83ca5384b5834843f5e9cd8c",
+      "bytes": 2533
+    },
+    {
+      "path": "tests/Feature/Integration/IamActivationManagementIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "454e936eb5d09d221339319c906a8e2aa2130ca7232525aaad3844455baee023",
+      "bytes": 18640
+    },
+    {
+      "path": "tests/Feature/Integration/IamActiveContextIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "1c59e34738480dcad84bb5f6852f9049087af2fef857860c810e05b15e128b6c",
+      "bytes": 12555
+    },
+    {
+      "path": "tests/Feature/Integration/IamDefaultMemberRoleIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "678b10cde977ffa4a8a06ec9c59769393f8ae7f98e9826f0129256f4d106f021",
+      "bytes": 10794
+    },
+    {
+      "path": "tests/Feature/Integration/IamGoogleAuthenticationIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "de6ac5011c95a18186db51eedbd2f666adf0fe2f006aafa8463be213393647d6",
+      "bytes": 22885
+    },
+    {
+      "path": "tests/Feature/Integration/IamInvitationConcurrencyIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "47df1d016f1d004688048725ea8cdfc3a38ef36ad432b670b34bd38b6c1cd6cb",
+      "bytes": 15394
+    },
+    {
+      "path": "tests/Feature/Integration/IamInvitationIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "985eda2bc90ef1b8e00fc84eeb65c354e7cfd83ba5b75cbaaf912dd5938f3100",
+      "bytes": 28170
+    },
+    {
+      "path": "tests/Feature/Integration/IamMemberRoleManagementIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "ec29ec02162518a4aef3792c278173f31aac164e3d48053bdf6d0c4a2ca69262",
+      "bytes": 13842
+    },
+    {
+      "path": "tests/Feature/Integration/IamOrganizationMemberReadIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "725a84abf28179e2d3224ed05a0747f81c77bf1d5b9ae56f8d35d432e1ffa4ca",
+      "bytes": 12249
+    },
+    {
+      "path": "tests/Feature/Integration/IamOrganizationMemberRemovalIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "9b677b6949b77f56c7d235fab790530d270435806bbe72e776df08993485d747",
+      "bytes": 9102
+    },
+    {
+      "path": "tests/Feature/Integration/IamOrganizationOnboardingIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "8b190d9a09271acc2bdf74744c2f9b20c9c917e88b23dfc5cc939740a05c5f7a",
+      "bytes": 13706
+    },
+    {
+      "path": "tests/Feature/Integration/IamPasswordlessIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "4b45525059575cfc7474be208f39784779960d3a42a21a189ea8f4e743b304b5",
+      "bytes": 10416
+    },
+    {
+      "path": "tests/Feature/Integration/IamPermissionIndexIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "21a0cee61eccf7f7049c3bf1f2a5571f74799ce0bc9df33700dad97d0bf0d4da",
+      "bytes": 2740
+    },
+    {
+      "path": "tests/Feature/Integration/IamProfileCompletionIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "afb7c70a7806cb4d3756df622a29cb32ed171e23dab3e56067ad69f71c10e3e9",
+      "bytes": 5803
+    },
+    {
+      "path": "tests/Feature/Integration/IamRoleEndpointsIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "6755716715e0c47fc4412a944e057cd2fe9d6cbbb174295df9bc8a5009777589",
+      "bytes": 9986
+    },
+    {
+      "path": "tests/Feature/Integration/IamSessionEnrichmentIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "654ebb92199e347331c378db22074fab4e9f0a35b282de441dde83228adf245a",
+      "bytes": 9085
+    },
+    {
+      "path": "tests/Feature/Integration/IamSessionManagementIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "0283029b6291bd1ba3294d7ed18fdadf93dcc4ecd71a632b1f773859e265571e",
+      "bytes": 11484
+    },
+    {
+      "path": "tests/Feature/Integration/IamUserProfileIntegrationTest.php",
+      "inspection": "complete executable body read; imports and routine comments omitted in compact views",
+      "sha256": "386aff33f5e62897295fc364b547e6ae046181228ccfaf71ee9fdfb4268dc30a",
+      "bytes": 4440
+    },
+    {
+      "path": "tests/Feature/NotesIntegrationTest.php",
+      "inspection": "read",
+      "sha256": "423112c56fbf6bd137c4a9b86c9986db91208b07ac8d5990a46bea9a94afb02b",
+      "bytes": 22444
+    }
+  ],
+  "root_iam_integration_tests_read": 17,
+  "php_tests_executed": false,
+  "application_modified": false
+}

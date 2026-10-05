@@ -1,0 +1,46 @@
+name: example
+variables:
+  - name: baseUrl
+    value: http://localhost:28417
+  - name: authToken
+    value: ""
+  - name: registrationEmail
+    value: ada@example.test
+  - name: loginChallengeId
+    value: ""
+  - name: loginCode
+    value: ""
+  - name: memberRoleId
+    value: ""
+  - name: organizationMemberId
+    value: ""
+  - name: roleId
+    value: ""
+  - name: invitationEmail
+    value: colleague@example.test
+  - name: invitationToken
+    value: ""
+  - name: invitationId
+    value: ""
+  - name: organizationRegistrationToken
+    value: ""
+  - name: sessionId
+    value: ""
+  - name: googleChallengeId
+    value: ""
+  - name: googleNonce
+    value: ""
+  - name: googleCredential
+    value: ""
+  - name: categoryId
+    value: ""
+  - name: optionId
+    value: ""
+  - name: optionValueId
+    value: ""
+  - name: productId
+    value: ""
+  - name: variantId
+    value: ""
+  - name: unitGroupId
+    value: ""

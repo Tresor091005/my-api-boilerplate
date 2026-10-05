@@ -16,7 +16,7 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        if (res.status === 200 && typeof res.body?.challenge_id === 'string') {
+        if (res.status === 200 && typeof res.body?.challenge_id === 'string' && typeof res.body.nonce === 'string') {
           bru.setEnvVar('googleChallengeId', res.body.challenge_id);
           bru.setEnvVar('googleNonce', res.body.nonce);
         }

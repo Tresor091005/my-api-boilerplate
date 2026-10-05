@@ -1,5 +1,10 @@
 # Catalog Module
 
+Public guides: [English](https://lahatre-erp-docs.vercel.app/en/docs/modules/catalog) · [Français](https://lahatre-erp-docs.vercel.app/fr/docs/modules/catalog).
+This file retains contributor notes and earlier designs. Use the public guide for
+current API examples and module limits. Lahatre ERP and this module use [MIT](../../LICENSE).
+
+
 ## Library images
 
 Products and services can attach existing Library files as one `main` image or an

@@ -5,22 +5,21 @@ info:
 
 http:
   method: PUT
-  url: "{{baseUrl}}/v1/catalog/products/019d63b5-6f9b-710e-8767-5d813e277f62/variants/019d63b9-38da-70a1-ae84-3cb5ccdb2b32"
+  url: "{{baseUrl}}/v1/catalog/products/{{productId}}/variants/{{variantId}}"
   body:
     type: json
     data: |-
       {
-        "sku": "UPDATED-VARIANT-SKU",
-        "should_manage_stock": false,
+        "inventory": { "stock_tracking_enabled": false },
         "is_active": true,
         "options": [
           {
             "name": "color",
-            "value": "silver"
+            "value": "green"
           },
           {
-            "name": "storage",
-            "value": "512gb"
+            "name": "size",
+            "value": "l"
           }
         ]
       }

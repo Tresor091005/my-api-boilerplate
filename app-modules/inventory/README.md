@@ -1,5 +1,10 @@
 # Inventory Module
 
+Public guides: [English](https://lahatre-erp-docs.vercel.app/en/docs/modules/inventory) · [Français](https://lahatre-erp-docs.vercel.app/fr/docs/modules/inventory).
+This file retains contributor notes and earlier designs. Use the public guide for
+current API examples and module limits. Lahatre ERP and this module use [MIT](../../LICENSE).
+
+
 The Inventory Module provides a reusable, location-aware inventory ledger for Laravel applications. It tracks items across warehouses and other locations, preserves lot-level quantities and exact costs, supports FIFO/FEFO/manual deductions, and reverses transactions without rewriting history.
 
 ## What it provides
