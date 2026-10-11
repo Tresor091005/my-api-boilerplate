@@ -126,7 +126,9 @@ The downloaded database and credentials remain outside Git.
 
 Local Docker requests commonly arrive with a private IP such as `192.168.65.1`,
 which cannot be geolocated. Public deployments must expose the client's public
-IP to Laravel, with trusted proxies configured when applicable. See
+IP to Laravel, with `TRUSTED_PROXIES` configured when a proxy sits in front of
+the API; see [client IP behind a proxy](../api/rate-limiting.md#client-ip-behind-a-proxy).
+Leave it empty when the published `app` port is reached directly. See
 [IAM session enrichment](../modules/iam.md#email-otp-and-sessions) for metadata,
 queue behavior, and update failure handling.
 

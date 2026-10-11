@@ -195,7 +195,7 @@ Matomo Device Detector parses the User-Agent locally; unavailable models use
 generic device names. Unknown clients such as Bruno return a null device.
 These descriptions are client input, never authentication or trusted-device credentials.
 IP uses Laravel's request resolution; forwarded addresses are accepted only
-through configured trusted proxies. Private/reserved IPs, absent databases, and
+through [configured trusted proxies](../api/rate-limiting.md#client-ip-behind-a-proxy). Private/reserved IPs, absent databases, and
 IPs without a GeoIP record return null locations. Detection results are cached
 for one day. No external geolocation HTTP request is made.
 
