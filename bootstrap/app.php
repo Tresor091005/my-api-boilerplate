@@ -7,6 +7,7 @@ use App\Http\Middleware\ResolveResponseContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
 use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
@@ -25,6 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Proxies come from config/trustedproxy.php. Only the client IP and
+        // scheme are taken from them: host, port and prefix stay untrusted so
+        // absolute URLs keep the API's own host, not the SPA origin in front.
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
+
         $middleware->appendToGroup('api', [
             ForceJsonResponse::class,
             ResolveResponseContext::class,

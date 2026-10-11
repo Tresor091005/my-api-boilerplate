@@ -15,6 +15,35 @@ Limits are defined in `App\Providers\RateLimitServiceProvider`.
 This keeps the setup small while sharing the application's existing PostgreSQL
 dependency. Redis remains dedicated to cache, queues, and Reverb.
 
+### Client IP behind a proxy
+
+Limiters keyed on the IP use `$request->ip()`, which also feeds session IPs
+and geolocation. Behind a reverse proxy (the SPA's same-origin `/api` proxy
+on Vercel or Vite, nginx, a load balancer) the TCP peer is the proxy, so all
+clients share its bucket unless the proxy is trusted.
+
+`TRUSTED_PROXIES`, read through `config/trustedproxy.php` by Laravel's
+`TrustProxies` middleware, selects the trusted proxies:
+
+- **Empty (default):** no proxy is trusted and `X-Forwarded-*` headers are
+  ignored. Use it when clients reach the API directly, including local
+  development.
+- **IPs or CIDR ranges, comma-separated:** Laravel reads `X-Forwarded-For`
+  from right to left and keeps the first address that is not a trusted proxy,
+  so an address forged by the client at the left of the header is skipped.
+  Prefer this for nginx or Docker, for example the proxy's network range.
+- **`*`:** every caller is treated as a proxy and the leftmost
+  `X-Forwarded-For` address becomes the client IP. Use it only when the API
+  cannot be reached except through a proxy that overwrites `X-Forwarded-For`,
+  such as Vercel, whose egress addresses are not a fixed list. If the API is
+  also reachable directly, any client can send its own `X-Forwarded-For`, take
+  a new IP on every request, bypass the `auth` and `google-auth` limits, and
+  falsify session IPs.
+
+Only `X-Forwarded-For` and `X-Forwarded-Proto` are trusted
+(`bootstrap/app.php`). Forwarded host, port, and prefix headers are ignored so
+absolute URLs keep the API's own host.
+
 ## 2. Configured limiters
 
 ### `api` (global API)
@@ -72,3 +101,6 @@ When a client exceeds its limit, the API returns a standardized response:
 ## 4. Tests
 
 Rate-limiting configuration is tested in `tests/Feature/RateLimitTest.php`.
+Client IP resolution behind trusted proxies, including separate `auth`
+buckets per forwarded client, is tested in
+`tests/Feature/Integration/TrustedProxyIntegrationTest.php`.
