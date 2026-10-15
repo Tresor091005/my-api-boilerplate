@@ -75,7 +75,7 @@ it('creates no user or organization until the email token completes organization
     queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
     $notification = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first();
     $url = $notification->url;
-    expect($url)->toStartWith('https://app.example.test/auth/register?');
+    expect($url)->toStartWith('https://app.example.test/register/organization?');
     parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
     expect($query['has_account'])->toBe('0');
 
