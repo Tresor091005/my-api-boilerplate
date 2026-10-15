@@ -102,7 +102,7 @@ it('creates one normalized invitation without creating an account or membership 
     expect($invitation->token_hash)->toBe(hash('sha256', $job->token));
     $job->handle(app(InvitationService::class));
     $notification = Notification::sent(new AnonymousNotifiable, InvitationLinkNotification::class)->first();
-    expect($notification->url)->toStartWith('https://app.example.test/auth/accept-invitation?');
+    expect($notification->url)->toStartWith('https://app.example.test/accept-invitation?');
     parse_str((string) parse_url($notification->url, PHP_URL_QUERY), $query);
     expect($query)->toMatchArray(['email' => $invitation->email, 'token' => $job->token, 'has_account' => '0']);
 });

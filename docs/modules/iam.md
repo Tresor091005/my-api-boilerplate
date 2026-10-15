@@ -10,7 +10,8 @@ The IAM module owns authentication and organization-scoped authorization.
    Addresses belonging to soft-deleted users stay unavailable. The API persists
    the token before queuing delivery, so an older queued job cannot replace a
    newer token. Stale jobs skip delivery.
-2. The email links to `frontend.url` plus `frontend.organization_registration_path` with `email`,
+2. The email links to `frontend.url` plus `frontend.organization_registration_path`
+   (`/register/organization`) with `email`,
    `token`, and a display-only `has_account` flag. The frontend submits the token
    and organization data to `POST /v1/auth/organization-registrations`. New accounts also supply
    names; existing accounts must omit those fields.
@@ -404,7 +405,7 @@ issued token remains valid, regardless of email job order. The email job skips
 stale, expired, cancelled, and accepted invitations. It runs on the `email`
 queue after commit, and its payload is encrypted because it carries a token.
 Invitations expire after seven days, defined by `InvitationService::EXPIRATION_DAYS`.
-The frontend link uses `frontend.invitation_acceptance_path` and carries
+The frontend link uses `frontend.invitation_acceptance_path` (`/accept-invitation`) and carries
 `email`, `token`, and the display-only `has_account` flag.
 
 `POST /v1/iam/invitations/accept` is public and rate-limited. It takes `email`
