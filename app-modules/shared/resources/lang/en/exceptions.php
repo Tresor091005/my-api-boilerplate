@@ -36,5 +36,9 @@ return [
         'state_type_mismatch'              => 'The state enum :actual does not match the machine state enum :expected.',
         'event_type_mismatch'              => 'The event enum :actual does not match the machine event enum :expected.',
         'invalid_event_enum'               => 'The configured event type is not a valid enum.',
+        'invalid_context_class'            => 'The configured context type :context is not a class.',
+        'context_required'                 => 'The state machine requires a context of type :expected.',
+        'context_type_mismatch'            => 'The context :actual does not match the machine context :expected.',
+        'context_not_declared'             => 'The state machine declares no context, but :actual was given.',
     ],
 ];

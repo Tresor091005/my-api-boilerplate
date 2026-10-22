@@ -146,39 +146,52 @@ instead pass `onFailure: fn (TransitionFailure $failure): Throwable => ...` to
 `trigger()` to throw a domain-specific exception. Authorize the operation
 and enforce domain invariants in the owning module.
 
-Transitions may also have side-effect-free guards. Multiple transitions can
-use the same event; the first guard that accepts the actor's context determines
-the target. `availableTransitions()` returns only that effective transition for
-each event, even when later guards for the same event also accept the context.
-`can()` and `availableTransitions()` can preview a temporary
-`extraContext` without changing the actor. Call `setContext()` to use those
-values for a real transition:
+Transitions may also have side-effect-free guards. Guards read a context whose
+class the machine declares in `define()`, without values: every actor then
+receives a complete instance, so each value is explicit where the actor is
+created and a missing or misspelled value fails at construction rather than in
+a guard. `actor()` and `setContext()` throw `StateMachineException` when the
+context is missing or of another class, or when the machine declares no context
+(its guards then receive `null`). `setContext()` replaces the whole context and
+`getContext()` returns it. Values a workflow usually starts with belong to a
+named constructor of the context class, not to the machine.
+
+Multiple transitions can use the same event; the first guard that accepts the
+actor's context determines the target. `availableTransitions()` returns only
+that effective transition for each event, even when later guards for the same
+event also accept the context. `can()`, `availableTransitions()` and `trigger()`
+all read the actor's stored context; call `setContext()` to evaluate or apply a
+transition with other values:
 
 ```php
-$machine = StateMachine::define(OrderStatus::Pending, OrderEvent::class)
+final readonly class OrderTransitionContext
+{
+    public function __construct(public bool $isReady) {}
+}
+
+$machine = StateMachine::define(OrderStatus::Pending, OrderEvent::class, OrderTransitionContext::class)
     ->from(OrderStatus::Pending)
     ->addTransition(
         OrderEvent::Confirm,
         OrderStatus::Completed,
-        static fn (array $context): bool => $context['is_ready'] === true,
+        static fn (OrderTransitionContext $context): bool => $context->isReady,
     )
     ->addTransition(
         OrderEvent::Confirm,
         OrderStatus::Rejected,
-        static fn (array $context): bool => $context['is_ready'] === false,
+        static fn (OrderTransitionContext $context): bool => !$context->isReady,
     )
     ->freeze();
 
-$actor = $machine->actor(OrderStatus::Pending, context: ['is_ready' => false]);
-$actor->availableTransitions(extraContext: ['is_ready' => true])[0]->target;
-// OrderStatus::Completed; the actor still has ['is_ready' => false].
-$actor->setContext(['is_ready' => true]);
+$actor = $machine->actor(OrderStatus::Pending, context: new OrderTransitionContext(isReady: false));
+$actor->availableTransitions()[0]->target; // OrderStatus::Rejected
+$actor->setContext(new OrderTransitionContext(isReady: true));
 $actor->trigger(OrderEvent::Confirm); // to OrderStatus::Completed
 ```
 
-`trigger()` reads the actor's stored context. Guards are evaluated for each
-check, so they should not perform persistence or other side effects. The domain
-service owns the transaction and any durable state change.
+Guards are evaluated for each check, so they should not perform persistence or
+other side effects. The domain service owns the transaction and any durable
+state change.
 
 ## Generated identifiers
 

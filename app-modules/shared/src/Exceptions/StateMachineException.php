@@ -75,7 +75,7 @@ final class StateMachineException extends AssertionException
     public static function stateTypeMismatch(string $expected, string $actual): self
     {
         return self::make(
-            __('shared::exceptions.state_machine.state_type_mismatch'),
+            __('shared::exceptions.state_machine.state_type_mismatch', ['expected' => $expected, 'actual' => $actual]),
             ['expected' => $expected, 'actual' => $actual],
         );
     }
@@ -83,7 +83,7 @@ final class StateMachineException extends AssertionException
     public static function eventTypeMismatch(string $expected, string $actual): self
     {
         return self::make(
-            __('shared::exceptions.state_machine.event_type_mismatch'),
+            __('shared::exceptions.state_machine.event_type_mismatch', ['expected' => $expected, 'actual' => $actual]),
             ['expected' => $expected, 'actual' => $actual],
         );
     }
@@ -93,6 +93,38 @@ final class StateMachineException extends AssertionException
         return self::make(
             __('shared::exceptions.state_machine.invalid_event_enum'),
             ['event_class' => $eventClass],
+        );
+    }
+
+    public static function invalidContextClass(string $contextClass): self
+    {
+        return self::make(
+            __('shared::exceptions.state_machine.invalid_context_class', ['context' => $contextClass]),
+            ['context_class' => $contextClass],
+        );
+    }
+
+    public static function contextRequired(string $expected): self
+    {
+        return self::make(
+            __('shared::exceptions.state_machine.context_required', ['expected' => $expected]),
+            ['expected' => $expected],
+        );
+    }
+
+    public static function contextTypeMismatch(string $expected, string $actual): self
+    {
+        return self::make(
+            __('shared::exceptions.state_machine.context_type_mismatch', ['expected' => $expected, 'actual' => $actual]),
+            ['expected' => $expected, 'actual' => $actual],
+        );
+    }
+
+    public static function contextNotDeclared(string $actual): self
+    {
+        return self::make(
+            __('shared::exceptions.state_machine.context_not_declared', ['actual' => $actual]),
+            ['actual' => $actual],
         );
     }
 

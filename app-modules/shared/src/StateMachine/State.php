@@ -17,7 +17,7 @@ final class State
     public function __construct(public readonly UnitEnum $name) {}
 
     /**
-     * @param  callable(array<string, mixed>): bool|null  $guard
+     * @param  (callable(object|null): bool)|null  $guard
      */
     public function on(UnitEnum $event, UnitEnum $target, ?callable $guard = null): self
     {
@@ -39,10 +39,7 @@ final class State
         $this->frozen = true;
     }
 
-    /**
-     * @param  array<string, mixed>  $context
-     */
-    public function resolveTransition(UnitEnum $event, array $context = []): ?Transition
+    public function resolveTransition(UnitEnum $event, ?object $context = null): ?Transition
     {
         foreach ($this->transitions[StateMachineValue::normalize($event)] ?? [] as $transition) {
             if ($transition->allows($context)) {
@@ -53,19 +50,15 @@ final class State
         return null;
     }
 
-    /**
-     * @param  array<string, mixed>  $context
-     */
-    public function can(UnitEnum $event, array $context = []): bool
+    public function can(UnitEnum $event, ?object $context = null): bool
     {
         return $this->resolveTransition($event, $context) !== null;
     }
 
     /**
-     * @param  array<string, mixed>  $context
      * @return list<Transition>
      */
-    public function availableTransitions(array $context = []): array
+    public function availableTransitions(?object $context = null): array
     {
         $transitions = [];
 

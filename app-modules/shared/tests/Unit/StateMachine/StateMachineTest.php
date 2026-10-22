@@ -30,6 +30,16 @@ enum StateMachineOtherEvent: string
     case Other = 'other';
 }
 
+final readonly class StateMachineTestContext
+{
+    public function __construct(public bool $allowed) {}
+}
+
+final readonly class StateMachineOtherContext
+{
+    public function __construct(public bool $allowed) {}
+}
+
 function stateMachineForTest(): StateMachine
 {
     return StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class)
@@ -58,64 +68,63 @@ it('creates an actor from a persisted state and returns a transition result', fu
 });
 
 it('lists only transitions whose guards allow them', function (): void {
-    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class)
+    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class)
         ->from(StateMachineTestState::Draft)
         ->addTransition(
             StateMachineTestEvent::Activate,
             StateMachineTestState::Active,
-            static fn (array $context): bool => $context['allowed'] ?? false,
+            static fn (StateMachineTestContext $context): bool => $context->allowed,
         );
-    $actor = $machine->actor(context: ['allowed' => false]);
+    $actor = $machine->actor(context: new StateMachineTestContext(allowed: false));
 
     expect($actor->availableTransitions())->toBe([])
         ->and($actor->can(StateMachineTestEvent::Activate))->toBeFalse();
 
-    $actor->setContext(['allowed' => true]);
+    $actor->setContext(new StateMachineTestContext(allowed: true));
 
     expect($actor->availableTransitions())->toHaveCount(1)
         ->and($actor->can(StateMachineTestEvent::Activate))->toBeTrue();
 });
 
 it('uses the actor context to choose between transitions with the same event', function (): void {
-    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class)
+    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class)
         ->from(StateMachineTestState::Draft)
         ->addTransition(
             StateMachineTestEvent::Activate,
             StateMachineTestState::Active,
-            static fn (array $context): bool => $context['approved'] === true,
+            static fn (StateMachineTestContext $context): bool => $context->allowed,
         )
         ->addTransition(
             StateMachineTestEvent::Activate,
             StateMachineTestState::Completed,
-            static fn (array $context): bool => $context['approved'] === false,
+            static fn (StateMachineTestContext $context): bool => !$context->allowed,
         );
-    $actor = $machine->actor(context: ['approved' => false]);
+    $actor = $machine->actor(context: new StateMachineTestContext(allowed: false));
 
-    expect($actor->availableTransitions(extraContext: ['approved' => true]))->toHaveCount(1)
-        ->and($actor->availableTransitions(extraContext: ['approved' => true])[0]->target)->toBe(StateMachineTestState::Active)
-        ->and($actor->context())->toBe(['approved' => false]);
+    expect($actor->availableTransitions())->toHaveCount(1)
+        ->and($actor->availableTransitions()[0]->target)->toBe(StateMachineTestState::Completed);
 
-    $actor->setContext(['approved' => true]);
-    $result = $actor->trigger(StateMachineTestEvent::Activate);
+    $actor->setContext(new StateMachineTestContext(allowed: true));
 
-    expect($result->to)->toBe(StateMachineTestState::Active);
+    expect($actor->availableTransitions()[0]->target)->toBe(StateMachineTestState::Active)
+        ->and($actor->trigger(StateMachineTestEvent::Activate)->to)->toBe(StateMachineTestState::Active);
 });
 
 it('lists only the effective transition for each available event', function (): void {
-    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class)
+    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class)
         ->from(StateMachineTestState::Draft)
         ->addTransition(
             StateMachineTestEvent::Activate,
             StateMachineTestState::Active,
-            static fn (array $context): bool => $context['ready'],
+            static fn (StateMachineTestContext $context): bool => $context->allowed,
         )
         ->addTransition(
             StateMachineTestEvent::Activate,
             StateMachineTestState::Completed,
-            static fn (array $context): bool => $context['ready'],
+            static fn (StateMachineTestContext $context): bool => $context->allowed,
         )
         ->addTransition(StateMachineTestEvent::Complete, StateMachineTestState::Completed);
-    $actor = $machine->actor(context: ['ready' => true]);
+    $actor = $machine->actor(context: new StateMachineTestContext(allowed: true));
     $availableTransitions = $actor->availableTransitions();
 
     expect($availableTransitions)->toHaveCount(2)
@@ -170,12 +179,20 @@ it('passes a typed failure to the optional failure handler', function (): void {
 });
 
 it('freezes a shared definition without sharing actor state or context', function (): void {
-    app()->singleton('test.order.state.machine', static fn (): StateMachine => stateMachineForTest()->freeze());
+    app()->singleton(
+        'test.order.state.machine',
+        static fn (): StateMachine => StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class)
+            ->from(StateMachineTestState::Draft)
+            ->addTransition(StateMachineTestEvent::Activate, StateMachineTestState::Active)
+            ->freeze(),
+    );
 
     /** @var StateMachine $machine */
     $machine = app('test.order.state.machine');
-    $firstActor = $machine->actor(context: ['allowed' => true]);
-    $secondActor = $machine->actor();
+    $firstContext = new StateMachineTestContext(allowed: true);
+    $secondContext = new StateMachineTestContext(allowed: false);
+    $firstActor = $machine->actor(context: $firstContext);
+    $secondActor = $machine->actor(context: $secondContext);
 
     $firstActor->trigger(StateMachineTestEvent::Activate);
 
@@ -183,7 +200,8 @@ it('freezes a shared definition without sharing actor state or context', functio
         ->and($machine->freeze())->toBe($machine)
         ->and($firstActor->state())->toBe(StateMachineTestState::Active)
         ->and($secondActor->state())->toBe(StateMachineTestState::Draft)
-        ->and($secondActor->context())->toBe([]);
+        ->and($firstActor->getContext())->toBe($firstContext)
+        ->and($secondActor->getContext())->toBe($secondContext);
 });
 
 it('rejects every definition mutation after freezing', function (): void {
@@ -199,4 +217,42 @@ it('rejects every definition mutation after freezing', function (): void {
         ->and(fn (): object => $state->on(StateMachineTestEvent::Activate, StateMachineTestState::Completed))
         ->toThrow(StateMachineException::class)
         ->and($machine->actor()->can(StateMachineTestEvent::Activate))->toBeTrue();
+});
+
+it('requires a complete context of the declared class to create an actor', function (): void {
+    $machine = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class);
+
+    expect(fn (): object => $machine->actor())
+        ->toThrow(StateMachineException::class, 'requires a context of type StateMachineTestContext')
+        ->and(fn (): object => $machine->actor(context: new StateMachineOtherContext(allowed: true)))
+        ->toThrow(StateMachineException::class, 'The context StateMachineOtherContext does not match')
+        ->and($machine->actor(context: new StateMachineTestContext(allowed: true))->getContext())
+        ->toEqual(new StateMachineTestContext(allowed: true));
+});
+
+it('replaces the whole context only with an instance of the declared class', function (): void {
+    $actor = StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, StateMachineTestContext::class)
+        ->actor(context: new StateMachineTestContext(allowed: false));
+    $replacement = new StateMachineTestContext(allowed: true);
+
+    expect($actor->setContext($replacement)->getContext())->toBe($replacement)
+        ->and(fn (): object => $actor->setContext(new StateMachineOtherContext(allowed: true)))
+        ->toThrow(StateMachineException::class)
+        ->and($actor->getContext())->toBe($replacement);
+});
+
+it('accepts no context when the machine declares none', function (): void {
+    $machine = stateMachineForTest();
+
+    expect($machine->actor()->getContext())->toBeNull()
+        ->and(fn (): object => $machine->actor(context: new StateMachineTestContext(allowed: true)))
+        ->toThrow(StateMachineException::class, 'declares no context')
+        ->and(fn (): object => $machine->actor()->setContext(new StateMachineTestContext(allowed: true)))
+        ->toThrow(StateMachineException::class);
+});
+
+it('rejects a context type that is not a class', function (): void {
+    // @phpstan-ignore argument.type (deliberately not a class)
+    expect(fn (): StateMachine => StateMachine::define(StateMachineTestState::Draft, StateMachineTestEvent::class, 'MissingStateMachineContext'))
+        ->toThrow(StateMachineException::class, 'MissingStateMachineContext is not a class');
 });

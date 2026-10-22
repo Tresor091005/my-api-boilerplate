@@ -9,7 +9,7 @@ use UnitEnum;
 final readonly class Transition
 {
     /**
-     * @param  callable(array<string, mixed>): bool|null  $guard
+     * @param  (callable(object|null): bool)|null  $guard
      */
     public function __construct(
         public UnitEnum $event,
@@ -17,10 +17,7 @@ final readonly class Transition
         private mixed $guard = null,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $context
-     */
-    public function allows(array $context): bool
+    public function allows(?object $context): bool
     {
         if ($this->guard === null) {
             return true;

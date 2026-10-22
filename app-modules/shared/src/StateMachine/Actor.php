@@ -9,13 +9,10 @@ use UnitEnum;
 
 final class Actor
 {
-    /**
-     * @param  array<string, mixed>  $context
-     */
     public function __construct(
         private readonly StateMachine $machine,
         private UnitEnum $currentState,
-        private array $context = [],
+        private ?object $context = null,
     ) {}
 
     public function state(): UnitEnum
@@ -23,27 +20,23 @@ final class Actor
         return $this->currentState;
     }
 
-    /**
-     * @param  array<string, mixed>  $extraContext
-     */
-    public function can(UnitEnum $event, array $extraContext = []): bool
+    public function can(UnitEnum $event): bool
     {
         $this->machine->validateEvent($event);
 
         return $this->machine
             ->getState($this->currentState)
-            ->can($event, $this->mergedContext($extraContext));
+            ->can($event, $this->context);
     }
 
     /**
-     * @param  array<string, mixed>  $extraContext
      * @return list<Transition>
      */
-    public function availableTransitions(array $extraContext = []): array
+    public function availableTransitions(): array
     {
         return $this->machine
             ->getState($this->currentState)
-            ->availableTransitions($this->mergedContext($extraContext));
+            ->availableTransitions($this->context);
     }
 
     /**
@@ -95,25 +88,17 @@ final class Actor
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $context
-     */
-    public function setContext(array $context): self
+    /** Replaces the whole context with an instance of the machine's context class. */
+    public function setContext(object $context): self
     {
-        $this->context = array_merge($this->context, $context);
+        $this->machine->assertContext($context);
+        $this->context = $context;
 
         return $this;
     }
 
-    /** @return array<string, mixed> */
-    public function context(): array
+    public function getContext(): ?object
     {
         return $this->context;
-    }
-
-    /** @param array<string, mixed> $extraContext */
-    private function mergedContext(array $extraContext): array
-    {
-        return array_merge($this->context, $extraContext);
     }
 }
