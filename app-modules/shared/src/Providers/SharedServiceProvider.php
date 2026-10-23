@@ -33,11 +33,6 @@ use Lahatre\Shared\Console\Commands\MorphMapCacheCommand;
 use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
 use Lahatre\Shared\Console\Commands\ResponseContractCacheCommand;
 use Lahatre\Shared\Console\Commands\ResponseContractClearCommand;
-use Lahatre\Shared\Console\Commands\ResponseDeclarationCacheCommand;
-use Lahatre\Shared\Console\Commands\ResponseDeclarationClearCommand;
-use Lahatre\Shared\Http\Response\ModelViolationReporter;
-use Lahatre\Shared\Http\Response\ResponseContext as SelectionResponseContext;
-use Lahatre\Shared\Http\Response\ResponseDeclarationRegistry;
 use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Lahatre\Shared\Registries\MorphMapRegistry;
@@ -53,11 +48,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->scoped(ResponseContext::class);
         $this->app->scoped(ResponseContractRegistry::class);
         $this->app->scoped(ResponseResponder::class);
-        $this->app->scoped(ModelViolationReporter::class);
-        $this->app->scoped(SelectionResponseContext::class);
-        // Declarations derive from source code and routes, fixed for the process: a singleton keeps
-        // the lazily analyzed actions across requests (Octane) instead of parsing them again.
-        $this->app->singleton(ResponseDeclarationRegistry::class);
 
         $this->commands([
             HelpersListCommand::class,
@@ -65,8 +55,6 @@ class SharedServiceProvider extends ServiceProvider
             MorphMapClearCommand::class,
             ResponseContractCacheCommand::class,
             ResponseContractClearCommand::class,
-            ResponseDeclarationCacheCommand::class,
-            ResponseDeclarationClearCommand::class,
         ]);
     }
 
@@ -76,10 +64,6 @@ class SharedServiceProvider extends ServiceProvider
     ): void {
         $morphMapRegistry->discover();
         $responseContractRegistry->discover();
-
-        if ($this->app->isProduction()) {
-            ModelViolationReporter::tolerate();
-        }
 
         $this->extendNativeGeneratorCommands();
         Artisan::starting(function (Artisan $artisan): void {
@@ -95,11 +79,6 @@ class SharedServiceProvider extends ServiceProvider
             optimize: 'response-contracts:cache',
             clear: 'response-contracts:clear',
             key: 'response-contracts',
-        );
-        $this->optimizes(
-            optimize: 'response-declarations:cache',
-            clear: 'response-declarations:clear',
-            key: 'response-declarations',
         );
     }
 

@@ -11,6 +11,7 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/app',
         __DIR__.'/app-modules',
+        __DIR__.'/packages',
         __DIR__.'/config',
         __DIR__.'/routes',
         __DIR__.'/tests',

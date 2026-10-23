@@ -10,7 +10,7 @@ use Illuminate\Testing\TestResponse;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
-use Lahatre\Shared\Http\Response\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
@@ -30,6 +30,10 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
  // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature', 'Unit', '../app-modules/*/tests');
+
+// the response selection package runs on its own bare application (Orchestra Testbench)
+pest()->extend(Lahatre\ResponseSelection\Tests\TestCase::class)
+    ->in('../packages/response-selection/tests');
 
 /*
 |--------------------------------------------------------------------------

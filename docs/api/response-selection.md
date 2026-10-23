@@ -1,7 +1,8 @@
 # API: response selection
 
-This document describes the response selection engine in
-`app-modules/shared/src/Http/Response`. It lets clients choose the fields and
+This document describes the response selection engine, the
+`lahatre/response-selection` package in `packages/response-selection`
+(namespace `Lahatre\ResponseSelection`). It lets clients choose the fields and
 relations of a response, and lets Resources declare what they can render and
 what each field reads. It is meant to replace the response contracts of
 [Standard responses and errors](responses-and-errors.md). Its middleware runs on
@@ -77,7 +78,8 @@ relation is rendered: relations are always opt-in.
 A rejected selection answers `422` with the standard validation envelope, keyed
 by `fields`, `include` or `response`, before the Form Request and the
 controller run. Messages are in
-`app-modules/shared/resources/lang/en/response.php`:
+`packages/response-selection/resources/lang/en/validation.php`
+(`response-selection::validation.*`):
 
 | Key | Raised when |
 | --- | --- |
@@ -367,7 +369,7 @@ answers 204 without loading anything.
 Each call is checked against the declaration in `ResponseContext`: a factory
 must match its shape and Resource, and `noContent()` needs a declaration that
 may answer empty (beside a factory, or alone). A mismatch, or a call without a
-started context (an action missing from a stale declaration cache), throws a
+started context (an action a stale declaration cache lists as legacy), throws a
 `ResponseSelectionException` naming the action and the expected declaration.
 
 ### 4.3 What the loader guarantees
@@ -406,7 +408,7 @@ does not declare raises Eloquent's missing-attribute exception, and reading a
 relation that was not loaded raises its lazy-loading exception instead of
 querying. Locally and in tests both throw. In production, as Lahatre's
 `Model::shouldBeStrict(!app()->isProduction())`, `ModelViolationReporter`
-(installed by `SharedServiceProvider`) reports each violation once per request
+(installed by `ResponseSelectionServiceProvider`) reports each violation once per request
 and model class and key, then lets it through: a missing attribute renders
 `null`, and a lazy-loaded relation still queries, so its data stays right. Fix
 the declaration the report points to. Without a handler, Eloquent
@@ -439,8 +441,8 @@ also thrown, instead of a silent render, for:
 extend `LogicException`, not `AssertionException`: they report a programming
 error in a Resource or an action, so they surface as server errors and are
 reported, instead of being rendered as a 422 business failure. Their messages
-are translated (`shared::exceptions.response_selection.*` and
-`shared::exceptions.response_declaration.*`); `context()` holds the details.
+are translated (`response-selection::selection.*` and
+`response-selection::declaration.*`); `context()` holds the details.
 
 ### 4.4 Declaration analyzer and registry
 
@@ -468,9 +470,10 @@ when the cache is built. `php artisan response-declarations:cache` writes
 `bootstrap/cache/response-declarations.php` and
 `response-declarations:clear` removes it; both are hooked into `optimize` and
 `optimize:clear`. The file is read only in production, when it exists;
-elsewhere each action is analyzed on its first request and memoized. After a
-deployment that adds an `ApiResponse` call, rebuild the cache: an action
-missing from it is treated as legacy, and its `ApiResponse` call throws.
+elsewhere each action is analyzed on its first request and memoized. An action
+the cache does not list (added after it was built) is analyzed on its first
+request too; an action it lists as legacy stays legacy, so after a deployment
+that migrates an action, rebuild the cache or its `ApiResponse` call throws.
 
 ### 4.5 OpenAPI documentation
 
@@ -536,13 +539,17 @@ GET  /v1/catalog/products/{product}/variants?fields=name&include=product(name)
 
 ## 6. Status
 
-The engine lives in `shared` and `ResolveResponseSelection` runs on every `api`
-route, but no action calls `ApiResponse` yet, so every route is legacy.
-`SharedServiceProvider` scopes the engine's `ResponseContext` and registers the
-registry and its commands. Remaining work:
+The engine is a local Composer package (`packages/*` path repository, symlinked
+in `vendor/lahatre/response-selection`), discovered by Laravel through its
+`ResponseSelectionServiceProvider`: it scopes `ResponseContext` and
+`ModelViolationReporter`, registers the registry, the
+`response-declarations:cache`/`:clear` commands and their `optimize` hooks, and
+the `response-selection::` translations. It depends on Laravel and
+`nikic/php-parser` only; the Scramble extension needs `dedoc/scramble`. The
+application attaches `ResolveResponseSelection` to its `api` group
+(`bootstrap/app.php`); no action calls `ApiResponse` yet, so every route is
+legacy. Remaining work:
 
-- `nikic/php-parser` comes only through `dedoc/scramble`: make the runtime
-  dependency explicit with `composer require nikic/php-parser`.
 - Add `ResponseSelectionOperationExtension` to `extensions` in
   `config/scramble.php` (empty today; `AppServiceProvider::configureScramble()`
   only adds the Sanctum scheme).
@@ -560,7 +567,20 @@ registry and its commands. Remaining work:
   and their `optimizes()` registration, `config/api-responses.php`, the legacy
   middleware (and its registry bridge), their translation keys and the contract
   sections of these docs.
-- Unit tests cover definitions, build order, `when:`, rendering, the analyzer,
-  the registry and its cache, the middleware and the `ApiResponse` guards
-  (`app-modules/shared/tests/Unit`), and build the registry over every real
-  route; the feature test of includes needs a dedicated test database.
+- The package tests (`packages/response-selection/tests`) run on Orchestra
+  Testbench, a bare Laravel application with an in-memory SQLite database:
+  definitions, build order, `when:`, rendering, the analyzer, the registry and
+  its cache, the middleware, the `ApiResponse` guards, includes and the example.
+  `tests/Feature/Integration/ResponseSelectionIntegrationTest.php` covers the
+  application side: the registry over every real route, the legacy middleware
+  bridge and the `api` group order. Testbench brings `orchestra/canvas`, kept
+  out of package discovery (`dont-discover`) so the `make:*` commands stay
+  Lahatre's.
+- Each migrated route gets the two checks of `Lahatre\ResponseSelection\Testing`:
+  `assertBoundedQueries()` (the query count does not grow with the rows) and
+  `assertFieldsRenderInIsolation()` (every field rendered alone, at every
+  include up to depth 2, equals the full selection: a column or relation only a
+  sibling declares fails). A root field cannot be caught this way when the
+  action loads whole rows; included models are narrowed, so seed rows at every
+  include. `ResponseSelectionExampleTest` runs both on example routes
+  (`packages/response-selection/tests/Support/Example`).

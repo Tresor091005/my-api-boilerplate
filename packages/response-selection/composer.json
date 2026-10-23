@@ -1,0 +1,42 @@
+{
+    "name": "lahatre/response-selection",
+    "description": "Client-selected fields and includes for Laravel API Resources, loaded without N+1 queries.",
+    "type": "library",
+    "version": "1.0",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "illuminate/console": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/http": "^13.0",
+        "illuminate/routing": "^13.0",
+        "illuminate/support": "^13.0",
+        "illuminate/validation": "^13.0",
+        "nikic/php-parser": "^5.8"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.0"
+    },
+    "suggest": {
+        "dedoc/scramble": "Documents the response, fields and include parameters of declared actions (ResponseSelectionOperationExtension)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Lahatre\\ResponseSelection\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lahatre\\ResponseSelection\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lahatre\\ResponseSelection\\ResponseSelectionServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}

@@ -16,7 +16,7 @@ use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 use Lahatre\Shared\Exceptions\AssertionException;
-use Lahatre\Shared\Http\Response\ResolveResponseSelection;
+use Lahatre\ResponseSelection\ResolveResponseSelection;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
