@@ -29,6 +29,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "matomo/device-detector": "^6.5",
+        "nikic/php-parser": "^5.8",
         "phpseclib/phpseclib": "^3.0",
         "spatie/laravel-permission": "^7.0",
         "staudenmeir/eloquent-has-many-deep": "^1.22",

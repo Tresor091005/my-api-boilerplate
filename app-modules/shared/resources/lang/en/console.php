@@ -14,4 +14,8 @@ return [
         'cached'  => 'Response contracts cached successfully.',
         'cleared' => 'Response contract cache cleared successfully.',
     ],
+    'response_declarations' => [
+        'cached'  => 'Response declarations cached successfully.',
+        'cleared' => 'Response declaration cache cleared successfully.',
+    ],
 ];

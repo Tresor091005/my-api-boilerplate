@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c11abf8a345d08f8025313bddb79bba9",
+    "content-hash": "237018dad442bc7e1a7b7ea6df5387f7",
     "packages": [
         {
             "name": "brick/math",
@@ -2329,7 +2329,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/catalog",
-                "reference": "270566da64afae2a7961fa587a19a98c6307c240"
+                "reference": "8dda4123b3070781af92e87df3285d83d052f471"
             },
             "type": "library",
             "extra": {
@@ -2361,7 +2361,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/customer",
-                "reference": "33feb3537a2f8a5d0264a44aed4aacacc446e7f5"
+                "reference": "23cae8663e6653a7baed44ec029a2e7bd10e028f"
             },
             "type": "library",
             "extra": {
@@ -2393,7 +2393,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/iam",
-                "reference": "5a2a633b7be72f161d9bd5d488396f0d872a9d18"
+                "reference": "f61824b0be54fb67ed6473dbe6b7868fe3cd5731"
             },
             "type": "library",
             "extra": {
@@ -2425,7 +2425,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/inventory",
-                "reference": "4ccfd2a2d955a70eb965bd5b45ea699766fd7dbe"
+                "reference": "9cf08412aa136b1efe6cb6dbaa1f67a05afb1d48"
             },
             "type": "library",
             "extra": {
@@ -2457,7 +2457,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/library",
-                "reference": "2074d95bf6fb8c206b69046a94bc3d3262a71d6f"
+                "reference": "5a0a3cb800ee1c51547011e96fe0a9079bc1507a"
             },
             "type": "library",
             "extra": {
@@ -2490,7 +2490,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/master",
-                "reference": "235f47ce175074ba77788a0a4da9da696bb628fb"
+                "reference": "3f6163ddf630600bbb2c54710872b8a9c123b79c"
             },
             "type": "library",
             "extra": {
@@ -2522,7 +2522,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/organization",
-                "reference": "43529b565faf83f5b08a617aef8b6766b4a7cfee"
+                "reference": "acdf1247f94ccd64f5f7074a4ad7debb8e177534"
             },
             "type": "library",
             "extra": {
@@ -2554,7 +2554,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/shared",
-                "reference": "a7b0b6112318873cd4116d549df912646ac7b8ea"
+                "reference": "202338e227d9817a70c84b02eb3d59aff11befec"
             },
             "type": "library",
             "extra": {
@@ -4715,16 +4715,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.8.0",
+            "version": "v5.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
                 "shasum": ""
             },
             "require": {
@@ -4766,9 +4766,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-07-04T14:30:18+00:00"
+            "time": "2026-09-13T18:51:52+00:00"
         },
         {
             "name": "nunomaduro/termwind",

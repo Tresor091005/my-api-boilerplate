@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
+use Lahatre\Shared\Http\Response\ResponseDeclarationRegistry;
 use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,10 +17,16 @@ final readonly class ResolveResponseContext
     public function __construct(
         private ResponseContractRegistry $contracts,
         private ResponseContext $context,
+        private ResponseDeclarationRegistry $declarations,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
+        // an action migrated to ApiResponse is served by ResolveResponseSelection
+        if ($this->declarations->for($request->route()) !== null) {
+            return $next($request);
+        }
+
         $routeName = $request->route()->getName();
         $contract = $this->contracts->forRoute($routeName);
 

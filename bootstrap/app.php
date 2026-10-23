@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\ResolveResponseContext;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +16,7 @@ use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 use Lahatre\Shared\Exceptions\AssertionException;
+use Lahatre\Shared\Http\Response\ResolveResponseSelection;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -34,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', [
             ForceJsonResponse::class,
             ResolveResponseContext::class,
+            ResolveResponseSelection::class,
             'throttle:api',
         ]);
 
@@ -48,6 +51,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
         $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
         $middleware->prependToPriorityList(TrackSessionActivity::class, EnsureProfileComplete::class);
+        // Authentication answers first: a logged-out request gets 401, not a 422 for its selection.
+        $middleware->appendToPriorityList(AuthenticatesRequests::class, ResolveResponseSelection::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AssertionException $e, $request) {

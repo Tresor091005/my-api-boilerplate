@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Routing\Route;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Testing\Fakes\QueueFake;
@@ -9,6 +10,8 @@ use Illuminate\Testing\TestResponse;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
+use Lahatre\Shared\Http\Response\ResponseDeclarationRegistry;
+use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
 use Tests\TestCase;
@@ -71,6 +74,39 @@ function currentTestCase(): TestCase
     }
 
     return $testCase;
+}
+
+/**
+ * List the legacy api routes without a response contract. A route declared by the new response
+ * engine is skipped, as ResolveResponseContext does at runtime.
+ *
+ * @param  iterable<Route>  $routes
+ * @return list<string>
+ */
+function routesMissingResponseContract(
+    iterable $routes,
+    ResponseContractRegistry $contracts,
+    ResponseDeclarationRegistry $declarations,
+): array {
+    $failures = [];
+
+    foreach ($routes as $route) {
+        if (!in_array('api', $route->gatherMiddleware(), true) || $declarations->for($route) !== null) {
+            continue;
+        }
+
+        $routeName = $route->getName();
+
+        if ($routeName === null || $contracts->forRoute($routeName) === null) {
+            $failures[] = sprintf(
+                'Route [%s] (%s) is missing a response contract. Add it to the response-contracts.php file owned by its module.',
+                $routeName ?? $route->uri(),
+                implode('|', $route->methods()),
+            );
+        }
+    }
+
+    return $failures;
 }
 
 /**
