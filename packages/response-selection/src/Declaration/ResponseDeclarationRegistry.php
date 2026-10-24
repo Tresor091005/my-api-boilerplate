@@ -2,23 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Declaration;
 
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
 
 /**
- * The response declaration of each controller action, keyed `Controller@method`
- * (Route::getActionName()), or null for an action making no ApiResponse call (legacy).
- *
- * In production, read from bootstrap/cache/response-declarations.php when it exists
- * (response-declarations:cache, run by `optimize`): an action the cache lists as null is legacy, an
- * action it does not list (added after the cache was built) is analyzed. Otherwise each action is
- * analyzed on first lookup and memoized. build() analyzes every routed action, so a bad declaration or Resource
- * definition fails when the cache is built.
+ * Knows what each controller action answers with. In production it reads a prebuilt cache file;
+ * otherwise it reads each action's source the first time it is asked.
  */
 final class ResponseDeclarationRegistry
 {
@@ -50,7 +45,7 @@ final class ResponseDeclarationRegistry
 
         $cached = $this->cached();
 
-        // null in the cache: a legacy action; no entry at all: an action the cache predates
+        // A null entry means no ApiResponse call; a missing entry means the action is newer than the cache
         if ($cached !== null && array_key_exists($action, $cached)) {
             return $this->declarations[$action] = $cached[$action] === null ? null : ResponseDeclaration::fromArray($cached[$action]);
         }
@@ -61,8 +56,7 @@ final class ResponseDeclarationRegistry
     }
 
     /**
-     * Analyzes every controller action of the router; the analyzer validates each declared
-     * Resource and the children it may render.
+     * Reads every routed action, so a bad declaration fails when the cache is built.
      *
      * @return array<string, array{resource: class-string<ApiResource>|null, shape: string|null, statuses: array<int, int>, can_be_empty: bool}|null>
      */
@@ -115,7 +109,7 @@ final class ResponseDeclarationRegistry
     }
 
     /**
-     * The cached declarations, read once and only in production, as ResponseContractRegistry does.
+     * The cache file's content, read once and only in production.
      *
      * @return array<string, array<string, mixed>|null>|null
      */

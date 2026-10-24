@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Rendering;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclaration;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
+use Lahatre\ResponseSelection\ResourceDefinition;
+use Lahatre\ResponseSelection\Selection\SelectionTree;
 use WeakMap;
 
 /**
- * Request-scoped response state, filled by ResolveResponseSelection before the controller runs:
- * the mode, the selection and the declaration of the matched action.
- * Registered with $app->scoped(): it is never carried into queued jobs or log context.
- *
- * During a response it also holds what the SelectionLoader built, never set on the models: the
- * values of computed fields, the children of virtual includes and the `when:` verdicts.
+ * What the current request asked for in its response, and the values computed while building it.
+ * It lives for one request only.
  */
 final class ResponseContext
 {
@@ -28,29 +28,28 @@ final class ResponseContext
     private ?ResponseDeclaration $declaration = null;
 
     /**
-     * Computed fields per model, then per builder (FieldComputer class, or `Resource::key` for a
-     * closure): the fields it was asked for and the values it returned.
+     * Computed field values, per model and per builder.
      *
      * @var WeakMap<Model, array<string, array{fields: array<string, true>, values: array<string, mixed>}>>
      */
     private WeakMap $computed;
 
     /**
-     * Children of virtual includes per parent model, then per `Resource::include`.
+     * Virtual include children, per parent model.
      *
      * @var WeakMap<Model, array<string, mixed>>
      */
     private WeakMap $virtual;
 
     /**
-     * `when:` verdicts per model, then per `Resource::member`.
+     * `when:` results, per model.
      *
      * @var WeakMap<Model, array<string, bool>>
      */
     private WeakMap $conditions;
 
     /**
-     * Verdicts of request-only `when:`, per `Resource::member`.
+     * Results of `when:` conditions that only read the request.
      *
      * @var array<string, bool>
      */
@@ -109,7 +108,7 @@ final class ResponseContext
     }
 
     /**
-     * What the matched action declares, null while the context is not started.
+     * What the current route declares about its response, null before start().
      */
     public function declaration(): ?ResponseDeclaration
     {
@@ -117,8 +116,7 @@ final class ResponseContext
     }
 
     /**
-     * Records that a builder was asked for $fields on a model and what it returned; keys outside
-     * $fields are dropped, a key of $fields it left out is omitted.
+     * Records the values a builder returned for a model. Values it was not asked for are ignored.
      *
      * @param  array<int, string>  $fields
      * @param  array<string, mixed>  $values
@@ -141,7 +139,7 @@ final class ResponseContext
     }
 
     /**
-     * Whether the builder was already asked for this field on this model.
+     * Whether this field was already computed for this model.
      */
     public function wasComputed(Model $model, string $builder, string $field): bool
     {
@@ -149,7 +147,7 @@ final class ResponseContext
     }
 
     /**
-     * Whether the builder returned a value (possibly null) for this field on this model.
+     * Whether the builder returned a value, even null, for this field.
      */
     public function hasComputedValue(Model $model, string $builder, string $field): bool
     {
@@ -162,8 +160,6 @@ final class ResponseContext
     }
 
     /**
-     * Records the children a virtual include loaded for a parent.
-     *
      * @param  class-string<ApiResource>  $resourceClass
      */
     public function rememberVirtual(Model $parent, string $resourceClass, string $include, mixed $value): void
@@ -190,8 +186,8 @@ final class ResponseContext
     }
 
     /**
-     * Whether the request passes a member's request-only `when:`, evaluated once per response; true
-     * for a member without `when:` or with a per-model one.
+     * Whether the request passes a `when:` condition that only reads the request. Checked once per
+     * response.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -207,8 +203,7 @@ final class ResponseContext
     }
 
     /**
-     * Whether a member exists once the request-only `when:` are known: its own and those of every
-     * member of its `fields:`, transitively, accept the request.
+     * Whether a field or include can appear for this request, given the fields it depends on.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -228,8 +223,7 @@ final class ResponseContext
     }
 
     /**
-     * Whether a member exists for a model: its `when:` accepts it, every member of its `fields:`
-     * exists for it, and a FieldComputer that was asked for it returned its key.
+     * Whether a field or include appears for this model.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -251,8 +245,7 @@ final class ResponseContext
     }
 
     /**
-     * Whether a member's `when:` accepts a model: the request-only verdict, or the per-model one,
-     * evaluated once per model.
+     * Whether a field or include's `when:` condition accepts this model. Checked once per model.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */

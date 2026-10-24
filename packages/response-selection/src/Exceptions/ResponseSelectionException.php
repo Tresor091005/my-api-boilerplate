@@ -7,9 +7,8 @@ namespace Lahatre\ResponseSelection\Exceptions;
 use LogicException;
 
 /**
- * Misuse of the response selection engine detected while building or rendering a response.
- * A programming error, not a business failure: it is not an AssertionException, so it is
- * reported as a server error instead of being rendered as a 422.
+ * Thrown when the package is misused while building a response. It signals a coding mistake, so the
+ * client gets a server error.
  */
 final class ResponseSelectionException extends LogicException
 {
@@ -313,7 +312,7 @@ final class ResponseSelectionException extends LogicException
         return new self($message, $context);
     }
 
-    /** @return array<string, mixed> Stable machine-readable details, kept out of the translated message. */
+    /** @return array<string, mixed> Machine-readable details, apart from the translated message. */
     public function context(): array
     {
         return $this->context;

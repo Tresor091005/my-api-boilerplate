@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Declaration;
 
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ApiResponse;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
+use Lahatre\ResponseSelection\FieldComputer;
+use Lahatre\ResponseSelection\ResourceResolver;
+use Lahatre\ResponseSelection\VirtualIncludeLoader;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
@@ -23,18 +28,13 @@ use ReflectionMethod;
 use Throwable;
 
 /**
- * Reads response declarations from source code, for ResponseDeclarationRegistry (cache build or
- * lazy lookup) and documentation generation. Never executes an action, a builder or a loader.
- *
- * For an action: its single ApiResponse factory call, or only noContent() (parsed source). For a
- * Resource and every child it may render: its definition builds and freezes, and the classes it
- * names implement the right contracts. Rendering needs no check: toArray() is generated from the
- * definition.
+ * Reads what each controller action answers with straight from its source code, without running it,
+ * and checks that the Resources it names are valid.
  */
 final class ResponseDeclarationAnalyzer
 {
     /**
-     * Position of each named argument of the ApiResponse factories.
+     * Position of each argument of the ApiResponse factories, for calls that pass them by position.
      */
     private const FACTORY_ARGUMENTS = [
         'item'       => ['resourceClass' => 1, 'status' => 2, 'possibleStatuses' => 3],
@@ -43,15 +43,14 @@ final class ResponseDeclarationAnalyzer
     ];
 
     /**
-     * Parsed statements per source file.
+     * Parsed source files, so each file is read only once.
      *
      * @var array<string, array<Node>>
      */
     private array $files = [];
 
     /**
-     * The declaration of a controller action, or null when it makes no ApiResponse call (a legacy
-     * action). An inherited or trait method is read in the file it is written in.
+     * What a controller action answers with, or null when it does not use ApiResponse.
      */
     public function forAction(string $controller, string $method): ?ResponseDeclaration
     {
@@ -63,8 +62,8 @@ final class ResponseDeclarationAnalyzer
             return null;
         }
 
-        // ReflectionMethod starts at the `function` keyword, the parsed node at its attributes; a
-        // trait method imported under an alias keeps its written name
+        // Match by line range, not by name alone: a trait method imported under an alias keeps its
+        // original name in the file
         $line = $reflection->getStartLine();
         $candidates = array_values(array_filter(
             (new NodeFinder)->findInstanceOf($this->parse($file, $action), ClassMethod::class),
@@ -154,11 +153,11 @@ final class ResponseDeclarationAnalyzer
         $resourceClass = $resource->class->toString();
         $this->validateResource($resourceClass);
 
-        return new ResponseDeclaration($resourceClass, ResponseShape::ofFactory($factory), $codes, $this->apiResponseCalls($method, ['noContent']) !== []);
+        return new ResponseDeclaration($resourceClass, ResponseShape::tryFrom($factory), $codes, $this->apiResponseCalls($method, ['noContent']) !== []);
     }
 
     /**
-     * The factory of a call found by factoryCalls(), as spelled in FACTORY_ARGUMENTS.
+     * Which factory a call uses, spelled as in FACTORY_ARGUMENTS.
      */
     private function factoryName(StaticCall $call): string
     {
@@ -174,7 +173,7 @@ final class ResponseDeclarationAnalyzer
     }
 
     /**
-     * The ApiResponse::item() / list() / cursorPage() calls of an action.
+     * The ApiResponse::item(), list() and cursorPage() calls of an action.
      *
      * @return array<int, StaticCall>
      */
@@ -184,7 +183,7 @@ final class ResponseDeclarationAnalyzer
     }
 
     /**
-     * @param  array<int, string>  $names  method names, compared case-insensitively like PHP does
+     * @param  array<int, string>  $names  case-insensitive, like PHP
      * @return array<int, StaticCall>
      */
     private function apiResponseCalls(?ClassMethod $method, array $names): array

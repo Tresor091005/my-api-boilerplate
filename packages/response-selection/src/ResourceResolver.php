@@ -9,16 +9,15 @@ use Illuminate\Database\Eloquent\Model;
 interface ResourceResolver
 {
     /**
-     * The ApiResource class that renders this child model (polymorphic includes), or null when the
-     * model has no API representation: nothing is loaded under it, a single include renders `null`
-     * and a list include leaves it out. A non-null class must be listed by resources().
+     * The Resource that renders this model, or null to render it as null (or leave it out of a list).
+     * The class must be one of resources().
      *
      * @return class-string<ApiResource>|null
      */
     public function resourceFor(Model $model): ?string;
 
     /**
-     * Every ApiResource class this resolver may return (definition coverage and API docs).
+     * Every Resource this resolver may return.
      *
      * @return array<int, class-string<ApiResource>>
      */

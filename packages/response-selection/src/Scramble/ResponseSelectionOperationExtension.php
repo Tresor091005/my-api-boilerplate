@@ -20,23 +20,18 @@ use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
 use Dedoc\Scramble\Support\RouteInfo;
 use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\ResourceDefinition;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
-use Lahatre\ResponseSelection\SelectionParser;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
 
 /**
- * Documents actions the ResponseDeclarationRegistry declares, that is, rendering through ApiResponse.
- * Reads the Resource, statuses and JSON shape from the explicit ApiResponse::item() / list() /
- * cursorPage() call, or noContent() alone, without executing the controller. The resource schema comes from the definition, the only
- * source of rendering: every member in declaration order, includes inlined up to
- * DOCUMENTED_INCLUDE_DEPTH.
+ * Completes the API documentation of every route that answers with ApiResponse: the `response`,
+ * `fields` and `include` parameters, and what the body looks like.
  */
 class ResponseSelectionOperationExtension extends OperationExtension
 {
-    private const DOCUMENTED_INCLUDE_DEPTH = 2;
-
     public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
         $declaration = app(ResponseDeclarationRegistry::class)->for($routeInfo->route);
@@ -81,8 +76,8 @@ class ResponseSelectionOperationExtension extends OperationExtension
             Parameter::make('include', 'query')
                 ->setSchema(Schema::fromType(new StringType))
                 ->description('Comma-separated include paths, each optionally followed by its fields in parentheses: '
-                    .'`variants(id,sku),variants.optionValues(id,name)`. Max depth '.SelectionParser::MAX_DEPTH
-                    .', max '.SelectionParser::MAX_PATHS.' paths. Available: '
+                    .'`variants(id,sku),variants.optionValues(id,name)`. Max depth '.SelectionParser::maxDepth()
+                    .', max '.SelectionParser::maxPaths().' paths. Available: '
                     .implode(', ', array_map(fn (string $path) => "`{$path}`", $this->includePaths($resourceClass))).'.'),
         ]);
 
@@ -133,7 +128,7 @@ class ResponseSelectionOperationExtension extends OperationExtension
      */
     private function includePaths(string $resourceClass, string $prefix = '', int $depth = 1): array
     {
-        if ($depth > self::DOCUMENTED_INCLUDE_DEPTH) {
+        if ($depth > (int) config('response-selection.documented_include_depth')) {
             return [];
         }
 
@@ -153,12 +148,10 @@ class ResponseSelectionOperationExtension extends OperationExtension
     }
 
     /**
-     * Every member a Resource may render, in declaration order: a field's type is unknown to the
-     * definition, an include renders its child Resources. Only `id` is required: the selection and
-     * `when:` decide the other keys.
+     * Describes the body of a Resource. Only `id` is marked required, since the client picks the other keys.
      *
      * @param  class-string<ApiResource>  $resourceClass
-     * @param  array<int, class-string<ApiResource>>  $stack  Resources being documented (recursion guard)
+     * @param  array<int, class-string<ApiResource>>  $stack  Resources already being described, to avoid loops
      */
     private function resourceSchema(string $resourceClass, int $depth = 0, array $stack = []): OpenApiObjectType
     {
@@ -184,19 +177,19 @@ class ResponseSelectionOperationExtension extends OperationExtension
     private function includeSchema(ResourceDefinition $definition, string $name, int $depth, array $stack): Type
     {
         $children = array_map(
-            fn (string $child) => $depth < self::DOCUMENTED_INCLUDE_DEPTH && !in_array($child, $stack, true)
+            fn (string $child) => $depth < (int) config('response-selection.documented_include_depth') && !in_array($child, $stack, true)
                 ? $this->resourceSchema($child, $depth + 1, $stack)
                 : new OpenApiObjectType,
             $definition->includeResourceClasses($name),
         );
         $child = count($children) === 1 ? $children[0] : (new AnyOf)->setItems($children);
 
-        // nullable() is not serialized on an AnyOf: null is an explicit branch
+        // An AnyOf cannot be marked nullable, so null is added as one of its options
         if ($definition->isVirtualInclude($name)) {
             return $definition->rendersAsList($name) ? (new ArrayType)->setItems($child) : (new AnyOf)->setItems([...$children, new NullType]);
         }
 
-        // the cardinality comes from the Eloquent relation, unknown to the definition
+        // One item or a list depends on the Eloquent relation, which the definition does not know
         return (new AnyOf)
             ->setItems([...$children, new NullType, (new ArrayType)->setItems($child)])
             ->setDescription('One child (or null) or a list, as the relation defines.');

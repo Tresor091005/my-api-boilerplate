@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\LazyLoadingViolationException;
 use Illuminate\Support\Facades\Exceptions;
-use Lahatre\ResponseSelection\ModelViolationReporter;
+use Lahatre\ResponseSelection\Rendering\ModelViolationReporter;
 
 /**
  * Hydrated without a query: `exists` is true, so Eloquent applies its protections.

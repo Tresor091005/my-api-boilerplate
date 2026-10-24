@@ -69,11 +69,14 @@ relation is rendered: relations are always opt-in.
 
 ### 3.2 Limits and errors
 
-| `SelectionParser` constant | Value | Counts |
+| `response-selection.limits` key | Default | Counts |
 | --- | --- | --- |
-| `MAX_DEPTH` | 6 | Segments of one include path |
-| `MAX_PATHS` | 40 | Include paths, implicit prefixes included (`a.b` counts 2) |
-| `MAX_FIELDS_PER_NODE` | 100 | Distinct keys in one field list |
+| `max_depth` | 4 | Segments of one include path |
+| `max_paths` | 20 | Include paths, implicit prefixes included (`a.b` counts 2) |
+| `max_fields_per_node` | 50 | Distinct keys in one field list |
+
+The package config is published with
+`php artisan vendor:publish --tag=response-selection-config`.
 
 A rejected selection answers `422` with the standard validation envelope, keyed
 by `fields`, `include` or `response`, before the Form Request and the
@@ -117,7 +120,7 @@ body). `ResolveResponseSelection` resolves them per HTTP method:
 
 ### 3.4 Body shapes
 
-The action fixes the shape (`ResponseShape`: `item`, `list`, `cursor_page`).
+The action fixes the shape (`ResponseShape`: `item`, `list`, `cursorPage`).
 Every body is wrapped in `data`:
 
 - **item**: `{"data": {"id": "...", "name": "..."}}`;
@@ -406,9 +409,10 @@ model's own flag is restored afterwards. The global `Model::preventLazyLoading()
 is not touched. Reading a column the definition
 does not declare raises Eloquent's missing-attribute exception, and reading a
 relation that was not loaded raises its lazy-loading exception instead of
-querying. Locally and in tests both throw. In production, as Lahatre's
-`Model::shouldBeStrict(!app()->isProduction())`, `ModelViolationReporter`
-(installed by `ResponseSelectionServiceProvider`) reports each violation once per request
+querying. Locally and in tests both throw. When
+`response-selection.tolerate_model_violations` is on (in production by default,
+as Lahatre's `Model::shouldBeStrict(!app()->isProduction())`),
+`ModelViolationReporter` reports each violation once per request
 and model class and key, then lets it through: a missing attribute renders
 `null`, and a lazy-loaded relation still queries, so its data stays right. Fix
 the declaration the report points to. Without a handler, Eloquent
@@ -481,7 +485,7 @@ that migrates an action, rebuild the cache or its `ApiResponse` call throws.
 `ResponseDeclarationRegistry` declares. It adds the `response` parameter with its allowed values and
 default, a `204` response when `none` is allowed, the `fields` and `include`
 parameters listing the field keys and include paths up to
-`DOCUMENTED_INCLUDE_DEPTH` (2), and one body schema per declared status and
+`response-selection.documented_include_depth` (2), and one body schema per declared status and
 shape, replacing the 2xx responses Scramble inferred. The resource schema is
 built from the definition: every member in declaration order, fields untyped,
 includes inlined up to the same depth (a virtual include as a list or as
@@ -545,7 +549,11 @@ in `vendor/lahatre/response-selection`), discovered by Laravel through its
 `ModelViolationReporter`, registers the registry, the
 `response-declarations:cache`/`:clear` commands and their `optimize` hooks, and
 the `response-selection::` translations. It depends on Laravel and
-`nikic/php-parser` only; the Scramble extension needs `dedoc/scramble`. The
+`nikic/php-parser` only; the Scramble extension needs `dedoc/scramble`. The root of
+`src/` holds what an application uses (`ApiResource`, `ApiResponse`,
+`ResourceDefinition`, the builder contracts, the middleware); the internals sit
+in `Selection/` (parsing and checking `fields`/`include`), `Declaration/` (what
+each action renders) and `Rendering/` (loading, computing, request state). The
 application attaches `ResolveResponseSelection` to its `api` group
 (`bootstrap/app.php`); no action calls `ApiResponse` yet, so every route is
 legacy. Remaining work:

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Rendering;
 
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -17,33 +17,28 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
+use Lahatre\ResponseSelection\FieldComputer;
+use Lahatre\ResponseSelection\ResourceDefinition;
+use Lahatre\ResponseSelection\ResourceResolver;
+use Lahatre\ResponseSelection\Selection\SelectionNode;
+use Lahatre\ResponseSelection\VirtualIncludeLoader;
 use WeakMap;
 
 /**
- * Loads and builds everything a selection needs to render, node by node, after the business query.
+ * Loads and computes everything a response needs once the main query has run: missing columns,
+ * relations, computed fields and included resources. The number of queries grows with the depth of
+ * the response, never with the number of rows.
  *
- * Per node: request-only `when:` drop the members they refuse, the members whose `fields:` need a
- * refused one, and the fields only those need; then, per model class, one query completes the columns of the members to build when some models
- * lack them and one loadMissing() loads their relation paths; per-model `when:` then pick the
- * models each member is built for; one loadMissing() per set of accepted models loads the selected
- * Eloquent includes (narrowed to the child's columns + relation keys); computed fields are built in
- * `fields:` order (each FieldComputer once per model class and set of pending fields, usually
- * once), each for the models every member of its `fields:` exists for; virtual includes are loaded
- * the same way; then the loader recurses into each include over the children of all
- * accepted parents. Queries are therefore bounded by the number of nodes, never by the number of
- * rows. Built values and virtual children are kept in ResponseContext, never on the models.
- *
- * The engine handles Eloquent models only. Every model a node reaches through loaded relations, and
- * every virtual child, has lazy loading prevented until release(): a relation read without being
- * loaded throws instead of querying, while building and rendering. Eloquent exempts a model that is
- * not persisted or was created in this request (`!exists || wasRecentlyCreated`): it still lazy-loads,
- * so the relations such a model needs are declared in `relations:` or loaded beforehand.
+ * Until release(), reading a relation that was not loaded throws instead of querying. Eloquent
+ * exempts models not saved yet or created in this request, so their relations must be declared or
+ * loaded beforehand.
  */
 class SelectionLoader
 {
     /**
-     * Lazy-loading flag each reached model had before load(), restored by release().
+     * Each model's lazy-loading setting before load(), to restore it afterwards.
      *
      * @var WeakMap<Model, bool>
      */
@@ -63,7 +58,7 @@ class SelectionLoader
     }
 
     /**
-     * Gives back to every model load() reached the lazy-loading flag it had, once rendered.
+     * Gives the models back their original lazy-loading setting once the response is rendered.
      */
     public function release(): void
     {
@@ -89,7 +84,7 @@ class SelectionLoader
         [$fields, $includes] = $this->members($resourceClass, $selection);
         $groups = $this->modelGroups($items);
 
-        // protected before the per-model `when:` read what was loaded
+        // protected before the per-model `when:` conditions read the models
         foreach ($groups as $group) {
             $this->loadDependencies($group, $resourceClass, $selection, $fields, $includes);
             $this->preventLazyLoading($group);
@@ -135,7 +130,7 @@ class SelectionLoader
             foreach ($children as $child) {
                 $class = $this->resolvedResource($resolver, $child);
 
-                // a child without API representation renders null: nothing is loaded under it
+                // a child without a resource renders null, so nothing is loaded under it
                 if ($class !== null) {
                     $resolved[$class][] = $child;
                 }
@@ -148,9 +143,8 @@ class SelectionLoader
     }
 
     /**
-     * What a node builds: the fields to build (requested ones and those `fields:` need, in build
-     * order) and the selected includes, both without the members that do not exist for the request:
-     * refused by a request-only `when:`, or needing such a member through `fields:`.
+     * The fields to build and the includes to load for one level, leaving out what the request may
+     * not see.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @return array{0: array<int, string>, 1: array<int, string>}
@@ -175,9 +169,8 @@ class SelectionLoader
     }
 
     /**
-     * Eloquent models of a node, grouped by class: Eloquent builds an eager load from the first model
-     * of a collection, so each model class of a mixed node (polymorphic children, resolver groups)
-     * loads with its own relations.
+     * Groups models by class, because Eloquent eager-loads a whole collection using its first model's
+     * relations.
      *
      * @return array<int, EloquentCollection>
      */
@@ -193,9 +186,7 @@ class SelectionLoader
     }
 
     /**
-     * Prevents lazy loading on these models and on every model reached through their loaded
-     * relations, recursively: Eloquent sets the flag only on the rows of a query returning several,
-     * and getRelationValue() reads the model's own flag. The first flag seen is kept for release().
+     * Turns lazy loading off on these models and on every model already loaded under them.
      */
     protected function preventLazyLoading(EloquentCollection $models): void
     {
@@ -232,9 +223,8 @@ class SelectionLoader
     }
 
     /**
-     * Loads what the members of a node read on models of one class, before any `when:` runs per
-     * model: the columns they lack, then the relation paths of the fields to build and the virtual
-     * includes. Checks every relation the node uses.
+     * Loads the columns and relations the requested fields read, on models of one class, and checks
+     * that every relation used exists.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @param  array<int, string>  $fields
@@ -243,8 +233,7 @@ class SelectionLoader
     protected function loadDependencies(EloquentCollection $models, string $resourceClass, SelectionNode $selection, array $fields, array $includes): void
     {
         $definition = $resourceClass::definition();
-        // relations are introspected on a blank instance: building one reads the parent key, which
-        // a model that still lacks columns cannot provide before completeColumns()
+        // a blank instance, because a model still missing its key column cannot build its relations
         $first = $models->first()->newInstance();
         $paths = $this->relationPaths($definition, $fields, $includes);
 
@@ -266,7 +255,7 @@ class SelectionLoader
     }
 
     /**
-     * Relation paths the fields to build and the virtual includes of a node read.
+     * Relations the given fields and virtual includes read.
      *
      * @param  array<int, string>  $fields
      * @param  array<int, string>  $includes
@@ -288,8 +277,7 @@ class SelectionLoader
     }
 
     /**
-     * The items each member is built for: those its per-model `when:` accepts (all of them without
-     * one).
+     * For each field or include, the models its `when:` condition accepts.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @param  array<int, string>  $members
@@ -312,8 +300,7 @@ class SelectionLoader
     }
 
     /**
-     * The items a member is built for among those its `when:` accepts: the ones every member of its
-     * `fields:` exists for, those being built already.
+     * Keeps only the models for which every field this member depends on exists.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -341,9 +328,8 @@ class SelectionLoader
     }
 
     /**
-     * Loads the selected Eloquent includes on the models that accept them: one loadMissing() per
-     * model class and set of accepted models. An include is narrowed to the child's columns unless
-     * it is the root of a relation path the node reads, which loadDependencies() loaded whole.
+     * Loads the requested relation includes, selecting only the columns the included resource needs
+     * when possible.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @param  array<int, string>  $fields
@@ -392,8 +378,7 @@ class SelectionLoader
     }
 
     /**
-     * Columns a node reads on its own models: the key, the columns of the fields to build and of
-     * the selected includes, and the keys of every relation the node loads.
+     * Columns one level of the response reads on its models.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @return array<int, string>
@@ -425,9 +410,7 @@ class SelectionLoader
     }
 
     /**
-     * Fills, in place, the columns a node needs that some of its persisted models lack: a model
-     * shared by several nodes (or narrowed by business code) was loaded with another column set.
-     * One query per node, only when something is missing; values are synced as original.
+     * Fetches the needed columns that some saved models were loaded without, in one query.
      *
      * @param  array<int, string>  $columns
      */
@@ -442,7 +425,7 @@ class SelectionLoader
             $attributes = $model->getAttributes();
             $absent = array_diff($columns, array_keys($attributes));
 
-            // aggregate rows without their key cannot be completed
+            // a row without its key (an aggregate, for example) cannot be fetched again
             if ($absent !== [] && $model->exists && isset($attributes[$keyName])) {
                 $incomplete[] = $model;
                 array_push($missing, ...$absent);
@@ -453,7 +436,7 @@ class SelectionLoader
             return;
         }
 
-        // whole rows: an alias or accessor name declared as a column is simply not found
+        // whole rows, so a declared column that is really an alias or accessor is simply skipped
         $rows = $first->newQueryWithoutScopes()
             ->whereKey(array_map(fn (Model $model) => $model->getKey(), $incomplete))
             ->toBase()
@@ -475,8 +458,8 @@ class SelectionLoader
     }
 
     /**
-     * Each segment of a relation path must be a relation of the previous model. A path cannot continue
-     * after a MorphTo: Eloquent would resolve the nested relations on the first row's type only.
+     * Checks that every step of a relation path is a real relation. A path cannot go past a MorphTo,
+     * because Eloquent would load the rest for the first row's type only.
      */
     protected function assertRelationPath(Model $model, string $path, string $resourceClass): void
     {
@@ -498,7 +481,7 @@ class SelectionLoader
     }
 
     /**
-     * @return class-string<ApiResource>|null null when the child has no API representation
+     * @return class-string<ApiResource>|null null when the child has no resource
      */
     protected function resolvedResource(ResourceResolver $resolver, Model $child): ?string
     {
@@ -521,8 +504,7 @@ class SelectionLoader
     }
 
     /**
-     * Columns to select on an included relation: the child's selected field columns, its primary
-     * key, the key the relation matches on, and the keys its own selected includes and field relations need.
+     * Columns to select when loading an included relation.
      *
      * @param  class-string<ApiResource>  $childClass
      * @return array<int, string>
@@ -531,7 +513,7 @@ class SelectionLoader
     {
         $columns = $this->nodeColumns($relation->getRelated(), $childClass, $childSelection);
 
-        // key the parent relation matches on, on the child side
+        // the key that links each child back to its parent
         if ($relation instanceof BelongsTo) {
             $columns[] = $relation->getOwnerKeyName();
         } elseif ($relation instanceof HasOneOrMany) {
@@ -546,7 +528,7 @@ class SelectionLoader
     }
 
     /**
-     * Columns the parent model must carry for a relation to be eager-loaded and matched.
+     * Columns the parent needs for this relation to be loaded.
      *
      * @return array<int, string>
      */
@@ -563,7 +545,7 @@ class SelectionLoader
     }
 
     /**
-     * Only single-table relations without their own select/grouping are narrowed.
+     * Whether only some columns can be selected for this relation: simple single-table relations only.
      */
     protected function isNarrowable(Relation $relation): bool
     {
@@ -596,12 +578,10 @@ class SelectionLoader
     }
 
     /**
-     * Builds the computed fields of a node in build order: a closure per accepted model, a
-     * FieldComputer once for all its fields whose `fields:` are built, over the models that accept
-     * them and for which every member of their `fields:` exists.
+     * Computes the requested computed fields, each after the fields it depends on.
      *
      * @param  class-string<ApiResource>  $resourceClass
-     * @param  array<int, string>  $fields  fields to build, in build order
+     * @param  array<int, string>  $fields  in build order
      * @param  array<string, EloquentCollection>  $accepted
      */
     protected function buildFields(string $resourceClass, array $fields, array $accepted): void
@@ -616,7 +596,7 @@ class SelectionLoader
                 $this->computeWithClosure($this->withDependencies($accepted[$pending[0]], $resourceClass, $pending[0]), $resourceClass, $pending[0], $computedBy);
                 $batch = [$pending[0]];
             } else {
-                // build order puts the first pending field after everything it needs
+                // the first pending field is ready, since build order puts it after what it needs
                 $batch = array_values(array_filter($pending, fn (string $key) => ($definition->fieldDefinition($key)['computedBy'] ?? null) === $computedBy
                     && array_intersect($definition->dependencies($key), $pending) === []));
                 $this->computeWithClass($accepted, $resourceClass, (string) $computedBy, $batch);
@@ -627,9 +607,8 @@ class SelectionLoader
     }
 
     /**
-     * Runs a FieldComputer on the fields each model accepts and has not computed yet in this
-     * response, one call per model class and distinct set of pending fields, and records the values
-     * in ResponseContext: they are matched back by model key, which a model must therefore have.
+     * Runs a FieldComputer for the models that still need its fields. Results are matched back by
+     * model key, so every model must have one.
      *
      * @param  array<string, EloquentCollection>  $accepted
      * @param  class-string<ApiResource>  $resourceClass
@@ -679,7 +658,7 @@ class SelectionLoader
     }
 
     /**
-     * Runs a computedBy closure on each accepted model that lacks the field in this response.
+     * Runs a computedBy closure on each model that still needs the field.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -697,8 +676,7 @@ class SelectionLoader
     }
 
     /**
-     * Loads a virtual include for the accepted parents it was not loaded for in this response and
-     * keeps, per parent, its value or no children (null, or an empty list for an `asList` include).
+     * Loads a virtual include for the parents that do not have it yet.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -738,7 +716,7 @@ class SelectionLoader
             throw ResponseSelectionException::classMustImplement($label, VirtualIncludeLoader::class);
         }
 
-        // one call per parent class: parents of two classes may share a key
+        // one call per parent class, because parents of two classes may share a key
         foreach ($this->modelGroups(new EloquentCollection($pending)) as $group) {
             $group->each(fn (Model $parent) => $this->assertKeyed($parent, $resourceClass, $label));
             $values = $instance->load($group, $built);
@@ -750,8 +728,8 @@ class SelectionLoader
     }
 
     /**
-     * The children a virtual include keeps for a parent: a model or null, or for an `asList`
-     * include a list of models (empty for null).
+     * Checks what a virtual include loader returned: a model or null, or a list of models for an
+     * `asList` include.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
@@ -831,7 +809,7 @@ class SelectionLoader
     }
 
     /**
-     * The children an include value holds, classified as rendering does.
+     * The child models held by an include's value.
      *
      * @return array<int, mixed>
      */

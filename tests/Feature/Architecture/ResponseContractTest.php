@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\Shared\Http\Responses\ResponseMode;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 

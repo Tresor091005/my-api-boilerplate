@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Rendering;
 
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\BuiltValues;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
 
 /**
- * BuiltValues the SelectionLoader hands to one builder: reads ResponseContext, limited to the
- * fields the builder declares in `fields:`.
+ * Gives a builder the computed values it declared it needs, and nothing else.
  *
  * @internal
  */
@@ -17,8 +18,8 @@ final class MemberBuiltValues implements BuiltValues
 {
     /**
      * @param  class-string<ApiResource>  $resourceClass
-     * @param  string  $builder  what is being built, for error messages
-     * @param  array<int, string>  $fields  keys the builder declares in `fields:`
+     * @param  string  $builder  who reads the values (a class, or Resource::field for a closure), named in errors
+     * @param  array<int, string>  $fields  fields the builder may read
      */
     public function __construct(
         private readonly ResponseContext $context,

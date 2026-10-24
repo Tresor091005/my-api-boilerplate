@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Selection;
 
 use Illuminate\Validation\ValidationException;
+use Lahatre\ResponseSelection\ApiResource;
 
 /**
- * Rejects the names of a parsed selection that the Resource definitions do not declare, before the
- * controller runs. Each node is checked against every Resource it may render: under a polymorphic
- * include (a ResourceResolver), a name is valid when at least one of them declares it, and the
- * children of these Resources are checked as one union. `id` is always valid.
+ * Rejects a requested field or include that the Resource does not declare, before the controller runs.
+ * When an include can render several Resources, a name is accepted if any of them declares it.
  */
 final class SelectionValidator
 {

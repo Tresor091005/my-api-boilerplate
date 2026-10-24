@@ -28,8 +28,11 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Lahatre\\ResponseSelection\\Tests\\": "tests/"
-        }
+            "Lahatre\\ResponseSelection\\Tests\\Support\\": "tests/Support/"
+        },
+        "classmap": [
+            "tests/TestCase.php"
+        ]
     },
     "extra": {
         "laravel": {

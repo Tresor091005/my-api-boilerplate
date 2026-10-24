@@ -2,34 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Selection;
 
 use Illuminate\Validation\ValidationException;
 
 /**
- * Parses the `fields` and `include` query parameters into a normalized SelectionTree.
- *
- * Grammar (include):
- *   include   := entry ("," entry)*
- *   entry     := path [ "(" fieldList ")" ]
- *   path      := segment ("." segment)*        ; <= MAX_DEPTH segments
- *   fieldList := key ("," key)*
- *   segment, key := [A-Za-z_][A-Za-z0-9_]*
- *
- * Every prefix of a path is implicitly included with all its fields unless the prefix is
- * given with its own list. Whitespace is trimmed, empty entries are ignored, duplicate paths
- * are merged and their field lists unioned (an explicit path without list selects all).
- * Names are not resolved here: SelectionValidator checks them against the definitions.
+ * Turns the `fields` and `include` query parameters, such as `include=author(name),comments.author`,
+ * into a SelectionTree. It checks only the syntax; SelectionValidator checks the names.
  */
 final class SelectionParser
 {
-    public const MAX_DEPTH = 6;
-
-    public const MAX_PATHS = 40;
-
-    public const MAX_FIELDS_PER_NODE = 100;
-
     private const IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*\z/';
+
+    public static function maxDepth(): int
+    {
+        return (int) config('response-selection.limits.max_depth');
+    }
+
+    public static function maxPaths(): int
+    {
+        return (int) config('response-selection.limits.max_paths');
+    }
+
+    public static function maxFieldsPerNode(): int
+    {
+        return (int) config('response-selection.limits.max_fields_per_node');
+    }
 
     /**
      * @throws ValidationException
@@ -62,14 +60,14 @@ final class SelectionParser
                 [$path, $list] = $this->parseEntry($entry);
 
                 $segments = explode('.', $path);
-                if (count($segments) > self::MAX_DEPTH) {
+                if (count($segments) > self::maxDepth()) {
                     $this->fail('include', __('response-selection::validation.depth_exceeded', [
                         'path' => $path,
-                        'max'  => self::MAX_DEPTH,
+                        'max'  => self::maxDepth(),
                     ]));
                 }
 
-                // implicit prefixes
+                // Including `a.b` also includes `a`
                 for ($i = 1; $i < count($segments); $i++) {
                     $prefix = implode('.', array_slice($segments, 0, $i));
                     $nodes[$prefix] ??= ['all' => false, 'fields' => null];
@@ -86,18 +84,18 @@ final class SelectionParser
         }
 
         $pathCount = count($nodes) - 1;
-        if ($pathCount > self::MAX_PATHS) {
+        if ($pathCount > self::maxPaths()) {
             $this->fail('include', __('response-selection::validation.too_many_paths', [
-                'max'   => self::MAX_PATHS,
+                'max'   => self::maxPaths(),
                 'count' => $pathCount,
             ]));
         }
 
         foreach ($nodes as $path => $node) {
             $count = count($node['fields'] ?? []);
-            if ($count > self::MAX_FIELDS_PER_NODE) {
+            if ($count > self::maxFieldsPerNode()) {
                 $this->fail($path === '' ? 'fields' : 'include', __('response-selection::validation.too_many_fields', [
-                    'max'   => self::MAX_FIELDS_PER_NODE,
+                    'max'   => self::maxFieldsPerNode(),
                     'count' => $count,
                     'path'  => $path === '' ? 'root' : $path,
                 ]));

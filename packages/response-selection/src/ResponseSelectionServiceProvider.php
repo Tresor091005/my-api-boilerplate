@@ -7,19 +7,19 @@ namespace Lahatre\ResponseSelection;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\ResponseSelection\Console\ResponseDeclarationCacheCommand;
 use Lahatre\ResponseSelection\Console\ResponseDeclarationClearCommand;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Rendering\ModelViolationReporter;
+use Lahatre\ResponseSelection\Rendering\ResponseContext;
 
-/**
- * Registers the engine. The application attaches ResolveResponseSelection to the middleware group
- * of its API routes itself.
- */
 final class ResponseSelectionServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/response-selection.php', 'response-selection');
+
         $this->app->scoped(ResponseContext::class);
         $this->app->scoped(ModelViolationReporter::class);
-        // Declarations derive from source code and routes, fixed for the process: a singleton keeps
-        // the lazily analyzed actions across requests (Octane) instead of parsing them again.
+        // Kept across requests (Octane): declarations do not change while the process runs
         $this->app->singleton(ResponseDeclarationRegistry::class);
 
         $this->commands([
@@ -31,8 +31,9 @@ final class ResponseSelectionServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'response-selection');
+        $this->publishes([__DIR__.'/../config/response-selection.php' => config_path('response-selection.php')], 'response-selection-config');
 
-        if ($this->app->isProduction()) {
+        if (config('response-selection.tolerate_model_violations') ?? $this->app->isProduction()) {
             ModelViolationReporter::tolerate();
         }
 

@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Symfony\Component\HttpFoundation\Response;

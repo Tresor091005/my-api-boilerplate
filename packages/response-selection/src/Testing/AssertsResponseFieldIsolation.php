@@ -8,37 +8,29 @@ use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Testing\TestResponse;
 use InvalidArgumentException;
 use Lahatre\ResponseSelection\ApiResource;
-use Lahatre\ResponseSelection\ResponseDeclarationAnalyzer;
-use Lahatre\ResponseSelection\SelectionParser;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationAnalyzer;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
 use Throwable;
 
 /**
- * Response tests: every field renders alone exactly as it renders in the full selection.
- *
- * A field may read a column, a relation or a built value that only a sibling declares: the full
- * selection hides the gap because the sibling loads it, selecting the field alone exposes it. A
- * missing column or an undeclared relation throws during rendering (the request answers 500), and
- * what degrades silently renders another value, so values are compared.
+ * Test helper that checks every field shows the same value when requested alone as in the full
+ * response. It catches a field that only works because another field loads its data.
  *
  * @mixin TestCase
  */
 trait AssertsResponseFieldIsolation
 {
     /**
-     * GETs the full selection (every include path up to $depth, every field), then each field alone:
-     * `?fields=<key>` at the root, `?fields=id&include=<prefix>(id),<path>(<key>)` below it.
-     * Prefixes render only `id`, so nothing their fields load can satisfy the dependency. Every request
-     * must answer 200 and the isolated field must render the same value on the same rows, matched by
-     * the id of every row along its include path. Every node must render a row in the full
-     * selection, otherwise its fields prove nothing: seed data for it.
+     * Requests the full response, then each field alone, and checks each field shows the same value.
+     * Seed at least one row for the Resource and for each of its includes up to $depth.
      *
-     * @param  string  $uri  GET route rendering $resourceClass, without `fields` or `include`
+     * @param  string  $uri  GET route returning $resourceClass, without `fields` or `include`
      * @param  class-string<ApiResource>  $resourceClass
      */
     protected function assertFieldsRenderInIsolation(string $uri, string $resourceClass, int $depth = 2): void
     {
-        if ($depth < 0 || $depth > SelectionParser::MAX_DEPTH) {
-            throw new InvalidArgumentException('Field isolation depth must be between 0 and '.SelectionParser::MAX_DEPTH.'.');
+        if ($depth < 0 || $depth > SelectionParser::maxDepth()) {
+            throw new InvalidArgumentException('Field isolation depth must be between 0 and '.SelectionParser::maxDepth().'.');
         }
 
         if (preg_match('/[?&](fields|include)=/', $uri) === 1) {
@@ -106,8 +98,7 @@ trait AssertsResponseFieldIsolation
     }
 
     /**
-     * Every include path up to $depth, parents first, with the Resources rendering its rows (several
-     * when a resolver picks the Resource per model).
+     * Every include path up to $depth, with the Resources it can show.
      *
      * @param  array<int, class-string<ApiResource>>  $classes
      * @return array<string, array<int, class-string<ApiResource>>>
@@ -140,8 +131,7 @@ trait AssertsResponseFieldIsolation
     }
 
     /**
-     * Groups include paths (parents first) into selections of at most MAX_PATHS paths, each listed
-     * with its prefixes and without a field list, so every node renders all its fields.
+     * Splits the include paths into requests that stay under the configured path limit.
      *
      * @param  array<int, string>  $paths
      * @return array<int, array<int, string>>
@@ -154,7 +144,7 @@ trait AssertsResponseFieldIsolation
         foreach ($paths as $path) {
             $missing = array_values(array_diff($this->isolationPrefixes($path), $batch));
 
-            if ($batch !== [] && count($batch) + count($missing) > SelectionParser::MAX_PATHS) {
+            if ($batch !== [] && count($batch) + count($missing) > SelectionParser::maxPaths()) {
                 $batches[] = $batch;
                 $batch = [];
                 $missing = $this->isolationPrefixes($path);
@@ -190,8 +180,7 @@ trait AssertsResponseFieldIsolation
     }
 
     /**
-     * Rows rendered at $includePath, keyed by the id of every row along the path, e.g.
-     * `[7].source_depot[2].open_transfers[9]`. An include renders under its own name.
+     * Rows shown at $includePath, keyed by the ids along the path, such as `[7].author[2]`.
      *
      * @return array<string, array<string, mixed>>
      */

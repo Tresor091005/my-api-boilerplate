@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Declaration;
 
+use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 
 /**
- * What an action's ApiResponse calls declare, read statically by ResponseDeclarationAnalyzer: its
- * single factory call, or only ApiResponse::noContent() (no Resource, no shape, no status).
+ * What a controller action answers with: a Resource, its shape and its statuses, or no content at all.
  */
 final class ResponseDeclaration
 {
     /**
-     * @param  class-string<ApiResource>|null  $resourceClass  null for a no-content-only action
-     * @param  array<int, int>  $statuses  every status the call may answer with
-     * @param  bool  $canBeEmpty  the action also calls ApiResponse::noContent(), so it may answer 204 in any mode
+     * @param  class-string<ApiResource>|null  $resourceClass  null when the action never answers with a body
+     * @param  array<int, int>  $statuses  every status the action may answer with
+     * @param  bool  $canBeEmpty  the action may also answer 204 with no body
      */
     public function __construct(
         public readonly ?string $resourceClass,
@@ -35,11 +35,11 @@ final class ResponseDeclaration
     }
 
     /**
-     * How the declaration reads in messages: `item(XResource::class)`, or `noContent()`.
+     * How the declaration reads in error messages, such as `item(XResource::class)`.
      */
     public function describe(): string
     {
-        return $this->shape === null ? 'noContent()' : "{$this->shape->factory()}({$this->resourceClass}::class)";
+        return $this->shape === null ? 'noContent()' : "{$this->shape->value}({$this->resourceClass}::class)";
     }
 
     /**

@@ -8,16 +8,13 @@ use Closure;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Response tests: the number of queries a response issues must not depend on the number of rows it
- * renders. A query per row (a computedBy closure querying, a relation read without being declared in
- * production) shows up as a count growing with the rows.
+ * Test helper that catches an endpoint running one more database query for every row it returns.
  */
 trait AssertsBoundedQueries
 {
     /**
-     * Seeds $small rows and measures $request, seeds up to $large rows and measures again: both
-     * measurements must issue the same number of queries. Each measurement follows an unmeasured
-     * warm-up call, so per-request caches (permissions, settings) do not skew the count.
+     * Checks that $request runs as many queries with $large rows as with $small rows.
+     * $seed must create the number of rows it is given; $request calls the endpoint.
      *
      * @param  Closure(int $count, int $alreadySeeded): void  $seed
      * @param  Closure(): mixed  $request
@@ -39,7 +36,7 @@ trait AssertsBoundedQueries
     }
 
     /**
-     * SQL of every query $callback issues, after an unmeasured warm-up call.
+     * The SQL of every query $callback runs. A first unmeasured call warms up caches.
      *
      * @return array<int, string>
      */

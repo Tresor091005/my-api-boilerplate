@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Lahatre\ResponseSelection\Tests\Unit;
 
 use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationAnalyzer;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
 use Lahatre\ResponseSelection\ResourceDefinition;
-use Lahatre\ResponseSelection\ResponseDeclarationAnalyzer;
 
 final class ResourceDefinitionTestChildResource extends ApiResource
 {

@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Selection;
 
 /**
- * One node of a normalized response selection: the fields requested at this node (null = every
- * definition field) and the included children, keyed by include name.
+ * One level of a selection: the fields asked for here and the includes below it.
  */
 final class SelectionNode
 {
@@ -69,7 +68,7 @@ final class SelectionNode
     }
 
     /**
-     * Every include path below this node, depth first, parents before children.
+     * Every include path below this node, parents before children.
      *
      * @return array<int, string>
      */

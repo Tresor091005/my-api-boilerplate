@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\ResponseSelection\Console;
 
 use Illuminate\Console\Command;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 
 final class ResponseDeclarationClearCommand extends Command
 {
@@ -17,7 +17,7 @@ final class ResponseDeclarationClearCommand extends Command
     {
         $registry->clear();
 
-        $this->components->info(__('shared::console.response_declarations.cleared'));
+        $this->components->info(__('response-selection::console.cleared'));
 
         return self::SUCCESS;
     }

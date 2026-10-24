@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Selection;
 
 /**
- * Normalized result of parsing `fields` + `include`: the root node carries the root fields,
- * each include path is a child node carrying its own field list.
+ * What the client asked for with `fields` and `include`: the fields of the main Resource and each
+ * included relation with its own fields.
  */
 final class SelectionTree
 {

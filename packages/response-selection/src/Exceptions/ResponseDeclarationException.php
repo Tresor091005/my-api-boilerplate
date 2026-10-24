@@ -8,8 +8,8 @@ use LogicException;
 use Throwable;
 
 /**
- * Response declaration or Resource definition rejected by the static ResponseDeclarationAnalyzer, or
- * while a definition freezes. A programming error, not a business failure.
+ * Thrown when a controller action or a Resource is declared incorrectly. It signals a coding mistake,
+ * not a client error.
  */
 final class ResponseDeclarationException extends LogicException
 {
@@ -163,7 +163,7 @@ final class ResponseDeclarationException extends LogicException
         return new self($message, $context, $previous);
     }
 
-    /** @return array<string, mixed> Stable machine-readable details, kept out of the translated message. */
+    /** @return array<string, mixed> Machine-readable details, apart from the translated message. */
     public function context(): array
     {
         return $this->context;

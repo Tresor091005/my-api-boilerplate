@@ -8,14 +8,17 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Validation\ValidationException;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
+use Lahatre\ResponseSelection\Rendering\ResponseContext;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
+use Lahatre\ResponseSelection\Selection\SelectionTree;
+use Lahatre\ResponseSelection\Selection\SelectionValidator;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Runs on every `api` route. An action whose ApiResponse call the ResponseDeclarationRegistry knows
- * gets its response mode resolved from the HTTP method and `?response=`, `fields`/`include`
- * (query string only) parsed and checked against its Resource definitions, and the ResponseContext
- * filled, before the FormRequest and the controller run. A legacy action passes through untouched.
+ * Middleware that reads and checks the `response`, `fields` and `include` query parameters before the
+ * controller runs. Routes that do not answer with ApiResponse pass through untouched.
  */
 class ResolveResponseSelection
 {

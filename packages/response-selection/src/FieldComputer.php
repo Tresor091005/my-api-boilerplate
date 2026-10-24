@@ -5,20 +5,25 @@ declare(strict_types=1);
 namespace Lahatre\ResponseSelection;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 interface FieldComputer
 {
     /**
-     * Computes $fields for every model at one node in a bounded number of explicit queries
-     * (independent of the number of models) and returns their final values by model key, then by
-     * field key. $fields holds the keys of this class requested at this node or required by another
-     * member's `fields:`; only their dependencies are loaded, so computing another key would read
-     * missing columns. The engine keeps the values in ResponseContext, never on the models: a model
-     * reached again only computes the fields it lacks, a key missing for a model is omitted (an
-     * intended null is returned explicitly), a key outside $fields is dropped. Models refused by a
-     * field's `when:` are not passed for that field.
+     * Computes fields for all the models at once, in a few queries rather than one per model.
      *
-     * @param  array<int, string>  $fields
+     * Return the final values by model key, then by field key. A field left out is not rendered for
+     * that model; to render null, return null.
+     *
+     *     [
+     *         7 => ['line_count' => 2, 'total_quantity' => 15],
+     *         9 => ['line_count' => 0, 'total_quantity' => 0],
+     *     ]
+     *
+     * @param  Collection<int, Model>  $models  the models of this level of the response
+     * @param  array<int, string>  $fields  which of this class's fields to compute this time, e.g. ['line_count'];
+     *                                      compute only these: the columns of the others were not loaded
+     * @param  BuiltValues  $built  values of the computed fields listed in their `fields:`
      * @return array<int|string, array<string, mixed>>
      */
     public function compute(Collection $models, array $fields, BuiltValues $built): array;

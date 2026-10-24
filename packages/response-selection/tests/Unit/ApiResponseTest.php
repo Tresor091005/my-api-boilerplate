@@ -7,13 +7,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Fluent;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclaration;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
+use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\ResourceDefinition;
-use Lahatre\ResponseSelection\ResponseContext;
-use Lahatre\ResponseSelection\ResponseDeclaration;
-use Lahatre\ResponseSelection\SelectionTree;
+use Lahatre\ResponseSelection\Selection\SelectionTree;
 
 /**
  * Unsaved; its `name` accessor records the lazy-loading flag it sees while rendering.

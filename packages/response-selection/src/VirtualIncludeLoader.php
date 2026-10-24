@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace Lahatre\ResponseSelection;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 interface VirtualIncludeLoader
 {
     /**
-     * Fetches the children of every parent in a bounded number of explicit queries and returns them
-     * by parent key: a child (or null) per parent, or a list of children per parent for an `asList`
-     * include. A parent missing from the result has no children (null, or an empty list). The engine
-     * keeps the values in ResponseContext, never on the models, renders them and loads the child
-     * nodes from them. The parent columns, relations and fields the loader reads are declared on
-     * virtualInclude(); parents refused by its `when:` are not passed.
+     * Fetches the children of all the parents at once, in a few queries rather than one per parent.
      *
+     * Return the children by parent key: one model (or null), or a list of models for an `asList`
+     * include. A parent left out has no children.
+     *
+     *     [3 => $depot, 5 => null]                    // one child per parent
+     *     [3 => [$transfer1, $transfer2], 5 => []]    // asList: true
+     *
+     * @param  Collection<int, Model>  $parents  the models of this level of the response
+     * @param  BuiltValues  $built  values of the computed fields listed in the include's `fields:`
      * @return array<int|string, mixed>
      */
     public function load(Collection $parents, BuiltValues $built): array;

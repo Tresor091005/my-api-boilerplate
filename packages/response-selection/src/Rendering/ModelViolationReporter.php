@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lahatre\ResponseSelection;
+namespace Lahatre\ResponseSelection\Rendering;
 
 use Illuminate\Database\Eloquent\MissingAttributeException;
 use Illuminate\Database\Eloquent\Model;
@@ -10,12 +10,8 @@ use Illuminate\Database\LazyLoadingViolationException;
 use Throwable;
 
 /**
- * Production policy for the protections the engine turns on while it loads and renders, the same
- * as Lahatre's `Model::shouldBeStrict(!app()->isProduction())`: locally and in tests a column read
- * without being loaded, or a relation read without being loaded, throws; in production it is
- * reported once per request and model class and key, then let through. A missing attribute renders
- * `null`; a lazy-loaded relation still queries, so its data stays right. Registered scoped, so the
- * reported keys reset with every request.
+ * When tolerated (in production by default), reading a column or relation that was not loaded is
+ * reported instead of throwing, so users still get a response. A missing column renders null; a missing relation is queried.
  */
 final class ModelViolationReporter
 {
@@ -23,8 +19,7 @@ final class ModelViolationReporter
     private array $reported = [];
 
     /**
-     * Installs the handlers. Called in production only: Eloquent applies them to every model, and
-     * outside the engine production leaves both protections off.
+     * Turns on this reporting, when the `tolerate_model_violations` config allows it.
      */
     public static function tolerate(): void
     {
@@ -37,8 +32,7 @@ final class ModelViolationReporter
     }
 
     /**
-     * Reports a violation the first time this request meets it, and returns the value an absent
-     * attribute renders.
+     * Reports a problem once per request, and returns null as the missing column's value.
      */
     public function report(Throwable $violation): null
     {

@@ -67,8 +67,11 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
-            "Lahatre\\ResponseSelection\\Tests\\": "packages/response-selection/tests/"
-        }
+            "Lahatre\\ResponseSelection\\Tests\\Support\\": "packages/response-selection/tests/Support/"
+        },
+        "classmap": [
+            "packages/response-selection/tests/TestCase.php"
+        ]
     },
     "scripts": {
         "setup": [

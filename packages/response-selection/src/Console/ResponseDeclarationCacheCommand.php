@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\ResponseSelection\Console;
 
 use Illuminate\Console\Command;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 
 final class ResponseDeclarationCacheCommand extends Command
 {
@@ -17,7 +17,7 @@ final class ResponseDeclarationCacheCommand extends Command
     {
         $registry->cache();
 
-        $this->components->info(__('shared::console.response_declarations.cached'));
+        $this->components->info(__('response-selection::console.cached'));
 
         return self::SUCCESS;
     }

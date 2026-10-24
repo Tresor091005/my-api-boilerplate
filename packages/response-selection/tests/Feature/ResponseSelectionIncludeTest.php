@@ -15,13 +15,13 @@ use Illuminate\Support\Facades\Schema;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
 use Lahatre\ResponseSelection\BuiltValues;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclaration;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\FieldComputer;
+use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\ResourceDefinition;
-use Lahatre\ResponseSelection\ResponseContext;
-use Lahatre\ResponseSelection\ResponseDeclaration;
-use Lahatre\ResponseSelection\SelectionParser;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
 use Lahatre\ResponseSelection\VirtualIncludeLoader;
 
 uses(RefreshDatabase::class);

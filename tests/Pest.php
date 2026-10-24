@@ -10,7 +10,7 @@ use Illuminate\Testing\TestResponse;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\Shared\Registries\ResponseContractRegistry;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;

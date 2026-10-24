@@ -14,18 +14,18 @@ use Illuminate\Routing\Router;
 use Illuminate\Validation\ValidationException;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclaration;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationAnalyzer;
+use Lahatre\ResponseSelection\Declaration\ResponseDeclarationRegistry;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
 use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
+use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\ResolveResponseSelection;
 use Lahatre\ResponseSelection\ResourceDefinition;
 use Lahatre\ResponseSelection\ResourceResolver;
-use Lahatre\ResponseSelection\ResponseContext;
-use Lahatre\ResponseSelection\ResponseDeclaration;
-use Lahatre\ResponseSelection\ResponseDeclarationAnalyzer;
-use Lahatre\ResponseSelection\ResponseDeclarationRegistry;
-use Lahatre\ResponseSelection\SelectionParser;
-use Lahatre\ResponseSelection\SelectionValidator;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
+use Lahatre\ResponseSelection\Selection\SelectionValidator;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class DeclarationTestLeafResource extends ApiResource
@@ -143,7 +143,7 @@ final class DeclarationTestController extends DeclarationTestParentController
         return ApiResponse::item($model, DeclarationTestStockResource::class);
     }
 
-    public function legacy(): JsonResponse
+    public function plain(): JsonResponse
     {
         return response()->json(['data' => []]);
     }
@@ -184,7 +184,7 @@ function declarationTestRouter(array $routes = []): Router
         'destroy'    => ['DELETE', [DeclarationTestController::class, 'destroy']],
         'archive'    => ['POST', [DeclarationTestController::class, 'destroy']],
         'stock'      => ['GET', [DeclarationTestController::class, 'stock']],
-        'legacy'     => ['GET', [DeclarationTestController::class, 'legacy']],
+        'plain'      => ['GET', [DeclarationTestController::class, 'plain']],
         'inherited'  => ['GET', [DeclarationTestController::class, 'inherited']],
         'from-trait' => ['GET', [DeclarationTestController::class, 'fromTrait']],
     ];
@@ -285,9 +285,9 @@ it('declares an action whose only ApiResponse call is noContent() as no content 
         ->and($declaration?->canBeEmpty)->toBeTrue();
 });
 
-it('ignores a legacy action making no ApiResponse call', function (): void {
-    expect((new ResponseDeclarationAnalyzer)->forAction(DeclarationTestController::class, 'legacy'))->toBeNull()
-        ->and(declarationTestRegistry()->for(declarationTestRoute(declarationTestRouter(), 'legacy')))->toBeNull()
+it('ignores an action making no ApiResponse call', function (): void {
+    expect((new ResponseDeclarationAnalyzer)->forAction(DeclarationTestController::class, 'plain'))->toBeNull()
+        ->and(declarationTestRegistry()->for(declarationTestRoute(declarationTestRouter(), 'plain')))->toBeNull()
         ->and(declarationTestRegistry()->for(declarationTestRoute(declarationTestRouter(), 'closure')))->toBeNull();
 });
 
@@ -307,19 +307,19 @@ it('rejects at build an action whose Resource is not a literal class', function 
     declarationTestRegistry(declarationTestRouter(['dynamic' => ['GET', [DeclarationTestInvalidController::class, 'dynamic']]]))->build();
 })->throws(ResponseDeclarationException::class, DeclarationTestInvalidController::class.'@dynamic: use an explicit Resource::class');
 
-it('builds every routed action once, legacy ones as null', function (): void {
+it('builds every routed action once, those making no ApiResponse call as null', function (): void {
     $built = declarationTestRegistry()->build();
 
     expect(array_keys($built))->toBe([
         DeclarationTestController::class.'@destroy',
         DeclarationTestController::class.'@fromTrait',
         DeclarationTestController::class.'@inherited',
-        DeclarationTestController::class.'@legacy',
+        DeclarationTestController::class.'@plain',
         DeclarationTestController::class.'@show',
         DeclarationTestController::class.'@stock',
         DeclarationTestController::class.'@store',
         DeclarationTestController::class.'@update',
-    ])->and($built[DeclarationTestController::class.'@legacy'])->toBeNull();
+    ])->and($built[DeclarationTestController::class.'@plain'])->toBeNull();
 });
 
 it('rebuilds a declaration from its array form', function (ResponseDeclaration $declaration): void {
@@ -339,7 +339,7 @@ it('reads the cache file in production only, and analyzes an action it does not 
         declarationTestRegistry($router, $path)->cache();
         expect(require $path)->toBe(declarationTestRegistry($router)->build());
 
-        // a stale cache declaring show() as a list and update() as legacy, built before store()
+        // a stale cache declaring show() as a list and update() as making no ApiResponse call, built before store()
         file_put_contents($path, '<?php return '.var_export([
             DeclarationTestController::class.'@show'   => (new ResponseDeclaration(DeclarationTestResource::class, ResponseShape::List, [200]))->toArray(),
             DeclarationTestController::class.'@update' => null,
@@ -361,8 +361,8 @@ it('reads the cache file in production only, and analyzes an action it does not 
     }
 });
 
-it('passes a legacy route through untouched, without starting the context', function (): void {
-    $result = runSelection('legacy', 'GET', 'fields=nope&include=nope&response=none');
+it('passes a route making no ApiResponse call through untouched, without starting the context', function (): void {
+    $result = runSelection('plain', 'GET', 'fields=nope&include=nope&response=none');
 
     expect($result['ran'])->toBeTrue()
         ->and($result['context']['active'] ?? null)->toBeFalse()
