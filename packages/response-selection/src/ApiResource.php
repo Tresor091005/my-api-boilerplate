@@ -13,8 +13,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Pagination\AbstractCursorPaginator;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Support\Collection;
 use JsonSerializable;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
+use Lahatre\ResponseSelection\Rendering\ModelState;
+use Lahatre\ResponseSelection\Rendering\RenderStep;
 use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\Selection\SelectionNode;
 use stdClass;
@@ -168,26 +171,29 @@ abstract class ApiResource extends JsonResource
      */
     final public function toArray(Request $request): array
     {
-        $definition = static::definition();
+        static::definition();
         $selection = $this->attachedSelection();
         $model = $this->model();
         $context = app(ResponseContext::class);
+        $plan = $context->renderPlan(static::class, $selection, $request);
+        $state = $plan->readsConditions ? $context->stateFor($model) : $context->stateOf($model);
         $data = [];
 
-        foreach ($definition->members() as $name) {
-            if ($definition->hasField($name)) {
-                if (($name === 'id' || $selection->wantsField($name)) && $context->exists($definition, static::class, $name, $model, $request)) {
-                    $data[$name] = $this->fieldValue($context, $model, $name);
+        foreach ($plan->steps as $step) {
+            foreach ($step->checks as [$isCondition, $key, $when]) {
+                if ($isCondition) {
+                    if (!($state?->conditions[$key] ?? $context->acceptsModel($key, $when, $model, $request))) {
+                        continue 2;
+                    }
+                } elseif ($state !== null && isset($state->absent[$key]) && !array_key_exists($key, $state->values)) {
+                    // its FieldComputer ran for this model and gave it no value
+                    continue 2;
                 }
-
-                continue;
             }
 
-            $childSelection = $selection->child($name);
-
-            if ($childSelection !== null && $context->exists($definition, static::class, $name, $model, $request)) {
-                $data[$name] = $this->renderInclude($context, $model, $name, $childSelection);
-            }
+            $data[$step->name] = $step->isField
+                ? $this->fieldValue($state, $model, $step)
+                : $this->renderInclude($state, $model, $step);
         }
 
         return $data;
@@ -205,14 +211,17 @@ abstract class ApiResource extends JsonResource
             : throw ResponseSelectionException::notAModel(static::class, get_debug_type($this->resource));
     }
 
-    private function fieldValue(ResponseContext $context, Model $model, string $key): mixed
+    private function fieldValue(?ModelState $state, Model $model, RenderStep $step): mixed
     {
-        $builder = static::definition()->builderOf(static::class, $key);
+        $key = $step->name;
+        $slot = $step->slot;
 
-        if ($builder === null) {
+        if ($slot === null) {
             $value = $model->getAttribute($key);
-        } elseif ($context->wasComputed($model, $builder, $key)) {
-            $value = $context->computedValue($model, $builder, $key);
+        } elseif ($state !== null && array_key_exists($slot, $state->values)) {
+            $value = $state->values[$slot];
+        } elseif ($state !== null && isset($state->absent[$slot])) {
+            $value = null;
         } else {
             throw ResponseSelectionException::computedFieldNotComputed(static::class, $key);
         }
@@ -225,25 +234,25 @@ abstract class ApiResource extends JsonResource
     /**
      * Renders an include, from the loaded relation or from the children its loader built.
      */
-    private function renderInclude(ResponseContext $context, Model $model, string $name, SelectionNode $childSelection): mixed
+    private function renderInclude(?ModelState $state, Model $model, RenderStep $step): mixed
     {
-        $definition = static::definition();
+        if ($step->isVirtual) {
+            $children = $state?->virtual[static::class] ?? [];
 
-        if ($definition->isVirtualInclude($name)) {
-            if (!$context->hasVirtual($model, static::class, $name)) {
-                throw ResponseSelectionException::includeNotLoaded(static::class, $name);
+            if (!array_key_exists($step->name, $children)) {
+                throw ResponseSelectionException::includeNotLoaded(static::class, $step->name);
             }
 
-            return $this->renderChild($name, $context->virtualValue($model, static::class, $name), $childSelection);
+            return $this->renderChild($step, $children[$step->name]);
         }
 
-        $relation = (string) $definition->includeRelation($name);
+        $relation = (string) $step->relation;
 
         if (!$model->relationLoaded($relation)) {
-            throw ResponseSelectionException::includeNotLoaded(static::class, $name);
+            throw ResponseSelectionException::includeNotLoaded(static::class, $step->name);
         }
 
-        return $this->renderChild($name, $model->getRelation($relation), $childSelection);
+        return $this->renderChild($step, $model->getRelation($relation));
     }
 
     /**
@@ -279,19 +288,20 @@ abstract class ApiResource extends JsonResource
     /**
      * Renders the value of an include: one child, a list of children, or null.
      */
-    private function renderChild(string $name, mixed $value, SelectionNode $childSelection): mixed
+    private function renderChild(RenderStep $step, mixed $value): mixed
     {
         if ($value === null) {
             return null;
         }
 
-        $definition = static::definition();
-        $resourceClass = $definition->includeResourceClass($name);
-        $resolver = $resourceClass === null ? $definition->includeResolver($name) : null;
+        $resourceClass = $step->childClass;
+        // built once per response, when the first child renders
+        $resolver = $resourceClass === null ? ($step->resolver ??= static::definition()->includeResolver($step->name)) : null;
+        $childSelection = $step->child ?? new SelectionNode;
 
-        if ($definition->rendersChildList($name, $value)) {
+        if ($step->isVirtual ? $step->asList : $value instanceof Collection) {
             // drop the keys so the children render as a JSON array, not an object
-            $items = collect($value)->values()->take($definition->includeLimit($name));
+            $items = collect($value)->values()->take($step->limit);
 
             if ($resourceClass !== null) {
                 /** @var AnonymousResourceCollection $collection */
@@ -301,19 +311,19 @@ abstract class ApiResource extends JsonResource
             }
 
             // a child the resolver gives no Resource is left out of the list
-            return $items->map(fn (Model $item) => $this->makeChild($resolver, null, $item, $childSelection))
+            return $items->map(fn (Model $item) => $this->makeChild($step, $resolver, null, $item, $childSelection))
                 ->filter(fn (?ApiResource $child) => $child !== null)
                 ->values()
                 ->all();
         }
 
-        return $this->makeChild($resolver, $resourceClass, $value, $childSelection);
+        return $this->makeChild($step, $resolver, $resourceClass, $value, $childSelection);
     }
 
     /**
      * @param  class-string<ApiResource>|null  $resourceClass
      */
-    private function makeChild(?ResourceResolver $resolver, ?string $resourceClass, Model $item, SelectionNode $childSelection): ?ApiResource
+    private function makeChild(RenderStep $step, ?ResourceResolver $resolver, ?string $resourceClass, Model $item, SelectionNode $childSelection): ?ApiResource
     {
         $class = $resourceClass;
 
@@ -329,7 +339,7 @@ abstract class ApiResource extends JsonResource
                 return null;
             }
 
-            if (!in_array($class, $resolver->resources(), true)) {
+            if (!in_array($class, $step->resolverResources ??= $resolver->resources(), true)) {
                 throw ResponseSelectionException::resolverResourceNotListed($resolver::class, $class);
             }
         }

@@ -757,13 +757,17 @@ class SelectionLoader
         }
 
         $context = $this->context();
+        $definition = $resourceClass::definition();
+        $slots = [];
         $models = [];
         $keys = [];
         $pending = [];
 
         foreach ($fields as $field) {
+            $slot = $slots[$field] = (string) $definition->slotOf($resourceClass, $field);
+
             foreach ($this->withDependencies($accepted[$field], $resourceClass, $field) as $item) {
-                if (!$context->wasComputed($item, $computerClass, $field)) {
+                if (!$context->wasComputed($item, $slot)) {
                     $id = spl_object_id($item);
 
                     if (!isset($models[$id])) {
@@ -784,15 +788,14 @@ class SelectionLoader
             $groups[$signature]['models'][$id] = $models[$id];
         }
 
-        $definition = $resourceClass::definition();
-
         foreach ($groups as $group) {
             $dependencies = array_values(array_unique(array_merge(...array_map($definition->dependencies(...), $group['fields']))));
             $built = new MemberBuiltValues($context, $resourceClass, $computerClass, $dependencies);
             $values = $computer->compute(new EloquentCollection(array_values($group['models'])), $group['fields'], $built);
+            $groupSlots = array_intersect_key($slots, array_flip($group['fields']));
 
             foreach ($group['models'] as $id => $model) {
-                $context->rememberComputed($model, $computerClass, $group['fields'], $values[$keys[$id]] ?? []);
+                $context->rememberComputed($model, $groupSlots, $values[$keys[$id]] ?? []);
             }
         }
     }
@@ -806,11 +809,13 @@ class SelectionLoader
     {
         $context = $this->context();
         $builder = "{$resourceClass}::{$key}";
-        $built = new MemberBuiltValues($context, $resourceClass, $builder, $resourceClass::definition()->dependencies($key));
+        $definition = $resourceClass::definition();
+        $slot = (string) $definition->slotOf($resourceClass, $key);
+        $built = new MemberBuiltValues($context, $resourceClass, $builder, $definition->dependencies($key));
 
         foreach ($items as $item) {
-            if (!$context->wasComputed($item, $builder, $key)) {
-                $context->rememberComputed($item, $builder, [$key], [$key => $closure($item, $built)]);
+            if (!$context->wasComputed($item, $slot)) {
+                $context->rememberComputedValue($item, $slot, $closure($item, $built));
             }
         }
     }

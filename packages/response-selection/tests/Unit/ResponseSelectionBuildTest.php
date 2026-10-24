@@ -882,3 +882,76 @@ it('keeps nothing from one load to the next when the same loader is reused', fun
 
     expect(renderAccounts(ResponseBuildTestAccountResource::class, 'currency_code', [['id' => 2]]))->toBe([['id' => 2, 'currency_code' => 'XOF']]);
 });
+
+final class ResponseBuildTestSharedConditionResource extends ApiResource
+{
+    /** @var array<int, string> */
+    public static array $calls = [];
+
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->field('name', when: function (Model $model, Request $request): bool {
+                self::$calls[] = 'name:'.$model->getKey();
+
+                return $model->getKey() === 1;
+            })
+            ->field('greeting', fields: ['name'], computedBy: fn (Model $model): string => 'Hi '.$model->getAttribute('name'))
+            ->field('initial', fields: ['name'], computedBy: fn (Model $model): string => substr((string) $model->getAttribute('name'), 0, 1));
+    }
+}
+
+it('calls a per-model when: once per model, however many members need it', function (): void {
+    ResponseBuildTestSharedConditionResource::$calls = [];
+
+    expect(renderAccounts(ResponseBuildTestSharedConditionResource::class, 'greeting,initial', [['id' => 1, 'name' => 'Awa'], ['id' => 2, 'name' => 'Binta']]))->toBe([
+        ['id' => 1, 'greeting' => 'Hi Awa', 'initial' => 'A'],
+        ['id' => 2],
+    ])->and(ResponseBuildTestSharedConditionResource::$calls)->toBe(['name:1', 'name:2']);
+});
+
+/**
+ * Counts how many times the container builds it.
+ */
+final class ResponseBuildTestCountingResolver implements ResourceResolver
+{
+    public static int $built = 0;
+
+    public function __construct()
+    {
+        self::$built++;
+    }
+
+    public function resourceFor(Model $model): string
+    {
+        return ResponseBuildTestNamedResource::class;
+    }
+
+    public function resources(): array
+    {
+        return [ResponseBuildTestNamedResource::class];
+    }
+}
+
+final class ResponseBuildTestCountingResolverResource extends ApiResource
+{
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->virtualInclude('peer', ResponseBuildTestCountingResolver::class, fn (Model $parent): Model => new ResponseBuildTestAccount(['id' => 100 + $parent->getKey(), 'name' => 'Peer']));
+    }
+}
+
+it('builds an include resolver a fixed number of times, however many parents render', function (): void {
+    $builtFor = function (int $parents): int {
+        ResponseBuildTestCountingResolver::$built = 0;
+        app()->instance(ResponseContext::class, new ResponseContext);
+        renderAccounts(ResponseBuildTestCountingResolverResource::class, 'id', array_map(fn (int $id) => ['id' => $id], range(1, $parents)), 'peer');
+
+        return ResponseBuildTestCountingResolver::$built;
+    };
+
+    expect($builtFor(5))->toBe($builtFor(1));
+});

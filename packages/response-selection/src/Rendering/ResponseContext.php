@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Lahatre\ResponseSelection\Rendering;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\Declaration\ResponseDeclaration;
 use Lahatre\ResponseSelection\Enums\ResponseMode;
 use Lahatre\ResponseSelection\ResourceDefinition;
+use Lahatre\ResponseSelection\Selection\SelectionNode;
 use Lahatre\ResponseSelection\Selection\SelectionTree;
 use WeakMap;
 
@@ -28,25 +30,11 @@ final class ResponseContext
     private ?ResponseDeclaration $declaration = null;
 
     /**
-     * Computed field values, per model and per builder.
+     * Computed values, `when:` results and virtual children, one record per model.
      *
-     * @var WeakMap<Model, array<string, array{fields: array<string, true>, values: array<string, mixed>}>>
+     * @var WeakMap<Model, ModelState>
      */
-    private WeakMap $computed;
-
-    /**
-     * Virtual include children, per parent model.
-     *
-     * @var WeakMap<Model, array<string, mixed>>
-     */
-    private WeakMap $virtual;
-
-    /**
-     * `when:` results, per model.
-     *
-     * @var WeakMap<Model, array<string, bool>>
-     */
-    private WeakMap $conditions;
+    private WeakMap $models;
 
     /**
      * Results of `when:` conditions that only read the request.
@@ -54,6 +42,13 @@ final class ResponseContext
      * @var array<string, bool>
      */
     private array $requestConditions = [];
+
+    /**
+     * Render plans, per selection level and Resource class.
+     *
+     * @var WeakMap<SelectionNode, array<class-string<ApiResource>, RenderPlan>>
+     */
+    private WeakMap $plans;
 
     public function __construct()
     {
@@ -81,10 +76,74 @@ final class ResponseContext
 
     private function forgetBuilt(): void
     {
-        $this->computed = new WeakMap;
-        $this->virtual = new WeakMap;
-        $this->conditions = new WeakMap;
+        $this->models = new WeakMap;
         $this->requestConditions = [];
+        $this->plans = new WeakMap;
+    }
+
+    /**
+     * What a Resource renders at one selection level in this response: the selected members whose
+     * request-only `when:` accept the request, each with the checks left to make per model.
+     *
+     * @internal
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    public function renderPlan(string $resourceClass, SelectionNode $selection, Request $request): RenderPlan
+    {
+        $plans = $this->plans[$selection] ?? [];
+
+        if (isset($plans[$resourceClass])) {
+            return $plans[$resourceClass];
+        }
+
+        $definition = $resourceClass::definition();
+        $steps = [];
+        $readsConditions = false;
+
+        foreach ($definition->members() as $name) {
+            $isField = $definition->hasField($name);
+            $child = $isField ? null : $selection->child($name);
+
+            if ($isField ? $name !== 'id' && !$selection->wantsField($name) : $child === null) {
+                continue;
+            }
+
+            $checks = [];
+
+            foreach ($definition->existenceSteps($resourceClass, $name) as [$key, $when, $requestOnly]) {
+                if ($when === null) {
+                    $checks[] = [false, $key, null];
+                } elseif (!$requestOnly) {
+                    $checks[] = [true, $key, $when];
+                    $readsConditions = true;
+                } elseif (!($this->requestConditions[$key] ??= $when($request) === true)) {
+                    // the same answer for every model: the member is left out of this response
+                    continue 2;
+                }
+            }
+
+            $steps[] = $isField
+                ? new RenderStep($name, true, $definition->slotOf($resourceClass, $name), $checks)
+                : new RenderStep(
+                    $name,
+                    false,
+                    null,
+                    $checks,
+                    $child,
+                    $definition->isVirtualInclude($name),
+                    $definition->includeRelation($name),
+                    $definition->includeResourceClass($name),
+                    $definition->rendersAsList($name),
+                    $definition->includeLimit($name),
+                );
+        }
+
+        $plan = new RenderPlan($steps, $readsConditions);
+        $plans[$resourceClass] = $plan;
+        $this->plans[$selection] = $plans;
+
+        return $plan;
     }
 
     public function isActive(): bool
@@ -118,45 +177,99 @@ final class ResponseContext
     /**
      * Records the values a builder returned for a model. Values it was not asked for are ignored.
      *
-     * @param  array<int, string>  $fields
+     * @internal
+     *
+     * @param  array<string, string>  $slots  slot of each field asked, by field
      * @param  array<string, mixed>  $values
      */
-    public function rememberComputed(Model $model, string $builder, array $fields, array $values): void
+    public function rememberComputed(Model $model, array $slots, array $values): void
     {
-        $computed = $this->computed[$model] ?? [];
-        $entry = $computed[$builder] ?? ['fields' => [], 'values' => []];
+        $state = $this->models[$model] ??= new ModelState;
 
-        foreach ($fields as $field) {
-            $entry['fields'][$field] = true;
-
+        foreach ($slots as $field => $slot) {
             if (array_key_exists($field, $values)) {
-                $entry['values'][$field] = $values[$field];
+                $state->values[$slot] = $values[$field];
+            } else {
+                $state->absent[$slot] = true;
             }
         }
+    }
 
-        $computed[$builder] = $entry;
-        $this->computed[$model] = $computed;
+    /**
+     * Records the value a closure returned for one model.
+     *
+     * @internal
+     */
+    public function rememberComputedValue(Model $model, string $slot, mixed $value): void
+    {
+        $state = $this->models[$model] ??= new ModelState;
+        $state->values[$slot] = $value;
+    }
+
+    /**
+     * What the response built for this model so far, null when nothing yet. Read-only for callers.
+     *
+     * @internal
+     */
+    public function stateOf(Model $model): ?ModelState
+    {
+        return $this->models[$model] ?? null;
+    }
+
+    /**
+     * What the response built for this model, created empty when missing.
+     *
+     * @internal
+     */
+    public function stateFor(Model $model): ModelState
+    {
+        return $this->models[$model] ??= new ModelState;
+    }
+
+    /**
+     * Whether a per-model `when:` accepts this model. Asked once per model.
+     *
+     * @internal
+     *
+     * @param  string  $key  `Resource::member`
+     */
+    public function acceptsModel(string $key, Closure $when, Model $model, Request $request): bool
+    {
+        $state = $this->models[$model] ??= new ModelState;
+
+        return $state->conditions[$key] ??= $when($model, $request) === true;
     }
 
     /**
      * Whether this field was already computed for this model.
+     *
+     * @internal
      */
-    public function wasComputed(Model $model, string $builder, string $field): bool
+    public function wasComputed(Model $model, string $slot): bool
     {
-        return isset(($this->computed[$model] ?? [])[$builder]['fields'][$field]);
+        $state = $this->models[$model] ?? null;
+
+        return $state !== null && (array_key_exists($slot, $state->values) || isset($state->absent[$slot]));
     }
 
     /**
      * Whether the builder returned a value, even null, for this field.
+     *
+     * @internal
      */
-    public function hasComputedValue(Model $model, string $builder, string $field): bool
+    public function hasComputedValue(Model $model, string $slot): bool
     {
-        return array_key_exists($field, ($this->computed[$model] ?? [])[$builder]['values'] ?? []);
+        $state = $this->models[$model] ?? null;
+
+        return $state !== null && array_key_exists($slot, $state->values);
     }
 
-    public function computedValue(Model $model, string $builder, string $field): mixed
+    /**
+     * @internal
+     */
+    public function computedValue(Model $model, string $slot): mixed
     {
-        return ($this->computed[$model] ?? [])[$builder]['values'][$field] ?? null;
+        return ($this->models[$model] ?? null)?->values[$slot] ?? null;
     }
 
     /**
@@ -164,9 +277,8 @@ final class ResponseContext
      */
     public function rememberVirtual(Model $parent, string $resourceClass, string $include, mixed $value): void
     {
-        $virtual = $this->virtual[$parent] ?? [];
-        $virtual["{$resourceClass}::{$include}"] = $value;
-        $this->virtual[$parent] = $virtual;
+        $state = $this->models[$parent] ??= new ModelState;
+        $state->virtual[$resourceClass][$include] = $value;
     }
 
     /**
@@ -174,7 +286,9 @@ final class ResponseContext
      */
     public function hasVirtual(Model $parent, string $resourceClass, string $include): bool
     {
-        return array_key_exists("{$resourceClass}::{$include}", $this->virtual[$parent] ?? []);
+        $state = $this->models[$parent] ?? null;
+
+        return $state !== null && array_key_exists($include, $state->virtual[$resourceClass] ?? []);
     }
 
     /**
@@ -182,7 +296,7 @@ final class ResponseContext
      */
     public function virtualValue(Model $parent, string $resourceClass, string $include): mixed
     {
-        return ($this->virtual[$parent] ?? [])["{$resourceClass}::{$include}"] ?? null;
+        return ($this->models[$parent] ?? null)?->virtual[$resourceClass][$include] ?? null;
     }
 
     /**
@@ -199,7 +313,7 @@ final class ResponseContext
             return true;
         }
 
-        return $this->requestConditions["{$resourceClass}::{$member}"] ??= $when($request) === true;
+        return $this->requestConditions[$definition->memberKey($resourceClass, $member)] ??= $when($request) === true;
     }
 
     /**
@@ -209,12 +323,8 @@ final class ResponseContext
      */
     public function existsForRequest(ResourceDefinition $definition, string $resourceClass, string $member, Request $request): bool
     {
-        if (!$this->acceptsRequest($definition, $resourceClass, $member, $request)) {
-            return false;
-        }
-
-        foreach ($definition->dependencies($member) as $dependency) {
-            if (!$this->existsForRequest($definition, $resourceClass, $dependency, $request)) {
+        foreach ($definition->existenceSteps($resourceClass, $member) as [$key, $when, $requestOnly]) {
+            if ($requestOnly && !($this->requestConditions[$key] ??= $when($request) === true)) {
                 return false;
             }
         }
@@ -229,19 +339,30 @@ final class ResponseContext
      */
     public function exists(ResourceDefinition $definition, string $resourceClass, string $member, Model $item, Request $request): bool
     {
-        if (!$this->accepts($definition, $resourceClass, $member, $item, $request)) {
-            return false;
+        $steps = $definition->existenceSteps($resourceClass, $member);
+
+        if ($steps === []) {
+            return true;
         }
 
-        foreach ($definition->dependencies($member) as $dependency) {
-            if (!$this->exists($definition, $resourceClass, $dependency, $item, $request)) {
+        foreach ($steps as [$key, $when, $requestOnly]) {
+            if ($when === null) {
+                $state = $this->models[$item] ?? null;
+
+                // left out when its FieldComputer ran for this model and gave it no value
+                if ($state !== null && isset($state->absent[$key]) && !array_key_exists($key, $state->values)) {
+                    return false;
+                }
+            } elseif ($requestOnly) {
+                if (!($this->requestConditions[$key] ??= $when($request) === true)) {
+                    return false;
+                }
+            } elseif (!$this->acceptsModel($key, $when, $item, $request)) {
                 return false;
             }
         }
 
-        $builder = $definition->builderOf($resourceClass, $member);
-
-        return $builder === null || !$this->wasComputed($item, $builder, $member) || $this->hasComputedValue($item, $builder, $member);
+        return true;
     }
 
     /**
@@ -261,14 +382,6 @@ final class ResponseContext
             return $this->acceptsRequest($definition, $resourceClass, $member, $request);
         }
 
-        $key = "{$resourceClass}::{$member}";
-        $conditions = $this->conditions[$item] ?? [];
-
-        if (!isset($conditions[$key])) {
-            $conditions[$key] = $when($item, $request) === true;
-            $this->conditions[$item] = $conditions;
-        }
-
-        return $conditions[$key];
+        return $this->acceptsModel($definition->memberKey($resourceClass, $member), $when, $item, $request);
     }
 }

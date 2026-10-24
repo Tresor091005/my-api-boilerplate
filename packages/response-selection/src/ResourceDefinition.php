@@ -62,6 +62,62 @@ final class ResourceDefinition
     private bool $frozen = false;
 
     /**
+     * The Resource class freeze() was given, whose slots below are precomputed.
+     *
+     * @var class-string<ApiResource>|null
+     */
+    private ?string $owner = null;
+
+    /**
+     * Slot of each computed field, as slotOf() names it for $owner.
+     *
+     * @var array<string, string>
+     */
+    private array $slots = [];
+
+    /**
+     * What computes each computed field, as builderOf() names it for $owner.
+     *
+     * @var array<string, string>
+     */
+    private array $builders = [];
+
+    /**
+     * The `when:` of each member that has one, once frozen.
+     *
+     * @var array<string, Closure>
+     */
+    private array $conditions = [];
+
+    /**
+     * The `fields:` of each member, once frozen.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private array $needs = [];
+
+    /**
+     * `Resource::member` of each member, the key of its `when:` result in ResponseContext.
+     *
+     * @var array<string, string>
+     */
+    private array $memberKeys = [];
+
+    /**
+     * The include loading each relation.
+     *
+     * @var array<string, string>
+     */
+    private array $includeByRelation = [];
+
+    /**
+     * existenceSteps() of the members asked so far, for $owner.
+     *
+     * @var array<string, array<int, array{0: string, 1: Closure|null, 2: bool, 3: string|null}>>
+     */
+    private array $existenceSteps = [];
+
+    /**
      * Checks the definition for mistakes and locks it, since every render of the Resource shares it.
      *
      * @param  class-string<ApiResource>  $resourceClass  used in error messages
@@ -75,6 +131,33 @@ final class ResourceDefinition
         $this->resolveLimits($resourceClass);
         $this->buildOrder = $this->sortFields($resourceClass);
         $this->requestOnly = $this->conditionShapes($resourceClass);
+        $this->owner = $resourceClass;
+
+        foreach ($this->fields as $key => $field) {
+            $this->needs[$key] = $field['fields'];
+
+            if ($field['when'] !== null) {
+                $this->conditions[$key] = $field['when'];
+            }
+
+            if ($field['computedBy'] !== null) {
+                $this->slots[$key] = $this->slotFor($resourceClass, $key, $field['computedBy']);
+                $this->builders[$key] = $field['computedBy'] instanceof Closure ? "{$resourceClass}::{$key}" : $field['computedBy'];
+            }
+        }
+
+        foreach ($this->includes as $name => $include) {
+            $this->needs[$name] = $include['fields'];
+
+            if ($include['when'] !== null) {
+                $this->conditions[$name] = $include['when'];
+            }
+        }
+
+        foreach ($this->members as $name) {
+            $this->memberKeys[$name] = "{$resourceClass}::{$name}";
+        }
+
         $this->frozen = true;
 
         return $this;
@@ -203,6 +286,8 @@ final class ResourceDefinition
             if ($existing !== null && $existing !== $name) {
                 throw ResponseSelectionException::relationIncludedTwice($relation, $existing, $name);
             }
+
+            $this->includeByRelation[$relation] ??= $name;
         }
 
         $this->includes[$name] = [
@@ -392,6 +477,10 @@ final class ResourceDefinition
      */
     public function dependencies(string $name): array
     {
+        if ($this->frozen) {
+            return $this->needs[$name] ?? [];
+        }
+
         return $this->fields[$name]['fields'] ?? $this->includes[$name]['fields'] ?? [];
     }
 
@@ -424,9 +513,42 @@ final class ResourceDefinition
      */
     public function builderOf(string $resourceClass, string $key): ?string
     {
+        if ($resourceClass === $this->owner) {
+            return $this->builders[$key] ?? null;
+        }
+
         $computedBy = $this->fields[$key]['computedBy'] ?? null;
 
         return $computedBy instanceof Closure ? "{$resourceClass}::{$key}" : $computedBy;
+    }
+
+    /**
+     * Where ResponseContext keeps a computed field's value: the FieldComputer class (shared between
+     * Resources) or the Resource for a closure, then the field. Null for a plain field.
+     *
+     * @internal
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    public function slotOf(string $resourceClass, string $key): ?string
+    {
+        if ($resourceClass === $this->owner) {
+            return $this->slots[$key] ?? null;
+        }
+
+        $computedBy = $this->fields[$key]['computedBy'] ?? null;
+
+        return $computedBy === null ? null : $this->slotFor($resourceClass, $key, $computedBy);
+    }
+
+    /**
+     * @param  class-string<ApiResource>  $resourceClass
+     * @param  class-string<FieldComputer>|Closure  $computedBy
+     */
+    private function slotFor(string $resourceClass, string $key, string|Closure $computedBy): string
+    {
+        // the (builder, field) pair as one string: builder is the class, or Resource::field for a closure
+        return $computedBy instanceof Closure ? "{$resourceClass}::{$key}\0{$key}" : "{$computedBy}\0{$key}";
     }
 
     /**
@@ -434,7 +556,84 @@ final class ResourceDefinition
      */
     public function condition(string $name): ?Closure
     {
+        if ($this->frozen) {
+            return $this->conditions[$name] ?? null;
+        }
+
         return $this->fields[$name]['when'] ?? $this->includes[$name]['when'] ?? null;
+    }
+
+    /**
+     * `Resource::member`, the key of a member's `when:` result in ResponseContext.
+     *
+     * @internal
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    public function memberKey(string $resourceClass, string $name): string
+    {
+        return $resourceClass === $this->owner && isset($this->memberKeys[$name]) ? $this->memberKeys[$name] : "{$resourceClass}::{$name}";
+    }
+
+    /**
+     * The checks deciding whether a member exists for a model, in order: its `when:`, then each
+     * field of its `fields:` with its own checks, then whether its FieldComputer returned it. A
+     * member reached twice is listed once. A step is a `when:` [member key, closure, reads the
+     * request only, null], or a computed field that must have a value [slot, null, false, field].
+     *
+     * @internal
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     * @return array<int, array{0: string, 1: Closure|null, 2: bool, 3: string|null}>
+     */
+    public function existenceSteps(string $resourceClass, string $member): array
+    {
+        if ($resourceClass === $this->owner && isset($this->memberKeys[$member])) {
+            return $this->existenceSteps[$member] ??= $this->collectExistenceSteps($resourceClass, $member);
+        }
+
+        return $this->collectExistenceSteps($resourceClass, $member);
+    }
+
+    /**
+     * @param  class-string<ApiResource>  $resourceClass
+     * @return array<int, array{0: string, 1: Closure|null, 2: bool, 3: string|null}>
+     */
+    private function collectExistenceSteps(string $resourceClass, string $member): array
+    {
+        $steps = [];
+        $seen = [];
+        $this->visitExistence($resourceClass, $member, $seen, $steps);
+
+        return $steps;
+    }
+
+    /**
+     * @param  class-string<ApiResource>  $resourceClass
+     * @param  array<string, true>  $seen
+     * @param  array<int, array{0: string, 1: Closure|null, 2: bool, 3: string|null}>  $steps
+     */
+    private function visitExistence(string $resourceClass, string $name, array &$seen, array &$steps): void
+    {
+        if (isset($seen[$name])) {
+            return;
+        }
+
+        $seen[$name] = true;
+        $when = $this->condition($name);
+
+        if ($when !== null) {
+            $steps[] = [$this->memberKey($resourceClass, $name), $when, $this->conditionReadsRequestOnly($name), null];
+        }
+
+        foreach ($this->dependencies($name) as $dependency) {
+            $this->visitExistence($resourceClass, $dependency, $seen, $steps);
+        }
+
+        // a closure always gives a value, so only a FieldComputer field needs this check
+        if (is_string($this->fields[$name]['computedBy'] ?? null)) {
+            $steps[] = [(string) $this->slotOf($resourceClass, $name), null, false, $name];
+        }
     }
 
     /**
@@ -524,13 +723,7 @@ final class ResourceDefinition
      */
     public function includeForRelation(string $relation): ?string
     {
-        foreach ($this->includes as $name => $include) {
-            if ($include['relation'] === $relation) {
-                return $name;
-            }
-        }
-
-        return null;
+        return $this->includeByRelation[$relation] ?? null;
     }
 
     public function isVirtualInclude(string $name): bool

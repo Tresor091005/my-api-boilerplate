@@ -30,16 +30,16 @@ final class MemberBuiltValues implements BuiltValues
 
     public function get(Model $model, string $field): mixed
     {
-        return $this->context->computedValue($model, $this->builderOf($field), $field);
+        return $this->context->computedValue($model, $this->slotOf($field));
     }
 
-    private function builderOf(string $field): string
+    private function slotOf(string $field): string
     {
         if (!in_array($field, $this->fields, true)) {
             throw ResponseSelectionException::builtFieldNotDeclared($this->resourceClass, $this->builder, $field);
         }
 
-        return $this->resourceClass::definition()->builderOf($this->resourceClass, $field)
+        return $this->resourceClass::definition()->slotOf($this->resourceClass, $field)
             ?? throw ResponseSelectionException::builtFieldNotComputed($this->resourceClass, $this->builder, $field);
     }
 }
