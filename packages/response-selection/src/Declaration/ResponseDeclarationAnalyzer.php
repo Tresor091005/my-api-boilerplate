@@ -22,6 +22,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use ReflectionClass;
 use ReflectionMethod;
@@ -43,11 +44,20 @@ final class ResponseDeclarationAnalyzer
     ];
 
     /**
-     * Parsed source files, so each file is read only once.
+     * Parsed source files, so each file is read only once. Null for a file that never names ApiResponse.
      *
-     * @var array<string, array<Node>>
+     * @var array<string, array<Node>|null>
      */
     private array $files = [];
+
+    /**
+     * Last parse of each file in this process, reused while the file's content stays the same.
+     *
+     * @var array<string, array{hash: string, statements: array<Node>}>
+     */
+    private static array $parsed = [];
+
+    private static ?Parser $parser = null;
 
     /**
      * What a controller action answers with, or null when it does not use ApiResponse.
@@ -62,11 +72,18 @@ final class ResponseDeclarationAnalyzer
             return null;
         }
 
+        $statements = $this->parse($file, $action);
+
+        // a file that never names ApiResponse cannot call it
+        if ($statements === null) {
+            return null;
+        }
+
         // Match by line range, not by name alone: a trait method imported under an alias keeps its
         // original name in the file
         $line = $reflection->getStartLine();
         $candidates = array_values(array_filter(
-            (new NodeFinder)->findInstanceOf($this->parse($file, $action), ClassMethod::class),
+            (new NodeFinder)->findInstanceOf($statements, ClassMethod::class),
             fn (ClassMethod $node) => $node->getStartLine() <= $line && $line <= $node->getEndLine(),
         ));
         $named = array_values(array_filter($candidates, fn (ClassMethod $node) => $node->name->toLowerString() === strtolower($method)));
@@ -83,22 +100,34 @@ final class ResponseDeclarationAnalyzer
     }
 
     /**
-     * @return array<Node>
+     * @return array<Node>|null null when the file never names ApiResponse
      */
-    private function parse(string $file, string $action): array
+    private function parse(string $file, string $action): ?array
     {
-        if (!isset($this->files[$file])) {
-            $code = file_get_contents($file);
-
-            if ($code === false) {
-                throw ResponseDeclarationException::actionNotFound($action, $file);
-            }
-
-            $statements = (new ParserFactory)->createForNewestSupportedVersion()->parse($code) ?? [];
-            $this->files[$file] = (new NodeTraverser(new NameResolver))->traverse($statements);
+        if (array_key_exists($file, $this->files)) {
+            return $this->files[$file];
         }
 
-        return $this->files[$file];
+        $code = file_get_contents($file);
+
+        if ($code === false) {
+            throw ResponseDeclarationException::actionNotFound($action, $file);
+        }
+
+        // a call to ApiResponse names it, in the call or in a `use`, so such a file is not parsed
+        if (stripos($code, class_basename(ApiResponse::class)) === false) {
+            return $this->files[$file] = null;
+        }
+
+        $hash = md5($code);
+
+        if ((self::$parsed[$file]['hash'] ?? null) !== $hash) {
+            self::$parser ??= (new ParserFactory)->createForNewestSupportedVersion();
+            $statements = self::$parser->parse($code) ?? [];
+            self::$parsed[$file] = ['hash' => $hash, 'statements' => (new NodeTraverser(new NameResolver))->traverse($statements)];
+        }
+
+        return $this->files[$file] = self::$parsed[$file]['statements'];
     }
 
     public function declaration(?ClassMethod $method, ?string $action = null): ResponseDeclaration

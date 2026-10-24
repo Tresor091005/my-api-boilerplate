@@ -424,3 +424,66 @@ it('rejects ?response=resource on a no-content-only route before the controller 
     expect($result['context']['mode'] ?? null)->toBe(ResponseMode::None)
         ->and($result['context']['declaration']?->isNoContentOnly())->toBeTrue();
 });
+
+/**
+ * Writes a controller to a temporary file and loads it, so a test can control its source.
+ *
+ * @return array{0: class-string, 1: string} the class and its file
+ */
+function declarationTestControllerFile(string $imports, string $body): array
+{
+    $class = 'DeclarationTestGenerated'.str_replace('.', '', uniqid('', true));
+    $file = sys_get_temp_dir()."/{$class}.php";
+    file_put_contents($file, declarationTestControllerSource($class, $imports, $body));
+    require_once $file;
+
+    return ["Lahatre\\ResponseSelection\\Tests\\Generated\\{$class}", $file];
+}
+
+function declarationTestControllerSource(string $class, string $imports, string $body): string
+{
+    return <<<PHP
+        <?php
+
+        namespace Lahatre\\ResponseSelection\\Tests\\Generated;
+
+        {$imports}
+
+        final class {$class}
+        {
+            public function index(): mixed
+            {
+                {$body}
+            }
+        }
+        PHP;
+}
+
+it('declares nothing for a controller file that never names ApiResponse', function (): void {
+    [$controller, $file] = declarationTestControllerFile('', 'return null;');
+
+    expect((new ResponseDeclarationAnalyzer)->forAction($controller, 'index'))->toBeNull();
+    unlink($file);
+});
+
+it('reads a call through an aliased import of ApiResponse', function (): void {
+    [$controller, $file] = declarationTestControllerFile(
+        'use Lahatre\\ResponseSelection\\ApiResponse as Respond;',
+        'return Respond::item(null, \\Lahatre\\ResponseSelection\\Tests\\Unit\\DeclarationTestResource::class);',
+    );
+
+    expect((new ResponseDeclarationAnalyzer)->forAction($controller, 'index')?->shape)->toBe(ResponseShape::Item);
+    unlink($file);
+});
+
+it('reads a controller file again once its content changed', function (): void {
+    $call = fn (int $status): string => "return \\Lahatre\\ResponseSelection\\ApiResponse::item(null, \\Lahatre\\ResponseSelection\\Tests\\Unit\\DeclarationTestResource::class, {$status});";
+    [$controller, $file] = declarationTestControllerFile('', $call(200));
+    $before = (new ResponseDeclarationAnalyzer)->forAction($controller, 'index')?->statuses;
+
+    file_put_contents($file, declarationTestControllerSource(class_basename($controller), '', $call(201)));
+
+    expect($before)->toBe([200])
+        ->and((new ResponseDeclarationAnalyzer)->forAction($controller, 'index')?->statuses)->toBe([201]);
+    unlink($file);
+});
