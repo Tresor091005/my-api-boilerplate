@@ -148,3 +148,25 @@ it('rejects a child Resource redeclaring a member of parent::define()', function
 it('lets a child Resource add members after those of parent::define()', function (): void {
     expect(ResourceDefinitionTestExtendingResource::definition()->members())->toBe(['id', 'cashiers', 'balance']);
 });
+
+it('gives an include the configured maximum, or the lower limit it sets', function (): void {
+    config(['response-selection.limits.max_include_items' => 30]);
+
+    $definition = (new ResourceDefinition)
+        ->include('cashiers', ResourceDefinitionTestChildResource::class)
+        ->include('roles', ResourceDefinitionTestChildResource::class, limit: 5)
+        ->virtualInclude('peers', ResourceDefinitionTestChildResource::class, fn () => [], asList: true, limit: 3)
+        ->freeze(ResourceDefinitionTestChildResource::class);
+
+    expect($definition->includeLimit('cashiers'))->toBe(30)
+        ->and($definition->includeLimit('roles'))->toBe(5)
+        ->and($definition->includeLimit('peers'))->toBe(3);
+});
+
+it('rejects an include limit above the configured maximum or below 1 at freeze', function (int $limit): void {
+    config(['response-selection.limits.max_include_items' => 30]);
+
+    (new ResourceDefinition)
+        ->include('cashiers', ResourceDefinitionTestChildResource::class, limit: $limit)
+        ->freeze(ResourceDefinitionTestChildResource::class);
+})->throws(ResponseSelectionException::class, 'include [cashiers] has limit')->with([31, 0]);

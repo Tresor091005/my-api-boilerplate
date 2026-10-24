@@ -11,6 +11,8 @@ return [
         'max_paths' => 20,
         // fields listed for one resource
         'max_fields_per_node' => 50,
+        // children one parent renders in a list include; an include may set a lower `limit:`
+        'max_include_items' => 100,
     ],
 
     // How many include levels the API documentation describes.

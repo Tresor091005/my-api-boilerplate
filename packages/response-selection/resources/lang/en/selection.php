@@ -23,6 +23,7 @@ return [
     'resolver_resource_not_listed' => ':resolver resolved :resource, which its resources() do not list: the declaration analyzer never checked it.',
     'definition_frozen'            => 'A frozen definition cannot change: add to it in define(), after parent::define($resource).',
     'member_declared_twice'        => ':resource declares [:name] twice, parent::define() included; a member is declared once.',
+    'include_limit_invalid'        => ':resource include [:name] has limit :limit; it must be between 1 and :max (response-selection.limits.max_include_items).',
     'invalid_name'                 => '[:name] is not a valid field or include name (snake_case JSON key).',
     'relation_included_twice'      => 'Relation [:relation] is already loaded by include [:first]; include [:second] cannot load it too.',
     'class_must_implement'         => ':class must implement :contract.',

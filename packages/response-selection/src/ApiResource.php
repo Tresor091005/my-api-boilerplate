@@ -291,7 +291,7 @@ abstract class ApiResource extends JsonResource
 
         if ($definition->rendersChildList($name, $value)) {
             // drop the keys so the children render as a JSON array, not an object
-            $items = collect($value)->values();
+            $items = collect($value)->values()->take($definition->includeLimit($name));
 
             if ($resourceClass !== null) {
                 /** @var AnonymousResourceCollection $collection */

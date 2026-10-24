@@ -27,7 +27,7 @@ final class ResourceDefinition
     private array $fields = [];
 
     /**
-     * @var array<string, array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, when: Closure|null}>
+     * @var array<string, array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null}>
      */
     private array $includes = [];
 
@@ -72,6 +72,7 @@ final class ResourceDefinition
             throw ResponseSelectionException::memberDeclaredTwice($resourceClass, $this->declaredTwice[0]);
         }
 
+        $this->resolveLimits($resourceClass);
         $this->buildOrder = $this->sortFields($resourceClass);
         $this->requestOnly = $this->conditionShapes($resourceClass);
         $this->frozen = true;
@@ -132,13 +133,14 @@ final class ResourceDefinition
      * @param  string  $name  JSON key clients ask for
      * @param  class-string<ApiResource>|ResourceResolver|class-string<ResourceResolver>  $resource
      * @param  string|null  $relation  model relation to load; by default the camelCase of $name
+     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
      */
-    public function include(string $name, string|ResourceResolver $resource, ?string $relation = null, ?Closure $when = null): self
+    public function include(string $name, string|ResourceResolver $resource, ?string $relation = null, ?int $limit = null, ?Closure $when = null): self
     {
         [$resourceClass, $resolver] = $this->splitResource($resource);
 
-        return $this->addInclude($name, $resourceClass, $resolver, $relation ?? Str::camel($name), null, false, [], [], [], $when);
+        return $this->addInclude($name, $resourceClass, $resolver, $relation ?? Str::camel($name), null, false, [], [], [], $limit, $when);
     }
 
     /**
@@ -152,13 +154,14 @@ final class ResourceDefinition
      * @param  array<int, string>  $columns  parent columns the loader reads
      * @param  array<int, string>  $relations  parent relations the loader reads
      * @param  array<int, string>  $fields  parent fields the loader needs
+     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
      */
-    public function virtualInclude(string $name, string|ResourceResolver $resource, string|Closure $loader, bool $asList = false, array $columns = [], array $relations = [], array $fields = [], ?Closure $when = null): self
+    public function virtualInclude(string $name, string|ResourceResolver $resource, string|Closure $loader, bool $asList = false, array $columns = [], array $relations = [], array $fields = [], ?int $limit = null, ?Closure $when = null): self
     {
         [$resourceClass, $resolver] = $this->splitResource($resource);
 
-        return $this->addInclude($name, $resourceClass, $resolver, null, $loader, $asList, $columns, $relations, $fields, $when);
+        return $this->addInclude($name, $resourceClass, $resolver, null, $loader, $asList, $columns, $relations, $fields, $limit, $when);
     }
 
     /**
@@ -183,7 +186,7 @@ final class ResourceDefinition
      * @param  array<int, string>  $relations
      * @param  array<int, string>  $fields
      */
-    private function addInclude(string $name, ?string $resource, string|ResourceResolver|null $resolver, ?string $relation, string|Closure|null $loader, bool $asList, array $columns, array $relations, array $fields, ?Closure $when): self
+    private function addInclude(string $name, ?string $resource, string|ResourceResolver|null $resolver, ?string $relation, string|Closure|null $loader, bool $asList, array $columns, array $relations, array $fields, ?int $limit, ?Closure $when): self
     {
         $this->assertMutable();
         $this->assertIdentifier($name);
@@ -211,11 +214,32 @@ final class ResourceDefinition
             'columns'   => array_values($columns),
             'relations' => array_values(array_unique($relations)),
             'fields'    => array_values(array_unique($fields)),
+            'limit'     => $limit,
             'when'      => $when,
         ];
         $this->remember($name);
 
         return $this;
+    }
+
+    /**
+     * Gives every include its limit: its own, or the configured maximum it may not exceed.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    private function resolveLimits(string $resourceClass): void
+    {
+        $max = (int) config('response-selection.limits.max_include_items');
+
+        foreach ($this->includes as $name => $include) {
+            $limit = $include['limit'] ?? $max;
+
+            if ($limit < 1 || $limit > $max) {
+                throw ResponseSelectionException::includeLimitInvalid($resourceClass, $name, $limit, $max);
+            }
+
+            $this->includes[$name]['limit'] = $limit;
+        }
     }
 
     /**
@@ -480,7 +504,7 @@ final class ResourceDefinition
     }
 
     /**
-     * @return array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, when: Closure|null}|null
+     * @return array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null}|null
      */
     public function includeDefinition(string $name): ?array
     {
@@ -537,6 +561,14 @@ final class ResourceDefinition
     public function rendersAsList(string $name): bool
     {
         return $this->includes[$name]['asList'] ?? false;
+    }
+
+    /**
+     * Most children a list include renders per parent.
+     */
+    public function includeLimit(string $name): int
+    {
+        return $this->includes[$name]['limit'] ?? (int) config('response-selection.limits.max_include_items');
     }
 
     /**

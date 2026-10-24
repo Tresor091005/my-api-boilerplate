@@ -182,6 +182,14 @@ final class ResponseSelectionException extends LogicException
         );
     }
 
+    public static function includeLimitInvalid(string $resource, string $name, int $limit, int $max): self
+    {
+        return self::make(
+            __('response-selection::selection.include_limit_invalid', ['resource' => $resource, 'name' => $name, 'limit' => $limit, 'max' => $max]),
+            ['resource' => $resource, 'name' => $name, 'limit' => $limit, 'max' => $max],
+        );
+    }
+
     public static function invalidName(string $name): self
     {
         return self::make(

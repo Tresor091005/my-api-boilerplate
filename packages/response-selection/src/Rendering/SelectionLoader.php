@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrManyThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -432,13 +435,16 @@ class SelectionLoader
                 $relation = $this->relationFor($first, $relationName, $resourceClass);
                 $childClass = $definition->includeResourceClass($name);
                 $childSelection = $selection->child($name);
+                // a relation a field also reads is loaded whole for that field
+                $whole = in_array($relationName, $roots, true);
+                $columns = $childClass !== null && $childSelection !== null && !$whole && $this->isNarrowable($relation)
+                    ? $this->childColumns($relation, $childClass, $childSelection)
+                    : null;
+                $limit = !$whole && $this->returnsList($relation) ? $definition->includeLimit($name) : null;
 
-                if ($childClass !== null && $childSelection !== null && !in_array($relationName, $roots, true) && $this->isNarrowable($relation)) {
-                    $columns = $this->childColumns($relation, $childClass, $childSelection);
-                    $relations[$relationName] = fn ($query) => $this->narrow($query, $columns);
-                } else {
-                    $relations[$relationName] = null;
-                }
+                $relations[$relationName] = $columns === null && $limit === null
+                    ? null
+                    : fn ($query) => $this->constrain($query, $columns, $limit);
             }
 
             $models->loadMissing($this->toEagerLoadArray($relations));
@@ -586,12 +592,34 @@ class SelectionLoader
     }
 
     /**
-     * @param  array<int, string>  $columns
+     * Selects only the given columns and loads at most $limit children per parent, the first by key
+     * when the relation sets no order.
+     *
+     * @param  array<int, string>|null  $columns
      */
-    protected function narrow(Relation $query, array $columns): void
+    protected function constrain(Relation $query, ?array $columns, ?int $limit): void
     {
         $model = $query->getModel();
-        $query->select(array_map(fn (string $column) => $model->qualifyColumn($column), $columns));
+
+        if ($columns !== null) {
+            $query->select(array_map(fn (string $column) => $model->qualifyColumn($column), $columns));
+        }
+
+        if ($limit !== null) {
+            if (empty($query->getBaseQuery()->orders)) {
+                $query->orderBy($model->getQualifiedKeyName());
+            }
+
+            $query->limit($limit);
+        }
+    }
+
+    /**
+     * Whether a relation holds a list of children.
+     */
+    protected function returnsList(Relation $relation): bool
+    {
+        return $relation instanceof HasMany || $relation instanceof MorphMany || $relation instanceof BelongsToMany || $relation instanceof HasManyThrough;
     }
 
     /**
@@ -933,7 +961,7 @@ class SelectionLoader
     protected function includeChildren(ResourceDefinition $definition, string $name, mixed $value): array
     {
         if ($definition->rendersChildList($name, $value)) {
-            return collect($value)->values()->all();
+            return collect($value)->values()->take($definition->includeLimit($name))->all();
         }
 
         return $value === null ? [] : [$value];

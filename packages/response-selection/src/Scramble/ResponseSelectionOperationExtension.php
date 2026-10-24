@@ -186,12 +186,12 @@ class ResponseSelectionOperationExtension extends OperationExtension
 
         // An AnyOf cannot be marked nullable, so null is added as one of its options
         if ($definition->isVirtualInclude($name)) {
-            return $definition->rendersAsList($name) ? (new ArrayType)->setItems($child) : (new AnyOf)->setItems([...$children, new NullType]);
+            return $definition->rendersAsList($name) ? (new ArrayType)->setItems($child)->setMax($definition->includeLimit($name)) : (new AnyOf)->setItems([...$children, new NullType]);
         }
 
         // One item or a list depends on the Eloquent relation, which the definition does not know
         return (new AnyOf)
-            ->setItems([...$children, new NullType, (new ArrayType)->setItems($child)])
+            ->setItems([...$children, new NullType, (new ArrayType)->setItems($child)->setMax($definition->includeLimit($name))])
             ->setDescription('One child (or null) or a list, as the relation defines.');
     }
 }
