@@ -251,6 +251,10 @@ abstract class ApiResource extends JsonResource
      */
     private function assertFieldValue(string $key, mixed $value, int $depth = 0): void
     {
+        if ($value === null || is_scalar($value)) {
+            return;
+        }
+
         if ($value instanceof Model || $value instanceof JsonResource || $value instanceof AbstractPaginator || $value instanceof AbstractCursorPaginator) {
             throw ResponseSelectionException::fieldRendersRenderingUnit(static::class, $key, $value::class);
         }

@@ -55,22 +55,24 @@ final class SelectionParser
 
         if ($includeString !== null) {
             $this->assertCharacters('include', $includeString);
+            $maxDepth = self::maxDepth();
 
             foreach ($this->splitEntries($includeString) as $entry) {
-                [$path, $list] = $this->parseEntry($entry);
+                [$path, $list, $segments] = $this->parseEntry($entry);
 
-                $segments = explode('.', $path);
-                if (count($segments) > self::maxDepth()) {
+                $segmentCount = count($segments);
+                if ($segmentCount > $maxDepth) {
                     $this->fail('include', __('response-selection::validation.depth_exceeded', [
                         'path' => $path,
-                        'max'  => self::maxDepth(),
+                        'max'  => $maxDepth,
                     ]));
                 }
 
                 // Including `a.b` also includes `a`
-                for ($i = 1; $i < count($segments); $i++) {
-                    $prefix = implode('.', array_slice($segments, 0, $i));
+                $prefix = $segments[0];
+                for ($i = 1; $i < $segmentCount; $i++) {
                     $nodes[$prefix] ??= ['all' => false, 'fields' => null];
+                    $prefix .= '.'.$segments[$i];
                 }
 
                 $nodes[$path] ??= ['all' => false, 'fields' => null];
@@ -84,54 +86,58 @@ final class SelectionParser
         }
 
         $pathCount = count($nodes) - 1;
-        if ($pathCount > self::maxPaths()) {
+        $maxPaths = self::maxPaths();
+        if ($pathCount > $maxPaths) {
             $this->fail('include', __('response-selection::validation.too_many_paths', [
-                'max'   => self::maxPaths(),
+                'max'   => $maxPaths,
                 'count' => $pathCount,
             ]));
         }
 
+        $maxFields = self::maxFieldsPerNode();
         foreach ($nodes as $path => $node) {
             $count = count($node['fields'] ?? []);
-            if ($count > self::maxFieldsPerNode()) {
+            if ($count > $maxFields) {
                 $this->fail($path === '' ? 'fields' : 'include', __('response-selection::validation.too_many_fields', [
-                    'max'   => self::maxFieldsPerNode(),
+                    'max'   => $maxFields,
                     'count' => $count,
                     'path'  => $path === '' ? 'root' : $path,
                 ]));
             }
         }
 
-        return new SelectionTree($this->buildNode('', $nodes));
+        // a parent path is always inserted before its children, so one pass groups children by parent
+        $children = [];
+        foreach ($nodes as $path => $_) {
+            if ($path === '') {
+                continue;
+            }
+            $dot = strrpos($path, '.');
+            if ($dot === false) {
+                $children[''][$path] = $path;
+            } else {
+                $children[substr($path, 0, $dot)][substr($path, $dot + 1)] = $path;
+            }
+        }
+
+        return new SelectionTree($this->buildNode('', $nodes, $children));
     }
 
     /**
      * @param  array<string, array{all: bool, fields: array<int, string>|null}>  $nodes
+     * @param  array<string, array<string, string>>  $children
      */
-    private function buildNode(string $path, array $nodes): SelectionNode
+    private function buildNode(string $path, array $nodes, array $children): SelectionNode
     {
-        $children = [];
-        $depth = $path === '' ? 0 : substr_count($path, '.') + 1;
+        $built = [];
 
-        foreach ($nodes as $candidate => $_) {
-            if ($candidate === '') {
-                continue;
-            }
-
-            $isChild = $path === ''
-                ? !str_contains($candidate, '.')
-                : str_starts_with($candidate, $path.'.') && substr_count($candidate, '.') === $depth;
-
-            if ($isChild) {
-                $segments = explode('.', $candidate);
-                $children[end($segments)] = $this->buildNode($candidate, $nodes);
-            }
+        foreach ($children[$path] ?? [] as $name => $childPath) {
+            $built[$name] = $this->buildNode($childPath, $nodes, $children);
         }
 
         $node = $nodes[$path];
-        $fields = $node['all'] ? null : $node['fields'];
 
-        return new SelectionNode($path, $fields, $children);
+        return new SelectionNode($path, $node['all'] ? null : $node['fields'], $built);
     }
 
     private function assertString(string $parameter, mixed $value): ?string
@@ -161,11 +167,15 @@ final class SelectionParser
      */
     private function splitEntries(string $include): array
     {
-        $entries = [];
-        $current = '';
+        $raw = [];
         $depth = 0;
+        $start = 0;
+        $length = strlen($include);
+        $offset = strcspn($include, '(),');
 
-        foreach (str_split($include) as $char) {
+        while ($offset < $length) {
+            $char = $include[$offset];
+
             if ($char === '(') {
                 if ($depth > 0) {
                     $this->fail('include', __('response-selection::validation.nested_parentheses', ['parameter' => 'include']));
@@ -176,27 +186,33 @@ final class SelectionParser
                     $this->fail('include', __('response-selection::validation.unbalanced_parentheses', ['parameter' => 'include']));
                 }
                 $depth--;
-            } elseif ($char === ',' && $depth === 0) {
-                $entries[] = $current;
-                $current = '';
-
-                continue;
+            } elseif ($depth === 0) {
+                $raw[] = substr($include, $start, $offset - $start);
+                $start = $offset + 1;
             }
 
-            $current .= $char;
+            $offset += 1 + strcspn($include, '(),', $offset + 1);
         }
 
         if ($depth !== 0) {
             $this->fail('include', __('response-selection::validation.unbalanced_parentheses', ['parameter' => 'include']));
         }
 
-        $entries[] = $current;
+        $raw[] = substr($include, $start);
+        $entries = [];
 
-        return array_values(array_filter(array_map('trim', $entries), fn (string $entry) => $entry !== ''));
+        foreach ($raw as $entry) {
+            $entry = trim($entry);
+            if ($entry !== '') {
+                $entries[] = $entry;
+            }
+        }
+
+        return $entries;
     }
 
     /**
-     * @return array{0: string, 1: array<int, string>|null}
+     * @return array{0: string, 1: array<int, string>|null, 2: array<int, string>}
      */
     private function parseEntry(string $entry): array
     {
@@ -213,14 +229,16 @@ final class SelectionParser
             $list = $this->parseFieldList('include', substr($entry, $open + 1, -1));
         }
 
-        $segments = array_map('trim', explode('.', $path));
-        foreach ($segments as $segment) {
+        $segments = [];
+        foreach (explode('.', $path) as $segment) {
+            $segment = trim($segment);
             if (!preg_match(self::IDENTIFIER, $segment)) {
                 $this->fail('include', __('response-selection::validation.invalid_path', ['path' => $path]));
             }
+            $segments[] = $segment;
         }
 
-        return [implode('.', $segments), $list];
+        return [implode('.', $segments), $list, $segments];
     }
 
     /**
@@ -228,15 +246,22 @@ final class SelectionParser
      */
     private function parseFieldList(string $parameter, string $list): array
     {
-        $keys = array_filter(array_map('trim', explode(',', $list)), fn (string $key) => $key !== '');
+        $keys = [];
 
-        foreach ($keys as $key) {
+        foreach (explode(',', $list) as $key) {
+            $key = trim($key);
+            if ($key === '') {
+                continue;
+            }
+
             if (!preg_match(self::IDENTIFIER, $key)) {
                 $this->fail($parameter, __('response-selection::validation.invalid_field', ['field' => $key]));
             }
+
+            $keys[$key] = true;
         }
 
-        return array_values(array_unique($keys));
+        return array_keys($keys);
     }
 
     private function fail(string $parameter, string $message): never

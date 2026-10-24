@@ -45,6 +45,21 @@ final class ApiResponseTestResource extends ApiResource
     }
 }
 
+/**
+ * Renders in `value` whatever the test puts in $value.
+ */
+final class ApiResponseTestValueResource extends ApiResource
+{
+    public static mixed $value = null;
+
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->field('value', columns: [], computedBy: fn (): mixed => self::$value);
+    }
+}
+
 final class ApiResponseTestOtherResource extends ApiResource
 {
     protected static function define(ResourceDefinition $resource): void
@@ -156,3 +171,22 @@ it('answers 204 in mode none through the declared factory', function (): void {
 
     expect(ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestResource::class)->getStatusCode())->toBe(204);
 });
+
+it('renders null and scalar field values as they are', function (mixed $value): void {
+    startApiResponseTest(new ResponseDeclaration(ApiResponseTestValueResource::class, ResponseShape::Item, [200]));
+    ApiResponseTestValueResource::$value = $value;
+
+    $response = ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestValueResource::class);
+
+    expect($response instanceof JsonResponse ? $response->getData(true)['data']['value'] : 'no response')->toBe($value);
+})->with([null, 'text', 42, 12.5, true, false]);
+
+it('rejects a field value that is a model, even nested in an array', function (mixed $value): void {
+    startApiResponseTest(new ResponseDeclaration(ApiResponseTestValueResource::class, ResponseShape::Item, [200]));
+    ApiResponseTestValueResource::$value = $value;
+
+    ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestValueResource::class);
+})->with([
+    'model'          => [fn () => new ApiResponseTestModel(['id' => 2])],
+    'nested in list' => [fn () => ['a', [new ApiResponseTestModel(['id' => 2])]]],
+])->throws(ResponseSelectionException::class);

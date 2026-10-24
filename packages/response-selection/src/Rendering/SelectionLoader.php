@@ -44,9 +44,30 @@ class SelectionLoader
      */
     protected WeakMap $lazyLoading;
 
+    /** How many load() calls are running. Results are remembered only during a load. */
+    private int $loading = 0;
+
+    /** @var WeakMap<SelectionNode, array<string, array{0: array<int, string>, 1: array<int, string>}>> */
+    private WeakMap $membersMemo;
+
+    /** @var WeakMap<SelectionNode, array<string, array<int, string>>> */
+    private WeakMap $columnsMemo;
+
+    /** @var array<string, Relation> */
+    private array $relationsMemo = [];
+
+    /** @var array<string, Model> */
+    private array $blanksMemo = [];
+
+    private ?ResponseContext $contextMemo = null;
+
+    private ?Request $requestMemo = null;
+
     public function __construct(protected Container $container)
     {
         $this->lazyLoading = new WeakMap;
+        $this->membersMemo = new WeakMap;
+        $this->columnsMemo = new WeakMap;
     }
 
     /**
@@ -54,7 +75,32 @@ class SelectionLoader
      */
     public function load(Model|EloquentCollection $result, string $resourceClass, SelectionNode $selection): void
     {
-        $this->loadNode($result instanceof Model ? new EloquentCollection([$result]) : $result, $resourceClass, $selection);
+        $this->loading++;
+
+        try {
+            $this->loadNode($result instanceof Model ? new EloquentCollection([$result]) : $result, $resourceClass, $selection);
+        } finally {
+            if (--$this->loading === 0) {
+                $this->membersMemo = new WeakMap;
+                $this->columnsMemo = new WeakMap;
+                $this->relationsMemo = [];
+                $this->blanksMemo = [];
+                $this->contextMemo = null;
+                $this->requestMemo = null;
+            }
+        }
+    }
+
+    /**
+     * Returns an empty model of the same class, reused during one load.
+     */
+    protected function blank(Model $model): Model
+    {
+        if ($this->loading === 0) {
+            return $model->newInstance();
+        }
+
+        return $this->blanksMemo[$model::class."\0".$model->getConnectionName()."\0".$model->getTable()] ??= $model->newInstance();
     }
 
     /**
@@ -151,6 +197,28 @@ class SelectionLoader
      */
     protected function members(string $resourceClass, SelectionNode $selection): array
     {
+        if ($this->loading === 0) {
+            return $this->computeMembers($resourceClass, $selection);
+        }
+
+        $memo = $this->membersMemo[$selection] ?? [];
+
+        if (!isset($memo[$resourceClass])) {
+            $memo[$resourceClass] = $this->computeMembers($resourceClass, $selection);
+            $this->membersMemo[$selection] = $memo;
+        }
+
+        return $memo[$resourceClass];
+    }
+
+    /**
+     * Works out the fields and includes selected at this level, without memory.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     * @return array{0: array<int, string>, 1: array<int, string>}
+     */
+    protected function computeMembers(string $resourceClass, SelectionNode $selection): array
+    {
         $definition = $resourceClass::definition();
         $context = $this->context();
         $request = $this->request();
@@ -234,7 +302,7 @@ class SelectionLoader
     {
         $definition = $resourceClass::definition();
         // a blank instance, because a model still missing its key column cannot build its relations
-        $first = $models->first()->newInstance();
+        $first = $this->blank($models->first());
         $paths = $this->relationPaths($definition, $fields, $includes);
 
         foreach ($paths as $path) {
@@ -356,7 +424,7 @@ class SelectionLoader
 
         foreach ($batches as $batch) {
             $models = $batch['models'];
-            $first = $models->first()->newInstance();
+            $first = $this->blank($models->first());
             $relations = [];
 
             foreach ($batch['includes'] as $name) {
@@ -384,6 +452,29 @@ class SelectionLoader
      * @return array<int, string>
      */
     protected function nodeColumns(Model $model, string $resourceClass, SelectionNode $selection): array
+    {
+        if ($this->loading === 0 || $model->exists) {
+            return $this->computeNodeColumns($model, $resourceClass, $selection);
+        }
+
+        $key = $resourceClass."\0".$model::class."\0".$model->getConnectionName()."\0".$model->getTable();
+        $memo = $this->columnsMemo[$selection] ?? [];
+
+        if (!isset($memo[$key])) {
+            $memo[$key] = $this->computeNodeColumns($model, $resourceClass, $selection);
+            $this->columnsMemo[$selection] = $memo;
+        }
+
+        return $memo[$key];
+    }
+
+    /**
+     * Works out the columns to read at this level, without memory.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     * @return array<int, string>
+     */
+    protected function computeNodeColumns(Model $model, string $resourceClass, SelectionNode $selection): array
     {
         $definition = $resourceClass::definition();
         [$fields, $includes] = $this->members($resourceClass, $selection);
@@ -564,6 +655,21 @@ class SelectionLoader
 
     protected function relationFor(Model $model, string $name, string $resourceClass): Relation
     {
+        if ($this->loading === 0 || $model->exists) {
+            return $this->buildRelation($model, $name, $resourceClass);
+        }
+
+        return $this->relationsMemo[$model::class."\0".$model->getConnectionName()."\0".$model->getTable()."\0".$name]
+            ??= $this->buildRelation($model, $name, $resourceClass);
+    }
+
+    /**
+     * Calls the model's relation method and checks that it returns a relation.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    protected function buildRelation(Model $model, string $name, string $resourceClass): Relation
+    {
         if (!method_exists($model, $name)) {
             throw ResponseSelectionException::relationMissing($resourceClass, $name, $model::class);
         }
@@ -624,14 +730,20 @@ class SelectionLoader
 
         $context = $this->context();
         $models = [];
+        $keys = [];
         $pending = [];
 
         foreach ($fields as $field) {
             foreach ($this->withDependencies($accepted[$field], $resourceClass, $field) as $item) {
                 if (!$context->wasComputed($item, $computerClass, $field)) {
-                    $this->assertKeyed($item, $resourceClass, $computerClass);
-                    $models[spl_object_id($item)] = $item;
-                    $pending[spl_object_id($item)][] = $field;
+                    $id = spl_object_id($item);
+
+                    if (!isset($models[$id])) {
+                        $keys[$id] = $this->keyOf($item, $resourceClass, $computerClass);
+                        $models[$id] = $item;
+                    }
+
+                    $pending[$id][] = $field;
                 }
             }
         }
@@ -641,7 +753,7 @@ class SelectionLoader
         foreach ($pending as $id => $modelFields) {
             $signature = $models[$id]::class.':'.implode(',', $modelFields);
             $groups[$signature]['fields'] = $modelFields;
-            $groups[$signature]['models'][] = $models[$id];
+            $groups[$signature]['models'][$id] = $models[$id];
         }
 
         $definition = $resourceClass::definition();
@@ -649,10 +761,10 @@ class SelectionLoader
         foreach ($groups as $group) {
             $dependencies = array_values(array_unique(array_merge(...array_map($definition->dependencies(...), $group['fields']))));
             $built = new MemberBuiltValues($context, $resourceClass, $computerClass, $dependencies);
-            $values = $computer->compute(new EloquentCollection($group['models']), $group['fields'], $built);
+            $values = $computer->compute(new EloquentCollection(array_values($group['models'])), $group['fields'], $built);
 
-            foreach ($group['models'] as $model) {
-                $context->rememberComputed($model, $computerClass, $group['fields'], $values[$model->getKey()] ?? []);
+            foreach ($group['models'] as $id => $model) {
+                $context->rememberComputed($model, $computerClass, $group['fields'], $values[$keys[$id]] ?? []);
             }
         }
     }
@@ -718,11 +830,16 @@ class SelectionLoader
 
         // one call per parent class, because parents of two classes may share a key
         foreach ($this->modelGroups(new EloquentCollection($pending)) as $group) {
-            $group->each(fn (Model $parent) => $this->assertKeyed($parent, $resourceClass, $label));
+            $keys = [];
+
+            foreach ($group as $index => $parent) {
+                $keys[$index] = $this->keyOf($parent, $resourceClass, $label);
+            }
+
             $values = $instance->load($group, $built);
 
-            foreach ($group as $parent) {
-                $context->rememberVirtual($parent, $resourceClass, $name, $this->virtualValue($values[$parent->getKey()] ?? null, $asList, $resourceClass, $name));
+            foreach ($group as $index => $parent) {
+                $context->rememberVirtual($parent, $resourceClass, $name, $this->virtualValue($values[$keys[$index]] ?? null, $asList, $resourceClass, $name));
             }
         }
     }
@@ -763,13 +880,13 @@ class SelectionLoader
     }
 
     /**
+     * Reads a model's key once: builders return their results by key. A model without key fails.
+     *
      * @param  class-string<ApiResource>  $resourceClass
      */
-    protected function assertKeyed(Model $model, string $resourceClass, string $builder): void
+    protected function keyOf(Model $model, string $resourceClass, string $builder): mixed
     {
-        if ($model->getKey() === null) {
-            throw ResponseSelectionException::builderModelWithoutKey($resourceClass, $builder, $model::class);
-        }
+        return $model->getKey() ?? throw ResponseSelectionException::builderModelWithoutKey($resourceClass, $builder, $model::class);
     }
 
     /**
@@ -860,11 +977,19 @@ class SelectionLoader
 
     protected function context(): ResponseContext
     {
-        return $this->container->make(ResponseContext::class);
+        if ($this->loading === 0) {
+            return $this->container->make(ResponseContext::class);
+        }
+
+        return $this->contextMemo ??= $this->container->make(ResponseContext::class);
     }
 
     protected function request(): Request
     {
-        return $this->container->make('request');
+        if ($this->loading === 0) {
+            return $this->container->make('request');
+        }
+
+        return $this->requestMemo ??= $this->container->make('request');
     }
 }

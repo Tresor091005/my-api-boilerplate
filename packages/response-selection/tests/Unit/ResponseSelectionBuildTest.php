@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -792,4 +793,92 @@ it('prevents lazy loading on a virtual child while building it, then restores it
     expect(renderAccounts(ResponseBuildTestFlagParentResource::class, 'id', [['id' => 1]], 'buddy'))->toBe([['id' => 1, 'buddy' => ['id' => 3, 'guarded' => true]]])
         ->and(ResponseBuildTestFlagResource::$seen)->toBe([true])
         ->and(ResponseBuildTestFlagParentResource::$child?->preventsLazyLoading)->toBeFalse();
+});
+
+/**
+ * Counts how often its owner() relation method is called.
+ *
+ * @property int $id
+ */
+final class ResponseBuildTestLinkedAccount extends Model
+{
+    public static int $ownerCalls = 0;
+
+    public $timestamps = false;
+
+    protected $guarded = [];
+
+    /** @return BelongsTo<ResponseBuildTestAccount, $this> */
+    public function owner(): BelongsTo
+    {
+        self::$ownerCalls++;
+
+        return $this->belongsTo(ResponseBuildTestAccount::class, 'owner_id');
+    }
+
+    /** @return MorphTo<Model, $this> */
+    public function subject(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function label(): string
+    {
+        return 'label';
+    }
+}
+
+final class ResponseBuildTestBrokenRelationResource extends ApiResource
+{
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->field('missing', relations: ['nothing'])
+            ->field('plain', relations: ['label'])
+            ->field('deep', relations: ['subject.owner']);
+    }
+}
+
+final class ResponseBuildTestOwnedResource extends ApiResource
+{
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->include('owner', ResponseBuildTestOwnedResource::class);
+    }
+}
+
+it('rejects a relation the model lacks, a method that is not a relation, and a path after a MorphTo', function (string $field, string $message): void {
+    startSelection(ResponseBuildTestBrokenRelationResource::class, ResponseShape::Item, $field);
+
+    expect(fn () => ApiResponse::item(new ResponseBuildTestLinkedAccount(['id' => 1]), ResponseBuildTestBrokenRelationResource::class))
+        ->toThrow(ResponseSelectionException::class, $message);
+})->with([
+    'missing relation' => ['missing', 'has no such relation'],
+    'not a relation'   => ['plain', 'is not a relation'],
+    'after a MorphTo'  => ['deep', 'continues after the polymorphic relation [subject]'],
+]);
+
+it('calls a relation method once per load, however many times the loader needs it', function (): void {
+    ResponseBuildTestLinkedAccount::$ownerCalls = 0;
+    startSelection(ResponseBuildTestOwnedResource::class, ResponseShape::Item, 'id', 'owner');
+    $account = new ResponseBuildTestLinkedAccount(['id' => 1, 'owner_id' => 2]);
+    $account->setRelation('owner', new ResponseBuildTestAccount(['id' => 2]));
+
+    $response = ApiResponse::item($account, ResponseBuildTestOwnedResource::class);
+
+    expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe(['id' => 1, 'owner' => ['id' => 2]])
+        ->and(ResponseBuildTestLinkedAccount::$ownerCalls)->toBe(1);
+});
+
+it('keeps nothing from one load to the next when the same loader is reused', function (): void {
+    app()->instance(SelectionLoader::class, new SelectionLoader(app()));
+
+    expect(renderAccounts(ResponseBuildTestAccountResource::class, 'currency_code', [['id' => 1]]))->toBe([['id' => 1, 'currency_code' => 'XOF']]);
+
+    app()->instance(ResponseContext::class, new ResponseContext);
+
+    expect(renderAccounts(ResponseBuildTestAccountResource::class, 'currency_code', [['id' => 2]]))->toBe([['id' => 2, 'currency_code' => 'XOF']]);
 });
