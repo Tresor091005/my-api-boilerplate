@@ -7,7 +7,6 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,9 +14,7 @@ use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Data\StockTransferFilterData;
 use Lahatre\Catalog\Enums\StockTransferStatus;
 use Lahatre\Catalog\Exceptions\StockTransferException;
-use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\CatalogItem;
-use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Catalog\Models\StockTransfer;
 use Lahatre\Catalog\Models\StockTransferLine;
@@ -43,7 +40,7 @@ final readonly class StockTransferService
             ]);
             $this->replaceLines($transfer, $data);
 
-            return $this->loadResponseRelations($transfer);
+            return $this->forgetLoadedLines($transfer);
         });
     }
 
@@ -60,7 +57,7 @@ final readonly class StockTransferService
             ])->save();
             $this->replaceLines($locked, $data);
 
-            return $this->loadResponseRelations($locked);
+            return $this->forgetLoadedLines($locked);
         });
     }
 
@@ -79,7 +76,7 @@ final readonly class StockTransferService
         return DB::transaction(function () use ($transfer): StockTransfer {
             $locked = $this->lockTransfer($transfer, withLines: true);
             if ($locked->status === StockTransferStatus::Completed) {
-                return $this->loadResponseRelations($locked);
+                return $this->forgetLoadedLines($locked);
             }
             $this->assertStatus($locked, StockTransferStatus::Draft, 'completed');
 
@@ -104,7 +101,7 @@ final readonly class StockTransferService
                 'completed_at'             => now(),
             ])->save();
 
-            return $this->loadResponseRelations($locked);
+            return $this->forgetLoadedLines($locked);
         });
     }
 
@@ -113,7 +110,7 @@ final readonly class StockTransferService
         return DB::transaction(function () use ($transfer): StockTransfer {
             $locked = $this->lockTransfer($transfer);
             if ($locked->status === StockTransferStatus::Cancelled) {
-                return $this->loadResponseRelations($locked);
+                return $this->forgetLoadedLines($locked);
             }
             $this->assertStatus($locked, StockTransferStatus::Completed, 'cancelled');
             if ($locked->inventory_transaction_id === null) {
@@ -131,7 +128,7 @@ final readonly class StockTransferService
                 'cancelled_at'            => now(),
             ])->save();
 
-            return $this->loadResponseRelations($locked);
+            return $this->forgetLoadedLines($locked);
         });
     }
 
@@ -139,8 +136,7 @@ final readonly class StockTransferService
     {
         $query = StockTransfer::query()
             ->where('organization_id', currentOrganizationId())
-            ->when($filters->status, fn ($query, $status) => $query->where('status', $status))
-            ->with($this->transferResponseRelations());
+            ->when($filters->status, fn ($query, $status) => $query->where('status', $status));
 
         return stableCursorPaginate($query, $filters, tieBreakerColumn: 'catalog_stock_transfers.id');
     }
@@ -150,7 +146,6 @@ final readonly class StockTransferService
         return StockTransfer::query()
             ->where('organization_id', currentOrganizationId())
             ->whereKey($transfer->id)
-            ->with($this->transferResponseRelations())
             ->firstOrFail();
     }
 
@@ -308,35 +303,12 @@ final readonly class StockTransferService
         StockTransferLine::insert($rows);
     }
 
-    private function loadResponseRelations(StockTransfer $transfer): StockTransfer
+    /**
+     * Drops the lines loaded for the business checks, so a response reads them fresh.
+     */
+    private function forgetLoadedLines(StockTransfer $transfer): StockTransfer
     {
-        $transfer->unsetRelation('lines');
-
-        return $transfer->load($this->transferResponseRelations());
-    }
-
-    /** @return array<string, mixed> */
-    private function transferResponseRelations(): array
-    {
-        $relations = responseRelationsToLoad();
-        $loads = [];
-        $catalogItemLoader = function (MorphTo $relation): void {
-            $relation->morphWith([
-                ProductVariant::class => ['catalogItem', 'product', 'optionValues.option'],
-                Bundle::class         => ['catalogItem', 'items.component'],
-            ]);
-        };
-
-        foreach ($relations as $relation) {
-            if ($relation === 'lines.item') {
-                $loads[$relation] = $catalogItemLoader;
-                continue;
-            }
-
-            $loads[] = $relation;
-        }
-
-        return $loads;
+        return $transfer->unsetRelation('lines');
     }
 
     private function assertStatus(StockTransfer $transfer, StockTransferStatus $expected, string $action): void

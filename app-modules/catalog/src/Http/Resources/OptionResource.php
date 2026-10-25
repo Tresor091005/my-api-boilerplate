@@ -4,31 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Catalog\Models\Option;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Option
- */
-class OptionResource extends JsonResource
+class OptionResource extends ApiResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'values'     => $this->whenLoaded(
-                'values',
-                fn ($values): mixed => OptionValueResource::collection($values),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('values', OptionValueResource::class);
     }
 }

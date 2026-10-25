@@ -5,53 +5,24 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Resources;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\MissingValue;
-use Lahatre\Catalog\Models\BundleItem;
-use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Master\Contracts\MasterInterface;
+use Lahatre\Catalog\Http\Resources\Fields\BundleItemQuantities;
+use Lahatre\Catalog\Http\Resources\Resolvers\BundleComponentResolver;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin BundleItem */
-class BundleItemResource extends JsonResource
+class BundleItemResource extends ApiResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'item_type'  => $this->item_type,
-            'item_id'    => $this->item_id,
-            'quantity'   => $this->resolveQuantity(),
-            'unit_code'  => $this->display_unit_code,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'component'  => $this->whenLoaded(
-                'component',
-                fn (mixed $component): JsonResource|MissingValue => $this->componentResource($component),
-            ),
-        ];
-    }
-
-    private function resolveQuantity(): int
-    {
-        return (int) app(MasterInterface::class)
-            ->convertUnitFromBase((string) $this->quantity, $this->display_unit_code)['amount'];
-    }
-
-    protected function componentResource(mixed $component): JsonResource|MissingValue
-    {
-        if (!$component instanceof Model) {
-            return new MissingValue;
-        }
-
-        return match ($component::class) {
-            ProductVariant::class => ProductVariantResource::make($component),
-            default               => new MissingValue,
-        };
+        $resource
+            ->field('id')
+            ->field('item_type')
+            ->field('item_id')
+            // stored in base units, shown in the item's display unit
+            ->field('quantity', columns: ['quantity', 'display_unit_code'], computedBy: BundleItemQuantities::class)
+            ->field('unit_code', columns: ['display_unit_code'], computedBy: fn (Model $item): ?string => $item->getAttribute('display_unit_code'))
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('component', BundleComponentResolver::class);
     }
 }

@@ -32,15 +32,13 @@ final readonly class StockLocationService
     public function paginate(StockLocationFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->stockLocationsQuery($filters)),
+            $this->stockLocationsQuery($filters),
             $filters,
         );
     }
 
     public function retrieve(StockLocation $stockLocation): StockLocation
     {
-        $stockLocation->load(responseRelationsToLoad());
-
         return $stockLocation;
     }
 
@@ -67,7 +65,6 @@ final readonly class StockLocationService
         });
 
         $stockLocation->unsetRelation('address');
-        $stockLocation->load(responseRelationsToLoad());
 
         return $stockLocation;
     }
@@ -89,7 +86,6 @@ final readonly class StockLocationService
         });
 
         $stockLocation->unsetRelation('address');
-        $stockLocation->load(responseRelationsToLoad());
 
         return $stockLocation;
     }

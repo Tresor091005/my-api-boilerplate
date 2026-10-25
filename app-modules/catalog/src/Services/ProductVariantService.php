@@ -33,7 +33,7 @@ class ProductVariantService
     public function paginate(Product $product, ProductVariantFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->variantsQuery($product, $filters)),
+            $this->variantsQuery($product, $filters),
             $filters,
             tieBreakerColumn: 'catalog_product_variants.id',
         );
@@ -43,7 +43,7 @@ class ProductVariantService
     {
         $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
 
-        return $variant->load(responseRelationsToLoad());
+        return $variant;
     }
 
     public function create(Product $product, ProductVariantBatchData $data): EloquentCollection
@@ -53,7 +53,7 @@ class ProductVariantService
             fn (): EloquentCollection => $this->transactionalProductVariantService->createMany($product, $data->variants)
         );
 
-        return $variants->load(responseRelationsToLoad());
+        return $variants;
     }
 
     public function update(Product $product, ProductVariant $variant, ProductVariantUpdateData $data): ProductVariant
@@ -92,7 +92,7 @@ class ProductVariantService
             }
         });
 
-        return $variant->load(responseRelationsToLoad());
+        return $variant;
     }
 
     public function updateActivation(Product $product, ProductVariantActivationData $data): void

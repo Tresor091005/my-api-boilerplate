@@ -90,8 +90,8 @@ The `Lahatre\Catalog\Http\Controllers\CategoryController` is intentionally "thin
 
 The `Lahatre\Catalog\Http\Resources\CategoryResource` is responsible for transforming the `Category` model into the final JSON representation.
 
--   **Selective Loading:** It uses `whenLoaded()` to conditionally include relationships, preventing N+1 problems.
--   **Data Transformation:** A key feature is the transformation of the `bloodline` relationship. The `buildTree()` method efficiently converts the flat list of ancestors and descendants into a nested tree structure, which is much easier for a frontend client to consume and render.
+-   **Response selection:** It extends `ApiResource` and declares its fields; the client picks them with `?fields=` (see [response selection](../api/response-selection.md)).
+-   **Data Transformation:** The `bloodline` field turns the flat list of ancestors and descendants into a nested tree, which is much easier for a frontend client to consume and render. It renders only when the client lists it: `?fields=name,bloodline`.
 
 ### Policy (`CategoryPolicy.php`): The Security Gatekeeper
 

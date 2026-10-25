@@ -4,48 +4,33 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\MissingValue;
-use Lahatre\Catalog\Http\Resources\Concerns\RendersCatalogItem;
-use Lahatre\Catalog\Models\ProductVariant;
-use Lahatre\Master\Http\Resources\LabelResource;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\Catalog\Http\Resources\Concerns\DeclaresCatalogItemMembers;
+use Lahatre\Master\Http\Resources\LabelApiResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin ProductVariant
- */
-class ProductVariantResource extends JsonResource
+class ProductVariantResource extends ApiResource
 {
-    use RendersCatalogItem;
+    use DeclaresCatalogItemMembers;
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'product_id' => $this->product_id,
-            ...$this->catalogItemFields(),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'options'    => $this->whenLoaded('optionValues', function ($optionValues): mixed {
-                if ($optionValues->contains(
-                    fn ($optionValue): bool => !$optionValue->relationLoaded('option')
-                )) {
-                    return new MissingValue;
-                }
-
-                return $optionValues->values()->mapWithKeys(
-                    fn ($optionValue): array => [$optionValue->option->name => $optionValue->value]
-                );
-            }),
-            'labels' => $this->whenLoaded(
-                'labels',
-                fn ($labels) => LabelResource::collection($labels),
-            ),
-            ...$this->catalogItemRelations(),
-        ];
+        $resource
+            ->field('id')
+            // the product name followed by the variant's option values
+            ->field('name', columns: ['product_id'], relations: ['product', 'optionValues.option'])
+            ->field('product_id');
+        self::catalogItemFields($resource);
+        $resource
+            ->field('created_at')
+            ->field('updated_at')
+            ->field('options', relations: ['optionValues.option'], computedBy: fn (Model $variant): array => $variant->getRelation('optionValues')
+                ->values()
+                ->mapWithKeys(fn ($optionValue): array => [$optionValue->option->name => $optionValue->value])
+                ->all())
+            ->include('labels', LabelApiResource::class);
+        self::unitGroupInclude($resource);
+        self::inventoryInclude($resource);
     }
 }

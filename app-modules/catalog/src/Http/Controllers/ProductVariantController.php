@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\ProductVariantActivationData;
 use Lahatre\Catalog\Data\ProductVariantBatchData;
@@ -15,19 +14,17 @@ use Lahatre\Catalog\Http\Requests\ProductVariantActivationRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantCreateRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantFilterRequest;
 use Lahatre\Catalog\Http\Requests\ProductVariantUpdateRequest;
-use Lahatre\Catalog\Http\Resources\ProductVariantCollection;
 use Lahatre\Catalog\Http\Resources\ProductVariantResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Services\ProductVariantService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductVariantController
 {
     public function __construct(
         protected ProductVariantService $productVariantService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function index(ProductVariantFilterRequest $request, Product $product): JsonResponse|Response
@@ -38,9 +35,7 @@ class ProductVariantController
 
         $variants = $this->productVariantService->paginate($product, $filters);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ProductVariantCollection::make($variants),
-        );
+        return ApiResponse::cursorPage($variants, ProductVariantResource::class);
     }
 
     public function updateActivation(ProductVariantActivationRequest $request, Product $product): Response
@@ -52,7 +47,7 @@ class ProductVariantController
             ProductVariantActivationData::fromArray($request->validated()),
         );
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function show(Product $product, ProductVariant $variant): JsonResponse|Response
@@ -61,9 +56,7 @@ class ProductVariantController
 
         $variant = $this->productVariantService->retrieve($product, $variant);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ProductVariantResource::make($variant),
-        );
+        return ApiResponse::item($variant, ProductVariantResource::class);
     }
 
     public function store(ProductVariantCreateRequest $request, Product $product): JsonResponse|Response
@@ -74,10 +67,7 @@ class ProductVariantController
 
         $variants = $this->productVariantService->create($product, $data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ProductVariantCollection::make($variants),
-            status: 201,
-        );
+        return ApiResponse::list($variants, ProductVariantResource::class, 201);
     }
 
     public function update(ProductVariantUpdateRequest $request, Product $product, ProductVariant $variant): JsonResponse|Response
@@ -91,9 +81,7 @@ class ProductVariantController
 
         $variant = $this->productVariantService->update($product, $variant, $data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ProductVariantResource::make($variant),
-        );
+        return ApiResponse::item($variant, ProductVariantResource::class);
     }
 
     public function destroy(Product $product, ProductVariant $variant): Response
@@ -102,6 +90,6 @@ class ProductVariantController
 
         $this->productVariantService->delete($product, $variant);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

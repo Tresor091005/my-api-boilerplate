@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Catalog\Models\ServiceDeliverableTemplate;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin ServiceDeliverableTemplate */
-final class ServiceDeliverableTemplateResource extends JsonResource
+class ServiceDeliverableTemplateResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'       => $this->id,
-            'name'     => $this->name,
-            'position' => $this->position,
-        ];
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('position');
     }
 }

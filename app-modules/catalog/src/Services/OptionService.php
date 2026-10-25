@@ -27,7 +27,7 @@ class OptionService
     public function paginate(OptionFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->optionsQuery($filters)),
+            $this->optionsQuery($filters),
             $filters,
         );
     }
@@ -46,7 +46,7 @@ class OptionService
 
     public function retrieve(Option $option): Option
     {
-        return $option->load(responseRelationsToLoad());
+        return $option;
     }
 
     public function create(OptionData $data): Option
@@ -67,7 +67,7 @@ class OptionService
             );
         });
 
-        return $option->load(responseRelationsToLoad());
+        return $option;
     }
 
     public function update(Option $option, OptionData $data): Option
@@ -84,7 +84,7 @@ class OptionService
             }
         });
 
-        return $option->load(responseRelationsToLoad());
+        return $option;
     }
 
     public function delete(Option $option): void

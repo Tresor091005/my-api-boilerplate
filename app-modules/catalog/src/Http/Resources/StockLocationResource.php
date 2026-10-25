@@ -4,28 +4,22 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Catalog\Models\StockLocation;
-use Lahatre\Master\Http\Resources\AddressResource;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\Master\Http\Resources\AddressApiResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin StockLocation */
-class StockLocationResource extends JsonResource
+class StockLocationResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'handle'     => $this->handle,
-            'name'       => $this->name,
-            'is_active'  => $this->inventoryLocation->is_active,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'address'    => $this->whenLoaded(
-                'address',
-                fn (): AddressResource => AddressResource::make($this->address),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('handle')
+            ->field('name')
+            ->field('is_active', relations: ['inventoryLocation'], computedBy: fn (Model $location): ?bool => $location->getRelation('inventoryLocation')?->getAttribute('is_active'))
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('address', AddressApiResource::class);
     }
 }

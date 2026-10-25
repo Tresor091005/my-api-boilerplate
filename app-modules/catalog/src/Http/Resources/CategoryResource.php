@@ -4,43 +4,33 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Lahatre\Catalog\Models\Category;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Category
- */
-class CategoryResource extends JsonResource
+class CategoryResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'handle'     => $this->handle,
-            'name'       => $this->name,
-            'is_active'  => $this->is_active,
-            'parent_id'  => $this->parent_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'bloodline'  => $this->whenLoaded(
-                'bloodline',
-                fn (): array => $this->formatTree($this->bloodline->toTree()),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('handle')
+            ->field('name')
+            ->field('is_active')
+            ->field('parent_id')
+            ->field('created_at')
+            ->field('updated_at')
+            // the whole tree around the category: rendered only when asked for
+            ->field('bloodline', relations: ['bloodline'], computedBy: fn (Model $category): array => self::formatTree($category->getRelation('bloodline')->toTree()), default: false);
     }
 
     /**
-     * Recursively formats a tree of categories.
-     *
      * @param  Collection<int, Category>  $nodes
      * @return array<int, array<string, mixed>>
      */
-    private function formatTree(Collection $nodes): array
+    private static function formatTree(Collection $nodes): array
     {
         return $nodes->map(function (Category $node): array {
             $data = [
@@ -52,8 +42,9 @@ class CategoryResource extends JsonResource
                 'children'  => [],
             ];
 
+            // toTree() fills `children` in memory from the loaded bloodline: no query here
             if ($node->relationLoaded('children') && $node->children->isNotEmpty()) {
-                $data['children'] = $this->formatTree($node->children);
+                $data['children'] = self::formatTree($node->children);
             }
 
             return $data;

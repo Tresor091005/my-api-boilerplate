@@ -27,8 +27,9 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\ResponseSelection\Testing\RendersApiResources;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class, RendersApiResources::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -207,18 +208,18 @@ it('resolves a bundle item component through its morph type and id', function ()
     expect($bundle->items()->firstOrFail()->component)->toBeInstanceOf(ProductVariant::class);
 });
 
-it('omits catalog item fields when the relation is not loaded', function (): void {
+it('omits catalog item fields the client does not select', function (): void {
     $bundle = Bundle::factory()->make([
         'organization_id' => $this->organizationId,
     ]);
 
-    $resource = BundleResource::make($bundle)->resolve();
+    $resource = $this->renderApiResource($bundle, BundleResource::class, 'name');
 
     expect($resource)
         ->not->toHaveKeys(['sku', 'unit_group_id', 'is_active']);
 });
 
-it('renders catalog item fields when the relation is loaded', function (): void {
+it('renders catalog item fields from the catalog item', function (): void {
     $bundle = Bundle::factory()->make([
         'organization_id' => $this->organizationId,
     ]);
@@ -229,7 +230,7 @@ it('renders catalog item fields when the relation is loaded', function (): void 
         'is_active'       => true,
     ]));
 
-    $resource = BundleResource::make($bundle)->resolve();
+    $resource = $this->renderApiResource($bundle, BundleResource::class);
 
     expect($resource)
         ->toMatchArray([
@@ -329,8 +330,10 @@ it('converts submitted bundle quantities to base units and back in resources', f
 
     expect($item->quantity)->toBe(20)
         ->and($item->display_unit_code)->toBe($displayUnit->code)
-        ->and(BundleItemResource::make($item)->resolve()['quantity'])->toBe(2)
-        ->and(BundleItemResource::make($item)->resolve()['unit_code'])->toBe($displayUnit->code);
+        ->and($this->renderApiResource($item, BundleItemResource::class, 'quantity,unit_code'))->toMatchArray([
+            'quantity'  => 2,
+            'unit_code' => $displayUnit->code,
+        ]);
 });
 
 it('prevents deleting a CatalogItem used by a bundle', function (): void {

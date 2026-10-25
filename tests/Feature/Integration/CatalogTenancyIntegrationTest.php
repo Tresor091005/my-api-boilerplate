@@ -259,7 +259,7 @@ it('transfers tracked catalog stock through the catalog api', function (): void 
         'base_unit_code'  => $unit->code,
     ]);
 
-    $draft = $this->postJson('/v1/catalog/stock-transfers?response=resource&include=item', [
+    $draft = $this->postJson('/v1/catalog/stock-transfers?response=resource&include=lines.item', [
         'source_location_id'      => $source->id,
         'destination_location_id' => $destination->id,
         'lines'                   => [[
@@ -278,7 +278,7 @@ it('transfers tracked catalog stock through the catalog api', function (): void 
         ->assertJsonPath('data.inventory_transaction_id', fn (mixed $value): bool => is_string($value))
         ->assertJsonMissingPath('data.lines');
 
-    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/complete?response=resource&include=item')
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/complete?response=resource&include=lines.item')
         ->assertOk()
         ->assertJsonPath('data.lines.0.item.id', $variant->id);
 
@@ -287,7 +287,7 @@ it('transfers tracked catalog stock through the catalog api', function (): void 
         ->assertJsonPath('data.status', 'cancelled')
         ->assertJsonMissingPath('data.lines');
 
-    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/cancel?response=resource&include=item')
+    $this->postJson('/v1/catalog/stock-transfers/'.$draft->json('data.id').'/cancel?response=resource&include=lines.item')
         ->assertOk()
         ->assertJsonPath('data.lines.0.item.id', $variant->id);
 });
@@ -396,7 +396,7 @@ it('enforces tenancy matrix for products and variants', function (): void {
 
     $createdProductId = (string) $createdProduct->json('data.id');
     expect(Product::query()->findOrFail($createdProductId)->organization_id)->toBe($this->organization->id);
-    $this->getJson("/v1/catalog/products/{$createdProductId}?include=options")
+    $this->getJson("/v1/catalog/products/{$createdProductId}?fields=options")
         ->assertOk()
         ->assertJsonPath('data.options.0.name', 'color')
         ->assertJsonMissingPath('data.categories')

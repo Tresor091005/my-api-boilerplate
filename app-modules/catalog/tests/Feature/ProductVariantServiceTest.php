@@ -31,8 +31,9 @@ use Lahatre\Master\Models\Label;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
+use Lahatre\ResponseSelection\Testing\RendersApiResources;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class, RendersApiResources::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -217,7 +218,7 @@ it('does not load response relations without an active response shape', function
         ->and($retrievedVariant->relationLoaded('inventoryItem'))->toBeFalse();
 });
 
-it('omits catalog item fields when the relation is not loaded', function (): void {
+it('omits catalog item fields the client does not select', function (): void {
     $variant = ProductVariant::factory()->make([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
@@ -225,13 +226,13 @@ it('omits catalog item fields when the relation is not loaded', function (): voi
     $variant->setRelation('product', $this->product);
     $variant->setRelation('optionValues', collect());
 
-    $resource = ProductVariantResource::make($variant)->resolve();
+    $resource = $this->renderApiResource($variant, ProductVariantResource::class, 'name');
 
     expect($resource)
         ->not->toHaveKeys(['sku', 'unit_group_id', 'is_active']);
 });
 
-it('renders catalog item fields when the relation is loaded', function (): void {
+it('renders catalog item fields from the catalog item', function (): void {
     $variant = ProductVariant::factory()->make([
         'organization_id' => $this->organizationId,
         'product_id'      => $this->product->id,
@@ -245,7 +246,7 @@ it('renders catalog item fields when the relation is loaded', function (): void 
         'is_active'       => true,
     ]));
 
-    $resource = ProductVariantResource::make($variant)->resolve();
+    $resource = $this->renderApiResource($variant, ProductVariantResource::class);
 
     expect($resource)
         ->toMatchArray([

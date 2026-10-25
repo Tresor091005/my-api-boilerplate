@@ -87,6 +87,11 @@ in the active map and reports the model class that is missing.
 
 ## Response contract lifecycle
 
+Modules migrated to [response selection](../api/response-selection.md)
+(catalog) declare no contract for the routes that answer through
+`ApiResponse`; the legacy middleware skips them. The rest of this section
+applies to the modules not migrated yet.
+
 API response contracts follow the same application-owned discovery pattern.
 The root API definitions live in `config/response-contracts.php`; each module
 that owns API routes may provide `config/response-contracts.php` under its own

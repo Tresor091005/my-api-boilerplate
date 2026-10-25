@@ -28,7 +28,7 @@ class CategoryService
     public function paginate(CategoryFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->categoriesQuery($filters)),
+            $this->categoriesQuery($filters),
             $filters,
         );
     }
@@ -56,8 +56,6 @@ class CategoryService
 
     public function retrieve(Category $category): Category
     {
-        $category->load(responseRelationsToLoad());
-
         return $category;
     }
 
@@ -80,7 +78,7 @@ class CategoryService
 
         DB::transaction(fn () => $category->save());
 
-        return $category->load(responseRelationsToLoad());
+        return $category;
     }
 
     public function update(Category $category, CategoryData $data): Category
@@ -108,7 +106,7 @@ class CategoryService
 
         DB::transaction(fn () => $category->save());
 
-        return $category->load(responseRelationsToLoad());
+        return $category;
     }
 
     public function delete(Category $category): void

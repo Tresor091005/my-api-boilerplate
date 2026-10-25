@@ -8,7 +8,6 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +24,6 @@ use Lahatre\Catalog\Exceptions\BundleException;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
-use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -47,7 +45,6 @@ final readonly class BundleService
     public function paginate(BundleFilterData $filters): CursorPaginator
     {
         $query = $this->bundlesQuery($filters);
-        $query->with($this->bundleResponseRelations());
 
         return stableCursorPaginate(
             $query,
@@ -60,7 +57,7 @@ final readonly class BundleService
     {
         $this->assertTenant($bundle);
 
-        return $bundle->load($this->bundleResponseRelations());
+        return $bundle;
     }
 
     public function create(BundleData $data): Bundle
@@ -107,7 +104,7 @@ final readonly class BundleService
             return $bundle;
         });
 
-        return $bundle->load($this->bundleResponseRelations());
+        return $bundle;
     }
 
     public function update(Bundle $bundle, BundleData $data): Bundle
@@ -145,7 +142,7 @@ final readonly class BundleService
             return $lockedBundle;
         });
 
-        return $bundle->load($this->bundleResponseRelations());
+        return $bundle;
     }
 
     /**
@@ -175,7 +172,7 @@ final readonly class BundleService
             return $this->insertItems($lockedBundle, $itemsData);
         });
 
-        return $items->load($this->bundleResponseRelations());
+        return $items;
     }
 
     public function updateItem(
@@ -219,7 +216,7 @@ final readonly class BundleService
             return $lockedItem;
         });
 
-        return $bundleItem->load($this->bundleResponseRelations());
+        return $bundleItem;
     }
 
     /** @param list<string> $itemIds */
@@ -304,38 +301,6 @@ final readonly class BundleService
         }
 
         return $query;
-    }
-
-    /**
-     * Add component-specific eager loads required by catalog resources.
-     *
-     * @return array<int|string, mixed>
-     */
-    private function bundleResponseRelations(): array
-    {
-        $relations = responseRelationsToLoad();
-        $componentLoader = function (MorphTo $relation): void {
-            $relation->morphWith([
-                ProductVariant::class => [
-                    'catalogItem',
-                    'product',
-                    'optionValues.option',
-                ],
-            ]);
-        };
-
-        foreach (['component', 'items.component'] as $componentRelation) {
-            $relationIndex = array_search($componentRelation, $relations, true);
-
-            if ($relationIndex === false) {
-                continue;
-            }
-
-            unset($relations[$relationIndex]);
-            $relations[$componentRelation] = $componentLoader;
-        }
-
-        return $relations;
     }
 
     private function resolveBundleUnitGroup(): UnitGroup

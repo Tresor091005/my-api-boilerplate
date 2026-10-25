@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\ProductData;
 use Lahatre\Catalog\Data\ProductFilterData;
 use Lahatre\Catalog\Http\Requests\ProductFilterRequest;
 use Lahatre\Catalog\Http\Requests\ProductRequest;
-use Lahatre\Catalog\Http\Resources\ProductCollection;
 use Lahatre\Catalog\Http\Resources\ProductResource;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Services\ProductService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController
 {
     public function __construct(
         protected ProductService $productService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function index(ProductFilterRequest $request): JsonResponse|Response
@@ -33,7 +30,7 @@ class ProductController
 
         $response = $this->productService->paginate($filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => ProductCollection::make($response));
+        return ApiResponse::cursorPage($response, ProductResource::class);
     }
 
     public function show(Product $product): JsonResponse|Response
@@ -42,7 +39,7 @@ class ProductController
 
         $response = $this->productService->retrieve($product);
 
-        return $this->responseResponder->respond(fn (): JsonResource => ProductResource::make($response));
+        return ApiResponse::item($response, ProductResource::class);
     }
 
     public function store(ProductRequest $request): JsonResponse|Response
@@ -53,10 +50,7 @@ class ProductController
 
         $response = $this->productService->create($data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ProductResource::make($response),
-            status: 201,
-        );
+        return ApiResponse::item($response, ProductResource::class, 201);
     }
 
     public function update(ProductRequest $request, Product $product): JsonResponse|Response
@@ -70,7 +64,7 @@ class ProductController
 
         $response = $this->productService->update($product, $data);
 
-        return $this->responseResponder->respond(fn (): JsonResource => ProductResource::make($response));
+        return ApiResponse::item($response, ProductResource::class);
     }
 
     public function destroy(Product $product): Response
@@ -79,6 +73,6 @@ class ProductController
 
         $this->productService->delete($product);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

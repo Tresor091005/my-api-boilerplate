@@ -25,7 +25,7 @@ final readonly class CatalogFileService
             $this->attachments->replaceAttachments($parent, 'main', $fileIds);
         });
 
-        return $parent->load(responseRelationsToLoad());
+        return $parent;
     }
 
     /** @param list<string> $fileIds */
@@ -36,7 +36,7 @@ final readonly class CatalogFileService
             $this->attachments->addAttachments($parent, 'gallery', $fileIds);
         });
 
-        return $parent->load(responseRelationsToLoad());
+        return $parent;
     }
 
     /** @param list<string> $attachmentIds */
@@ -47,7 +47,7 @@ final readonly class CatalogFileService
             $this->attachments->reorderAttachments($parent, 'gallery', $attachmentIds);
         });
 
-        return $parent->load(responseRelationsToLoad());
+        return $parent;
     }
 
     /** @param list<string> $attachmentIds */

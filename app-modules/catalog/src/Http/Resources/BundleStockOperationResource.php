@@ -4,36 +4,27 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Catalog\Models\BundleStockOperation;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin BundleStockOperation */
-class BundleStockOperationResource extends JsonResource
+class BundleStockOperationResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'                   => $this->id,
-            'bundle_id'            => $this->bundle_id,
-            'type'                 => $this->type,
-            'status'               => $this->status,
-            'quantity'             => $this->quantity,
-            'location_id'          => $this->location_id,
-            'payload'              => $this->payload,
-            'composition_snapshot' => $this->composition_snapshot,
-            'out_transaction_id'   => $this->out_transaction_id,
-            'in_transaction_id'    => $this->in_transaction_id,
-            'completed_at'         => $this->completed_at,
-            'created_at'           => $this->created_at,
-            'updated_at'           => $this->updated_at,
-            'bundle'               => $this->whenLoaded(
-                'bundle',
-                fn (): BundleResource => BundleResource::make($this->bundle),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('bundle_id')
+            ->field('type')
+            ->field('status')
+            ->field('quantity')
+            ->field('location_id')
+            ->field('payload')
+            ->field('composition_snapshot')
+            ->field('out_transaction_id')
+            ->field('in_transaction_id')
+            ->field('completed_at')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('bundle', BundleResource::class);
     }
 }

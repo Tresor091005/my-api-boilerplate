@@ -5,25 +5,22 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\ServiceData;
 use Lahatre\Catalog\Data\ServiceFilterData;
 use Lahatre\Catalog\Http\Requests\ServiceCreateRequest;
 use Lahatre\Catalog\Http\Requests\ServiceFilterRequest;
 use Lahatre\Catalog\Http\Requests\ServiceUpdateRequest;
-use Lahatre\Catalog\Http\Resources\ServiceCollection;
 use Lahatre\Catalog\Http\Resources\ServiceResource;
 use Lahatre\Catalog\Models\Service;
 use Lahatre\Catalog\Services\ServiceService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class ServiceController
 {
     public function __construct(
         private ServiceService $serviceService,
-        private ResponseResponder $responseResponder,
     ) {}
 
     public function index(ServiceFilterRequest $request): JsonResponse|Response
@@ -31,9 +28,7 @@ final readonly class ServiceController
         Gate::authorize('list', Service::class);
         $services = $this->serviceService->paginate(ServiceFilterData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ServiceCollection::make($services),
-        );
+        return ApiResponse::cursorPage($services, ServiceResource::class);
     }
 
     public function store(ServiceCreateRequest $request): JsonResponse|Response
@@ -41,10 +36,7 @@ final readonly class ServiceController
         Gate::authorize('create', Service::class);
         $service = $this->serviceService->create(ServiceData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ServiceResource::make($service),
-            status: 201,
-        );
+        return ApiResponse::item($service, ServiceResource::class, 201);
     }
 
     public function show(Service $service): JsonResponse|Response
@@ -52,9 +44,7 @@ final readonly class ServiceController
         Gate::authorize('retrieve', $service);
         $service = $this->serviceService->retrieve($service);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ServiceResource::make($service),
-        );
+        return ApiResponse::item($service, ServiceResource::class);
     }
 
     public function update(ServiceUpdateRequest $request, Service $service): JsonResponse|Response
@@ -68,9 +58,7 @@ final readonly class ServiceController
             ),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => ServiceResource::make($service),
-        );
+        return ApiResponse::item($service, ServiceResource::class);
     }
 
     public function destroy(Service $service): Response
@@ -78,6 +66,6 @@ final readonly class ServiceController
         Gate::authorize('delete', $service);
         $this->serviceService->delete($service);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

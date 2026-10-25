@@ -29,17 +29,23 @@ paths:
 
 ### Response defaults
 
-- Response mode is derived from the HTTP method when a route has a response
-  contract: `GET` returns a resource and rejects `response=none`; mutation
+- Two response systems coexist while modules migrate. Catalog answers through
+  the response selection package (`packages/response-selection`, see its
+  README): its actions call `ApiResponse` and declare no response contract.
+  Every other module still uses response contracts. A migrated module keeps a
+  contract only for a route that does not answer through `ApiResponse` (a file
+  download), until the legacy middleware is removed.
+- Response mode is derived from the HTTP method, under both systems: `GET` returns a resource and rejects `response=none`; mutation
   methods (`POST`, `PUT`, and `PATCH`) return `204 No Content` by default and
   may opt into a resource with `?response=resource`; `DELETE` is always
   `204 No Content`.
-- A contract may define `default_mode` only for an intentional endpoint
-  exception. This override must be documented with the route contract, is not
+- A legacy contract may define `default_mode` only for an intentional endpoint
+  exception; response selection has no per-route default. This override must be documented with the route contract, is not
   allowed for `DELETE`, and must not be added merely to repeat the method
   default.
-- Keep `default_shape`, required loads, and allowed includes in the module
-  contract. Response mode is not a per-shape configuration concern.
+- In a legacy module, keep `default_shape`, required loads, and allowed
+  includes in the module contract. Response mode is not a per-shape
+  configuration concern.
 
 ## Controllers
 
@@ -56,7 +62,12 @@ paths:
   runtime assertions in `AuthController` before service calls. Multi-guard or
   multi-authenticatable support requires deliberately widening that contract,
   not merely removing the assertions.
-- Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Use `response()->noContent()` for responses without a body; do not serialize `null` as JSON for a `204` response.
+- Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Do not serialize `null` as JSON for a `204` response.
+- In a module migrated to response selection, every action ends with one
+  `ApiResponse` call written in the action body (`item()`, `list()`,
+  `cursorPage()` or `noContent()`), with a literal `XResource::class` and a
+  literal status. A legacy module uses `ResponseResponder` and
+  `response()->noContent()`.
 
 ## Form Requests
 
@@ -85,6 +96,16 @@ paths:
 
 ## Resources
 
+- In a module migrated to response selection, a Resource extends
+  `ApiResource` and only declares its members in `define()`: each field lists
+  what it reads (`columns:`, `relations:`, `fields:`), relations are
+  `include()`, children built in code are `virtualInclude()`. Do not write
+  `toArray()`, `whenLoaded()` or Collection classes. A child from another
+  module is rendered by that module's `…ApiResource` class until the module
+  migrates. A costly field few clients need is declared `default: false`.
+  Test a Resource's output through HTTP or the package's
+  `RendersApiResources` helper, not by building it directly.
+- The rules below apply to modules still on response contracts.
 - Resources transform output only. Add `@mixin`, use `whenLoaded()` for relations, and load required relations before creating the Resource.
 - Define scalar fields first, then required and optional relations rendered
   through native `whenLoaded()`. A Resource must never access a relation

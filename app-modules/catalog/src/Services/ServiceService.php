@@ -40,7 +40,7 @@ final readonly class ServiceService
     public function paginate(ServiceFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            $this->servicesQuery($filters)->with(responseRelationsToLoad()),
+            $this->servicesQuery($filters),
             $filters,
             tieBreakerColumn: 'catalog_services.id',
         );
@@ -50,7 +50,7 @@ final readonly class ServiceService
     {
         $this->assertTenant($service);
 
-        return $service->load(responseRelationsToLoad());
+        return $service;
     }
 
     public function create(ServiceData $data): Service
@@ -87,7 +87,7 @@ final readonly class ServiceService
             return $service;
         });
 
-        return $service->load(responseRelationsToLoad());
+        return $service;
     }
 
     public function update(Service $service, ServiceData $data): Service
@@ -121,7 +121,7 @@ final readonly class ServiceService
             return $lockedService;
         });
 
-        return $service->load(responseRelationsToLoad());
+        return $service;
     }
 
     public function delete(Service $service): void

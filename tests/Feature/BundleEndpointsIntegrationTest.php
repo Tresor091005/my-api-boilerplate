@@ -113,7 +113,7 @@ it('exposes the complete bundle CRUD and nested item mutations', function (): vo
         ->and($createdItem->display_unit_code)->toBe($this->displayUnit->code);
 
     $this->getJson('/v1/catalog/bundles')->assertOk()->assertJsonFragment(['id' => $bundleId]);
-    $retrieved = $this->getJson("/v1/catalog/bundles/{$bundleId}?include=items")
+    $retrieved = $this->getJson("/v1/catalog/bundles/{$bundleId}?include=items.component")
         ->assertOk()
         ->assertJsonCount(2, 'data.items')
         ->assertJsonFragment([
@@ -173,7 +173,7 @@ it('renders bundle item components with their product variant relations', functi
 
     $bundleId = (string) $created->json('data.id');
 
-    $response = $this->getJson("/v1/catalog/bundles/{$bundleId}?include=items")
+    $response = $this->getJson("/v1/catalog/bundles/{$bundleId}?include=items.component")
         ->assertOk()
         ->assertJsonStructure(['data' => ['items' => [['component' => ['name', 'options']]]]]);
 

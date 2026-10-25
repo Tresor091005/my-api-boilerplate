@@ -4,68 +4,33 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\MissingValue;
-use Lahatre\Catalog\Models\Product;
-use Lahatre\Library\Http\Resources\FileAttachmentResource;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Product
- */
-class ProductResource extends JsonResource
+class ProductResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'          => $this->id,
-            'handle'      => $this->handle,
-            'name'        => $this->name,
-            'description' => $this->description,
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
-            'options'     => $this->whenLoaded(
-                'optionValues',
-                function ($optionValues): mixed {
-                    if ($optionValues->contains(
-                        fn ($optionValue): bool => !$optionValue->relationLoaded('option')
-                    )) {
-                        return new MissingValue;
-                    }
-
-                    return $optionValues
-                        ->groupBy('option_id')
-                        ->map(fn ($values): array => [
-                            'name'   => $values->first()->option->name,
-                            'values' => $values->pluck('value')->unique()->values()->all(),
-                        ])
-                        ->values();
-                },
-            ),
-            'variants' => $this->whenLoaded(
-                'variants',
-                fn ($variants): mixed => ProductVariantResource::collection($variants),
-            ),
-            'categories' => $this->whenLoaded(
-                'categories',
-                fn ($categories): mixed => CategoryResource::collection($categories),
-            ),
-            'files' => $this->when(
-                $this->resource->relationLoaded('mainFileAttachments') || $this->resource->relationLoaded('galleryFileAttachments'),
-                function (): array {
-                    $render = fn ($attachment): FileAttachmentResource => new FileAttachmentResource(
-                        $attachment, 'lahatre.catalog.products.files.content', 'product', $this->id,
-                    );
-
-                    return [
-                        'main'    => $this->whenLoaded('mainFileAttachments', fn ($attachments): array => $attachments->map($render)->all()),
-                        'gallery' => $this->whenLoaded('galleryFileAttachments', fn ($attachments): array => $attachments->map($render)->all()),
-                    ];
-                },
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('handle')
+            ->field('name')
+            ->field('description')
+            ->field('created_at')
+            ->field('updated_at')
+            // each option with the values the product's variants use: rendered only when asked for
+            ->field('options', relations: ['optionValues.option'], computedBy: fn (Model $product): array => $product->getRelation('optionValues')
+                ->groupBy('option_id')
+                ->map(fn ($values): array => [
+                    'name'   => $values->first()->option->name,
+                    'values' => $values->pluck('value')->unique()->values()->all(),
+                ])
+                ->values()
+                ->all(), default: false)
+            ->include('variants', ProductVariantResource::class)
+            ->include('categories', CategoryResource::class)
+            ->include('main_files', ProductFileAttachmentResource::class, relation: 'mainFileAttachments')
+            ->include('gallery_files', ProductFileAttachmentResource::class, relation: 'galleryFileAttachments');
     }
 }

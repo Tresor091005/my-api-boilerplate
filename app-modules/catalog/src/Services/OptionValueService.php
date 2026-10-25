@@ -33,8 +33,6 @@ class OptionValueService
 
         $query->orderBy($filters->sortBy, $filters->sortOrder);
 
-        $query->with(responseRelationsToLoad());
-
         return $query->get();
     }
 
@@ -42,7 +40,7 @@ class OptionValueService
     {
         $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
 
-        return $optionValue->load(responseRelationsToLoad());
+        return $optionValue;
     }
 
     public function create(Option $option, OptionValueData $data): EloquentCollection
@@ -53,8 +51,6 @@ class OptionValueService
                 required($data->values) ?? [],
             )
         );
-
-        $optionValues->load(responseRelationsToLoad());
 
         return $optionValues;
     }
@@ -69,7 +65,7 @@ class OptionValueService
 
         DB::transaction(fn (): bool => $optionValue->save());
 
-        return $optionValue->load(responseRelationsToLoad());
+        return $optionValue;
     }
 
     public function delete(Option $option, OptionValue $optionValue): void

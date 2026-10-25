@@ -32,16 +32,16 @@ it('discovers response contracts from the application and module config files', 
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    expect($registry->forRoute('lahatre.catalog.products.variants.show'))->not->toBeNull();
+    expect($registry->forRoute('lahatre.customer.customers.show'))->not->toBeNull();
 });
 
-it('applies the same default shape to catalog variant contracts', function (): void {
+it('applies the same default shape to customer contracts', function (): void {
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    $show = $registry->forRoute('lahatre.catalog.products.variants.show');
-    $store = $registry->forRoute('lahatre.catalog.products.variants.store');
-    $update = $registry->forRoute('lahatre.catalog.products.variants.update');
+    $show = $registry->forRoute('lahatre.customer.customers.show');
+    $store = $registry->forRoute('lahatre.customer.customers.store');
+    $update = $registry->forRoute('lahatre.customer.customers.update');
 
     expect($show)->not->toBeNull()
         ->and($store)->not->toBeNull()
@@ -49,8 +49,8 @@ it('applies the same default shape to catalog variant contracts', function (): v
 
     $showShape = $show->shapes['default'];
 
-    expect($showShape->requiredLoads)->toBe(['product', 'catalogItem', 'optionValues.option'])
-        ->and(array_keys($showShape->includes))->toBe(['unit_group', 'units', 'labels', 'inventory'])
+    expect($showShape->requiredLoads)->toBe([])
+        ->and(array_keys($showShape->includes))->toBe(['addresses', 'contacts', 'files.profile_picture'])
         ->and($store->shapes['default']->requiredLoads)->toBe($showShape->requiredLoads)
         ->and($store->shapes['default']->includes)->toEqual($showShape->includes)
         ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
@@ -87,15 +87,12 @@ it('maps every relation-backed resource operation to required loads or includes'
     $registry->discover();
 
     $expectations = [
-        'lahatre.catalog.categories.show'        => ['bloodline' => ['bloodline']],
-        'lahatre.catalog.options.show'           => ['values' => ['values']],
-        'lahatre.catalog.options.values.show'    => ['option' => ['option']],
-        'lahatre.catalog.products.variants.show' => ['unit_group' => ['catalogItem.unitGroup']],
-        'lahatre.inventory.movements.index'      => ['location' => ['location']],
-        'lahatre.inventory.transactions.show'    => ['movements' => ['movements']],
-        'lahatre.inventory.stocks.update'        => ['unit' => ['unit']],
-        'lahatre.master.units.index'             => ['group' => ['group']],
-        'lahatre.master.units.upsert'            => ['units' => ['units']],
+        'lahatre.customer.customers.show'     => ['addresses' => ['addresses'], 'files.profile_picture' => ['profilePictureFileAttachments.file']],
+        'lahatre.inventory.movements.index'   => ['location' => ['location']],
+        'lahatre.inventory.transactions.show' => ['movements' => ['movements']],
+        'lahatre.inventory.stocks.update'     => ['unit' => ['unit']],
+        'lahatre.master.units.index'          => ['group' => ['group']],
+        'lahatre.master.units.upsert'         => ['units' => ['units']],
     ];
 
     foreach ($expectations as $routeName => $includes) {
@@ -113,18 +110,6 @@ it('maps every relation-backed resource operation to required loads or includes'
         ->toContain('organizationMemberships.memberRoles.role');
 });
 
-it('does not expose variant labels as a product-level include', function (): void {
-    $registry = new ResponseContractRegistry;
-    $registry->discover();
-
-    $productShape = $registry
-        ->forRoute('lahatre.catalog.products.show')
-        ?->resolveShape(null);
-
-    expect($productShape)->not->toBeNull()
-        ->and($productShape->includes)->not->toHaveKey('labels');
-});
-
 it('ignores a response contract cache outside production and discovers definitions', function (): void {
     config(['app.env' => 'local']);
 
@@ -136,7 +121,7 @@ it('ignores a response contract cache outside production and discovers definitio
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    expect($registry->forRoute('lahatre.catalog.products.variants.show'))->not->toBeNull()
+    expect($registry->forRoute('lahatre.customer.customers.show'))->not->toBeNull()
         ->and($registry->forRoute('custom.route'))->toBeNull();
 });
 
@@ -152,7 +137,7 @@ it('loads response contracts from the generated cache in production', function (
     $cachedRegistry->discover();
 
     expect($cachedRegistry->forRoute('custom.route'))->not->toBeNull()
-        ->and($cachedRegistry->forRoute('lahatre.catalog.products.variants.show'))->toBeNull();
+        ->and($cachedRegistry->forRoute('lahatre.customer.customers.show'))->toBeNull();
 });
 
 it('caches response contracts from discovered definitions when no cache exists', function (): void {
@@ -163,10 +148,10 @@ it('caches response contracts from discovered definitions when no cache exists',
 
     $cachedDefinitions = require responseContractCachePath();
 
-    expect($cachedDefinitions)->toHaveKey('lahatre.catalog.products.variants.show')
+    expect($cachedDefinitions)->toHaveKey('lahatre.customer.customers.show')
         ->and(array_key_exists('_shapes', $cachedDefinitions))->toBeFalse()
-        ->and($cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default'])
-        ->and(array_key_exists('ref', $cachedDefinitions['lahatre.catalog.products.variants.show']['shapes']['default']))->toBeFalse()
+        ->and($cachedDefinitions['lahatre.customer.customers.show']['shapes']['default'])
+        ->and(array_key_exists('ref', $cachedDefinitions['lahatre.customer.customers.show']['shapes']['default']))->toBeFalse()
         ->and($cachedDefinitions['lahatre.inventory.stocks.summary.index'])
         ->toEqual([])
         ->and($cachedDefinitions['lahatre.inventory.items.locations.lots.index'])

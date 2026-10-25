@@ -7,8 +7,9 @@ is, why it exists and how to use it, for API clients and backend developers:
 [the package README](../../packages/response-selection/README.md).
 
 This page covers only how Lahatre uses it. The package is meant to replace the
-response contracts of [Standard responses and errors](responses-and-errors.md);
-no action renders through it yet.
+response contracts of [Standard responses and errors](responses-and-errors.md).
+The catalog module answers through it; the other modules still use response
+contracts.
 
 ## Wiring
 
@@ -71,14 +72,26 @@ GET  /v1/catalog/products/{product}/variants?fields=name&include=product(name)
 
 ## Status and remaining work
 
-Every route is still legacy. Remaining work:
+Catalog is migrated: every catalog action ends with an `ApiResponse` call, its
+services load nothing for the response, and its contract file keeps only the
+two file download routes, which do not answer JSON. Its Resources render the
+children of other modules through `UnitGroupApiResource`, `UnitApiResource`,
+`LabelApiResource`, `AddressApiResource` (master), `InventoryItemApiResource`
+(inventory) and `FileAttachmentApiResource` (library), which sit beside the
+legacy Resources of those modules until they migrate. Product and service
+files are the `main_files` and `gallery_files` includes; each attachment shows
+its file's values beside its own (the `DescribesFile` trait lists them once for
+every library response), and the product
+`options` and category `bloodline` fields render only when listed in `fields`.
+
+Remaining work:
 
 - Add `ResponseSelectionOperationExtension` to `extensions` in
   `config/scramble.php` (empty today; `AppServiceProvider::configureScramble()`
   only adds the Sanctum scheme).
 - Migrate the modules off response contracts: the
   `app-modules/<module>/config/response-contracts.php` files (customer,
-  organization, catalog, library, iam, master, inventory), `ResponseResponder`
+  organization, library, iam, master, inventory), `ResponseResponder`
   in controllers and `applyResponseContextToQuery()` in services. The legacy
   `App\Http\Middleware\ResolveResponseContext` still runs on every `api` route
   and throws for a route without a contract, but skips an action the registry

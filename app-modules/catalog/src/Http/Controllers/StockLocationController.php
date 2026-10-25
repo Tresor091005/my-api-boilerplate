@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\StockLocationData;
 use Lahatre\Catalog\Data\StockLocationFilterData;
 use Lahatre\Catalog\Http\Requests\StockLocationFilterRequest;
 use Lahatre\Catalog\Http\Requests\StockLocationRequest;
-use Lahatre\Catalog\Http\Resources\StockLocationCollection;
 use Lahatre\Catalog\Http\Resources\StockLocationResource;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Catalog\Services\StockLocationService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class StockLocationController
 {
     public function __construct(
         private StockLocationService $stockLocationService,
-        private ResponseResponder $responseResponder,
     ) {}
 
     public function index(StockLocationFilterRequest $request): JsonResponse|Response
@@ -33,9 +30,7 @@ final readonly class StockLocationController
             StockLocationFilterData::fromArray($request->validated()),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => StockLocationCollection::make($locations),
-        );
+        return ApiResponse::cursorPage($locations, StockLocationResource::class);
     }
 
     public function store(StockLocationRequest $request): JsonResponse|Response
@@ -45,21 +40,14 @@ final readonly class StockLocationController
             StockLocationData::fromArray($request->validated()),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => StockLocationResource::make($location),
-            status: 201,
-        );
+        return ApiResponse::item($location, StockLocationResource::class, 201);
     }
 
     public function show(StockLocation $stockLocation): JsonResponse|Response
     {
         Gate::authorize('retrieve', $stockLocation);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => StockLocationResource::make(
-                $this->stockLocationService->retrieve($stockLocation),
-            ),
-        );
+        return ApiResponse::item($this->stockLocationService->retrieve($stockLocation), StockLocationResource::class);
     }
 
     public function update(StockLocationRequest $request, StockLocation $stockLocation): JsonResponse|Response
@@ -73,9 +61,7 @@ final readonly class StockLocationController
             ),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => StockLocationResource::make($location),
-        );
+        return ApiResponse::item($location, StockLocationResource::class);
     }
 
     public function destroy(StockLocation $stockLocation): Response
@@ -83,6 +69,6 @@ final readonly class StockLocationController
         Gate::authorize('delete', $stockLocation);
         $this->stockLocationService->delete($stockLocation);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

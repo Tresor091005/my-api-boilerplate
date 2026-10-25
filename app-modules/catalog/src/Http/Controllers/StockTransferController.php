@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Data\StockTransferFilterData;
 use Lahatre\Catalog\Http\Requests\StockTransferFilterRequest;
 use Lahatre\Catalog\Http\Requests\StockTransferRequest;
-use Lahatre\Catalog\Http\Resources\StockTransferCollection;
 use Lahatre\Catalog\Http\Resources\StockTransferResource;
 use Lahatre\Catalog\Models\StockTransfer;
 use Lahatre\Catalog\Services\StockTransferService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class StockTransferController
 {
     public function __construct(
         private StockTransferService $stockTransferService,
-        private ResponseResponder $responseResponder,
     ) {}
 
     public function index(StockTransferFilterRequest $request): JsonResponse|Response
@@ -30,7 +27,7 @@ final readonly class StockTransferController
         Gate::authorize('list', StockTransfer::class);
         $transfers = $this->stockTransferService->paginate(StockTransferFilterData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferCollection::make($transfers));
+        return ApiResponse::cursorPage($transfers, StockTransferResource::class);
     }
 
     public function store(StockTransferRequest $request): JsonResponse|Response
@@ -38,14 +35,14 @@ final readonly class StockTransferController
         Gate::authorize('create', StockTransfer::class);
         $transfer = $this->stockTransferService->create(StockTransferData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferResource::make($transfer), status: 201);
+        return ApiResponse::item($transfer, StockTransferResource::class, 201);
     }
 
     public function show(StockTransfer $stockTransfer): JsonResponse|Response
     {
         Gate::authorize('retrieve', $stockTransfer);
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferResource::make($this->stockTransferService->retrieve($stockTransfer)));
+        return ApiResponse::item($this->stockTransferService->retrieve($stockTransfer), StockTransferResource::class);
     }
 
     public function update(StockTransferRequest $request, StockTransfer $stockTransfer): JsonResponse|Response
@@ -53,7 +50,7 @@ final readonly class StockTransferController
         Gate::authorize('update', $stockTransfer);
         $transfer = $this->stockTransferService->update($stockTransfer, StockTransferData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferResource::make($transfer));
+        return ApiResponse::item($transfer, StockTransferResource::class);
     }
 
     public function destroy(StockTransfer $stockTransfer): Response
@@ -61,7 +58,7 @@ final readonly class StockTransferController
         Gate::authorize('delete', $stockTransfer);
         $this->stockTransferService->delete($stockTransfer);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function complete(StockTransfer $stockTransfer): JsonResponse|Response
@@ -69,7 +66,7 @@ final readonly class StockTransferController
         Gate::authorize('complete', $stockTransfer);
         $transfer = $this->stockTransferService->complete($stockTransfer);
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferResource::make($transfer));
+        return ApiResponse::item($transfer, StockTransferResource::class);
     }
 
     public function cancel(StockTransfer $stockTransfer): JsonResponse|Response
@@ -77,6 +74,6 @@ final readonly class StockTransferController
         Gate::authorize('cancel', $stockTransfer);
         $transfer = $this->stockTransferService->cancel($stockTransfer);
 
-        return $this->responseResponder->respond(fn (): JsonResource => StockTransferResource::make($transfer));
+        return ApiResponse::item($transfer, StockTransferResource::class);
     }
 }

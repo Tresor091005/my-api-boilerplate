@@ -81,9 +81,9 @@ it('attaches and orders product images through the HTTP contract', function (): 
     $files = collect(range(1, 3))->map(fn (): File => imageFile($this->organization->id));
     $base = "/v1/catalog/products/{$product->id}";
 
-    $this->getJson("{$base}?include=files.main,files.gallery")->assertOk()->assertJsonPath('data.files.main', [])
-        ->assertJsonPath('data.files.gallery', []);
-    $this->getJson($base)->assertOk()->assertJsonMissingPath('data.files');
+    $this->getJson("{$base}?include=main_files,gallery_files")->assertOk()->assertJsonPath('data.main_files', [])
+        ->assertJsonPath('data.gallery_files', []);
+    $this->getJson($base)->assertOk()->assertJsonMissingPath('data.main_files')->assertJsonMissingPath('data.gallery_files');
     $this->getJson("{$base}?include=files")->assertUnprocessable();
     $this->putJson("{$base}/files/main", ['file_ids' => [$files[0]->id]])
         ->assertUnprocessable()->assertJsonValidationErrors('file_id');
@@ -95,25 +95,27 @@ it('attaches and orders product images through the HTTP contract', function (): 
     $this->putJson("{$base}/files/main", ['file_id' => $files[0]->id])->assertNoContent();
     expect(FileAttachment::query()->where('organization_id', $this->organization->id)->where('slot', 'main')->count())->toBe(1);
     $this->putJson("{$base}/files/main", ['file_id' => $files[1]->id])->assertNoContent();
-    $main = $this->getJson("{$base}?include=files.main")->json('data.files.main.0');
-    expect($main['file']['id'])->toBe($files[1]->id)
+    $main = $this->getJson("{$base}?include=main_files")->json('data.main_files.0');
+    expect($main['file_id'])->toBe($files[1]->id)
+        ->and($main['name'])->toBe($files[1]->name)
         ->and($main['position'])->toBe(1)
         ->and($main['content_url'])->toBe("{$base}/files/{$main['id']}/content")
-        ->and($main['file'])->not->toHaveKey('storage_disk')
-        ->and($main['file'])->not->toHaveKey('content_url');
+        ->and($main)->not->toHaveKeys(['file', 'storage_disk', 'storage_key']);
+    expect($this->getJson("{$base}?include=main_files(name,content_url)")->json('data.main_files.0'))
+        ->toBe(['id' => $main['id'], 'name' => $files[1]->name, 'content_url' => $main['content_url']]);
 
     foreach ($files as $file) {
         $this->postJson("{$base}/files/gallery", ['file_ids' => [$file->id]])->assertNoContent();
     }
 
-    $this->getJson("{$base}?include=files.main")->assertOk()->assertJsonMissingPath('data.files.gallery');
-    $this->getJson("{$base}?include=files.gallery")->assertOk()->assertJsonMissingPath('data.files.main');
+    $this->getJson("{$base}?include=main_files")->assertOk()->assertJsonMissingPath('data.gallery_files');
+    $this->getJson("{$base}?include=gallery_files")->assertOk()->assertJsonMissingPath('data.main_files');
 
-    $gallery = $this->getJson("{$base}?include=files.gallery")->assertOk()->json('data.files.gallery');
+    $gallery = $this->getJson("{$base}?include=gallery_files")->assertOk()->json('data.gallery_files');
     expect(array_column($gallery, 'position'))->toBe([1, 2, 3]);
     $orderedIds = [$gallery[2]['id'], $gallery[0]['id'], $gallery[1]['id']];
     $this->putJson("{$base}/files/gallery", ['attachment_ids' => $orderedIds])->assertNoContent();
-    expect(array_column($this->getJson("{$base}?include=files.gallery")->json('data.files.gallery'), 'id'))->toBe($orderedIds);
+    expect(array_column($this->getJson("{$base}?include=gallery_files")->json('data.gallery_files'), 'id'))->toBe($orderedIds);
 
     $this->putJson("{$base}/files/gallery", ['attachment_ids' => [$orderedIds[0]]])->assertUnprocessable();
     $this->putJson("{$base}/files/gallery", ['attachment_ids' => [$orderedIds[0], $orderedIds[0], $orderedIds[2]]])->assertUnprocessable();
@@ -121,7 +123,7 @@ it('attaches and orders product images through the HTTP contract', function (): 
     $this->postJson("/v1/catalog/products/{$otherProduct->id}/files/gallery", ['file_ids' => [imageFile($this->organization->id)->id]])->assertNoContent();
     $foreignAttachmentId = $otherProduct->fileAttachments()->firstOrFail()->id;
     $this->putJson("{$base}/files/gallery", ['attachment_ids' => [$orderedIds[0], $orderedIds[1], $foreignAttachmentId]])->assertUnprocessable();
-    expect(array_column($this->getJson("{$base}?include=files.gallery")->json('data.files.gallery'), 'id'))->toBe($orderedIds);
+    expect(array_column($this->getJson("{$base}?include=gallery_files")->json('data.gallery_files'), 'id'))->toBe($orderedIds);
     $this->get("{$base}/files/{$foreignAttachmentId}/content")->assertNotFound();
     $this->postJson("{$base}/files/gallery", ['file_ids' => [$files[0]->id]])->assertUnprocessable();
     $this->deleteJson("{$base}/files/gallery", ['attachment_ids' => []])
@@ -130,13 +132,13 @@ it('attaches and orders product images through the HTTP contract', function (): 
         ->assertUnprocessable()->assertJsonValidationErrors('attachment_ids.1');
     $this->deleteJson("{$base}/files/gallery", ['attachment_ids' => [$orderedIds[0], $foreignAttachmentId]])
         ->assertNotFound();
-    expect(array_column($this->getJson("{$base}?include=files.gallery")->json('data.files.gallery'), 'id'))->toBe($orderedIds);
+    expect(array_column($this->getJson("{$base}?include=gallery_files")->json('data.gallery_files'), 'id'))->toBe($orderedIds);
     $this->deleteJson("{$base}/files/gallery", ['attachment_ids' => [$orderedIds[1], $orderedIds[2]]])->assertNoContent();
-    expect(array_column($this->getJson("{$base}?include=files.gallery")->json('data.files.gallery'), 'id'))->toBe([$orderedIds[0]])
-        ->and(array_column($this->getJson("{$base}?include=files.gallery")->json('data.files.gallery'), 'position'))->toBe([1]);
+    expect(array_column($this->getJson("{$base}?include=gallery_files")->json('data.gallery_files'), 'id'))->toBe([$orderedIds[0]])
+        ->and(array_column($this->getJson("{$base}?include=gallery_files")->json('data.gallery_files'), 'position'))->toBe([1]);
 
     $this->putJson("{$base}/files/main", ['file_id' => null])->assertNoContent();
-    expect($this->getJson("{$base}?include=files.main")->json('data.files.main'))->toBe([]);
+    expect($this->getJson("{$base}?include=main_files")->json('data.main_files'))->toBe([]);
 });
 
 it('enforces the declared gallery quota across HTTP and direct Library calls', function (): void {
@@ -211,10 +213,10 @@ it('appends service gallery files in one request', function (): void {
     $service = Service::factory()->forCatalogItem($catalogItem)->create();
     $files = collect(range(1, 3))->map(fn (): File => imageFile($this->organization->id));
 
-    $this->postJson("/v1/catalog/services/{$service->id}/files/gallery?response=resource&include=files.gallery", [
+    $this->postJson("/v1/catalog/services/{$service->id}/files/gallery?response=resource&include=gallery_files", [
         'file_ids' => $files->pluck('id')->all(),
-    ])->assertCreated()->assertJsonPath('data.files.gallery.0.file.id', $files[0]->id)
-        ->assertJsonPath('data.files.gallery.2.file.id', $files[2]->id);
+    ])->assertCreated()->assertJsonPath('data.gallery_files.0.file_id', $files[0]->id)
+        ->assertJsonPath('data.gallery_files.2.file_id', $files[2]->id);
 
     $attachmentIds = $service->fileAttachments()->where('slot', 'gallery')->pluck('id')->all();
     $this->deleteJson("/v1/catalog/services/{$service->id}/files/gallery", [
@@ -369,7 +371,7 @@ it('enforces MIME, tenant, file lifecycle, and parent permissions', function ():
     $this->putJson("{$base}/files/main", ['file_id' => $foreignImage->id])->assertNotFound();
     $this->putJson("{$base}/files/main", ['file_id' => $image->id])->assertNoContent();
     $this->putJson("{$base}/files/main", ['file_id' => $pdf->id])->assertUnprocessable();
-    expect($this->getJson("{$base}?include=files.main")->json('data.files.main.0.file.id'))->toBe($image->id);
+    expect($this->getJson("{$base}?include=main_files")->json('data.main_files.0.file_id'))->toBe($image->id);
     $attachment = FileAttachment::query()->where('organization_id', $this->organization->id)->firstOrFail();
     $this->get("{$base}/files/{$attachment->id}/content")->assertOk();
     expect(fn () => app(FileService::class)->delete($image))->toThrow(LibraryException::class);
@@ -390,8 +392,8 @@ it('links service and customer images and detaches them when parents are deleted
     $customerImage = imageFile($this->organization->id);
     $replacementImage = imageFile($this->organization->id);
 
-    $this->putJson("/v1/catalog/services/{$service->id}/files/main?response=resource&include=files.main", ['file_id' => $serviceImage->id])
-        ->assertOk()->assertJsonPath('data.files.main.0.file.id', $serviceImage->id);
+    $this->putJson("/v1/catalog/services/{$service->id}/files/main?response=resource&include=main_files", ['file_id' => $serviceImage->id])
+        ->assertOk()->assertJsonPath('data.main_files.0.file_id', $serviceImage->id);
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture?response=resource&include=files.profile_picture", ['file_id' => $customerImage->id])
         ->assertOk()->assertJsonPath('data.files.profile_picture.0.file.id', $customerImage->id);
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => $replacementImage->id])->assertNoContent();
@@ -400,9 +402,9 @@ it('links service and customer images and detaches them when parents are deleted
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => null])->assertNoContent();
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => $customerImage->id])->assertNoContent();
 
-    $this->postJson("/v1/catalog/services/{$service->id}/files/gallery?response=resource&include=files.gallery", ['file_ids' => [$replacementImage->id]])
-        ->assertCreated()->assertJsonPath('data.files.gallery.0.file.id', $replacementImage->id);
-    expect($this->getJson("/v1/catalog/services/{$service->id}?include=files.gallery")->json('data.files.gallery.0.file.id'))
+    $this->postJson("/v1/catalog/services/{$service->id}/files/gallery?response=resource&include=gallery_files", ['file_ids' => [$replacementImage->id]])
+        ->assertCreated()->assertJsonPath('data.gallery_files.0.file_id', $replacementImage->id);
+    expect($this->getJson("/v1/catalog/services/{$service->id}?include=gallery_files")->json('data.gallery_files.0.file_id'))
         ->toBe($replacementImage->id);
 
     $this->deleteJson("/v1/catalog/services/{$service->id}")->assertNoContent();
@@ -429,11 +431,11 @@ it('loads attachments in bulk on product lists and removes links when a product 
             $attachmentQueries[] = $query->bindings;
         }
     });
-    $response = $this->getJson('/v1/catalog/products?include=files.main')->assertOk();
-    expect(collect($response->json('data'))->pluck('files.main.0.file.id')->all())->toEqualCanonicalizing($files->pluck('id')->all())
+    $response = $this->getJson('/v1/catalog/products?include=main_files')->assertOk();
+    expect(collect($response->json('data'))->pluck('main_files.0.file_id')->all())->toEqualCanonicalizing($files->pluck('id')->all())
         ->and($attachmentQueries)->toHaveCount(1)
         ->and($attachmentQueries[0])->toContain('main')->not->toContain('gallery');
-    expect(collect($response->json('data'))->every(fn (array $row): bool => !array_key_exists('gallery', $row['files'])))->toBeTrue();
+    expect(collect($response->json('data'))->every(fn (array $row): bool => !array_key_exists('gallery_files', $row)))->toBeTrue();
 
     $this->deleteJson("/v1/catalog/products/{$products[0]->id}")->assertNoContent();
     expect(FileAttachment::query()->where('organization_id', $this->organization->id)->count())->toBe(2)

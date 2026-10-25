@@ -4,30 +4,26 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Catalog\Models\StockTransfer;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin StockTransfer */
-class StockTransferResource extends JsonResource
+class StockTransferResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'                       => $this->id,
-            'source_location_id'       => $this->source_location_id,
-            'destination_location_id'  => $this->destination_location_id,
-            'status'                   => $this->status,
-            'inventory_transaction_id' => $this->inventory_transaction_id,
-            'reversal_transaction_id'  => $this->reversal_transaction_id,
-            'completed_at'             => $this->completed_at,
-            'cancelled_at'             => $this->cancelled_at,
-            'created_at'               => $this->created_at,
-            'updated_at'               => $this->updated_at,
-            'lines'                    => StockTransferLineResource::collection($this->whenLoaded('lines')),
-            'source_location'          => $this->whenLoaded('sourceLocation', fn (): StockLocationResource => StockLocationResource::make($this->sourceLocation)),
-            'destination_location'     => $this->whenLoaded('destinationLocation', fn (): StockLocationResource => StockLocationResource::make($this->destinationLocation)),
-        ];
+        $resource
+            ->field('id')
+            ->field('source_location_id')
+            ->field('destination_location_id')
+            ->field('status')
+            ->field('inventory_transaction_id')
+            ->field('reversal_transaction_id')
+            ->field('completed_at')
+            ->field('cancelled_at')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('lines', StockTransferLineResource::class)
+            ->include('source_location', StockLocationResource::class)
+            ->include('destination_location', StockLocationResource::class);
     }
 }

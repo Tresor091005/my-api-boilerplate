@@ -266,6 +266,11 @@ product's `update_variant` permission. Option values are nested and scoped under
 All catalog routes require `auth.api`. Nested scoped binding prevents a child
 from being addressed through a parent that does not own it.
 
+Catalog responses use [response selection](response-selection.md): `?fields=`
+picks fields and `?include=` nests related resources, such as
+`?include=items.component` on a bundle or `?include=lines.item` on a stock
+transfer.
+
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
@@ -294,10 +299,12 @@ JPEG, PNG, GIF, or WebP. `main` holds one image and `gallery` is ordered.
 | DELETE | `/v1/catalog/{resource}/{id}/files/gallery` | Remove 1–20 gallery links with `attachment_ids` in one request. |
 | GET | `/v1/catalog/{resource}/{id}/files/{attachment}/content` | Stream a linked file through parent authorization. |
 
-`?include=files.main` and `?include=files.gallery` load only the requested
+`?include=main_files` and `?include=gallery_files` load only the requested
 slots for product and service list/detail and resource mutation responses.
-Each selected slot is an array, including `main`; without a file include,
-`files` is omitted.
+Each selected slot is an array, including `main_files`; without a file include,
+neither key is rendered. Each attachment shows `id`, `slot`, `position`,
+`file_id`, the file's `name`, `mime_type`, `kind`, `extension` and `size`, and
+its `content_url`, each selectable: `?include=main_files(name,content_url)`.
 
 ## Customer
 

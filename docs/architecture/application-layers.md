@@ -68,6 +68,9 @@ It clamps page sizes to 1–100, accepts only ascending or descending sort
 directions, and always places a stable tie-breaker last in the ordering.
 
 Services return models, Collections, paginators, or ViewData. Controllers wrap
-those results in Resources or Resource Collections for HTTP responses. Resources
-should use conditional relation loading (`whenLoaded`) so an endpoint does not
+those results in Resources or Resource Collections for HTTP responses. In a
+module migrated to [response selection](../api/response-selection.md)
+(catalog), the controller passes the service result to `ApiResponse` and the
+Resource's declarations decide what is loaded. Elsewhere, Resources should use
+conditional relation loading (`whenLoaded`) so an endpoint does not
 accidentally expand its query contract.

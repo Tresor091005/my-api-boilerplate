@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Catalog\Data\OptionValueData;
 use Lahatre\Catalog\Data\OptionValueFilterData;
@@ -16,14 +15,13 @@ use Lahatre\Catalog\Http\Resources\OptionValueResource;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Services\OptionValueService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class OptionValueController
 {
     public function __construct(
         protected OptionValueService $optionValueService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function index(OptionValueFilterRequest $request, Option $option): JsonResponse|Response
@@ -34,7 +32,7 @@ class OptionValueController
 
         $response = $this->optionValueService->list($option, $filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => OptionValueResource::collection($response));
+        return ApiResponse::list($response, OptionValueResource::class);
     }
 
     public function show(Option $option, OptionValue $value): JsonResponse|Response
@@ -43,7 +41,7 @@ class OptionValueController
 
         $response = $this->optionValueService->retrieve($option, $value);
 
-        return $this->responseResponder->respond(fn (): JsonResource => OptionValueResource::make($response));
+        return ApiResponse::item($response, OptionValueResource::class);
     }
 
     public function store(StoreOptionValueRequest $request, Option $option): JsonResponse|Response
@@ -57,10 +55,7 @@ class OptionValueController
 
         $response = $this->optionValueService->create($option, $data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => OptionValueResource::collection($response),
-            status: 201,
-        );
+        return ApiResponse::list($response, OptionValueResource::class, 201);
     }
 
     public function update(UpdateOptionValueRequest $request, Option $option, OptionValue $value): JsonResponse|Response
@@ -77,7 +72,7 @@ class OptionValueController
 
         $response = $this->optionValueService->update($option, $value, $data);
 
-        return $this->responseResponder->respond(fn (): JsonResource => OptionValueResource::make($response));
+        return ApiResponse::item($response, OptionValueResource::class);
     }
 
     public function destroy(Option $option, OptionValue $value): Response
@@ -86,6 +81,6 @@ class OptionValueController
 
         $this->optionValueService->delete($option, $value);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

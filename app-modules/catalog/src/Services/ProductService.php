@@ -31,7 +31,7 @@ class ProductService
     public function paginate(ProductFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->productsQuery($filters)),
+            $this->productsQuery($filters),
             $filters,
         );
     }
@@ -68,8 +68,6 @@ class ProductService
 
     public function retrieve(Product $product): Product
     {
-        $product->load(responseRelationsToLoad());
-
         return $product;
     }
 
@@ -100,7 +98,7 @@ class ProductService
             $this->transactionalProductVariantService->createMany($product, required($data->variants));
         });
 
-        return $product->load(responseRelationsToLoad());
+        return $product;
     }
 
     public function update(Product $product, ProductData $data): Product
@@ -120,7 +118,7 @@ class ProductService
             }
         });
 
-        return $product->load(responseRelationsToLoad());
+        return $product;
     }
 
     public function delete(Product $product): void

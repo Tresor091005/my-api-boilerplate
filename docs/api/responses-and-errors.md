@@ -5,6 +5,10 @@ business-error strategy based on assertion objects.
 
 ## Response contracts
 
+Catalog routes answer through [response selection](response-selection.md)
+instead, and declare no contract except for their file downloads. The rest of
+this section applies to the modules not migrated yet.
+
 Every API route has a contract declared in `config/response-contracts.php` or
 in the owning module's `app-modules/<module>/config/response-contracts.php`.
 The key is the complete route name. Resource-producing routes may declare a
