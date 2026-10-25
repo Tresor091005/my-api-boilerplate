@@ -105,6 +105,51 @@ it('creates a verified Google account and a common UUID Sanctum session without 
     $this->getJson('/v1/auth/sessions')->assertOk()->assertJsonPath('data.0.authentication_method', 'google');
 });
 
+it('answers a Google sign-in with the same auth payload as before', function (): void {
+    $user = User::factory()->create(['email' => 'payload@gmail.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+    ExternalIdentity::factory()->create(['user_id' => $user->id, 'subject' => '100000000000000000001']);
+    $organization = Organization::factory()->create(['name' => 'Google Payload Organization']);
+    $member = OrganizationMember::factory()->create(['user_id' => $user->id, 'organization_id' => $organization->id]);
+    $role = Role::factory()->create(['team_id' => $organization->id, 'description' => 'Payload role']);
+    $memberRole = MemberRole::factory()->create([
+        'organization_id' => $organization->id, 'member_id' => $member->id, 'role_id' => $role->id,
+    ]);
+    $user->update(['default_member_role_id' => $memberRole->id]);
+
+    $response = googleSignIn()->assertOk();
+
+    expect($response->json('data'))->toBe([
+        'access_token' => $response->json('data.access_token'),
+        'token_type'   => 'Bearer',
+        'user'         => [
+            'id'                     => $user->id,
+            'first_name'             => 'Ada',
+            'last_name'              => 'Lovelace',
+            'email'                  => 'payload@gmail.com',
+            'profile_complete'       => true,
+            'default_member_role_id' => $memberRole->id,
+            'current_member_role_id' => null,
+            'member_roles'           => [[
+                'id'              => $memberRole->id,
+                'member_id'       => $member->id,
+                'organization_id' => $organization->id,
+                'role_id'         => $role->id,
+                'is_default'      => true,
+                'role'            => [
+                    'id'          => $role->id,
+                    'name'        => $role->name,
+                    'description' => 'Payload role',
+                    'is_builtin'  => false,
+                ],
+                'organization' => [
+                    'id'   => $organization->id,
+                    'name' => 'Google Payload Organization',
+                ],
+            ]],
+        ],
+    ]);
+});
+
 it('finds a returning Google identity by subject and preserves the local email and profile', function (): void {
     $user = User::factory()->create(['email' => 'original@gmail.com', 'first_name' => 'Local']);
     ExternalIdentity::factory()->create(['user_id' => $user->id, 'subject' => '100000000000000000001']);
@@ -284,7 +329,7 @@ it('creates an organization for a Google session without email registration and 
         ->and($organization->settings->timezone)->toBe('Africa/Porto-Novo')
         ->and(DB::table('iam_organization_registration_tokens')->count())->toBe(0);
     $this->getJson('/v1/auth/me')->assertOk()->assertJsonPath('data.member_roles.0.id', $assignment->id);
-    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertOk();
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertNoContent();
     $this->getJson('/v1/auth/current-permissions')->assertOk()->assertJsonPath('data.0.name', 'iam_role.list');
 });
 
@@ -301,7 +346,7 @@ it('accepts an invitation for the Google account and uses the current offered ro
     $member = OrganizationMember::query()->where('organization_id', $organization->id)->where('user_id', $login->json('data.user.id'))->firstOrFail();
     $assignment = MemberRole::query()->where('organization_id', $organization->id)->where('member_id', $member->id)->firstOrFail();
     expect($assignment->role_id)->toBe($role->id)->and($invitation->fresh()->accepted_at)->not->toBeNull();
-    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertOk();
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertNoContent();
     setPermissionsTeamId($organization->id);
     expect($assignment->fresh()->hasRole($role))->toBeTrue();
     $this->postJson('/v1/auth/invitations/accept', ['token' => $token])->assertUnprocessable();

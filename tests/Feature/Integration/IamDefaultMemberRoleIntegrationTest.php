@@ -14,8 +14,9 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Organization\Models\Organization;
+use Lahatre\ResponseSelection\Testing\RendersApiResources;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, RendersApiResources::class);
 
 beforeEach(function (): void {
     authContext()->clear();
@@ -49,7 +50,7 @@ it('stores one default across organizations and leaves the current session conte
     $first = defaultRoleAssignment($user);
     $second = defaultRoleAssignment($user);
     $token = $user->createToken('Client');
-    $this->withToken($token->plainTextToken)->postJson('/v1/auth/switch-member-role', ['member_role_id' => $first->id])->assertOk();
+    $this->withToken($token->plainTextToken)->postJson('/v1/auth/switch-member-role', ['member_role_id' => $first->id])->assertNoContent();
     $this->patchJson('/v1/auth/me?response=resource', ['default_member_role_id' => $first->id])->assertOk()
         ->assertJsonPath('data.default_member_role_id', $first->id);
     $response = $this->patchJson('/v1/auth/me?response=resource', ['default_member_role_id' => $second->id])->assertOk()
@@ -141,6 +142,8 @@ it('does not flag an unavailable preference as default and retains it for possib
     $response = $this->getJson('/v1/auth/me')->assertOk()->assertJsonPath('data.default_member_role_id', $assignment->id);
     expect($response->json('data.member_roles'))->toBe([]);
     $model->update(['is_active' => true]);
+    // a new request authenticates a fresh user, without the memberships the previous response loaded
+    app('auth')->forgetGuards();
     $this->getJson('/v1/auth/me')->assertOk()->assertJsonPath('data.member_roles.0.is_default', true);
 })->with(['assignment', 'member', 'role']);
 
@@ -161,15 +164,16 @@ it('does not flag soft deleted assignments or organizations as a default', funct
 it('renders preloaded member roles without queries and rejects an unresolved organization', function (): void {
     $user = User::factory()->create();
     $assignment = defaultRoleAssignment($user);
-    $user->load(['organizationMemberships.organization', 'organizationMemberships.memberRoles.role']);
+    // a full row, so rendering has no column to complete
+    $user->refresh()->load(['organizationMemberships.organization', 'organizationMemberships.memberRoles.role']);
     $membership = $user->organizationMemberships->first();
     $memberRole = $membership->memberRoles->first();
 
     DB::enableQueryLog();
     DB::flushQueryLog();
     try {
-        $payload = (new UserResource($user))->response()->getData(true);
-        expect(array_column($payload['data']['member_roles'], 'id'))->toBe([$assignment->id])
+        $payload = $this->renderApiResource($user, UserResource::class);
+        expect(array_column($payload['member_roles'], 'id'))->toBe([$assignment->id])
             ->and(DB::getQueryLog())->toBe([]);
 
         $membership->unsetRelation('organization');

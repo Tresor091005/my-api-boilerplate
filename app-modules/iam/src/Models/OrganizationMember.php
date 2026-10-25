@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lahatre\Iam\Database\Factories\OrganizationMemberFactory;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\Shared\Traits\SharedTraits;
@@ -25,6 +26,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, MemberRole> $memberRoles
  * @property-read int|null $member_roles_count
+ * @property-read Collection<int, MemberRole> $organizationMemberRoles
  * @property-read User $user
  * @property-read Organization|null $organization
  *
@@ -86,5 +88,18 @@ class OrganizationMember extends Model
     {
         /** Callers must enforce organization authorization when using this cross-organization relation. */
         return $this->hasMany(MemberRole::class, 'member_id');
+    }
+
+    /**
+     * The member's assignments in its own organization, the only ones API responses show.
+     *
+     * @return HasMany<MemberRole, $this>
+     */
+    public function organizationMemberRoles(): HasMany
+    {
+        return $this->hasMany(MemberRole::class, 'member_id')->whereExists(fn (QueryBuilder $query) => $query->selectRaw('1')
+            ->from('iam_organization_members as assignment_member')
+            ->whereColumn('assignment_member.id', 'iam_member_roles.member_id')
+            ->whereColumn('assignment_member.organization_id', 'iam_member_roles.organization_id'));
     }
 }

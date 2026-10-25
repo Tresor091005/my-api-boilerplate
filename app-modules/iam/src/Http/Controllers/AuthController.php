@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Iam\Data\OrganizationRegistrationData;
 use Lahatre\Iam\Data\UserUpdateData;
@@ -20,6 +20,7 @@ use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\AuthService;
 use Lahatre\Iam\Services\OrganizationOnboardingService;
 use Lahatre\Organization\Data\OrganizationData;
+use Lahatre\ResponseSelection\ApiResponse;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -74,9 +75,7 @@ class AuthController
 
         $response = $this->authService->me($user);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => UserResource::make($response)->withCurrentMemberRoleId(authContext()->memberRole()?->id),
-        );
+        return ApiResponse::item($response, UserResource::class);
     }
 
     public function update(UserUpdateRequest $request): JsonResponse|Response
@@ -86,9 +85,7 @@ class AuthController
         Gate::authorize('update', $user);
         $response = $this->authService->update($user, UserUpdateData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => UserResource::make($response)->withCurrentMemberRoleId(authContext()->memberRole()?->id),
-        );
+        return ApiResponse::item($response, UserResource::class);
     }
 
     /**
@@ -119,22 +116,16 @@ class AuthController
             $request->validated('member_role_id'),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => UserResource::make($response)->withCurrentMemberRoleId($request->validated('member_role_id')),
-        );
+        return ApiResponse::item($response, UserResource::class);
     }
 
     public function currentPermissions(): JsonResponse|Response
     {
-        if (!authContext()->memberRole()) {
-            // A user without an active member role has no permissions to serialize.
-            return $this->responseResponder->respond(fn (): array => []);
-        }
+        $memberRole = authContext()->memberRole();
 
-        $response = $this->authService->currentPermissions(
-            authContext()->memberRole()
-        );
+        // a user without an active member role has no permissions
+        $response = $memberRole ? $this->authService->currentPermissions($memberRole) : new Collection;
 
-        return $this->responseResponder->respond(fn (): JsonResource => PermissionResource::collection($response));
+        return ApiResponse::list($response, PermissionResource::class);
     }
 }

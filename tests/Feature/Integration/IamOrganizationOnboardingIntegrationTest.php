@@ -117,7 +117,7 @@ it('creates no user or organization until the email token completes organization
     foreach ($memberRoles as $memberRole) {
         $this->withToken($login->json('data.access_token'))
             ->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRole->id])
-            ->assertOk();
+            ->assertNoContent();
         $this->getJson('/v1/auth/current-permissions')
             ->assertOk()
             ->assertJsonPath('data.0.name', $permission->name);

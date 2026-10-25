@@ -243,7 +243,7 @@ it('exposes independent activation states when reading a member and its role ass
     setPermissionsTeamId($actor['organization']->id);
     $actor['assignment']->givePermissionTo(Permission::factory()->create(['name' => 'iam_organization_member.retrieve']));
     useIamActiveContextToken($actor['user'], $actor['assignment']);
-    $this->getJson('/v1/iam/organization-members/'.$target['member']->id.'?include=member_roles')
+    $this->getJson('/v1/iam/organization-members/'.$target['member']->id.'?include=member_roles.role')
         ->assertOk()->assertJsonPath('data.is_active', false)
         ->assertJsonPath('data.member_roles.0.is_active', false)
         ->assertJsonPath('data.member_roles.0.role.is_active', false);

@@ -59,6 +59,9 @@ class MemberRole extends Model
     use SharedTraits;
     use SoftDeletes;
 
+    /** The columns canUseRole() reads. */
+    public const array ROLE_CONTEXT_COLUMNS = ['role_id', 'organization_id'];
+
     protected string $guard_name = 'sanctum';
 
     protected $table = 'iam_member_roles';
@@ -108,6 +111,14 @@ class MemberRole extends Model
             && $organization->id === $this->organization_id
             && ($role->team_id === null || $role->team_id === $this->organization_id)
             && $role->guard_name === config('auth.defaults.guard');
+    }
+
+    /** Whether the role is this assignment's role and usable in its organization: a built-in role or one of that organization. */
+    public function canUseRole(?Role $role): bool
+    {
+        return $role !== null && $role->id === $this->role_id
+            && $role->guard_name === config('auth.defaults.guard')
+            && ($role->team_id === $this->organization_id || ($role->team_id === null && $role->is_builtin));
     }
 
     public function organizationMember(): BelongsTo

@@ -157,7 +157,7 @@ it('switches away from an invalid context while preserving unrelated session met
     setPermissionsTeamId($context['organization']->id);
     $assignment->syncRoles($role);
     setPermissionsTeamId(null);
-    currentTestCase()->withHeader('User-Agent', 'Switch Client')->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertOk();
+    currentTestCase()->withHeader('User-Agent', 'Switch Client')->postJson('/v1/auth/switch-member-role', ['member_role_id' => $assignment->id])->assertNoContent();
     $record = $context['record']->fresh();
     expect($record->getMeta('member_role_id'))->toBe($assignment->id)
         ->and($record->getMeta('custom.preserved'))->toBeTrue()

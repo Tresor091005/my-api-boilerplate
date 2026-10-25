@@ -22,6 +22,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Role> $roles
+ * @property-read Collection<int, Role> $organizationRoles
  */
 class Invitation extends Model
 {
@@ -50,5 +51,16 @@ class Invitation extends Model
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'iam_invitation_roles')->orderBy('iam_roles.id');
+    }
+
+    /**
+     * The offered roles that belong to the invitation's organization, the only ones API responses
+     * show. The pivot's composite foreign key already ties its organization to the invitation's.
+     *
+     * @return BelongsToMany<Role, $this>
+     */
+    public function organizationRoles(): BelongsToMany
+    {
+        return $this->roles()->whereColumn('iam_roles.team_id', 'iam_invitation_roles.organization_id');
     }
 }

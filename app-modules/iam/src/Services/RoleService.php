@@ -33,14 +33,14 @@ class RoleService
                     ->orWhere(fn ($query) => $query->whereNull('team_id')->where('is_builtin', true));
             });
 
-        return stableCursorPaginate(applyResponseContextToQuery($query), $filters);
+        return stableCursorPaginate($query, $filters);
     }
 
     public function retrieve(Role $role): Role
     {
         $this->assertVisible($role);
 
-        return $role->load(responseRelationsToLoad());
+        return $role;
     }
 
     public function create(RoleData $data): Role
@@ -73,7 +73,7 @@ class RoleService
             throw $exception;
         }
 
-        return $role->load(responseRelationsToLoad());
+        return $role;
     }
 
     public function update(Role $role, RoleData $data): Role
@@ -117,7 +117,7 @@ class RoleService
             throw $exception;
         }
 
-        return $updated->load(responseRelationsToLoad());
+        return $updated;
     }
 
     /** Soft-delete a tenant role without a non-deleted member assignment. */

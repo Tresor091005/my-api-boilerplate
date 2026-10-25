@@ -6,7 +6,14 @@ namespace Lahatre\Iam\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Lahatre\Iam\Models\User;
 
+/**
+ * The session issued after sign-in, with the account it belongs to. Built in code, so it stays
+ * outside response selection.
+ *
+ * @mixin User
+ */
 class AuthResource extends JsonResource
 {
     protected string $accessToken;
@@ -28,10 +35,23 @@ class AuthResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var User $user */
+        $user = $this->resource;
+        $values = UserResource::accountValues();
+
+        // the auth services load the memberships; without them the key is left out, as before
+        if (!$user->relationLoaded('organizationMemberships')) {
+            unset($values['member_roles']);
+        }
+
         return [
             'access_token' => $this->accessToken,
             'token_type'   => 'Bearer',
-            'user'         => UserResource::make($this->resource),
+            'user'         => [
+                ...array_map(fn (array $value): mixed => $value['read']($user), $values),
+                // a new session has no member role yet
+                'current_member_role_id' => null,
+            ],
         ];
     }
 }

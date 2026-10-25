@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Iam\Data\MemberRoleCreateData;
 use Lahatre\Iam\Data\MemberRoleDeleteData;
@@ -13,17 +12,16 @@ use Lahatre\Iam\Data\MemberRoleUpdateData;
 use Lahatre\Iam\Http\Requests\MemberRoleCreateRequest;
 use Lahatre\Iam\Http\Requests\MemberRoleDeleteRequest;
 use Lahatre\Iam\Http\Requests\MemberRoleUpdateRequest;
-use Lahatre\Iam\Http\Resources\MemberRoleCollection;
+use Lahatre\Iam\Http\Resources\MemberRoleResource;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Services\MemberRoleService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class MemberRoleController
 {
     public function __construct(
         protected MemberRoleService $memberRoles,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function store(MemberRoleCreateRequest $request, OrganizationMember $organizationMember): JsonResponse|Response
@@ -31,7 +29,7 @@ class MemberRoleController
         Gate::authorize('update', $organizationMember);
         $assignments = $this->memberRoles->create($organizationMember, MemberRoleCreateData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => MemberRoleCollection::make($assignments), status: 201);
+        return ApiResponse::list($assignments, MemberRoleResource::class, 201);
     }
 
     public function destroy(MemberRoleDeleteRequest $request, OrganizationMember $organizationMember): Response
@@ -39,7 +37,7 @@ class MemberRoleController
         Gate::authorize('update', $organizationMember);
         $this->memberRoles->delete($organizationMember, MemberRoleDeleteData::fromArray($request->validated()));
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function update(MemberRoleUpdateRequest $request, OrganizationMember $organizationMember): JsonResponse|Response
@@ -47,6 +45,6 @@ class MemberRoleController
         Gate::authorize('update', $organizationMember);
         $assignments = $this->memberRoles->update($organizationMember, MemberRoleUpdateData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): JsonResource => MemberRoleCollection::make($assignments));
+        return ApiResponse::list($assignments, MemberRoleResource::class);
     }
 }

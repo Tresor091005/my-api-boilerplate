@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Iam\Models\User;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin User */
-class UserProfileResource extends JsonResource
+/**
+ * Another user as organization members see them: no id and no account details.
+ */
+class UserProfileResource extends ApiResource
 {
-    /** @return array{first_name: string|null, last_name: string|null, email: string} */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'first_name' => $this->first_name,
-            'last_name'  => $this->last_name,
-            'email'      => $this->email,
-        ];
+        $resource
+            ->field('first_name')
+            ->field('last_name')
+            ->field('email');
     }
 }

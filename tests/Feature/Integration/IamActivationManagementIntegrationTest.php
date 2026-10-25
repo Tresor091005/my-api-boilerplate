@@ -116,11 +116,11 @@ it('changes only role activation and restores access on the same token after rea
     $this->getJson('/v1/auth/current-permissions')->assertJsonPath('data.0.id', $permission->id);
 });
 
-it('changes only member activation and always includes its user profile in resource responses', function (): void {
+it('changes only member activation and includes its user profile in resource responses on request', function (): void {
     $context = iamActivationManagementContext();
     foreach ([false, true] as $isActive) {
         useIamActivationAccessToken($context['actorToken']);
-        $this->patchJson('/v1/iam/organization-members/'.$context['member']->id.'?response=resource&include=member_roles', ['is_active' => $isActive])
+        $this->patchJson('/v1/iam/organization-members/'.$context['member']->id.'?response=resource&include=user,member_roles.role', ['is_active' => $isActive])
             ->assertOk()->assertJsonPath('data.is_active', $isActive)
             ->assertJsonPath('data.user.email', $context['member']->user->email)
             ->assertJsonMissingPath('data.user.id')->assertJsonMissingPath('data.user_id')
@@ -145,7 +145,7 @@ it('updates a complete assignment batch without deleting records or clearing Spa
     $url = '/v1/iam/organization-members/'.$context['member']->id.'/member-roles';
     foreach ([false, true] as $isActive) {
         useIamActivationAccessToken($context['actorToken']);
-        $response = $this->patchJson($url.'?response=resource', ['member_role_ids' => $ids, 'is_active' => $isActive])
+        $response = $this->patchJson($url.'?response=resource&include=role', ['member_role_ids' => $ids, 'is_active' => $isActive])
             ->assertOk()->assertJsonCount(2, 'data');
         foreach ($response->json('data') as $assignment) {
             expect($assignment['is_active'])->toBe($isActive)->and($assignment['role']['is_active'])->toBeTrue();
@@ -170,7 +170,7 @@ it('creates suspended assignments with Spatie roles ready for reactivation', fun
     $context = iamActivationManagementContext();
     $role = Role::factory()->create(['team_id' => $context['organization']->id]);
     $url = '/v1/iam/organization-members/'.$context['member']->id.'/member-roles';
-    $response = $this->postJson($url.'?response=resource', ['role_ids' => [$role->id], 'is_active' => false])
+    $response = $this->postJson($url.'?response=resource&include=role', ['role_ids' => [$role->id], 'is_active' => false])
         ->assertCreated()->assertJsonPath('data.0.is_active', false)->assertJsonPath('data.0.role.id', $role->id);
     $assignment = MemberRole::query()->findOrFail($response->json('data.0.id'));
     $targetToken = iamActivationAccessToken($context['member']->user, $assignment);

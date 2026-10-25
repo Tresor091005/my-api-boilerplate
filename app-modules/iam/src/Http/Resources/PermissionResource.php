@@ -4,22 +4,17 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Iam\Models\Permission;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Permission
- */
-class PermissionResource extends JsonResource
+class PermissionResource extends ApiResource
 {
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'          => $this->id,
-            'name'        => $this->name,
-            'title'       => $this->title,
-            'description' => $this->description,
-        ];
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('title')
+            ->field('description');
     }
 }

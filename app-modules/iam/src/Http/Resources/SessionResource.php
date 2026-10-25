@@ -4,31 +4,38 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Iam\Auth\PersonalAccessToken;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin PersonalAccessToken */
-class SessionResource extends JsonResource
+/**
+ * A sign-in session. The token secret and abilities are never shown.
+ */
+class SessionResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        $lastRequest = $this->getMeta('session.last_request');
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('is_current', columns: [], computedBy: fn (Model $session): bool => $session->getKey() === request()->user()?->currentAccessToken()?->getKey())
+            ->field('created_at')
+            ->field('last_used_at')
+            ->field('expires_at')
+            ->field('authentication_method', columns: ['metadata'], computedBy: fn (Model $session): mixed => self::meta($session, 'session.authentication_method'))
+            ->field('last_request', columns: ['metadata'], computedBy: function (Model $session): ?array {
+                $lastRequest = self::meta($session, 'session.last_request');
 
-        return [
-            'id'                    => $this->id,
-            'name'                  => $this->name,
-            'is_current'            => $this->id === $request->user()?->currentAccessToken()?->getKey(),
-            'created_at'            => $this->created_at,
-            'last_used_at'          => $this->last_used_at,
-            'expires_at'            => $this->expires_at,
-            'authentication_method' => $this->getMeta('session.authentication_method'),
-            'last_request'          => is_array($lastRequest) ? [
-                'at'       => $lastRequest['at'] ?? null,
-                'device'   => $lastRequest['device'] ?? null,
-                'location' => $lastRequest['location'] ?? null,
-            ] : null,
-        ];
+                return is_array($lastRequest) ? [
+                    'at'       => $lastRequest['at'] ?? null,
+                    'device'   => $lastRequest['device'] ?? null,
+                    'location' => $lastRequest['location'] ?? null,
+                ] : null;
+            });
+    }
+
+    private static function meta(Model $session, string $key): mixed
+    {
+        return data_get($session->getAttribute('metadata'), $key);
     }
 }

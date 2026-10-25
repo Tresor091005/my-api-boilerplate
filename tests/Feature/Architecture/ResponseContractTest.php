@@ -51,26 +51,18 @@ it('keeps payload-producing IAM endpoints resource responses by default', functi
         'lahatre.iam.auth.organizations.store',
         'lahatre.iam.auth.invitations.accept',
         'lahatre.iam.auth.logout',
-        'lahatre.iam.auth.switch-member-role',
     ] as $routeName) {
         expect($registry->forRoute($routeName)?->resolveMode(null, 'POST'))
             ->toBe(ResponseMode::Resource);
     }
 });
 
-it('declares the user relationships required by IAM resources', function (): void {
+it('serves the IAM user responses through response selection, without a legacy contract', function (): void {
     $registry = app(ResponseContractRegistry::class);
+    $declarations = app(ResponseDeclarationRegistry::class);
 
-    foreach ([
-        'lahatre.iam.auth.email-challenge-verifications.store',
-        'lahatre.iam.auth.google-challenge-verifications.store',
-        'lahatre.iam.invitations.accept',
-        'lahatre.iam.auth.me',
-        'lahatre.iam.auth.switch-member-role',
-    ] as $routeName) {
-        expect($registry->forRoute($routeName)?->resolveShape(null))
-            ->not->toBeNull()
-            ->and($registry->forRoute($routeName)?->resolveShape(null)->relationsToLoad([]))
-            ->toContain('organizationMemberships.memberRoles.role');
+    foreach (['lahatre.iam.auth.me', 'lahatre.iam.auth.me.update', 'lahatre.iam.auth.switch-member-role'] as $routeName) {
+        expect($registry->forRoute($routeName))->toBeNull()
+            ->and($declarations->for(Route::getRoutes()->getByName($routeName)))->not->toBeNull();
     }
 });

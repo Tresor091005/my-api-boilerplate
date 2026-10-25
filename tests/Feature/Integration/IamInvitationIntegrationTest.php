@@ -223,7 +223,7 @@ it('replaces offered roles without changing the emailed token and acceptance use
     $this->withToken($accepted->json('data.access_token'));
     app('auth')->forgetGuards();
     $activeMemberRole = $memberRoles->firstWhere('role_id', $roles->first()->id);
-    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $activeMemberRole->id])->assertOk();
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $activeMemberRole->id])->assertNoContent();
     app('auth')->forgetGuards();
     $this->getJson('/v1/auth/current-permissions')->assertOk()->assertJsonPath('data.0.id', $permission->id);
     expect($invitation->fresh()->accepted_at)->not->toBeNull()->and($invitation->fresh()->token_hash)->toBeNull();
@@ -241,6 +241,62 @@ it('validates optional names and requires the token to match the invited email',
     $this->postJson('/v1/iam/invitations/accept', newInvitedUserPayload('wrong@example.com', $token))
         ->assertUnprocessable()->assertJsonValidationErrors('token');
     expect(User::query()->where('email', $invitation->email)->exists())->toBeFalse();
+});
+
+it('answers a public acceptance with the same auth payload as before', function (): void {
+    $context = authenticatedInvitationContext();
+    $user = User::factory()->create(['first_name' => 'Ada', 'last_name' => 'Lovelace']);
+    $invitation = createInvitationThroughApi($user->email, [$context['role']->id]);
+    $job = queuedInvitationLinks()->first();
+
+    $response = currentTestCase()->withHeader('Authorization', '')
+        ->postJson('/v1/iam/invitations/accept', ['email' => $user->email, 'token' => $job->token])->assertCreated();
+
+    $memberRole = MemberRole::query()->whereHas('organizationMember', fn ($query) => $query->where('user_id', $user->id))->firstOrFail();
+    expect($response->json('data'))->toBe([
+        'access_token' => $response->json('data.access_token'),
+        'token_type'   => 'Bearer',
+        'user'         => [
+            'id'                     => $user->id,
+            'first_name'             => 'Ada',
+            'last_name'              => 'Lovelace',
+            'email'                  => $user->email,
+            'profile_complete'       => true,
+            'default_member_role_id' => null,
+            'current_member_role_id' => null,
+            'member_roles'           => [[
+                'id'              => $memberRole->id,
+                'member_id'       => $memberRole->member_id,
+                'organization_id' => $context['organization']->id,
+                'role_id'         => $context['role']->id,
+                'is_default'      => false,
+                'role'            => [
+                    'id'          => $context['role']->id,
+                    'name'        => $context['role']->name,
+                    'description' => $context['role']->description,
+                    'is_builtin'  => false,
+                ],
+                'organization' => [
+                    'id'   => $context['organization']->id,
+                    'name' => $context['organization']->name,
+                ],
+            ]],
+        ],
+    ]);
+    expect($invitation->fresh()->accepted_at)->not->toBeNull();
+});
+
+it('shows only the offered roles that belong to the invitation organization', function (): void {
+    $context = authenticatedInvitationContext();
+    $invitation = createInvitationThroughApi('offered@example.com', [$context['role']->id]);
+    // a role of another organization recorded under this invitation, outside the API's validation
+    $foreignRole = Role::factory()->create(['team_id' => Organization::factory()->create()->id]);
+    $invitation->roles()->attach($foreignRole->id, ['organization_id' => $context['organization']->id]);
+
+    $this->getJson("/v1/iam/invitations/{$invitation->id}?include=roles")->assertOk()
+        ->assertJsonCount(1, 'data.roles')->assertJsonPath('data.roles.0.id', $context['role']->id);
+    $this->getJson('/v1/iam/invitations?include=roles')->assertOk()
+        ->assertJsonCount(1, 'data.0.roles')->assertJsonPath('data.0.roles.0.id', $context['role']->id);
 });
 
 it('accepts an existing account without authentication and forbids supplied account fields', function (): void {
@@ -427,7 +483,7 @@ it('accepts a six day old invitation without names and completes the profile in 
         ->assertForbidden()->assertJsonPath('code', 'profile_incomplete');
     $this->patchJson('/v1/auth/me', ['first_name' => 'New', 'last_name' => 'Member'])->assertNoContent();
     app('auth')->forgetGuards();
-    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRoleId])->assertOk();
+    $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $memberRoleId])->assertNoContent();
     $this->postJson('/v1/iam/invitations/accept', ['email' => $invitation->email, 'token' => $token])
         ->assertUnprocessable()->assertJsonValidationErrors('token');
     expect(User::query()->where('email', $invitation->email)->firstOrFail()->tokens()->count())->toBe(1);

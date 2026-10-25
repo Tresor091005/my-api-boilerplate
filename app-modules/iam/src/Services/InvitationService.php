@@ -39,7 +39,7 @@ final class InvitationService
             $query->where('expires_at', '<=', now());
         }
 
-        return stableCursorPaginate(applyResponseContextToQuery($query), $filters);
+        return stableCursorPaginate($query, $filters);
     }
 
     public function retrieve(Invitation $invitation): Invitation
@@ -48,7 +48,7 @@ final class InvitationService
             throw InvitationException::unavailable();
         }
 
-        return $invitation->load(responseRelationsToLoad());
+        return $invitation;
     }
 
     /**
@@ -81,7 +81,7 @@ final class InvitationService
             return $invitation;
         });
 
-        return $invitation->load(responseRelationsToLoad());
+        return $invitation;
     }
 
     /**
@@ -101,7 +101,7 @@ final class InvitationService
             return $locked;
         });
 
-        return $updated->load(responseRelationsToLoad());
+        return $updated;
     }
 
     /** Rotate the token before delivery is queued; older queued jobs cannot restore it. */
@@ -117,7 +117,7 @@ final class InvitationService
             return $locked;
         });
 
-        return $updated->load(responseRelationsToLoad());
+        return $updated;
     }
 
     public function delete(Invitation $invitation): void

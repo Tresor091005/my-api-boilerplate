@@ -253,6 +253,18 @@ role. It requires an active organization role with `iam_permission.list` and has
 no mutation or detail routes. Invitations provide the member onboarding API;
 direct administration of existing member roles remains separate.
 
+IAM routes answering models use [response selection](../api/response-selection.md):
+`fields`, `include`, and `response=none|resource`, with writes answering `204`
+unless `?response=resource` is sent, including `PATCH /v1/auth/me` and
+`POST /v1/auth/switch-member-role`. After a switch, the returned account shows
+the newly selected `current_member_role_id`. The routes answering a payload built
+in code keep a legacy response contract and always answer a body: the sign-in
+payload (`access_token`, `token_type`, `user`) of email and Google verification
+and public invitation acceptance, the email and Google challenges, and the
+confirmation messages of registration, Google linking, authenticated
+organization creation and invitation acceptance, and logout. The sign-in payload shows the same account values as
+`GET /v1/auth/me`, listed once in `UserResource::accountValues()`.
+
 `/v1/iam/roles` supports listing, retrieving, creating, updating, and deleting
 roles. Reads include global built-in roles and roles belonging to the current
 organization. The API creates roles with the current organization's `team_id`,
@@ -260,8 +272,8 @@ organization. The API creates roles with the current organization's `team_id`,
 Only roles belonging to the current organization can be changed, and built-in
 roles are immutable. A role with a non-deleted member-role assignment cannot be
 deleted. Otherwise deletion is soft, retaining the role and its permission
-assignments in storage while excluding it from normal reads. `response-contracts.php`
-loads role permissions when `include=permissions` is requested. Deletion uses a scoped database
+assignments in storage while excluding it from normal reads. Role responses
+render permissions only with `include=permissions`. Deletion uses a scoped database
 query and explicitly clears Spatie's permission cache.
 
 Role creation accepts optional `is_active`, defaulting to `true`. Role updates
@@ -296,17 +308,18 @@ one non-deleted member. Both require `auth.api`; their permissions are
 `iam_organization_member.list` and `iam_organization_member.retrieve` respectively.
 A foreign-organization detail is forbidden, and a deleted member is not found.
 
-The default response contains the organization member ID, timestamps, and the
-user profile, loaded through `required_loads`. Member roles remain optional
-through `include=member_roles`, which loads each assignment with its role.
-`UserProfileResource` exposes only `first_name`,
+The default response contains the organization member ID, activation state, and
+timestamps. The user profile is rendered with `include=user`, member roles with
+`include=member_roles`, and each assignment's role with `include=member_roles.role`
+(without its permissions). `UserProfileResource` exposes only `first_name`,
 `last_name`, and `email`; neither `user_id` nor nested `user.id` is returned.
 Profiles do not load the user's other organization memberships. `UserResource` is reserved for the
-user's own login, current-user, and role-switch responses, where their user ID
-is available. Member roles exclude deleted assignments and are
-scoped to the current organization. Nested roles are available only when they
-belong to this organization or are global built-ins for the active guard;
-unavailable or deleted roles resolve to `null`.
+user's own current-user, profile-update, and role-switch responses, where their user ID
+is available; the sign-in payload shows the same values. Member roles exclude deleted assignments and are
+scoped to the member's organization (`OrganizationMember::organizationMemberRoles()`).
+Nested roles are available only when they belong to that organization or are global
+built-ins for the active guard (`MemberRole::canUseRole()`); unavailable or deleted
+roles resolve to `null`.
 
 Pagination accepts `per_page` (1–100, default 50), `cursor`, `sort_by`
 (`id`, `created_at`, or `updated_at`, default `created_at`), and `sort_order`
@@ -331,8 +344,8 @@ required `is_active` boolean and uses `iam_organization_member.update`. It chang
 membership activation without changing assignment or role states. The owner
 cannot be deactivated. The service locks the membership in its transaction,
 sharing the same lock as assignment mutations and removal. It returns `204` by
-default or `200` with the member resource for `?response=resource`; the user
-profile remains a required load and member roles remain optional includes.
+default or `200` with the member resource for `?response=resource`, with the
+same `include` options as the reads.
 
 ### Member role batches
 
@@ -349,8 +362,8 @@ role, then calls `syncRoles($role)` for each assignment in the organization's
 Spatie team context. All steps share one transaction, and the previous team
 context is restored afterward. Creation returns `204` by default,
 or `201` with the newly created assignments for `?response=resource`.
-Each returned assignment always loads its role through `required_loads`, without
-permission includes. Creation accepts optional `is_active`, defaulting to
+A returned assignment shows its role with `include=role`, without its
+permissions. Creation accepts optional `is_active`, defaulting to
 `true`, and still synchronizes Spatie roles for suspended assignments.
 
 `PUT/PATCH` on the same URI takes `member_role_ids` and required `is_active`.
@@ -361,8 +374,8 @@ An unavailable target rejects the entire batch. Deactivation protects the
 owner's Administrator assignment through the same `MemberRoleDeletionService`
 check as removal. Assignment activation is independent of membership and role
 activation, including when either remains suspended. No Spatie roles are cleared
-or reassigned. Updates return `204` by default or a `200` collection with each
-assignment's required role for `?response=resource`, without permission includes.
+or reassigned. Updates return `204` by default or a `200` collection for
+`?response=resource`, with roles through `include=role` and without their permissions.
 
 Removal calls `syncRoles([])` on each selected assignment before their bulk
 soft delete, scoped to the current organization and parent member. Member

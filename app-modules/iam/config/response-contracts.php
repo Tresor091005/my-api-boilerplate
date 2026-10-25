@@ -2,132 +2,21 @@
 
 declare(strict_types=1);
 
-$resourceModeContracts = array_fill_keys(
-    [
-        'lahatre.iam.auth.email-challenges.store',
-        'lahatre.iam.auth.google-challenges.store',
-        'lahatre.iam.auth.google-identities.store',
-        'lahatre.iam.auth.organizations.store',
-        'lahatre.iam.auth.invitations.accept',
-        'lahatre.iam.auth.organization-registration-tokens.store',
-        'lahatre.iam.auth.organization-registrations.store',
-        'lahatre.iam.auth.logout',
-    ],
-    ['default_mode' => 'resource'],
-);
-
-$authResourceContracts = array_fill_keys(
-    ['lahatre.iam.auth.email-challenge-verifications.store', 'lahatre.iam.auth.google-challenge-verifications.store', 'lahatre.iam.invitations.accept'],
-    [
-        'default_mode'  => 'resource',
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
-        ]],
-    ],
-);
-
-$userResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.auth.me',
-        'lahatre.iam.auth.switch-member-role',
-    ],
-    [
-        'default_mode'  => 'resource',
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
-        ]],
-    ],
-);
-
-$roleResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.roles.index',
-        'lahatre.iam.roles.show',
-        'lahatre.iam.roles.store',
-        'lahatre.iam.roles.update',
-    ],
-    [
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'includes' => [
-                'permissions' => ['loads' => ['permissions']],
-            ],
-        ]],
-    ],
-);
-
-$invitationResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.invitations.index',
-        'lahatre.iam.invitations.show',
-        'lahatre.iam.invitations.store',
-        'lahatre.iam.invitations.roles.update',
-        'lahatre.iam.invitations.resend',
-    ],
-    [
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'includes' => [
-                'roles' => ['loads' => ['roles']],
-            ],
-        ]],
-    ],
-);
-
-$organizationMemberResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.organization-members.index',
-        'lahatre.iam.organization-members.show',
-        'lahatre.iam.organization-members.update',
-    ],
-    [
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'required_loads' => ['user'],
-            'includes'       => [
-                'member_roles' => ['loads' => ['memberRoles.role']],
-            ],
-        ]],
-    ],
-);
-
-$memberRoleResourceContracts = array_fill_keys(
-    [
-        'lahatre.iam.organization-members.member-roles.store',
-        'lahatre.iam.organization-members.member-roles.update',
-    ],
-    [
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'required_loads' => ['role'],
-        ]],
-    ],
-);
-
+// Every other IAM route answers through ApiResponse (response selection). The routes below answer
+// a payload built in code, so they keep a legacy contract until the legacy middleware is removed.
+// They answer a body by default, although they are writes.
 return [
-    ...$resourceModeContracts,
-    ...$authResourceContracts,
-    ...$userResourceContracts,
-    ...$roleResourceContracts,
-    ...$invitationResourceContracts,
-    ...$organizationMemberResourceContracts,
-    ...$memberRoleResourceContracts,
-    'lahatre.iam.auth.me.update' => [
-        'default_shape' => 'default',
-        'shapes'        => ['default' => [
-            'required_loads' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
-        ]],
-    ],
-    // GET already defaults to a resource; permission output has no relations or alternate shapes.
-    'lahatre.iam.auth.sessions.index'                       => [],
-    'lahatre.iam.auth.sessions.destroy'                     => [],
-    'lahatre.iam.auth.sessions.destroy-all'                 => [],
-    'lahatre.iam.auth.current-permissions'                  => [],
-    'lahatre.iam.permissions.index'                         => [],
-    'lahatre.iam.invitations.destroy'                       => [],
-    'lahatre.iam.roles.destroy'                             => [],
-    'lahatre.iam.organization-members.destroy'              => [],
-    'lahatre.iam.organization-members.member-roles.destroy' => [],
+    // a confirmation message, or the challenge to complete
+    'lahatre.iam.auth.organization-registrations.store'       => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.organization-registration-tokens.store' => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.email-challenges.store'                 => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.google-challenges.store'                => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.google-identities.store'                => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.organizations.store'                    => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.invitations.accept'                     => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.logout'                                 => ['default_mode' => 'resource'],
+    // the AuthResource payload: an access token and the account it belongs to
+    'lahatre.iam.auth.email-challenge-verifications.store'  => ['default_mode' => 'resource'],
+    'lahatre.iam.auth.google-challenge-verifications.store' => ['default_mode' => 'resource'],
+    'lahatre.iam.invitations.accept'                        => ['default_mode' => 'resource'],
 ];

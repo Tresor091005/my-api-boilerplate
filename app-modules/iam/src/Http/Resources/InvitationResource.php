@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Iam\Models\Invitation;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin Invitation */
-class InvitationResource extends JsonResource
+class InvitationResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'          => $this->id,
-            'email'       => $this->email,
-            'expires_at'  => $this->expires_at,
-            'accepted_at' => $this->accepted_at,
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
-            'roles'       => $this->whenLoaded('roles', fn () => RoleResource::collection($this->roles)),
-        ];
+        $resource
+            ->field('id')
+            ->field('email')
+            ->field('expires_at')
+            ->field('accepted_at')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('roles', RoleSummaryResource::class, relation: 'organizationRoles');
     }
 }

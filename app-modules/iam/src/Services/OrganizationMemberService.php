@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Services;
 
 use Illuminate\Contracts\Pagination\CursorPaginator;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Iam\Data\OrganizationMemberFilterData;
 use Lahatre\Iam\Data\OrganizationMemberUpdateData;
@@ -25,8 +24,7 @@ final class OrganizationMemberService
     public function paginate(OrganizationMemberFilterData $filters): CursorPaginator
     {
         $organizationId = currentOrganizationId();
-        $query = OrganizationMember::query()->where('organization_id', $organizationId)
-            ->with($this->relationsToLoad($organizationId));
+        $query = OrganizationMember::query()->where('organization_id', $organizationId);
 
         return stableCursorPaginate($query, $filters);
     }
@@ -39,7 +37,7 @@ final class OrganizationMemberService
             throw OrganizationMemberException::unavailable();
         }
 
-        return $member->load($this->relationsToLoad($organizationId));
+        return $member;
     }
 
     /**
@@ -66,7 +64,7 @@ final class OrganizationMemberService
             return $locked;
         });
 
-        return $updated->load($this->relationsToLoad($organizationId));
+        return $updated;
     }
 
     /**
@@ -93,22 +91,5 @@ final class OrganizationMemberService
             $this->memberRoleDeletions->delete($locked, $memberRoles);
             $locked->delete();
         });
-    }
-
-    /** @return array<int|string, string|\Closure> */
-    private function relationsToLoad(string $organizationId): array
-    {
-        $relations = responseRelationsToLoad();
-        if (in_array('memberRoles', $relations, true) || in_array('memberRoles.role', $relations, true)) {
-            $relations['memberRoles'] = fn (Relation $query) => $query->where('organization_id', $organizationId);
-        }
-        if (in_array('memberRoles.role', $relations, true)) {
-            $relations['memberRoles.role'] = fn (Relation $query) => $query
-                ->where('guard_name', config('auth.defaults.guard'))
-                ->where(fn ($query) => $query->where('team_id', $organizationId)
-                    ->orWhere(fn ($query) => $query->whereNull('team_id')->where('is_builtin', true)));
-        }
-
-        return $relations;
     }
 }

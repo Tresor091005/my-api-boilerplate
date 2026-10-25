@@ -68,6 +68,21 @@ class AuthContext
         $this->role = $role;
     }
 
+    /**
+     * Publish a member role the caller already resolved and validated, with its member,
+     * organization and role loaded, without querying again.
+     */
+    public function useMemberRole(Authenticatable $user, MemberRole $memberRole): void
+    {
+        $member = $memberRole->organizationMember;
+
+        $this->user = $user;
+        $this->organization = $member->organization;
+        $this->member = $member;
+        $this->memberRole = $memberRole;
+        $this->role = $memberRole->role;
+    }
+
     public function clear(): void
     {
         $this->user = null;

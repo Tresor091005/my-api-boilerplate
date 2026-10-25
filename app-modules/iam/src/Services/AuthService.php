@@ -47,7 +47,8 @@ class AuthService
             ],
         ]);
         $this->sessions->queueEnrichment($token->accessToken, $session);
-        $user->load(responseRelationsToLoad());
+        // the auth payload shows the user's member roles in every organization
+        $user->load(['organizationMemberships.organization', 'organizationMemberships.memberRoles.role']);
 
         return ['user' => $user, 'token' => $token->plainTextToken];
     }
@@ -57,8 +58,6 @@ class AuthService
      */
     public function me(User $user): User
     {
-        $user->load(responseRelationsToLoad());
-
         return $user;
     }
 
@@ -78,7 +77,7 @@ class AuthService
                 'default_member_role_id' => $data->defaultMemberRoleId,
             ]));
 
-            return $user->refresh()->load(responseRelationsToLoad());
+            return $user->refresh();
         });
     }
 
@@ -94,7 +93,8 @@ class AuthService
     }
 
     /**
-     * Switch the current user role and return the updated user.
+     * Switch the current user role and return the updated user. The rest of the request
+     * runs as the new member role: the auth context is updated without another query.
      */
     public function switchMemberRole(User $user, string $memberRoleId): User
     {
@@ -118,8 +118,8 @@ class AuthService
         });
         $token->setAttribute('metadata', $metadata);
         $token->syncOriginalAttribute('metadata');
-
-        $user->load(responseRelationsToLoad());
+        // the rest of this request, and its response, run as the new member role
+        authContext()->useMemberRole($user, $memberRole);
 
         return $user;
     }

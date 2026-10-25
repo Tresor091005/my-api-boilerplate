@@ -66,30 +66,22 @@ it('applies one shared shape to every contract that references it', function ():
         ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
 });
 
-it('loads user relationships only for IAM responses that return a user', function (): void {
+it('answers the IAM payload routes with a body and leaves the user routes to response selection', function (): void {
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
     $login = $registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store');
     $organizationRegistration = $registry->forRoute('lahatre.iam.auth.organization-registrations.store');
-    $me = $registry->forRoute('lahatre.iam.auth.me');
-    $switchMemberRole = $registry->forRoute('lahatre.iam.auth.switch-member-role');
 
+    // the sign-in payload loads the user's memberships itself (AuthService::issueToken)
     expect($login)->not->toBeNull()
         ->and($organizationRegistration)->not->toBeNull()
-        ->and($me)->not->toBeNull()
-        ->and($switchMemberRole)->not->toBeNull()
         ->and($login->defaultMode)->toBe(ResponseMode::Resource)
-        ->and($login->shapes['default']->requiredLoads)
-        ->toBe(['organizationMemberships.memberRoles.role'])
+        ->and($login->resolveShape(null))->toBeNull()
         ->and($organizationRegistration->defaultMode)->toBe(ResponseMode::Resource)
         ->and($organizationRegistration->resolveShape(null))->toBeNull()
-        ->and($me->defaultMode)->toBe(ResponseMode::Resource)
-        ->and($switchMemberRole->defaultMode)->toBe(ResponseMode::Resource)
-        ->and($me->shapes['default']->requiredLoads)
-        ->toBe($login->shapes['default']->requiredLoads)
-        ->and($switchMemberRole->shapes['default']->requiredLoads)
-        ->toBe($login->shapes['default']->requiredLoads);
+        ->and($registry->forRoute('lahatre.iam.auth.me'))->toBeNull()
+        ->and($registry->forRoute('lahatre.iam.auth.switch-member-role'))->toBeNull();
 });
 
 it('maps every relation-backed resource operation to required loads or includes', function (): void {

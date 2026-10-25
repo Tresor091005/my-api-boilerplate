@@ -76,7 +76,7 @@ final class MemberRoleService
             return $assignments;
         });
 
-        return $assignments->load(responseRelationsToLoad());
+        return $assignments;
     }
 
     /**
@@ -118,7 +118,7 @@ final class MemberRoleService
             return $assignments;
         });
 
-        return $assignments->load(responseRelationsToLoad());
+        return $assignments;
     }
 
     /**

@@ -20,7 +20,7 @@ and the global API rate limiter. Business module routes additionally use
 | GET | `/v1/auth/me` | Sanctum + optional organization context | Return the current user and selected member role. |
 | PATCH | `/v1/auth/me` | Sanctum, account owner | Update names and the nullable default member role preference. |
 | POST | `/v1/auth/logout` | Sanctum + optional organization context | Revoke the current access token. |
-| POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token. |
+| POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token; `204` by default, the account with `?response=resource`. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
 | GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
 
@@ -177,7 +177,10 @@ See [passwordless authentication](../modules/iam.md#email-otp-and-sessions).
 
 ## IAM roles
 
-All role routes use `auth.api` and the matching `iam_role` ability.
+All role routes use `auth.api` and the matching `iam_role` ability. IAM routes
+answering models (roles, members, member roles, invitations, permissions,
+sessions, `auth/me`, role switching) use [response selection](response-selection.md);
+the sign-in payloads and confirmation messages above keep their legacy contract.
 
 | Method | URI | Ability | Purpose |
 | --- | --- | --- | --- |
@@ -204,8 +207,8 @@ Mutations return `204` by default; create and update accept
 | PUT/PATCH | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.update` | Change membership activation with required `is_active`; the owner cannot be deactivated. |
 | DELETE | `/v1/iam/organization-members/{organizationMember}` | `auth.api` + `iam_organization_member.delete` | Clear role assignments and soft-delete a member, except the owner. |
 
-The user profile is always included. Member roles are optional through
-`include=member_roles`, which also loads their nested roles. See [organization members](../modules/iam.md#organization-members)
+The user profile is rendered with `include=user`, member roles with
+`include=member_roles`, and their roles with `include=member_roles.role`. See [organization members](../modules/iam.md#organization-members)
 for pagination and visibility rules. Updates return `204` by default or `200`
 with `?response=resource`, and never change role or assignment activation.
 
@@ -222,8 +225,8 @@ only non-deleted custom roles from the current organization and accept optional
 `is_active`, defaulting to `true`. The owner's
 Administrator assignment is protected from withdrawal and deactivation; other removals may leave
 zero roles. Addition returns `204` by default, or a `201` collection with
-`?response=resource`. Each returned assignment always includes its role, without
-its permissions. Updates return `204` by default, or a `200` collection with
+`?response=resource`. A returned assignment includes its role with `include=role`,
+without its permissions. Updates return `204` by default, or a `200` collection with
 `?response=resource`. They retain Spatie role associations and change neither
 membership nor role activation.
 See [member role batches](../modules/iam.md#member-role-batches).
@@ -248,9 +251,9 @@ Responses load roles only with `include=roles`, without permission includes.
 There is no generic invitation update route.
 
 Public acceptance takes `email` and `token`, plus names
-only for new accounts. Existing accounts must omit those fields. It returns a
-`201` success message without user data or an access token. The recipient then
-logs in and switches to an available member role. See the
+only for new accounts. Existing accounts must omit those fields. It returns
+`201` with the sign-in payload (`access_token`, `token_type`, `user`) of a new
+session. The recipient then switches to an available member role. See the
 [IAM invitation workflow](../modules/iam.md#organization-invitations) for
 record reuse, expiry, token rotation, and concurrency guarantees.
 

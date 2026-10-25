@@ -88,7 +88,7 @@ it('creates a batch with required roles and synchronizes effective team permissi
     $roles = Role::factory()->count(2)->create(['team_id' => $context['organization']->id]);
     $permission = Permission::factory()->create(['name' => 'catalog_product.list']);
     $roles->first()->givePermissionTo($permission);
-    $response = $this->postJson(memberRoleManagementUrl($context['member']).'?response=resource', [
+    $response = $this->postJson(memberRoleManagementUrl($context['member']).'?response=resource&include=role', [
         'role_ids' => $roles->modelKeys(),
     ])->assertCreated()->assertJsonCount(2, 'data')->assertJsonMissingPath('data.0.role.permissions')
         ->assertJsonMissingPath('data.0.organization_id');
@@ -110,11 +110,11 @@ it('creates a batch with required roles and synchronizes effective team permissi
         ->assertJsonPath('data.0.name', $permission->name);
 });
 
-it('defaults to no content and always loads the nested role in an explicit resource', function (): void {
+it('defaults to no content and loads the nested role on request in an explicit resource', function (): void {
     $context = authenticatedMemberRoleManagementContext();
     $roles = Role::factory()->count(2)->create(['team_id' => $context['organization']->id]);
     $this->postJson(memberRoleManagementUrl($context['member']), ['role_ids' => [$roles[0]->id]])->assertNoContent();
-    $this->postJson(memberRoleManagementUrl($context['member']).'?response=resource', ['role_ids' => [$roles[1]->id]])
+    $this->postJson(memberRoleManagementUrl($context['member']).'?response=resource&include=role', ['role_ids' => [$roles[1]->id]])
         ->assertCreated()->assertJsonPath('data.0.role.id', $roles[1]->id)->assertJsonMissingPath('data.0.role.permissions');
     $this->postJson(memberRoleManagementUrl($context['member']).'?response=resource&include=role.permissions', ['role_ids' => [$roles[1]->id]])
         ->assertUnprocessable()->assertJsonValidationErrors('include');

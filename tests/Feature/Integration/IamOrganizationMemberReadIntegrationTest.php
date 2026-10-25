@@ -76,7 +76,7 @@ it('lists active members in the current organization and rejects foreign or dele
     $deleted->delete();
     $response = $this->getJson('/v1/iam/organization-members')->assertOk()->assertJsonCount(2, 'data');
     expect(array_column($response->json('data'), 'id'))->toContain($own->id, $context['member']->id);
-    $this->getJson("/v1/iam/organization-members/{$own->id}")->assertOk()
+    $this->getJson("/v1/iam/organization-members/{$own->id}?include=user")->assertOk()
         ->assertJsonPath('data.id', $own->id)->assertJsonMissingPath('data.user_id')
         ->assertJsonMissingPath('data.organization_id')
         ->assertJsonPath('data.user.first_name', $own->user->first_name)
@@ -105,7 +105,7 @@ it('always loads user profiles and loads active member roles only through reques
         'organization_id' => $otherMembership->organization_id, 'member_id' => $otherMembership->id,
         'role_id'         => Role::factory()->create(['team_id' => $otherMembership->organization_id])->id,
     ]);
-    $response = $this->getJson("/v1/iam/organization-members/{$member->id}?include=member_roles")->assertOk()
+    $response = $this->getJson("/v1/iam/organization-members/{$member->id}?include=user,member_roles.role")->assertOk()
         ->assertJsonMissingPath('data.user.id')->assertJsonMissingPath('data.user_id')
         ->assertJsonPath('data.user.email', $context['user']->email)
         ->assertJsonMissingPath('data.user.password')->assertJsonMissingPath('data.user.member_roles')
@@ -114,7 +114,7 @@ it('always loads user profiles and loads active member roles only through reques
     $assignments = collect($response->json('data.member_roles'))->keyBy('id');
     expect($assignments[$context['memberRole']->id]['role']['id'])->toBe($context['role']->id)
         ->and($assignments[$systemAssignment->id]['role']['is_builtin'])->toBeTrue();
-    $list = $this->getJson('/v1/iam/organization-members?include=member_roles')->assertOk()
+    $list = $this->getJson('/v1/iam/organization-members?include=user,member_roles.role')->assertOk()
         ->assertJsonPath('data.0.user.email', $context['user']->email)->assertJsonCount(2, 'data.0.member_roles');
     expect(collect($list->json('data.0.member_roles'))->pluck('role.id')->all())
         ->toContain($context['role']->id, $systemRole->id);
@@ -131,7 +131,7 @@ it('never exposes global user ids in member lists or details, including another 
         $otherMember->id       => $otherUser,
     ];
 
-    foreach (['', '?include=member_roles'] as $query) {
+    foreach (['?include=user', '?include=user,member_roles.role'] as $query) {
         $list = $this->getJson('/v1/iam/organization-members'.$query)->assertOk()->assertJsonCount(2, 'data');
         foreach ($list->json('data') as $member) {
             expect($member)->not->toHaveKey('user_id');
@@ -164,7 +164,7 @@ it('returns the account id only to its owner through login, current-user, and ro
     $login = loginWithEmailCode($context['user']->email)->assertOk()->assertJsonPath('data.user.id', $context['user']->id);
     $me = $this->withToken($login->json('data.access_token'))->getJson('/v1/auth/me')
         ->assertOk()->assertJsonPath('data.id', $context['user']->id);
-    $switch = $this->postJson('/v1/auth/switch-member-role', ['member_role_id' => $context['memberRole']->id])
+    $switch = $this->postJson('/v1/auth/switch-member-role?response=resource', ['member_role_id' => $context['memberRole']->id])
         ->assertOk()->assertJsonPath('data.id', $context['user']->id);
 
     foreach ([$login, $me, $switch] as $response) {
@@ -187,7 +187,7 @@ it('does not expose a foreign organization assignment or an unavailable role thr
         'organization_id' => $context['organization']->id, 'member_id' => $context['member']->id, 'role_id' => $deletedRole->id,
     ]);
     $deletedRole->delete();
-    $response = $this->getJson("/v1/iam/organization-members/{$context['member']->id}?include=member_roles")
+    $response = $this->getJson("/v1/iam/organization-members/{$context['member']->id}?include=member_roles.role")
         ->assertOk()->assertJsonCount(3, 'data.member_roles');
     $assignments = collect($response->json('data.member_roles'))->keyBy('id');
     expect($assignments[$invalidRoleAssignment->id]['role'])->toBeNull()
