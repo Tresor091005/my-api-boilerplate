@@ -375,6 +375,12 @@ must be created as a new effective-dated rate. All exchange-rate routes require
 the dedicated model permissions. Settings are also organization-scoped and
 require the dedicated settings permissions.
 
+Organization routes use [response selection](response-selection.md): `?fields=`
+picks fields, such as `?fields=name,timezone` on the settings. Settings and
+exchange rates offer no include. Writes answer `204` by default; with
+`?response=resource`, rate creation returns the rate (`201`), and the settings
+and rate updates the updated record (`200`).
+
 ## Inventory reads and stock metadata
 
 | Method | URI | Purpose |

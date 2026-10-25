@@ -28,7 +28,7 @@ class OrganizationSettingsService
         /** @var OrganizationSetting $settings */
         $settings = $organization->settings()->firstOrFail();
 
-        return $settings->load(responseRelationsToLoad());
+        return $settings;
     }
 
     public function update(OrganizationSettingsData $data): OrganizationSetting
@@ -61,7 +61,7 @@ class OrganizationSettingsService
             $organization->update(withoutMissing(['name' => $data->name]));
             $settings->update($updates);
 
-            return $settings->refresh()->load(responseRelationsToLoad());
+            return $settings->refresh();
         });
     }
 

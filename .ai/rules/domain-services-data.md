@@ -43,17 +43,17 @@ paths:
   ViewData, or `void`, so they remain reusable from HTTP, Console, Jobs, and Schedulers.
 - Controllers own the HTTP presentation boundary and wrap service results in the
   appropriate Resource or ResourceCollection before returning the response.
-- Prefer a Resource when the output is centered on an Eloquent model, collection, or query row. In a legacy module, Resources may expose optional relations and aggregates with `whenLoaded()`, `whenCounted()`, and conditional fields.
+- Prefer a Resource when the output is centered on an Eloquent model, collection, or query row. A plain `JsonResource` left on a legacy contract may expose optional relations and aggregates with `whenLoaded()`, `whenCounted()`, and conditional fields.
 - Use ViewData only when the result has no natural model, collection, or query-row Resource, such as a multi-level aggregate or calculated projection assembled from several sources.
 - The service performs queries, grouping, calculations, and data preparation. ViewData defines only the named typed output shape and its `toArray()`/JSON serialization.
-- In a module migrated to response selection (all but organization), a
-  service returns its models without loading anything for the response: the
+- With response selection, a service returns its models without loading
+  anything for the response: the
   Resource declares what it reads and the engine loads it. The service still
   loads what its own logic needs, adds the aggregates its use case owns
   (`withCount()`, `withSum()`), and forgets a relation it made stale
   (`unsetRelation()`) before returning, since the engine reuses a loaded
   relation as it is.
-- In a legacy module, load every relation or aggregate required by a Resource or ViewData before constructing the output.
+- For a route left on a legacy contract, load every relation or aggregate required by its Resource or ViewData before constructing the output.
 
 ### Documentation
 

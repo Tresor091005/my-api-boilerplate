@@ -209,3 +209,25 @@ it('validates currency pairs and positive rates', function (): void {
             'rate',
         ]);
 });
+
+it('answers an exchange rate creation with no content by default', function (): void {
+    $this->postJson('/v1/organization/exchange-rates', [
+        'source_currency_code' => 'USD',
+        'target_currency_code' => 'EUR',
+        'rate'                 => '1.100000000000',
+        'effective_at'         => CarbonImmutable::now()->addDays(3)->toIso8601String(),
+    ])->assertNoContent();
+
+    expect(ExchangeRate::query()->where('organization_id', $this->organization->id)->value('rate'))->toBe('1.100000000000');
+});
+
+it('renders only the listed exchange rate fields and rejects includes, which rates do not offer', function (): void {
+    $rate = ExchangeRate::factory()->create(['organization_id' => $this->organization->id])->fresh();
+
+    $this->getJson("/v1/organization/exchange-rates/{$rate->id}?fields=rate")
+        ->assertOk()
+        ->assertExactJson(['data' => ['id' => $rate->id, 'rate' => $rate->rate]]);
+    $this->getJson("/v1/organization/exchange-rates/{$rate->id}?include=organization")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['include']);
+});
