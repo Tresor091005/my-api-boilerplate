@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Storage;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
+use Lahatre\Library\Models\File;
 use Lahatre\Master\Models\Address;
 use Lahatre\Master\Models\Contact;
 use Lahatre\Organization\Models\Organization;
@@ -61,7 +63,7 @@ beforeEach(function (): void {
 it('manages customer addresses through nested bulk and single endpoints', function (): void {
     $customer = Customer::factory()->create(['organization_id' => $this->organization->id]);
 
-    $created = $this->postJson("/v1/customer/customers/{$customer->id}/addresses", [
+    $created = $this->postJson("/v1/customer/customers/{$customer->id}/addresses?response=resource", [
         'addresses' => [[
             'line'       => 'Rue 123',
             'city'       => 'Cotonou',
@@ -75,7 +77,7 @@ it('manages customer addresses through nested bulk and single endpoints', functi
     ])->assertCreated()->assertJsonCount(2, 'data');
 
     $addressId = $created->json('data.1.id');
-    $this->patchJson("/v1/customer/customers/{$customer->id}/addresses/{$addressId}", [
+    $this->patchJson("/v1/customer/customers/{$customer->id}/addresses/{$addressId}?response=resource", [
         'city'       => 'Abomey-Calavi',
         'is_primary' => true,
     ])->assertOk()->assertJsonPath('data.city', 'Abomey-Calavi');
@@ -93,7 +95,7 @@ it('manages customer addresses through nested bulk and single endpoints', functi
 it('manages customer contacts through nested bulk and single endpoints', function (): void {
     $customer = Customer::factory()->create(['organization_id' => $this->organization->id]);
 
-    $created = $this->postJson("/v1/customer/customers/{$customer->id}/contacts", [
+    $created = $this->postJson("/v1/customer/customers/{$customer->id}/contacts?response=resource", [
         'contacts' => [[
             'type'       => 'email',
             'value'      => 'primary@example.test',
@@ -105,7 +107,7 @@ it('manages customer contacts through nested bulk and single endpoints', functio
     ])->assertCreated()->assertJsonCount(2, 'data');
 
     $contactId = $created->json('data.1.id');
-    $this->patchJson("/v1/customer/customers/{$customer->id}/contacts/{$contactId}", [
+    $this->patchJson("/v1/customer/customers/{$customer->id}/contacts/{$contactId}?response=resource", [
         'value'      => 'updated@example.test',
         'is_primary' => true,
     ])->assertOk()->assertJsonPath('data.value', 'updated@example.test');
@@ -115,4 +117,41 @@ it('manages customer contacts through nested bulk and single endpoints', functio
     ])->assertNoContent();
 
     expect(Contact::withTrashed()->whereKey($contactId)->value('deleted_at'))->not->toBeNull();
+});
+
+it('answers customer address and contact writes with no content unless the client asks for them', function (): void {
+    $customer = Customer::factory()->create(['organization_id' => $this->organization->id]);
+
+    $this->postJson("/v1/customer/customers/{$customer->id}/addresses", [
+        'addresses' => [['line' => 'Rue 123', 'city' => 'Cotonou', 'country' => 'Benin']],
+    ])->assertNoContent();
+    $this->postJson("/v1/customer/customers/{$customer->id}/contacts", [
+        'contacts' => [['type' => 'email', 'value' => 'hello@example.test']],
+    ])->assertNoContent();
+
+    $addressId = Address::query()->where('addressable_id', $customer->id)->value('id');
+    $contactId = Contact::query()->where('contactable_id', $customer->id)->value('id');
+
+    $this->patchJson("/v1/customer/customers/{$customer->id}/addresses/{$addressId}", ['city' => 'Ouidah'])->assertNoContent();
+    $this->patchJson("/v1/customer/customers/{$customer->id}/contacts/{$contactId}?response=resource&fields=value", [
+        'value' => 'updated@example.test',
+    ])->assertOk()->assertExactJson(['data' => ['id' => $contactId, 'value' => 'updated@example.test']]);
+});
+
+it('returns the customer profile picture with its file values when the client asks for it', function (): void {
+    Storage::fake('local');
+    $customer = Customer::factory()->create(['organization_id' => $this->organization->id]);
+    $image = File::factory()->create(['organization_id' => $this->organization->id, 'mime_type' => 'image/webp']);
+    Storage::disk('local')->put($image->storage_key, 'image bytes');
+
+    $response = $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture?response=resource&include=profile_picture_files", [
+        'file_id' => $image->id,
+    ])->assertOk()
+        ->assertJsonPath('data.profile_picture_files.0.file_id', $image->id)
+        ->assertJsonPath('data.profile_picture_files.0.name', $image->name)
+        ->assertJsonPath('data.profile_picture_files.0.mime_type', 'image/webp');
+
+    $attachmentId = $response->json('data.profile_picture_files.0.id');
+    $response->assertJsonPath('data.profile_picture_files.0.content_url', "/v1/customer/customers/{$customer->id}/files/{$attachmentId}/content");
+    $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => null])->assertNoContent();
 });

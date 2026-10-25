@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Customer\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Customer\Http\Requests\AddressCreateRequest;
 use Lahatre\Customer\Http\Requests\AddressDeleteRequest;
@@ -13,15 +12,13 @@ use Lahatre\Customer\Http\Requests\AddressUpdateRequest;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Master\Data\AddressCreateData;
 use Lahatre\Master\Data\AddressUpdateData;
-use Lahatre\Master\Http\Resources\AddressResource;
+use Lahatre\Master\Http\Resources\AddressApiResource;
 use Lahatre\Master\Models\Address;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class CustomerAddressController
 {
-    public function __construct(private ResponseResponder $responseResponder) {}
-
     public function store(Customer $customer, AddressCreateRequest $request): JsonResponse|Response
     {
         Gate::authorize('update', $customer);
@@ -32,10 +29,7 @@ final readonly class CustomerAddressController
         );
         $response = $customer->addAddresses($addresses);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => AddressResource::collection($response),
-            status: 201,
-        );
+        return ApiResponse::list($response, AddressApiResource::class, 201);
     }
 
     public function update(Customer $customer, Address $address, AddressUpdateRequest $request): JsonResponse|Response
@@ -49,7 +43,7 @@ final readonly class CustomerAddressController
         );
         $response = $customer->updateAddress($address, $data);
 
-        return $this->responseResponder->respond(fn (): AddressResource => AddressResource::make($response));
+        return ApiResponse::item($response, AddressApiResource::class);
     }
 
     public function destroy(Customer $customer, AddressDeleteRequest $request): Response
@@ -57,6 +51,6 @@ final readonly class CustomerAddressController
         Gate::authorize('update', $customer);
         $customer->removeAddresses($request->validated('ids'));
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

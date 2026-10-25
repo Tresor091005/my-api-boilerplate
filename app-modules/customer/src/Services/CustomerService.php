@@ -24,14 +24,14 @@ class CustomerService
     public function paginate(CustomerFilterData $filters): CursorPaginator
     {
         return stableCursorPaginate(
-            applyResponseContextToQuery($this->customersQuery($filters)),
+            $this->customersQuery($filters),
             $filters,
         );
     }
 
     public function retrieve(Customer $customer): Customer
     {
-        return $customer->load(responseRelationsToLoad());
+        return $customer;
     }
 
     public function create(CustomerData $data): Customer
@@ -50,7 +50,7 @@ class CustomerService
         return DB::transaction(function () use ($customer): Customer {
             $customer->save();
 
-            return $customer->load(responseRelationsToLoad());
+            return $customer;
         });
     }
 
@@ -68,7 +68,7 @@ class CustomerService
             ]));
             $lockedCustomer->save();
 
-            return $lockedCustomer->fresh()->load(responseRelationsToLoad());
+            return $lockedCustomer->fresh();
         });
     }
 

@@ -12,6 +12,15 @@ function responseContractCachePath(): string
     return App::bootstrapPath('cache/response-contracts.php');
 }
 
+/**
+ * Discovers the fixture module instead of the real ones: every real route left
+ * on contracts declares no shape.
+ */
+function useResponseContractFixtures(): void
+{
+    config(['app-modules.modules_directory' => 'tests/Fixtures/ResponseContracts']);
+}
+
 beforeEach(function (): void {
     config(['app.env' => 'testing']);
 
@@ -32,16 +41,17 @@ it('discovers response contracts from the application and module config files', 
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    expect($registry->forRoute('lahatre.customer.customers.show'))->not->toBeNull();
+    expect($registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store'))->not->toBeNull();
 });
 
-it('applies the same default shape to customer contracts', function (): void {
+it('applies one shared shape to every contract that references it', function (): void {
+    useResponseContractFixtures();
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    $show = $registry->forRoute('lahatre.customer.customers.show');
-    $store = $registry->forRoute('lahatre.customer.customers.store');
-    $update = $registry->forRoute('lahatre.customer.customers.update');
+    $show = $registry->forRoute('fixture.customers.show');
+    $store = $registry->forRoute('fixture.customers.store');
+    $update = $registry->forRoute('fixture.customers.update');
 
     expect($show)->not->toBeNull()
         ->and($store)->not->toBeNull()
@@ -49,8 +59,8 @@ it('applies the same default shape to customer contracts', function (): void {
 
     $showShape = $show->shapes['default'];
 
-    expect($showShape->requiredLoads)->toBe([])
-        ->and(array_keys($showShape->includes))->toBe(['addresses', 'contacts', 'files.profile_picture'])
+    expect($showShape->requiredLoads)->toBe(['organization'])
+        ->and(array_keys($showShape->includes))->toBe(['addresses', 'files.profile_picture'])
         ->and($store->shapes['default']->requiredLoads)->toBe($showShape->requiredLoads)
         ->and($store->shapes['default']->includes)->toEqual($showShape->includes)
         ->and($update->shapes['default']->includes)->toEqual($showShape->includes);
@@ -83,16 +93,13 @@ it('loads user relationships only for IAM responses that return a user', functio
 });
 
 it('maps every relation-backed resource operation to required loads or includes', function (): void {
+    useResponseContractFixtures();
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
     $expectations = [
-        'lahatre.customer.customers.show'     => ['addresses' => ['addresses'], 'files.profile_picture' => ['profilePictureFileAttachments.file']],
-        'lahatre.inventory.movements.index'   => ['location' => ['location']],
-        'lahatre.inventory.transactions.show' => ['movements' => ['movements']],
-        'lahatre.inventory.stocks.update'     => ['unit' => ['unit']],
-        'lahatre.master.units.index'          => ['group' => ['group']],
-        'lahatre.master.units.upsert'         => ['units' => ['units']],
+        'fixture.customers.show'   => ['addresses' => ['organization', 'addresses'], 'files.profile_picture' => ['profilePictureFileAttachments.file']],
+        'fixture.customers.update' => ['addresses' => ['addresses']],
     ];
 
     foreach ($expectations as $routeName => $includes) {
@@ -106,8 +113,8 @@ it('maps every relation-backed resource operation to required loads or includes'
         }
     }
 
-    expect($registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store')?->resolveShape(null)->requiredLoads)
-        ->toContain('organizationMemberships.memberRoles.role');
+    expect($registry->forRoute('fixture.customers.store')?->resolveShape(null)->requiredLoads)
+        ->toContain('organization');
 });
 
 it('ignores a response contract cache outside production and discovers definitions', function (): void {
@@ -121,7 +128,7 @@ it('ignores a response contract cache outside production and discovers definitio
     $registry = new ResponseContractRegistry;
     $registry->discover();
 
-    expect($registry->forRoute('lahatre.customer.customers.show'))->not->toBeNull()
+    expect($registry->forRoute('lahatre.iam.auth.email-challenge-verifications.store'))->not->toBeNull()
         ->and($registry->forRoute('custom.route'))->toBeNull();
 });
 
@@ -137,10 +144,11 @@ it('loads response contracts from the generated cache in production', function (
     $cachedRegistry->discover();
 
     expect($cachedRegistry->forRoute('custom.route'))->not->toBeNull()
-        ->and($cachedRegistry->forRoute('lahatre.customer.customers.show'))->toBeNull();
+        ->and($cachedRegistry->forRoute('lahatre.iam.auth.email-challenge-verifications.store'))->toBeNull();
 });
 
 it('caches response contracts from discovered definitions when no cache exists', function (): void {
+    useResponseContractFixtures();
     $registry = new ResponseContractRegistry;
     $registry->cache();
 
@@ -148,15 +156,14 @@ it('caches response contracts from discovered definitions when no cache exists',
 
     $cachedDefinitions = require responseContractCachePath();
 
-    expect($cachedDefinitions)->toHaveKey('lahatre.customer.customers.show')
+    expect($cachedDefinitions)->toHaveKey('fixture.customers.show')
         ->and(array_key_exists('_shapes', $cachedDefinitions))->toBeFalse()
-        ->and($cachedDefinitions['lahatre.customer.customers.show']['shapes']['default'])
-        ->and(array_key_exists('ref', $cachedDefinitions['lahatre.customer.customers.show']['shapes']['default']))->toBeFalse()
-        ->and($cachedDefinitions['lahatre.inventory.stocks.summary.index'])
+        ->and($cachedDefinitions['fixture.customers.show']['shapes']['default'])
+        ->toHaveKey('includes')
+        ->and(array_key_exists('ref', $cachedDefinitions['fixture.customers.show']['shapes']['default']))->toBeFalse()
+        ->and($cachedDefinitions['fixture.customers.export'])
         ->toEqual([])
-        ->and($cachedDefinitions['lahatre.inventory.items.locations.lots.index'])
-        ->toEqual([])
-        ->and($cachedDefinitions['lahatre.inventory.stocks.update']['shapes']['projection'])
+        ->and($cachedDefinitions['fixture.customers.update']['shapes']['default'])
         ->not->toHaveKey('ref');
 });
 

@@ -316,8 +316,17 @@ in Library when its customer is deleted.
 | PUT | `/v1/customer/customers/{customer}/files/profile-picture` | Replace with one UUID in `file_id`; `null` detaches. Requires customer `update`. |
 | GET | `/v1/customer/customers/{customer}/files/{attachment}/content` | Stream a linked image; requires customer `retrieve`. |
 
-`?include=files.profile_picture` adds the `files.profile_picture` array to
-customer list/detail and resource mutation responses.
+Customer routes answer through response selection. `?include=addresses`,
+`?include=contacts` and `?include=profile_picture_files` add those arrays to
+customer list/detail and resource mutation responses; without an include, none
+of them is rendered. Each profile picture attachment shows `id`, `slot`,
+`position`, `file_id`, the file's `name`, `mime_type`, `kind`, `extension` and
+`size`, and its `content_url`, each selectable:
+`?include=profile_picture_files(name,content_url)`.
+
+Address and contact create and update return `204` by default; with
+`?response=resource` they return the created addresses or contacts (`201`) or
+the updated one (`200`).
 
 ## Master data
 

@@ -88,12 +88,13 @@ it('runs in the api group, after authentication when the route requires it', fun
 it('documents the selection parameters of the routes answering through ApiResponse only', function (): void {
     $config = Scramble::getGeneratorConfig('default')
         ->cloneWithoutExposing('response-selection-test')
-        ->routes(fn (Route $route): bool => in_array($route->getName(), ['lahatre.catalog.products.index', 'lahatre.customer.customers.index'], true));
+        ->routes(fn (Route $route): bool => in_array($route->getName(), ['lahatre.catalog.products.index', 'lahatre.inventory.stocks.summary.index'], true));
 
     $document = app(Generator::class)($config);
     $parameters = fn (string $path): array => array_column($document['paths'][$path]['get']['parameters'] ?? [], 'name');
 
     expect($parameters('/catalog/products'))->toContain('response', 'fields', 'include')
-        ->and($parameters('/customer/customers'))->not->toContain('fields')
-        ->and($parameters('/customer/customers'))->not->toContain('include');
+        ->and($document['paths'])->toHaveKey('/inventory/stocks/summary')
+        ->and($parameters('/inventory/stocks/summary'))->not->toContain('fields')
+        ->and($parameters('/inventory/stocks/summary'))->not->toContain('include');
 });

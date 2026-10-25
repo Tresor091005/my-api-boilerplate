@@ -394,10 +394,10 @@ it('links service and customer images and detaches them when parents are deleted
 
     $this->putJson("/v1/catalog/services/{$service->id}/files/main?response=resource&include=main_files", ['file_id' => $serviceImage->id])
         ->assertOk()->assertJsonPath('data.main_files.0.file_id', $serviceImage->id);
-    $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture?response=resource&include=files.profile_picture", ['file_id' => $customerImage->id])
-        ->assertOk()->assertJsonPath('data.files.profile_picture.0.file.id', $customerImage->id);
+    $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture?response=resource&include=profile_picture_files", ['file_id' => $customerImage->id])
+        ->assertOk()->assertJsonPath('data.profile_picture_files.0.file_id', $customerImage->id);
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => $replacementImage->id])->assertNoContent();
-    expect($this->getJson("/v1/customer/customers/{$customer->id}?include=files.profile_picture")->json('data.files.profile_picture.0.file.id'))
+    expect($this->getJson("/v1/customer/customers/{$customer->id}?include=profile_picture_files")->json('data.profile_picture_files.0.file_id'))
         ->toBe($replacementImage->id);
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => null])->assertNoContent();
     $this->putJson("/v1/customer/customers/{$customer->id}/files/profile-picture", ['file_id' => $customerImage->id])->assertNoContent();

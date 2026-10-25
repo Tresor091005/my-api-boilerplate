@@ -31,7 +31,7 @@ final readonly class CustomerFileService
             $this->attachments->replaceAttachments($ownedCustomer, 'profile_picture', $fileIds);
         });
 
-        return $customer->load(responseRelationsToLoad());
+        return $customer;
     }
 
     public function find(Customer $customer, string $attachmentId): FileAttachment

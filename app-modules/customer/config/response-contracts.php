@@ -2,36 +2,8 @@
 
 declare(strict_types=1);
 
-$customerCollection = [
-    'default_shape' => 'default',
-    'shapes'        => ['default' => ['includes' => [
-        'addresses'             => ['loads' => ['addresses']],
-        'contacts'              => ['loads' => ['contacts']],
-        'files.profile_picture' => ['loads' => ['profilePictureFileAttachments.file']],
-    ]]],
-];
-
+// Every other customer route answers through ApiResponse (response selection). This one streams a
+// file, so it keeps an empty legacy contract until the legacy middleware is removed.
 return [
-    'lahatre.customer.customers.index'                        => $customerCollection,
-    'lahatre.customer.customers.show'                         => $customerCollection,
-    'lahatre.customer.customers.store'                        => $customerCollection,
-    'lahatre.customer.customers.update'                       => $customerCollection,
-    'lahatre.customer.customers.files.profile-picture.update' => $customerCollection,
-    'lahatre.customer.customers.files.content'                => [],
-    'lahatre.customer.customers.addresses.store'              => [
-        'default_mode' => 'resource',
-    ],
-    'lahatre.customer.customers.addresses.update' => [
-        'default_mode' => 'resource',
-    ],
-    'lahatre.customer.customers.contacts.store' => [
-        'default_mode' => 'resource',
-    ],
-    'lahatre.customer.customers.contacts.update' => [
-        'default_mode' => 'resource',
-    ],
-    // These delete endpoints intentionally return no body.
-    'lahatre.customer.customers.destroy'           => [],
-    'lahatre.customer.customers.addresses.destroy' => [],
-    'lahatre.customer.customers.contacts.destroy'  => [],
+    'lahatre.customer.customers.files.content' => [],
 ];
