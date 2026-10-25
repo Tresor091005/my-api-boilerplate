@@ -97,7 +97,8 @@ paths:
 
 - A Resource rendering a model extends `ApiResource` and only declares its members in `define()`: each field lists
   what it reads (`columns:`, `relations:`, `fields:`), relations are
-  `include()`, children built in code are `virtualInclude()`. Do not write
+  `include()`, children built in code are `virtualInclude()`, declared in that
+  order: fields, then includes, then virtual includes. Do not write
   `toArray()`, `whenLoaded()` or Collection classes. A child from another
   module is rendered by that module's own Resource. A costly field few clients
   need is declared `default: false`. A list include keeps the default limit; it

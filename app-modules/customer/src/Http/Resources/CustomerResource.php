@@ -19,10 +19,10 @@ class CustomerResource extends ApiResource
             ->field('name')
             ->field('identification_number')
             ->field('is_active')
+            ->field('created_at')
+            ->field('updated_at')
             ->include('addresses', AddressResource::class)
             ->include('contacts', ContactResource::class)
-            ->include('profile_picture_files', CustomerFileAttachmentResource::class, relation: 'profilePictureFileAttachments')
-            ->field('created_at')
-            ->field('updated_at');
+            ->include('profile_picture_files', CustomerFileAttachmentResource::class, relation: 'profilePictureFileAttachments');
     }
 }
