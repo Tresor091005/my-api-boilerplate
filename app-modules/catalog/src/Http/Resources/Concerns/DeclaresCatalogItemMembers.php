@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Http\Resources\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
-use Lahatre\Inventory\Http\Resources\InventoryItemApiResource;
-use Lahatre\Master\Http\Resources\UnitGroupApiResource;
+use Lahatre\Inventory\Http\Resources\InventoryItemResource;
+use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\ResponseSelection\ResourceDefinition;
 
 /**
@@ -26,7 +26,7 @@ trait DeclaresCatalogItemMembers
     {
         $resource->virtualInclude(
             'unit_group',
-            UnitGroupApiResource::class,
+            UnitGroupResource::class,
             fn (Model $item): ?Model => $item->getRelation('catalogItem')?->getRelation('unitGroup'),
             relations: ['catalogItem.unitGroup'],
         );
@@ -36,7 +36,7 @@ trait DeclaresCatalogItemMembers
     {
         $resource->virtualInclude(
             'inventory',
-            InventoryItemApiResource::class,
+            InventoryItemResource::class,
             fn (Model $item): ?Model => $item->getRelation('catalogItem')?->getRelation('inventoryItem'),
             relations: ['catalogItem.inventoryItem'],
         );

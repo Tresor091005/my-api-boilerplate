@@ -29,12 +29,13 @@ paths:
 
 ### Response defaults
 
-- Two response systems coexist while modules migrate. Catalog answers through
-  the response selection package (`packages/response-selection`, see its
-  README): its actions call `ApiResponse` and declare no response contract.
-  Every other module still uses response contracts. A migrated module keeps a
-  contract only for a route that does not answer through `ApiResponse` (a file
-  download), until the legacy middleware is removed.
+- Two response systems coexist. Every module except organization answers
+  through the response selection package (`packages/response-selection`, see
+  its README): its actions call `ApiResponse` and declare no response
+  contract. Organization still uses response contracts, and so does a route
+  that renders no model (a file download, the IAM sign-in payload and
+  messages, the inventory lots and stock summary), until the legacy layer is
+  removed.
 - Response mode is derived from the HTTP method, under both systems: `GET` returns a resource and rejects `response=none`; mutation
   methods (`POST`, `PUT`, and `PATCH`) return `204 No Content` by default and
   may opt into a resource with `?response=resource`; `DELETE` is always
@@ -101,8 +102,8 @@ paths:
   what it reads (`columns:`, `relations:`, `fields:`), relations are
   `include()`, children built in code are `virtualInclude()`. Do not write
   `toArray()`, `whenLoaded()` or Collection classes. A child from another
-  module is rendered by that module's `…ApiResource` class until the module
-  migrates. A costly field few clients need is declared `default: false`.
+  module is rendered by that module's own Resource. A costly field few clients
+  need is declared `default: false`.
   Test a Resource's output through HTTP or the package's
   `RendersApiResources` helper, not by building it directly.
 - The rules below apply to modules still on response contracts.

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Lahatre\Master\Contracts\MasterInterface;
 
 /**
- * Display values shared by the stock and movement Resources and the legacy lot Resource, so each
- * value is computed in one place.
+ * Display values shared by the stock and movement Resources and the lots answer, so each value is
+ * computed in one place.
  */
 final class InventoryValues
 {

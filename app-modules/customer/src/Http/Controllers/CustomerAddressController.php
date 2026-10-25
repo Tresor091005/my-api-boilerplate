@@ -12,7 +12,7 @@ use Lahatre\Customer\Http\Requests\AddressUpdateRequest;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Master\Data\AddressCreateData;
 use Lahatre\Master\Data\AddressUpdateData;
-use Lahatre\Master\Http\Resources\AddressApiResource;
+use Lahatre\Master\Http\Resources\AddressResource;
 use Lahatre\Master\Models\Address;
 use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +29,7 @@ final readonly class CustomerAddressController
         );
         $response = $customer->addAddresses($addresses);
 
-        return ApiResponse::list($response, AddressApiResource::class, 201);
+        return ApiResponse::list($response, AddressResource::class, 201);
     }
 
     public function update(Customer $customer, Address $address, AddressUpdateRequest $request): JsonResponse|Response
@@ -43,7 +43,7 @@ final readonly class CustomerAddressController
         );
         $response = $customer->updateAddress($address, $data);
 
-        return ApiResponse::item($response, AddressApiResource::class);
+        return ApiResponse::item($response, AddressResource::class);
     }
 
     public function destroy(Customer $customer, AddressDeleteRequest $request): Response

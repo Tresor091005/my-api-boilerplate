@@ -6,10 +6,11 @@ Clients choose what a response contains (`?response=`, `?fields=`,
 is, why it exists and how to use it, for API clients and backend developers:
 [the package README](../../packages/response-selection/README.md).
 
-This page covers only how Lahatre uses it. The package is meant to replace the
-response contracts of [Standard responses and errors](responses-and-errors.md).
-The catalog module answers through it; the other modules still use response
-contracts.
+This page covers only how Lahatre uses it. The package replaces the response
+contracts of [Standard responses and errors](responses-and-errors.md). Every
+module answers through it except organization, which still uses response
+contracts, and the few routes listed under
+[Status and remaining work](#status-and-remaining-work).
 
 ## Wiring
 
@@ -30,8 +31,8 @@ contracts.
 
 ## Example
 
-How the customer Resource would be declared (not existing code:
-`CustomerResource` is still a `JsonResource`):
+A customer Resource with a computed balance (illustrative: the real
+`CustomerResource` has no balance):
 
 ```php
 final class CustomerResource extends ApiResource
@@ -72,13 +73,11 @@ GET  /v1/catalog/products/{product}/variants?fields=name&include=product(name)
 
 ## Status and remaining work
 
-Catalog is migrated: every catalog action ends with an `ApiResponse` call, its
-services load nothing for the response, and its contract file keeps only the
-two file download routes, which do not answer JSON. Its Resources render the
-children of other modules through `UnitGroupApiResource`, `UnitApiResource`,
-`LabelApiResource`, `AddressApiResource` (master), `InventoryItemApiResource`
-(inventory) and `FileAttachmentApiResource` (library), which sit beside the
-legacy Resources of those modules until they migrate.
+Catalog, customer, inventory, library, master and iam are migrated: their
+actions end with an `ApiResponse` call, their services load nothing for the
+response, and a Resource renders another module's records through that
+module's own Resource (`UnitGroupResource`, `AddressResource`,
+`InventoryItemResource`, `FileAttachmentApiResource`, ...).
 `ResponseSelectionOperationExtension` is registered in `config/scramble.php`,
 so the API documentation describes `response`, `fields`, `include` and the
 body of every route that answers through `ApiResponse`. Product and service
@@ -87,24 +86,29 @@ its file's values beside its own (the `DescribesFile` trait lists them once for
 every library response), and the product
 `options` and category `bloodline` fields render only when listed in `fields`.
 
+Routes that render no model keep a legacy contract and `ResponseResponder`:
+
+- the file content downloads (catalog products and services, customers,
+  library), which do not answer JSON;
+- the IAM sign-in payload (`access_token`, `token_type`, `user`) of the email
+  and Google verifications and the invitation acceptances, and the IAM
+  confirmation messages and challenges;
+- the inventory lots per location and stock summary, which are computed rows.
+
 Remaining work:
 
-- Migrate the modules off response contracts: the
-  `app-modules/<module>/config/response-contracts.php` files (customer,
-  organization, library, iam, master, inventory), `ResponseResponder`
-  in controllers and `applyResponseContextToQuery()` in services. The legacy
-  `App\Http\Middleware\ResolveResponseContext` still runs on every `api` route
-  and throws for a route without a contract, but skips an action the registry
-  declares: migrating an action means replacing its response by one
-  `ApiResponse` call and removing its contract.
-- Then delete the legacy layer: `Lahatre\Shared\Http\Responses\*` (with its
-  duplicate `ResponseMode`, `ResponseShape` and `ResponseContext`),
-  `ResponseContractRegistry`, the `response-contracts:cache`/`:clear` commands
-  and their `optimizes()` registration, `config/api-responses.php`, the legacy
-  middleware (and its registry bridge), their translation keys and the contract
-  sections of these docs.
-- Give each migrated route the two checks of `Lahatre\ResponseSelection\Testing`
-  (`assertBoundedQueries()` and `assertFieldsRenderInIsolation()`).
+- Migrate organization (settings and exchange rates) off response contracts.
+  The legacy `App\Http\Middleware\ResolveResponseContext` still runs on every
+  `api` route and throws for a route without a contract, but skips an action
+  the registry declares: migrating an action means replacing its response by
+  one `ApiResponse` call and removing its contract.
+- Then give the routes above their own JSON response and delete the legacy
+  layer: `Lahatre\Shared\Http\Responses\*` (with its duplicate `ResponseMode`,
+  `ResponseShape` and `ResponseContext`), `ResponseContractRegistry`, the
+  `response-contracts:cache`/`:clear` commands and their `optimizes()`
+  registration, `config/api-responses.php`, the legacy middleware (and its
+  registry bridge), the legacy `FileAttachmentResource`, their translation keys
+  and the contract sections of these docs.
 
 ## Tests
 
@@ -116,6 +120,6 @@ Remaining work:
 - `tests/Feature/Integration/ResponseSelectionIntegrationTest.php`: the
   application side, that is the registry over every real route, the legacy
   middleware bridge and the `api` group order.
-
-Where the engine spends time and what to optimize:
-[performance review](../decisions/response-selection-performance.md).
+- `tests/Feature/Integration/<Module>ResponseSelectionIntegrationTest.php`:
+  each migrated module's lists under `assertBoundedQueries()` and
+  `assertFieldsRenderInIsolation()`.

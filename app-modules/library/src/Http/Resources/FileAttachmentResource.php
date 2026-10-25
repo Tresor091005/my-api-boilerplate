@@ -10,7 +10,7 @@ use Lahatre\Library\Http\Resources\Concerns\DescribesFile;
 use Lahatre\Library\Models\FileAttachment;
 
 /**
- * Legacy file attachment, for modules still on response contracts.
+ * Legacy file attachment, used by no module any more; it goes with the legacy response layer.
  *
  * @mixin FileAttachment
  */

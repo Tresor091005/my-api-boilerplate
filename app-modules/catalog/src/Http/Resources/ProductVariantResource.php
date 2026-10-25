@@ -6,7 +6,7 @@ namespace Lahatre\Catalog\Http\Resources;
 
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Catalog\Http\Resources\Concerns\DeclaresCatalogItemMembers;
-use Lahatre\Master\Http\Resources\LabelApiResource;
+use Lahatre\Master\Http\Resources\LabelResource;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ResourceDefinition;
 
@@ -29,7 +29,7 @@ class ProductVariantResource extends ApiResource
                 ->values()
                 ->mapWithKeys(fn ($optionValue): array => [$optionValue->option->name => $optionValue->value])
                 ->all())
-            ->include('labels', LabelApiResource::class);
+            ->include('labels', LabelResource::class);
         self::unitGroupInclude($resource);
         self::inventoryInclude($resource);
     }

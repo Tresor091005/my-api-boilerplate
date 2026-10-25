@@ -12,7 +12,7 @@ use Lahatre\ResponseSelection\ResourceDefinition;
 /**
  * File attachment rendered through response selection: the attachment with its file's values beside
  * it, each selectable. Each owner extends it and adds `content_url`, since the content route belongs
- * to the owner. FileAttachmentResource stays for modules not migrated yet.
+ * to the owner.
  */
 abstract class FileAttachmentApiResource extends ApiResource
 {

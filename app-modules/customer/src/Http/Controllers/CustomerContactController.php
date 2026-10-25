@@ -12,7 +12,7 @@ use Lahatre\Customer\Http\Requests\ContactUpdateRequest;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Master\Data\ContactCreateData;
 use Lahatre\Master\Data\ContactUpdateData;
-use Lahatre\Master\Http\Resources\ContactApiResource;
+use Lahatre\Master\Http\Resources\ContactResource;
 use Lahatre\Master\Models\Contact;
 use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +29,7 @@ final readonly class CustomerContactController
         );
         $response = $customer->addContacts($contacts);
 
-        return ApiResponse::list($response, ContactApiResource::class, 201);
+        return ApiResponse::list($response, ContactResource::class, 201);
     }
 
     public function update(Customer $customer, Contact $contact, ContactUpdateRequest $request): JsonResponse|Response
@@ -43,7 +43,7 @@ final readonly class CustomerContactController
         );
         $response = $customer->updateContact($contact, $data);
 
-        return ApiResponse::item($response, ContactApiResource::class);
+        return ApiResponse::item($response, ContactResource::class);
     }
 
     public function destroy(Customer $customer, ContactDeleteRequest $request): Response

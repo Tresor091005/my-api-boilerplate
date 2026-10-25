@@ -7,8 +7,8 @@ namespace Lahatre\Inventory\Http\Resources;
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Inventory\Http\Resources\Fields\InventoryValues;
 use Lahatre\Inventory\Http\Resources\Fields\MovementCostAmounts;
-use Lahatre\Master\Http\Resources\CurrencyApiResource;
-use Lahatre\Master\Http\Resources\UnitApiResource;
+use Lahatre\Master\Http\Resources\CurrencyResource;
+use Lahatre\Master\Http\Resources\UnitResource;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ResourceDefinition;
 
@@ -37,7 +37,7 @@ class InventoryMovementResource extends ApiResource
             ->field('updated_at')
             ->include('location', InventoryLocationResource::class)
             ->include('stock', InventoryStockResource::class)
-            ->include('unit', UnitApiResource::class)
-            ->include('currency', CurrencyApiResource::class);
+            ->include('unit', UnitResource::class)
+            ->include('currency', CurrencyResource::class);
     }
 }
