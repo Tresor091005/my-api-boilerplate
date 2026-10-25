@@ -49,7 +49,7 @@ class AuthResource extends JsonResource
             'token_type'   => 'Bearer',
             'user'         => [
                 ...array_map(fn (array $value): mixed => $value['read']($user), $values),
-                // a new session has no member role yet
+                // the token just issued has no member role, whatever this request's context holds
                 'current_member_role_id' => null,
             ],
         ];

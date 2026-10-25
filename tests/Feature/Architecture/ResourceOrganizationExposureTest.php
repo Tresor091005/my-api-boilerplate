@@ -17,7 +17,8 @@ it('does not expose organization ids from ordinary resources', function (): void
             continue;
         }
 
-        if ($file->getFilename() === 'UserResource.php') {
+        // UserResource shows the account's memberships; MemberRoleResource only reads the column to check the role
+        if (in_array($file->getFilename(), ['UserResource.php', 'MemberRoleResource.php'], true)) {
             continue;
         }
 

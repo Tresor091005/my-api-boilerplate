@@ -59,9 +59,6 @@ class MemberRole extends Model
     use SharedTraits;
     use SoftDeletes;
 
-    /** The columns canUseRole() reads. */
-    public const array ROLE_CONTEXT_COLUMNS = ['role_id', 'organization_id'];
-
     protected string $guard_name = 'sanctum';
 
     protected $table = 'iam_member_roles';
