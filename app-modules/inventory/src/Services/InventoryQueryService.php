@@ -75,8 +75,6 @@ class InventoryQueryService
         $query = InventoryStock::query()
             ->where('organization_id', currentOrganizationId());
 
-        applyResponseContextToQuery($query);
-
         if ($filters->itemId) {
             $query->whereIn('item_id', $filters->itemId);
         }
@@ -151,7 +149,6 @@ class InventoryQueryService
     {
         $query = InventoryMovement::query()
             ->where('organization_id', currentOrganizationId());
-        applyResponseContextToQuery($query);
 
         $this->applyMovementFilters($query, $filters);
 
@@ -164,11 +161,7 @@ class InventoryQueryService
 
     public function retrieveTransaction(InventoryTransaction $transaction): InventoryTransaction
     {
-        $transaction = $this->resolveTransaction($transaction);
-
-        $transaction->load(responseRelationsToLoad());
-
-        return $transaction;
+        return $this->resolveTransaction($transaction);
     }
 
     public function paginateTransactions(InventoryTransactionFilterData $filters): CursorPaginator
@@ -180,7 +173,6 @@ class InventoryQueryService
     private function transactionsQuery(InventoryTransactionFilterData $filters): Builder
     {
         $query = InventoryTransaction::query()->where('organization_id', currentOrganizationId());
-        applyResponseContextToQuery($query);
 
         if ($filters->ids) {
             $query->whereIn('id', $filters->ids);

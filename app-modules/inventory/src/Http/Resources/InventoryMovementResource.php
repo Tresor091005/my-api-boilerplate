@@ -4,66 +4,40 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Models\InventoryMovement;
-use Lahatre\Master\Contracts\MasterInterface;
-use Lahatre\Master\Http\Resources\CurrencyResource;
-use Lahatre\Master\Http\Resources\UnitResource;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\Inventory\Http\Resources\Fields\InventoryValues;
+use Lahatre\Inventory\Http\Resources\Fields\MovementCostAmounts;
+use Lahatre\Master\Http\Resources\CurrencyApiResource;
+use Lahatre\Master\Http\Resources\UnitApiResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin InventoryMovement
- */
-class InventoryMovementResource extends JsonResource
+class InventoryMovementResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'                      => $this->id,
-            'movement_type'           => $this->movement_type,
-            'transaction_id'          => $this->transaction_id,
-            'link_id'                 => $this->link_id,
-            'item_id'                 => $this->item_id,
-            'stock_id'                => $this->stock_id,
-            'location_id'             => $this->location_id,
-            'quantity'                => $this->quantity,
-            'base_unit_code'          => $this->base_unit_code,
-            'total_cost'              => $this->resolveTotalCost(),
-            'currency_code'           => $this->currency_code,
-            'expiration_date'         => $this->expiration_date?->toDateString(),
-            'metadata'                => $this->metadata,
-            'exchange_metadata'       => $this->exchange_metadata,
-            'stock_metadata_snapshot' => $this->stock_metadata_snapshot,
-            'created_at'              => $this->created_at,
-            'updated_at'              => $this->updated_at,
-            'location'                => $this->whenLoaded(
-                'location',
-                fn ($location): mixed => InventoryLocationResource::make($location),
-            ),
-            'stock' => $this->whenLoaded(
-                'stock',
-                fn ($stock): mixed => InventoryStockResource::make($stock),
-            ),
-            'unit' => $this->whenLoaded(
-                'unit',
-                fn ($unit): mixed => UnitResource::make($unit),
-            ),
-            'currency' => $this->whenLoaded(
-                'currency',
-                fn ($currency): mixed => CurrencyResource::make($currency),
-            ),
-        ];
-    }
-
-    private function resolveTotalCost(): string|int
-    {
-        if (!$this->currency_code) {
-            return $this->total_cost;
-        }
-
-        return app(MasterInterface::class)->fromMinor((string) $this->total_cost, $this->currency_code);
+        $resource
+            ->field('id')
+            ->field('movement_type')
+            ->field('transaction_id')
+            ->field('link_id')
+            ->field('item_id')
+            ->field('stock_id')
+            ->field('location_id')
+            ->field('quantity')
+            ->field('base_unit_code')
+            // stored in minor units and shown in the movement's currency
+            ->field('total_cost', columns: ['total_cost', 'currency_code'], computedBy: MovementCostAmounts::class)
+            ->field('currency_code')
+            ->field('expiration_date', columns: ['expiration_date'], computedBy: fn (Model $movement): ?string => InventoryValues::expirationDate($movement))
+            ->field('metadata')
+            ->field('exchange_metadata')
+            ->field('stock_metadata_snapshot')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('location', InventoryLocationResource::class)
+            ->include('stock', InventoryStockResource::class)
+            ->include('unit', UnitApiResource::class)
+            ->include('currency', CurrencyApiResource::class);
     }
 }

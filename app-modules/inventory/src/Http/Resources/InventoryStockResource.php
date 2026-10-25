@@ -4,95 +4,39 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Resources;
 
-use Carbon\CarbonInterface;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Models\InventoryStock;
-use Lahatre\Master\Contracts\MasterInterface;
-use Lahatre\Master\Http\Resources\CurrencyResource;
-use Lahatre\Master\Http\Resources\UnitResource;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\Inventory\Http\Resources\Fields\InventoryValues;
+use Lahatre\Inventory\Http\Resources\Fields\StockCostAmounts;
+use Lahatre\Master\Http\Resources\CurrencyApiResource;
+use Lahatre\Master\Http\Resources\UnitApiResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin InventoryStock
- */
-class InventoryStockResource extends JsonResource
+class InventoryStockResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'                => $this->id,
-            'item_id'           => $this->item_id,
-            'location_id'       => $this->location_id,
-            'unit_cost'         => $this->resolveUnitCost(),
-            'total_cost'        => $this->resolveTotalCost(),
-            'cost_remainder'    => $this->resolveCostRemainder(),
-            'currency_code'     => $this->currency_code,
-            'quantity'          => $this->quantity,
-            'remaining'         => $this->remaining,
-            'base_unit_code'    => $this->base_unit_code,
-            'expiration_date'   => $this->expiration_date?->toDateString(),
-            'days_remaining'    => $this->resolveDaysRemaining(),
-            'metadata'          => $this->metadata,
-            'exchange_metadata' => $this->exchange_metadata,
-            'created_at'        => $this->created_at,
-            'updated_at'        => $this->updated_at,
-            'location'          => $this->whenLoaded(
-                'location',
-                fn ($location): mixed => InventoryLocationResource::make($location),
-            ),
-            'unit' => $this->whenLoaded(
-                'unit',
-                fn ($unit): mixed => UnitResource::make($unit),
-            ),
-            'currency' => $this->whenLoaded(
-                'currency',
-                fn ($currency): mixed => CurrencyResource::make($currency),
-            ),
-            'movements' => $this->whenLoaded(
-                'movements',
-                fn ($movements): mixed => InventoryMovementResource::collection($movements),
-            ),
-        ];
-    }
-
-    private function resolveUnitCost(): string|int
-    {
-        if (!$this->currency_code) {
-            return $this->unit_cost;
-        }
-
-        return app(MasterInterface::class)->fromMinor((string) $this->unit_cost, $this->currency_code);
-    }
-
-    private function resolveTotalCost(): string|int
-    {
-        $totalCost = ($this->remaining * $this->unit_cost) + $this->cost_remainder;
-
-        if (!$this->currency_code) {
-            return $totalCost;
-        }
-
-        return app(MasterInterface::class)->fromMinor((string) $totalCost, $this->currency_code);
-    }
-
-    private function resolveCostRemainder(): string|int
-    {
-        if (!$this->currency_code) {
-            return $this->cost_remainder;
-        }
-
-        return app(MasterInterface::class)->fromMinor((string) $this->cost_remainder, $this->currency_code);
-    }
-
-    private function resolveDaysRemaining(): ?int
-    {
-        if (!$this->expiration_date instanceof CarbonInterface) {
-            return null;
-        }
-
-        return (int) now()->startOfDay()->diffInDays($this->expiration_date->startOfDay(), false);
+        $resource
+            ->field('id')
+            ->field('item_id')
+            ->field('location_id')
+            // costs are stored in minor units and shown in the stock's currency
+            ->field('unit_cost', columns: ['unit_cost', 'currency_code'], computedBy: StockCostAmounts::class)
+            ->field('total_cost', columns: ['remaining', 'unit_cost', 'cost_remainder', 'currency_code'], computedBy: StockCostAmounts::class)
+            ->field('cost_remainder', columns: ['cost_remainder', 'currency_code'], computedBy: StockCostAmounts::class)
+            ->field('currency_code')
+            ->field('quantity')
+            ->field('remaining')
+            ->field('base_unit_code')
+            ->field('expiration_date', columns: ['expiration_date'], computedBy: fn (Model $stock): ?string => InventoryValues::expirationDate($stock))
+            ->field('days_remaining', columns: ['expiration_date'], computedBy: fn (Model $stock): ?int => InventoryValues::daysRemaining($stock))
+            ->field('metadata')
+            ->field('exchange_metadata')
+            ->field('created_at')
+            ->field('updated_at')
+            ->include('location', InventoryLocationResource::class)
+            ->include('unit', UnitApiResource::class)
+            ->include('currency', CurrencyApiResource::class)
+            ->include('movements', InventoryMovementResource::class);
     }
 }

@@ -5,21 +5,19 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryMovementFilterData;
 use Lahatre\Inventory\Http\Requests\InventoryMovementFilterRequest;
-use Lahatre\Inventory\Http\Resources\InventoryMovementCollection;
+use Lahatre\Inventory\Http\Resources\InventoryMovementResource;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Services\InventoryQueryService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class InventoryMovementController
 {
     public function __construct(
         protected InventoryQueryService $inventoryQueryService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function index(InventoryMovementFilterRequest $request): JsonResponse|Response
@@ -28,8 +26,8 @@ class InventoryMovementController
 
         $filters = InventoryMovementFilterData::fromArray($request->validated());
 
-        $response = $this->inventoryQueryService->paginateMovements($filters);
+        $movements = $this->inventoryQueryService->paginateMovements($filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventoryMovementCollection::make($response));
+        return ApiResponse::cursorPage($movements, InventoryMovementResource::class);
     }
 }

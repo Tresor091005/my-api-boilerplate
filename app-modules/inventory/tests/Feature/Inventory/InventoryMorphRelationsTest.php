@@ -11,8 +11,9 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\ResponseSelection\Testing\RendersApiResources;
 
-uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
+uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class, RendersApiResources::class);
 
 beforeEach(function (): void {
     $this->ensureInventoryTestTables();
@@ -58,7 +59,7 @@ it('renders a location without stock or polymorphic data', function (): void {
         'external_type' => $warehouse->getMorphClass(),
         'external_id'   => $warehouse->id,
     ]);
-    $data = InventoryLocationResource::make($location)->resolve();
+    $data = $this->renderApiResource($location, InventoryLocationResource::class);
 
     expect($data)->toHaveKeys([
         'id',

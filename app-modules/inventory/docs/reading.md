@@ -32,13 +32,13 @@ normalized at the inbound boundary.
 
 - `listMovements($filters)`: movements, optionally filtered by item, location, type, date, or business reference;
 - `listTransactions($filters)`: transaction ledger;
-- `retrieveTransaction($transaction)`: one transaction with its movements, stocks, units, currencies, and locations loaded.
+- `retrieveTransaction($transaction)`: one transaction of the active organization, without relations; the HTTP response loads the includes the client selects.
 
 Movement filters support date ranges, `IN`/`OUT` type, and business reference. Transaction filters support IDs, reference type/IDs, transaction type, sorting, and cursors.
 
 ## HTTP endpoints
 
-All package routes use the `/v1/inventory` prefix and return resources or cursor-paginated collections:
+All package routes use the `/v1/inventory` prefix. Stocks, movements and transactions answer through [response selection](../../../docs/api/response-selection.md) (`?fields=`, `?include=`); the lots and summary reads return computed rows:
 
 | Method | Endpoint | Read |
 |---|---|---|

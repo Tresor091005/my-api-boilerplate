@@ -4,54 +4,30 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Models\InventoryItem;
+use Illuminate\Database\Eloquent\Model;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin InventoryItem
- */
-class InventoryItemResource extends JsonResource
+class InventoryItemResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'                     => $this->id,
-            'sku'                    => $this->sku,
-            'base_unit_code'         => $this->base_unit_code,
-            'deduction_strategy'     => $this->deduction_strategy,
-            'is_expirable'           => $this->is_expirable,
-            'stock_tracking_enabled' => $this->stock_tracking_enabled,
-            'total_remaining'        => $this->resolveTotalRemaining(),
-            'active_lots_count'      => $this->resolveActiveLotsCount(),
-            'locations'              => $this->whenLoaded(
-                'stockSummaries',
-                fn (): array => $this->stockSummaries
-                    ->map(fn ($summary): array => [
-                        'location_id'       => data_get($summary, 'location_id'),
-                        'total_remaining'   => (int) data_get($summary, 'total_remaining', 0),
-                        'active_lots_count' => (int) data_get($summary, 'active_lots_count', 0),
-                    ])
-                    ->values()
-                    ->all(),
-            ),
-        ];
-    }
-
-    private function resolveTotalRemaining(): int
-    {
-        return $this->relationLoaded('stockSummaries')
-            ? (int) $this->stockSummaries->sum('total_remaining')
-            : 0;
-    }
-
-    private function resolveActiveLotsCount(): int
-    {
-        return $this->relationLoaded('stockSummaries')
-            ? (int) $this->stockSummaries->sum('active_lots_count')
-            : 0;
+        $resource
+            ->field('id')
+            ->field('sku')
+            ->field('base_unit_code')
+            ->field('deduction_strategy')
+            ->field('is_expirable')
+            ->field('stock_tracking_enabled')
+            ->field('total_remaining', relations: ['stockSummaries'], computedBy: fn (Model $item): int => (int) $item->getRelation('stockSummaries')->sum('total_remaining'))
+            ->field('active_lots_count', relations: ['stockSummaries'], computedBy: fn (Model $item): int => (int) $item->getRelation('stockSummaries')->sum('active_lots_count'))
+            ->field('locations', relations: ['stockSummaries'], computedBy: fn (Model $item): array => $item->getRelation('stockSummaries')
+                ->map(fn (Model $summary): array => [
+                    'location_id'       => $summary->getAttribute('location_id'),
+                    'total_remaining'   => (int) $summary->getAttribute('total_remaining'),
+                    'active_lots_count' => (int) $summary->getAttribute('active_lots_count'),
+                ])
+                ->values()
+                ->all());
     }
 }

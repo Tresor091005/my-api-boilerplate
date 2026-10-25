@@ -64,4 +64,4 @@ Stock metadata is updated independently through the dedicated PATCH endpoint. Qu
 
 `InventoryTransaction` groups movements and records the `idempotency_key`, `payload_hash`, optional business `reference_type`/`reference_id`, `transaction_type`, optional `metadata`, and optional `reversal_of_transaction_id`.
 
-API resources expose these persisted fields and include the related application model through the configured summary methods when the relation is loaded.
+API resources expose these persisted fields. Related inventory records, units and currencies render only when the client selects them with `?include=`.

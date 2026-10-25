@@ -24,6 +24,7 @@ use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class, InteractsWithInventoryTestFixtures::class);
@@ -218,6 +219,36 @@ it('returns stock summary and expiring lots with pagination metadata', function 
         ->assertJsonPath('data.0.unit_cost', '1.00')
         ->assertJsonPath('data.0.total_cost', '70.00')
         ->assertJsonPath('data.0.days_remaining', 4);
+});
+
+it('updates stock metadata without a body unless the client asks for the stock', function (): void {
+    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
+    $location = InventoryLocation::factory()->create();
+    $stock = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create([
+        'base_unit_code' => $this->unit->code,
+        'currency_code'  => $this->currency->code,
+        'unit_cost'      => 250,
+        'quantity'       => 10,
+        'remaining'      => 10,
+    ]);
+    app(UnitCache::class)->rewarmUnits();
+
+    $this->patchJson("/v1/inventory/stocks/{$stock->id}", ['metadata' => ['lot_number' => 'LOT-1']])
+        ->assertNoContent();
+
+    expect($stock->refresh()->metadata)->toBe(['lot_number' => 'LOT-1']);
+
+    $this->patchJson("/v1/inventory/stocks/{$stock->id}?response=resource&fields=metadata,unit_cost&include=unit(code),currency(code)", [
+        'metadata' => ['lot_number' => 'LOT-2'],
+    ])
+        ->assertOk()
+        ->assertExactJson(['data' => [
+            'id'        => $stock->id,
+            'unit_cost' => '2.50',
+            'metadata'  => ['lot_number' => 'LOT-2'],
+            'unit'      => ['id' => $this->unit->id, 'code' => $this->unit->code],
+            'currency'  => ['id' => $this->currency->id, 'code' => $this->currency->code],
+        ]]);
 });
 
 it('validates expiring stock filters', function (): void {

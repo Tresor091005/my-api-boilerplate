@@ -4,27 +4,19 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin InventoryLocation
- */
-class InventoryLocationResource extends JsonResource
+class InventoryLocationResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'            => $this->id,
-            'external_type' => $this->external_type,
-            'external_id'   => $this->external_id,
-            'is_active'     => $this->is_active,
-            'created_at'    => $this->created_at,
-            'updated_at'    => $this->updated_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('external_type')
+            ->field('external_id')
+            ->field('is_active')
+            ->field('created_at')
+            ->field('updated_at');
     }
 }

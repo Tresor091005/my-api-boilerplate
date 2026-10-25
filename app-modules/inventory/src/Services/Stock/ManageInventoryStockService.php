@@ -28,7 +28,7 @@ class ManageInventoryStockService
             $ownedStock->metadata = $metadata;
             $ownedStock->save();
 
-            return $ownedStock->refresh()->load(responseRelationsToLoad());
+            return $ownedStock->refresh();
         });
     }
 }

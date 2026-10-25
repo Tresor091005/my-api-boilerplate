@@ -29,4 +29,4 @@ Content-Type: application/json
 {"metadata":{"batch":"B-123","status":"quarantine"}}
 ```
 
-The endpoint changes only `metadata`. It does not change quantity, cost, currency, expiration, item, location, or unit. Sending `metadata: null` clears it.
+The endpoint changes only `metadata`. It does not change quantity, cost, currency, expiration, item, location, or unit. Sending `metadata: null` clears it. It answers `204` by default; `?response=resource` returns the updated stock.

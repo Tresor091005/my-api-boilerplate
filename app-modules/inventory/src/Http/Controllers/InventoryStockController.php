@@ -15,7 +15,6 @@ use Lahatre\Inventory\Http\Requests\InventoryStockFilterRequest;
 use Lahatre\Inventory\Http\Requests\InventoryStockSummaryFilterRequest;
 use Lahatre\Inventory\Http\Requests\UpdateInventoryStockMetadataRequest;
 use Lahatre\Inventory\Http\Resources\InventoryItemLocationLotsResource;
-use Lahatre\Inventory\Http\Resources\InventoryStockCollection;
 use Lahatre\Inventory\Http\Resources\InventoryStockResource;
 use Lahatre\Inventory\Http\Resources\InventorySummaryCollection;
 use Lahatre\Inventory\Models\InventoryItem;
@@ -23,6 +22,7 @@ use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Inventory\Services\Stock\ManageInventoryStockService;
+use Lahatre\ResponseSelection\ApiResponse;
 use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -41,9 +41,9 @@ class InventoryStockController
         /** @var array<string, mixed>|null $metadata */
         $metadata = $request->validated('metadata');
 
-        $response = $this->inventoryStockService->updateMetadata($stock, $metadata);
+        $stock = $this->inventoryStockService->updateMetadata($stock, $metadata);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventoryStockResource::make($response));
+        return ApiResponse::item($stock, InventoryStockResource::class);
     }
 
     public function index(InventoryStockFilterRequest $request): JsonResponse|Response
@@ -52,9 +52,9 @@ class InventoryStockController
 
         $filters = InventoryStockFilterData::fromArray($request->validated());
 
-        $response = $this->inventoryQueryService->paginateStocks($filters);
+        $stocks = $this->inventoryQueryService->paginateStocks($filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventoryStockCollection::make($response));
+        return ApiResponse::cursorPage($stocks, InventoryStockResource::class);
     }
 
     public function indexSummary(InventoryStockSummaryFilterRequest $request): JsonResponse|Response

@@ -5,22 +5,19 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Http\Requests\InventoryTransactionFilterRequest;
-use Lahatre\Inventory\Http\Resources\InventoryTransactionCollection;
 use Lahatre\Inventory\Http\Resources\InventoryTransactionResource;
 use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\InventoryQueryService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class InventoryTransactionController
 {
     public function __construct(
         protected InventoryQueryService $inventoryQueryService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function index(InventoryTransactionFilterRequest $request): JsonResponse|Response
@@ -29,9 +26,9 @@ class InventoryTransactionController
 
         $filters = InventoryTransactionFilterData::fromArray($request->validated());
 
-        $response = $this->inventoryQueryService->paginateTransactions($filters);
+        $transactions = $this->inventoryQueryService->paginateTransactions($filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventoryTransactionCollection::make($response));
+        return ApiResponse::cursorPage($transactions, InventoryTransactionResource::class);
     }
 
     public function show(InventoryTransaction $transaction): JsonResponse|Response
@@ -40,6 +37,6 @@ class InventoryTransactionController
 
         $transaction = $this->inventoryQueryService->retrieveTransaction($transaction);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventoryTransactionResource::make($transaction));
+        return ApiResponse::item($transaction, InventoryTransactionResource::class);
     }
 }
