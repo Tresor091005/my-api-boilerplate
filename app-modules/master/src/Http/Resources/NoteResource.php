@@ -4,58 +4,41 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Resources;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Master\Models\Note;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin Note */
-class NoteResource extends JsonResource
+/**
+ * A deleted note (a reply kept in its thread) renders only its place in the thread.
+ */
+class NoteResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        if ($this->resource->trashed()) {
-            return [
-                'id'         => $this->id,
-                'parent_id'  => $this->parent_id,
-                'position'   => $this->position,
-                'deleted'    => true,
-                'deleted_at' => $this->deleted_at,
-            ];
-        }
+        $isKept = static fn (Model $note, Request $request): bool => $note->getAttribute('deleted_at') === null;
+        $isDeleted = static fn (Model $note, Request $request): bool => $note->getAttribute('deleted_at') !== null;
 
-        return [
-            'id'            => $this->id,
-            'notable_type'  => $this->notable_type,
-            'notable_id'    => $this->notable_id,
-            'author_id'     => $this->author_id,
-            'parent_id'     => $this->parent_id,
-            'position'      => $this->position,
-            'body'          => $this->body,
-            'kind'          => $this->kind->value,
-            'visibility'    => $this->visibility->value,
-            'pinned_at'     => $this->pinned_at,
-            'expires_at'    => $this->expires_at,
-            'edited_at'     => $this->edited_at,
-            'deleted'       => false,
-            'created_at'    => $this->created_at,
-            'updated_at'    => $this->updated_at,
-            'replies_count' => $this->when(
-                array_key_exists('replies_count', $this->resource->getAttributes()),
-                fn (): int => $this->replies_count,
-            ),
-            'replies' => $this->whenLoaded(
-                'replies',
-                fn ($replies): mixed => self::collection($replies),
-            ),
-            'mentions' => $this->whenLoaded(
-                'mentions',
-                fn ($mentions): array => $mentions->map(fn ($mention): array => [
-                    'member_id'    => $mention->member_id,
-                    'mentioned_at' => $mention->mentioned_at,
-                    'read_at'      => $mention->read_at,
-                ])->values()->all(),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('notable_type', columns: ['notable_type', 'deleted_at'], when: $isKept)
+            ->field('notable_id', columns: ['notable_id', 'deleted_at'], when: $isKept)
+            ->field('author_id', columns: ['author_id', 'deleted_at'], when: $isKept)
+            ->field('parent_id')
+            ->field('position')
+            ->field('body', columns: ['body', 'deleted_at'], when: $isKept)
+            ->field('kind', columns: ['kind', 'deleted_at'], when: $isKept)
+            ->field('visibility', columns: ['visibility', 'deleted_at'], when: $isKept)
+            ->field('pinned_at', columns: ['pinned_at', 'deleted_at'], when: $isKept)
+            ->field('expires_at', columns: ['expires_at', 'deleted_at'], when: $isKept)
+            ->field('edited_at', columns: ['edited_at', 'deleted_at'], when: $isKept)
+            ->field('deleted', columns: ['deleted_at'], computedBy: fn (Model $note): bool => $note->getAttribute('deleted_at') !== null)
+            ->field('deleted_at', columns: ['deleted_at'], when: $isDeleted)
+            ->field('created_at', columns: ['created_at', 'deleted_at'], when: $isKept)
+            ->field('updated_at', columns: ['updated_at', 'deleted_at'], when: $isKept)
+            // only the list query adds this count
+            ->field('replies_count', columns: [], when: fn (Model $note, Request $request): bool => array_key_exists('replies_count', $note->getAttributes()))
+            ->include('replies', self::class, relation: 'visibleReplies')
+            ->include('mentions', NoteMentionResource::class);
     }
 }

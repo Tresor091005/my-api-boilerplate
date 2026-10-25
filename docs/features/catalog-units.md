@@ -29,8 +29,8 @@ sequenceDiagram
     Service->>Assertion: assertCanUpsert($existingUnits)
     Assertion-->>Service: OK (or throws SpecificException)
     Service->>Database: Bulk UPSERT (1 query)
-    Service->>Database: Final fetch (1 query)
-    Service-->>Client: UnitCollection (JSON)
+    Service-->>Controller: UnitGroup
+    Controller-->>Client: 204, or the unit group with ?response=resource
 ```
 
 ## 2. Key components

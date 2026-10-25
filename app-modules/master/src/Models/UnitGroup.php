@@ -23,6 +23,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Collection<int, Unit> $units
+ * @property-read Collection<int, Unit> $visibleUnits
  * @property-read Unit|null $baseUnit
  * @property-read int|null $units_count
  *
@@ -69,6 +70,20 @@ class UnitGroup extends Model
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class, 'group_id');
+    }
+
+    /**
+     * Builtin units and the current organization's own units.
+     *
+     * @return HasMany<Unit, $this>
+     */
+    public function visibleUnits(): HasMany
+    {
+        return $this->hasMany(Unit::class, 'group_id')
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_units.organization_id')
+                    ->orWhere('master_units.organization_id', currentOrganizationId());
+            });
     }
 
     public function baseUnit(): HasOne

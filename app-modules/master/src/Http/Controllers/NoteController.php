@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Master\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Master\Data\NoteCreateData;
 use Lahatre\Master\Data\NoteFilterData;
@@ -17,18 +16,16 @@ use Lahatre\Master\Http\Requests\NoteIndexRequest;
 use Lahatre\Master\Http\Requests\NoteMentionRequest;
 use Lahatre\Master\Http\Requests\NoteUpdateRequest;
 use Lahatre\Master\Http\Requests\NoteVisibilityUpdateRequest;
-use Lahatre\Master\Http\Resources\NoteCollection;
 use Lahatre\Master\Http\Resources\NoteResource;
 use Lahatre\Master\Models\Note;
 use Lahatre\Master\Services\NoteService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class NoteController
 {
     public function __construct(
         private NoteService $noteService,
-        private ResponseResponder $responseResponder,
     ) {}
 
     public function index(NoteIndexRequest $request): JsonResponse|Response
@@ -36,9 +33,7 @@ final readonly class NoteController
         Gate::authorize('list', Note::class);
         $response = $this->noteService->paginate(NoteFilterData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => NoteCollection::make($response)
-        );
+        return ApiResponse::cursorPage($response, NoteResource::class);
     }
 
     public function store(NoteCreateRequest $request): JsonResponse|Response
@@ -48,10 +43,7 @@ final readonly class NoteController
 
         $response = $this->noteService->create($data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => NoteResource::make($response),
-            status: 201,
-        );
+        return ApiResponse::item($response, NoteResource::class, 201);
     }
 
     public function show(Note $note): JsonResponse|Response
@@ -60,9 +52,7 @@ final readonly class NoteController
 
         $response = $this->noteService->retrieve($note);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => NoteResource::make($response)
-        );
+        return ApiResponse::item($response, NoteResource::class);
     }
 
     public function update(NoteUpdateRequest $request, Note $note): JsonResponse|Response
@@ -74,9 +64,7 @@ final readonly class NoteController
             NoteUpdateData::fromArray($request->validated(), missingFields: ['body', 'kind', 'expires_at']),
         );
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => NoteResource::make($response)
-        );
+        return ApiResponse::item($response, NoteResource::class);
     }
 
     public function updateVisibility(NoteVisibilityUpdateRequest $request, Note $note): Response
@@ -85,7 +73,7 @@ final readonly class NoteController
         Gate::authorize('updateVisibility', [$note, $data->visibility]);
         $this->noteService->promoteVisibility($note, $data);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function destroy(Note $note): Response
@@ -93,7 +81,7 @@ final readonly class NoteController
         Gate::authorize('delete', $note);
         $this->noteService->delete($note);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function pin(Note $note): Response
@@ -101,7 +89,7 @@ final readonly class NoteController
         Gate::authorize('pin', $note);
         $this->noteService->setPinned($note, true);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function unpin(Note $note): Response
@@ -109,7 +97,7 @@ final readonly class NoteController
         Gate::authorize('pin', $note);
         $this->noteService->setPinned($note, false);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function addMention(NoteMentionRequest $request, Note $note): Response
@@ -117,7 +105,7 @@ final readonly class NoteController
         Gate::authorize('mention', $note);
         $this->noteService->addMentions($note, NoteMentionData::fromArray($request->validated()));
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function removeMention(NoteMentionRequest $request, Note $note): Response
@@ -125,13 +113,13 @@ final readonly class NoteController
         Gate::authorize('mention', $note);
         $this->noteService->removeMentions($note, NoteMentionData::fromArray($request->validated()));
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 
     public function markMentionRead(Note $note): Response
     {
         $this->noteService->markMentionRead($note);
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

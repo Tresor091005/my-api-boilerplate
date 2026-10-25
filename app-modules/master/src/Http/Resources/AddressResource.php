@@ -4,22 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Master\Models\Address;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin Address */
-class AddressResource extends JsonResource
+class AddressResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'line'       => $this->line,
-            'city'       => $this->city,
-            'country'    => $this->country,
-            'is_primary' => $this->is_primary,
-        ];
+        $resource
+            ->field('id')
+            ->field('line')
+            ->field('city')
+            ->field('country')
+            ->field('is_primary');
     }
 }

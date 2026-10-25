@@ -120,7 +120,7 @@ it('creates a note file, preserves deleted replies, and updates edited_at', func
 
     $this->deleteJson("/v1/master/notes/{$replyId}")->assertNoContent();
 
-    $this->getJson("/v1/master/notes/{$rootId}?include=children")
+    $this->getJson("/v1/master/notes/{$rootId}?include=replies")
         ->assertOk()
         ->assertJsonPath('data.replies.0.id', $replyId)
         ->assertJsonPath('data.replies.0.deleted', true)
@@ -362,7 +362,7 @@ it('enforces note ownership, collective permissions, and visible reply counts', 
         ->assertJsonFragment(['id' => $organizationRootId, 'replies_count' => 1])
         ->assertJsonMissing(['id' => $privateNoteId]);
 
-    $this->getJson("/v1/master/notes/{$organizationRootId}?include=children")
+    $this->getJson("/v1/master/notes/{$organizationRootId}?include=replies")
         ->assertOk()
         ->assertJsonCount(1, 'data.replies')
         ->assertJsonPath('data.replies.0.id', $organizationReplyId)

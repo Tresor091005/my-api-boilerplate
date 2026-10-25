@@ -4,26 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Master\Models\Currency;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Currency
- */
-class CurrencyResource extends JsonResource
+class CurrencyResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'        => $this->id,
-            'code'      => $this->code,
-            'name'      => $this->name,
-            'symbol'    => $this->symbol,
-            'precision' => $this->precision,
-        ];
+        $resource
+            ->field('id')
+            ->field('code')
+            ->field('name')
+            ->field('symbol')
+            ->field('precision');
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Master\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +38,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read Model $notable
  * @property-read Note|null $parent
  * @property-read Collection<int, Note> $replies
+ * @property-read Collection<int, Note> $visibleReplies
  * @property-read Collection<int, NoteMention> $mentions
  * @property-read int|null $mentions_count
  * @property-read int|null $replies_count
@@ -64,6 +66,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Note whereVisibility($value)
  * @method static Builder<static>|Note withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Note withoutTrashed()
+ * @method static Builder<static>|Note visibleTo(?string $memberId)
  *
  * @mixin \Eloquent
  */
@@ -118,6 +121,7 @@ class Note extends Model
         return $this->belongsTo(self::class, 'parent_id')->withTrashed();
     }
 
+    /** @return HasMany<Note, $this> */
     public function replies(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')
@@ -126,9 +130,46 @@ class Note extends Model
             ->orderBy('position');
     }
 
+    /**
+     * Replies the current member may see.
+     *
+     * @return HasMany<Note, $this>
+     */
+    public function visibleReplies(): HasMany
+    {
+        $memberId = authContext()->member()?->getKey();
+        $replies = $this->replies();
+        $replies->getQuery()->visibleTo($memberId === null ? null : (string) $memberId);
+
+        return $replies;
+    }
+
     public function mentions(): HasMany
     {
         return $this->hasMany(NoteMention::class, 'note_id')
             ->where('master_note_mentions.organization_id', currentOrganizationId());
+    }
+
+    /**
+     * Notes shared with the organization, written by the member, or mentioning the member.
+     *
+     * @param  Builder<Note>  $query
+     */
+    #[Scope]
+    protected function visibleTo(Builder $query, ?string $memberId): void
+    {
+        $query->where(function (Builder $query) use ($memberId): void {
+            $query->where('visibility', NoteVisibility::Organization->value);
+
+            if ($memberId === null) {
+                return;
+            }
+
+            $query->orWhere('author_id', $memberId)
+                ->orWhere(function (Builder $query) use ($memberId): void {
+                    $query->where('visibility', NoteVisibility::Mentioned->value)
+                        ->whereHas('mentions', fn (Builder $mentionQuery): Builder => $mentionQuery->where('member_id', $memberId));
+                });
+        });
     }
 }

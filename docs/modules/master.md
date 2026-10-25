@@ -21,7 +21,13 @@ Visibility can move from private to mentioned or organization only once. A
 mentioned note must have at least one active member mention, and collective
 visibility cannot later be reduced or changed.
 
-Included replies are filtered with the same visibility rules as note lists.
+Note responses offer `?include=replies` (filtered with the same visibility
+rules as note lists) and `?include=mentions` (`member_id`, `mentioned_at`,
+`read_at`). The former `include=children` name is gone and now answers `422`.
+Each include renders at most 100 rows per note. A deleted reply renders only
+`id`, `parent_id`, `position`, `deleted` and `deleted_at`, and an empty
+`mentions` or `replies` key when included through `replies.mentions` or
+`replies.replies`. `replies_count` renders on the note list only.
 Mention rows carry the organization identifier and database constraints reject
 links to notes or members from another organization, including writes that
 bypass the note service. Historical note and member identities remain indexed
@@ -43,8 +49,12 @@ floating-point money/quantity drift. Units can be system-wide (`organization_id
 is null`) or organization-specific.
 
 Unit list responses load the group only with `include=group`, including when
-sorting by group. Organization predicates qualify the units table to avoid
-ambiguous columns in the group join; deleted groups are excluded from that join.
+sorting by group. With `?response=resource`, the upsert returns the unit group,
+and its units with `include=units` (or `include=units.group`). An included
+group lists its builtin units and the current organization's own units, at most
+100 per group. Organization
+predicates qualify the units table to avoid ambiguous columns in the group
+join; deleted groups are excluded from that join.
 
 `UnitService::upsert` updates a unit group and its units transactionally, then
 rewarm the relevant cache after commit. System groups and another

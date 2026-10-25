@@ -43,7 +43,7 @@ class UnitService
         $query = Unit::query()->where(function (Builder $query) use ($organizationId): void {
             $query->whereNull('master_units.organization_id')
                 ->orWhere('master_units.organization_id', $organizationId);
-        })->with(responseRelationsToLoad());
+        });
         if ($filters->code) {
             $query->where('code', 'like', "$filters->code%");
         }
@@ -140,7 +140,7 @@ class UnitService
                 DB::afterCommit(fn () => $this->unitCache->rewarmUnits());
             }
 
-            return $group->load(responseRelationsToLoad());
+            return $group;
         });
     }
 

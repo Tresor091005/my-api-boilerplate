@@ -76,11 +76,7 @@ final readonly class NoteService
 
     public function retrieve(Note $note): Note
     {
-        $ownedNote = $this->ownedNote($note->getKey());
-
-        $ownedNote->load($this->visibleResponseRelations());
-
-        return $ownedNote;
+        return $this->ownedNote($note->getKey());
     }
 
     public function create(NoteCreateData $data): Note
@@ -126,7 +122,7 @@ final readonly class NoteService
                 $this->upsertMentionRows($organizationId, $note->getKey(), $data->memberIds);
             }
 
-            return $note->fresh()->load($this->visibleResponseRelations());
+            return $note->fresh();
         });
     }
 
@@ -158,7 +154,7 @@ final readonly class NoteService
 
             $ownedNote->save();
 
-            return $ownedNote->fresh()->load($this->visibleResponseRelations());
+            return $ownedNote->fresh();
         });
     }
 
@@ -331,18 +327,7 @@ final readonly class NoteService
     /** @param Builder<Note>|Relation<Note, Note, Note> $query */
     private function applyVisibility(Builder|Relation $query): void
     {
-        $memberId = $this->currentMemberId();
-
-        $query->where(function (Builder $query) use ($memberId): void {
-            $query->where('visibility', NoteVisibility::Organization->value)
-                ->orWhere('author_id', $memberId)
-                ->orWhere(function (Builder $query) use ($memberId): void {
-                    $query->where('visibility', NoteVisibility::Mentioned->value)
-                        ->whereHas('mentions', fn (Builder $mentionQuery): Builder => $mentionQuery
-                            ->where('organization_id', currentOrganizationId())
-                            ->where('member_id', $memberId));
-                });
-        });
+        $query->visibleTo($this->currentMemberId());
     }
 
     private function resolveParent(?string $parentId, string $notableType, string $notableId): ?Note
@@ -434,23 +419,5 @@ final readonly class NoteService
         }
 
         return (string) $member->getKey();
-    }
-
-    /** @return array<int|string, mixed> */
-    private function visibleResponseRelations(): array
-    {
-        $relations = responseRelationsToLoad();
-        $replyIndex = array_search('replies', $relations, true);
-
-        if ($replyIndex === false) {
-            return $relations;
-        }
-
-        unset($relations[$replyIndex]);
-        $relations['replies'] = function (Relation $query): void {
-            $this->applyVisibility($query);
-        };
-
-        return $relations;
     }
 }

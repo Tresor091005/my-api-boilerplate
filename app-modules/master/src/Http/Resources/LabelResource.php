@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Master\Models\Label;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin Label */
-class LabelResource extends JsonResource
+class LabelResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'value'      => $this->value,
-            'slug'       => $this->slug,
-            'group'      => $this->group,
-            'order_col'  => $this->order_col,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('value')
+            ->field('slug')
+            ->field('group')
+            ->field('order_col')
+            ->field('created_at')
+            ->field('updated_at');
     }
 }

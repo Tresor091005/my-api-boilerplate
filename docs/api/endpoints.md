@@ -344,6 +344,16 @@ the updated one (`200`).
 | GET | `/v1/master/units` | List units, optionally filtered. |
 | POST | `/v1/master/units/upsert` | Create or update unit groups and units. |
 
+Master routes, notes included, use [response selection](response-selection.md):
+`?fields=` picks fields and `?include=` nests related resources. Units offer
+`group`, unit groups `units` (builtin and own units only), and notes `replies`
+and `mentions`; each of these lists renders at most 100 rows per parent. The
+former note include `children` is now `replies`; the old name answers `422`. A
+deleted reply shows empty `mentions` and `replies` keys when they are included
+under it. Writes answer `204` by default; with `?response=resource`, label
+creation returns the created labels (`201`), note creation the note (`201`),
+and label update, note update and unit upsert the updated record (`200`).
+
 The labelable labels endpoint resolves `labelable_type` through the registered
 morph map and requires the target model's `{morph_alias}.retrieve` permission.
 The target must use `InteractsWithLabels` and belong to the active organization.

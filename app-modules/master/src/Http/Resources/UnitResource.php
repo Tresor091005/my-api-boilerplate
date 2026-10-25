@@ -4,30 +4,19 @@ declare(strict_types=1);
 
 namespace Lahatre\Master\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Master\Models\Unit;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin Unit
- */
-class UnitResource extends JsonResource
+class UnitResource extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'     => $this->id,
-            'code'   => $this->code,
-            'name'   => $this->name,
-            'ratio'  => $this->ratio,
-            'symbol' => $this->symbol,
-            'group'  => $this->whenLoaded(
-                'group',
-                fn ($group): mixed => UnitGroupResource::make($group),
-            ),
-        ];
+        $resource
+            ->field('id')
+            ->field('code')
+            ->field('name')
+            ->field('ratio')
+            ->field('symbol')
+            ->include('group', UnitGroupResource::class);
     }
 }
