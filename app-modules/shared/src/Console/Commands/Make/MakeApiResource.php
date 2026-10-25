@@ -18,7 +18,7 @@ class MakeApiResource extends GeneratorCommand
 
     protected $name = 'make:api-resource';
 
-    protected $description = 'Create a new API resource and collection pair';
+    protected $description = 'Create a new API resource declaring its fields for response selection';
 
     protected $type = 'API Resource';
 
@@ -54,87 +54,50 @@ class MakeApiResource extends GeneratorCommand
         $resourceName = $this->getNameInput();
         $qualifiedResourceName = $this->qualifyClass($resourceName);
         $resourcePath = $this->getPath($qualifiedResourceName);
-        $collectionName = $this->getCollectionName($resourceName);
-        $qualifiedCollectionName = $this->qualifyClass($collectionName);
-        $collectionPath = $this->getPath($qualifiedCollectionName);
 
-        if (!$this->option('force')) {
-            if ($this->alreadyExists($qualifiedResourceName)) {
-                $this->fail(__('shared::console.api_resource.already_exists', ['type' => 'API Resource']));
-            }
-
-            if ($this->alreadyExists($qualifiedCollectionName)) {
-                $this->fail(__('shared::console.api_resource.already_exists', ['type' => 'API Collection']));
-            }
+        if (!$this->option('force') && $this->alreadyExists($qualifiedResourceName)) {
+            $this->fail(__('shared::console.api_resource.already_exists', ['type' => 'API Resource']));
         }
 
         $stub = $this->files->get($this->getStub());
         $stub = $this->replaceNamespace($stub, $qualifiedResourceName)->replaceClass($stub, $resourceName);
-        $stub = $this->replaceResourceContent($stub, $resourceName);
+        $stub = str_replace('{{ defineContent }}', $this->defineContent(), $stub);
 
         $this->makeDirectory($resourcePath);
         $this->files->put($resourcePath, $stub);
-        $this->makeDirectory($collectionPath);
-        $collectionStub = $this->files->get($this->getCollectionStub());
-        $collectionStub = $this->replaceNamespace($collectionStub, $qualifiedCollectionName)->replaceClass($collectionStub, $collectionName);
-        $collectionStub = $this->replaceCollectionContent($collectionStub, $resourceName);
-        $this->files->put($collectionPath, $collectionStub);
 
         $this->info(__('shared::console.api_resource.created_successfully', ['type' => 'API Resource']));
-        $this->info(__('shared::console.api_resource.created_successfully', ['type' => 'API Collection']));
 
         return null;
     }
 
-    protected function getCollectionStub(): string
-    {
-        return dirname(__DIR__, 4).'/stubs/api-collection.stub';
-    }
-
-    protected function getCollectionName(string $resourceName): string
-    {
-        return Str::beforeLast($resourceName, 'Resource').'Collection';
-    }
-
-    protected function replaceResourceContent(string $stub, string $name): string
+    /**
+     * One field per cast attribute of the model, or the id alone without a readable model.
+     */
+    protected function defineContent(): string
     {
         $model = $this->option('model');
+        $casts = [];
+
         if ($model) {
             $namespacedModel = $this->qualifyModel($model);
-            $mixinPlaceholder = "/**\n * @mixin \\{$namespacedModel}\n */\n";
-            $stub = str_replace('{{ mixinPlaceholder }}', $mixinPlaceholder, $stub);
 
             try {
-                $reflection = new ReflectionClass($namespacedModel);
-                $casts = $this->getModelCasts($reflection);
-                $toArrayContent = $this->generateToArrayContent($casts);
+                $casts = $this->getModelCasts(new ReflectionClass($namespacedModel));
             } catch (ReflectionException) {
                 $this->warn(__('shared::console.api_resource.reflection_failed', ['model' => $namespacedModel]));
-                $toArrayContent = '            return parent::toArray($request);';
             } catch (\Throwable $e) {
                 $this->warn(__('shared::console.api_resource.casts_failed', [
                     'model' => $namespacedModel,
                     'error' => $e->getMessage(),
                 ]));
-                $toArrayContent = '            return parent::toArray($request);';
             }
-        } else {
-            $mixinPlaceholder = ''; // No mixin if no model
-            $stub = str_replace('{{ mixinPlaceholder }}', $mixinPlaceholder, $stub);
-            $toArrayContent = '            return parent::toArray($request);';
         }
 
-        $stub = str_replace('{{ toArrayContent }}', $toArrayContent, $stub);
+        $excludedKeys = ['deleted_at', 'organization_id', 'password', 'remember_token'];
+        $fields = array_values(array_diff(array_keys($casts), $excludedKeys)) ?: ['id'];
 
-        return $stub;
-    }
-
-    protected function replaceCollectionContent(string $stub, string $resourceName): string
-    {
-        $resourceClass = class_basename($this->qualifyClass($resourceName));
-        $stub = str_replace('{{ resourceClass }}', $resourceClass, $stub);
-
-        return $stub;
+        return "        \$resource\n".implode("\n", array_map(fn (string $key): string => "            ->field('{$key}')", $fields)).';';
     }
 
     protected function getModelCasts(ReflectionClass $reflection): array
@@ -155,30 +118,6 @@ class MakeApiResource extends GeneratorCommand
         // If the user's models primarily use the casts() method, this might need refinement.
 
         return $casts;
-    }
-
-    protected function generateToArrayContent(array $casts): string
-    {
-        if ($casts === []) {
-            return '            return parent::toArray($request);';
-        }
-
-        $content = [];
-        $excludedKeys = [
-            'deleted_at',
-            'organization_id',
-            'password',
-            'remember_token',
-        ];
-
-        foreach (array_diff(array_keys($casts), $excludedKeys) as $key) {
-            $content[] = "            '{$key}' => \$this->{$key},";
-        }
-
-        return '        return [
-'.implode('
-', $content).'
-        ];';
     }
 
     protected function qualifyModel(string $model): string

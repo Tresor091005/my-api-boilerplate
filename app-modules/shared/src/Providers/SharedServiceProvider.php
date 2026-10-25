@@ -31,12 +31,7 @@ use Lahatre\Shared\Console\Commands\Make\MakeTrait;
 use Lahatre\Shared\Console\Commands\Make\MakeView;
 use Lahatre\Shared\Console\Commands\MorphMapCacheCommand;
 use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
-use Lahatre\Shared\Console\Commands\ResponseContractCacheCommand;
-use Lahatre\Shared\Console\Commands\ResponseContractClearCommand;
-use Lahatre\Shared\Http\Responses\ResponseContext;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Lahatre\Shared\Registries\MorphMapRegistry;
-use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 class SharedServiceProvider extends ServiceProvider
 {
@@ -45,25 +40,17 @@ class SharedServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/business-numbering.php', 'business-numbering');
 
         $this->app->scoped(MorphMapRegistry::class);
-        $this->app->scoped(ResponseContext::class);
-        $this->app->scoped(ResponseContractRegistry::class);
-        $this->app->scoped(ResponseResponder::class);
 
         $this->commands([
             HelpersListCommand::class,
             MorphMapCacheCommand::class,
             MorphMapClearCommand::class,
-            ResponseContractCacheCommand::class,
-            ResponseContractClearCommand::class,
         ]);
     }
 
-    public function boot(
-        MorphMapRegistry $morphMapRegistry,
-        ResponseContractRegistry $responseContractRegistry,
-    ): void {
+    public function boot(MorphMapRegistry $morphMapRegistry): void
+    {
         $morphMapRegistry->discover();
-        $responseContractRegistry->discover();
 
         $this->extendNativeGeneratorCommands();
         Artisan::starting(function (Artisan $artisan): void {
@@ -74,11 +61,6 @@ class SharedServiceProvider extends ServiceProvider
             optimize: 'morph-map:cache',
             clear: 'morph-map:clear',
             key: 'morph-map',
-        );
-        $this->optimizes(
-            optimize: 'response-contracts:cache',
-            clear: 'response-contracts:clear',
-            key: 'response-contracts',
         );
     }
 

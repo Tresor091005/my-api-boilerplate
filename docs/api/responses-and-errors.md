@@ -3,61 +3,16 @@
 This document describes the standardized JSON response structure and the
 business-error strategy based on assertion objects.
 
-## Response contracts
+## Response bodies
 
-Catalog routes answer through [response selection](response-selection.md)
-instead, and declare no contract except for their file downloads. The rest of
-this section applies to the modules not migrated yet.
+Routes rendering a model answer through [response selection](response-selection.md):
+`GET` returns the resource; `POST`, `PUT` and `PATCH` return `204 No Content`
+unless the client sends `?response=resource`; `DELETE` always returns `204`.
+The client chooses the fields and nested resources with `fields` and `include`.
 
-Every API route has a contract declared in `config/response-contracts.php` or
-in the owning module's `app-modules/<module>/config/response-contracts.php`.
-The key is the complete route name. Resource-producing routes may declare a
-default shape and relation contract. An empty definition is appropriate when
-an endpoint has no relation contract; the HTTP method and optional
-`response` parameter still determine whether it returns a body. Deletion
-entries should be accompanied by an inline comment when they intentionally
-return no body.
-
-The `ResponseContractRegistry`, discovered by `SharedServiceProvider`, loads
-these files after providers are registered. It rejects duplicate route keys and
-loads `bootstrap/cache/response-contracts.php` only in production. In local,
-testing, staging, and other environments, the cache is ignored so definitions
-are always rediscovered.
-
-Cache lifecycle commands:
-
-```bash
-php artisan response-contracts:clear
-php artisan response-contracts:cache
-```
-
-Defaults are determined by the HTTP verb: `GET` returns a resource; `POST`,
-`PUT`, and `PATCH` return no content by default and may request
-`?response=resource`; `DELETE` always remains `204 No Content`. An explicit
-`default_mode` is reserved for documented exceptions and cannot change the
-`DELETE` rule.
-
-The architecture test verifies that every API route has a contract and that
-every declared key matches an existing route. Shapes currently describe
-required relation loads; includes describe only relations explicitly requested
-by the client. When field selection is introduced, the fields selected by a
-shape will be the source of truth for `required_loads`: a relation is required
-only when a displayed field or computed field needs it. For example, a
-ProductVariant resource that does not display `name` must not load the
-`product` or `optionValues` relations solely because another resource displays
-that field. Field selection is not currently supported and must not be declared
-in a shape. Module contract files may declare reusable shapes under the
-reserved `_shapes` key and reference them from a route shape with `ref`.
-References are resolved before the production response-contract cache is
-written and are scoped to the configuration file that declares them.
-
-Every requested include must be an include key in the active response-contract
-shape. The contract controls which relations are loaded; the Resource controls
-which loaded relations are rendered with Laravel's native `whenLoaded()`.
-Consequently, a relation loaded indirectly may also be rendered by a nested
-Resource. Do not add an include merely because the corresponding Eloquent
-relation exists: the contract must explicitly allow the include and define its
-load first.
+Routes that render no model build their JSON in the controller and always
+answer a body: the IAM sign-in payload and its messages, and the inventory lots
+and stock summary. File downloads stream the file itself.
 
 ## 1. JSON response structure
 

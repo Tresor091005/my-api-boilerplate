@@ -259,7 +259,7 @@ IAM routes answering models use [response selection](../api/response-selection.m
 unless `?response=resource` is sent, including `PATCH /v1/auth/me` and
 `POST /v1/auth/switch-member-role`. After a switch, the returned account shows
 the newly selected `current_member_role_id`. The routes answering a payload built
-in code keep a legacy response contract and always answer a body: the sign-in
+in code return their JSON from the controller and always answer a body: the sign-in
 payload (`access_token`, `token_type`, `user`) of email and Google verification
 and public invitation acceptance, the email and Google challenges, and the
 confirmation messages of registration, Google linking, authenticated
@@ -449,7 +449,7 @@ unique constraint protects concurrent first invitations to the same email.
 
 Apply the IAM migration and run `php artisan permissions:discover` to create
 `iam_invitation` permissions and synchronize the built-in roles. Rebuild cached
-morph maps, response contracts, and configuration through the existing deployment
+morph maps and configuration through the existing deployment
 cache workflow when those caches are enabled.
 
 ## Boundaries and gaps

@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace {{ namespace }};
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-{{ mixinPlaceholder }}class {{ class }} extends JsonResource
+class {{ class }} extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-{{ toArrayContent }}
+{{ defineContent }}
     }
 }

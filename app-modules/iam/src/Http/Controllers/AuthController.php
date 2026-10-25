@@ -21,7 +21,6 @@ use Lahatre\Iam\Services\AuthService;
 use Lahatre\Iam\Services\OrganizationOnboardingService;
 use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\ResponseSelection\ApiResponse;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController
@@ -29,23 +28,22 @@ class AuthController
     public function __construct(
         protected AuthService $authService,
         protected OrganizationOnboardingService $onboarding,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function registerOrganization(OrganizationRegistrationRequest $request): JsonResponse|Response
     {
         $this->onboarding->registerOrganization(OrganizationRegistrationData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(fn (): array => [
+        return response()->json([
             'message' => __('iam::messages.auth.organization_registered'),
-        ], status: 201);
+        ], 201);
     }
 
     public function organizationRegistrationToken(OrganizationRegistrationTokenRequest $request): JsonResponse|Response
     {
         $this->onboarding->requestRegistrationToken($request->validated('email'));
 
-        return $this->responseResponder->respond(fn (): array => [
+        return response()->json([
             'message' => __('iam::messages.auth.registration_link_sent'),
         ]);
     }
@@ -57,9 +55,9 @@ class AuthController
         Gate::authorize('createOrganization', $user);
         $this->onboarding->createForUser($user, OrganizationData::fromArray($request->validated(), $user->id));
 
-        return $this->responseResponder->respond(fn (): array => [
+        return response()->json([
             'message' => __('iam::messages.auth.organization_created'),
-        ], status: 201);
+        ], 201);
     }
 
     /**
@@ -95,7 +93,7 @@ class AuthController
     {
         $this->authService->logout(authContext()->user());
 
-        return $this->responseResponder->respond(fn (): array => [
+        return response()->json([
             'message' => __('iam::messages.auth.logged_out'),
         ]);
     }

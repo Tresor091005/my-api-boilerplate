@@ -4,23 +4,16 @@ declare(strict_types=1);
 
 namespace Lahatre\{{Module}}\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/**
- * @mixin \Lahatre\{{Module}}\Models\{{Entity}}
- */
-class {{ClassName}} extends JsonResource
+class {{ClassName}} extends ApiResource
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('created_at')
+            ->field('updated_at');
     }
 }

@@ -13,18 +13,17 @@ use Lahatre\Iam\Http\Requests\GoogleAuthenticationRequest;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\GoogleAuthService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
 class GoogleAuthController
 {
-    public function __construct(private readonly GoogleAuthService $google, private readonly ResponseResponder $responder) {}
+    public function __construct(private readonly GoogleAuthService $google) {}
 
     public function challenge(Request $request): JsonResponse|Response
     {
         $challenge = $this->google->createChallenge();
 
-        return $this->responder->respond(fn (): array => $challenge);
+        return response()->json($challenge);
     }
 
     public function verify(GoogleAuthenticationRequest $request): JsonResponse|Response
@@ -33,8 +32,10 @@ class GoogleAuthController
             'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
         ]));
 
-        return $this->responder->respond(fn (): AuthResource|array => isset($result['token'])
-            ? AuthResource::make($result['user'])->withToken($result['token']) : $result);
+        // a first sign-in creates the user, which would make the resource answer 201
+        return isset($result['token'])
+            ? AuthResource::make($result['user'])->withToken($result['token'])->response()->setStatusCode(200)
+            : response()->json($result);
     }
 
     public function link(GoogleAuthenticationRequest $request): JsonResponse|Response
@@ -44,6 +45,6 @@ class GoogleAuthController
         Gate::authorize('update', $user);
         $this->google->link($user, GoogleAuthenticationData::fromArray($request->validated()));
 
-        return $this->responder->respond(fn (): array => ['message' => __('iam::messages.auth.google_linked')], status: 201);
+        return response()->json(['message' => __('iam::messages.auth.google_linked')], 201);
     }
 }

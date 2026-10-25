@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\Inventory\Data\InventoryLotFilterData;
 use Lahatre\Inventory\Data\InventoryStockFilterData;
@@ -23,7 +22,6 @@ use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Services\InventoryQueryService;
 use Lahatre\Inventory\Services\Stock\ManageInventoryStockService;
 use Lahatre\ResponseSelection\ApiResponse;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
 class InventoryStockController
@@ -31,7 +29,6 @@ class InventoryStockController
     public function __construct(
         protected ManageInventoryStockService $inventoryStockService,
         protected InventoryQueryService $inventoryQueryService,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function update(UpdateInventoryStockMetadataRequest $request, InventoryStock $stock): JsonResponse|Response
@@ -65,7 +62,7 @@ class InventoryStockController
 
         $response = $this->inventoryQueryService->paginateSummary($filters);
 
-        return $this->responseResponder->respond(fn (): JsonResource => InventorySummaryCollection::make($response));
+        return InventorySummaryCollection::make($response)->response();
     }
 
     public function indexLocationLots(
@@ -79,8 +76,6 @@ class InventoryStockController
 
         $response = $this->inventoryQueryService->getItemLocationLots($item, $location, $filters);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => InventoryItemLocationLotsResource::make($response)
-        );
+        return InventoryItemLocationLotsResource::make($response)->response();
     }
 }

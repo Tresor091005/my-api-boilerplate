@@ -180,7 +180,7 @@ See [passwordless authentication](../modules/iam.md#email-otp-and-sessions).
 All role routes use `auth.api` and the matching `iam_role` ability. IAM routes
 answering models (roles, members, member roles, invitations, permissions,
 sessions, `auth/me`, role switching) use [response selection](response-selection.md);
-the sign-in payloads and confirmation messages above keep their legacy contract.
+the sign-in payloads and confirmation messages above always answer a body.
 
 | Method | URI | Ability | Purpose |
 | --- | --- | --- | --- |

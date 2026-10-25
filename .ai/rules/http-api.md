@@ -29,23 +29,16 @@ paths:
 
 ### Response defaults
 
-- Every module answers through the response selection package
-  (`packages/response-selection`, see its README): its actions call
-  `ApiResponse` and declare no response contract. A route that renders no
-  model (a file download, the IAM sign-in payload and messages, the inventory
-  lots and stock summary) keeps a legacy response contract until the legacy
-  layer is removed.
-- Response mode is derived from the HTTP method, under both systems: `GET` returns a resource and rejects `response=none`; mutation
+- Every route rendering a model answers through the response selection
+  package (`packages/response-selection`, see its README). A route that
+  renders no model (a file download, the IAM sign-in payload and messages, the
+  inventory lots and stock summary) builds its JSON in the controller, always
+  with a body, or streams a file.
+- Response mode is derived from the HTTP method: `GET` returns a resource and rejects `response=none`; mutation
   methods (`POST`, `PUT`, and `PATCH`) return `204 No Content` by default and
   may opt into a resource with `?response=resource`; `DELETE` is always
   `204 No Content`.
-- A legacy contract may define `default_mode` only for an intentional endpoint
-  exception; response selection has no per-route default. This override must be documented with the route contract, is not
-  allowed for `DELETE`, and must not be added merely to repeat the method
-  default.
-- On a legacy contract, keep `default_shape`, required loads, and allowed
-  includes in the module contract. Response mode is not a per-shape
-  configuration concern.
+- Response selection has no per-route default mode.
 
 ## Controllers
 
@@ -63,10 +56,11 @@ paths:
   multi-authenticatable support requires deliberately widening that contract,
   not merely removing the assertions.
 - Return `201` for creation, `204` for deletion, and `200` otherwise unless the endpoint contract requires another standard status. Do not serialize `null` as JSON for a `204` response.
-- Every action ends with one `ApiResponse` call written in the action body
+- Every action rendering a model ends with one `ApiResponse` call written in the action body
   (`item()`, `list()`, `cursorPage()` or `noContent()`), with a literal
-  `XResource::class` and a literal status. A route on a legacy contract uses
-  `ResponseResponder` and `response()->noContent()`.
+  `XResource::class` and a literal status. A route rendering no model returns
+  `response()->json()` or a `JsonResource`'s `response()` with an explicit
+  status when it is not 200.
 
 ## Form Requests
 
@@ -106,22 +100,11 @@ paths:
   permissions grow with the code), with a test proving the whole list fits.
   Test a Resource's output through HTTP or the package's
   `RendersApiResources` helper, not by building it directly.
-- The rules below apply to the plain `JsonResource` classes of the routes left
-  on a legacy contract (such as `AuthResource` and `InventoryLotResource`).
-- Resources transform output only. Add `@mixin`, use `whenLoaded()` for relations, and load required relations before creating the Resource.
-- Define scalar fields first, then required and optional relations rendered
-  through native `whenLoaded()`. A Resource must never access a relation
-  directly to make it available; response shapes and the response context own
-  relation loading. The contract controls which relations may be loaded, and
-  the Resource renders any relation that is actually loaded. Keep every
-  relation guarded by `whenLoaded()` so a loading mistake omits the relation
-  instead of causing a lazy-loading query or exception.
-- The response context is lifecycle-scoped but not HTTP-only. Middleware
-  configures it from query parameters, and the active response shape is the
-  only source of required and optional response relation loads. Without an
-  active shape, no response relations are loaded; optional includes are added
-  only when explicitly requested, and `none` loads no response relations.
-- Resource collections extend `Lahatre\Shared\Http\Resources\BaseCollection` and preserve the shared cursor metadata contract.
+- A plain `JsonResource` renders only an output that is not a model (such as
+  `AuthResource` and `InventoryLotResource`). It transforms output only: the
+  controller or service loads what it shows, and it guards relations with
+  `whenLoaded()` so a loading mistake omits them instead of querying.
+- A collection of such rows extends `Lahatre\Shared\Http\Resources\BaseCollection` and preserves the shared cursor metadata contract.
 - Avoid relationship serialization that can recurse indefinitely.
 
 ## Middleware and Registration References

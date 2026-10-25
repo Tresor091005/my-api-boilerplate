@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Lahatre\Catalog\Models\Product;
 use Symfony\Component\Console\Command\Command;
 
-it('generates module-aware service, policy, resource, and collection classes', function (): void {
+it('generates module-aware service, policy, and response selection resource classes', function (): void {
     $suffix = Str::studly(Str::random(10));
     $serviceName = "GeneratorContractService{$suffix}";
     $policyName = "GeneratorContractPolicy{$suffix}";
@@ -18,7 +18,6 @@ it('generates module-aware service, policy, resource, and collection classes', f
         base_path("app-modules/shared/src/Services/{$serviceName}.php"),
         base_path("app-modules/catalog/src/Policies/{$policyName}.php"),
         base_path("app-modules/catalog/src/Http/Resources/{$resourceName}.php"),
-        base_path("app-modules/catalog/src/Http/Resources/GeneratorContract{$suffix}Collection.php"),
     ];
 
     try {
@@ -48,7 +47,6 @@ it('generates module-aware service, policy, resource, and collection classes', f
         $service = File::get($generatedFiles[0]);
         $policy = File::get($generatedFiles[1]);
         $resource = File::get($generatedFiles[2]);
-        $collection = File::get($generatedFiles[3]);
 
         expect($service)
             ->toContain('namespace Lahatre\\Shared\\Services;')
@@ -60,16 +58,11 @@ it('generates module-aware service, policy, resource, and collection classes', f
             ->toContain("return \$this->canModel('list', Product::class);");
 
         expect($resource)
-            ->toContain('@mixin \\Lahatre\\Catalog\\Models\\Product')
-            ->toContain("'handle' => \$this->handle,");
+            ->toContain("class {$resourceName} extends ApiResource")
+            ->toContain("->field('handle')");
 
-        expect(str_contains($resource, "'organization_id'"))->toBeFalse();
-
-        expect($collection)
-            ->toContain('use Lahatre\\Shared\\Http\\Resources\\BaseCollection;')
-            ->toContain("public \$collects = {$resourceName}::class;");
-
-        expect(str_contains($collection, "use Lahatre\\Catalog\\Http\\Resources\\{$resourceName};"))->toBeFalse();
+        expect(str_contains($resource, "'organization_id'"))->toBeFalse()
+            ->and(File::exists(base_path("app-modules/catalog/src/Http/Resources/GeneratorContract{$suffix}Collection.php")))->toBeFalse();
 
         expect(Artisan::call('make:api-resource', [
             'name'             => $resourceName,

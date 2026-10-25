@@ -5,38 +5,33 @@ declare(strict_types=1);
 namespace Lahatre\{{Module}}\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\{{Module}}\Data\{{Entity}}Data;
 use Lahatre\{{Module}}\Data\{{Entity}}FilterData;
 use Lahatre\{{Module}}\Http\Requests\{{Entity}}Request;
 use Lahatre\{{Module}}\Http\Requests\{{Entity}}FilterRequest;
-use Lahatre\{{Module}}\Http\Resources\{{Entity}}Collection;
 use Lahatre\{{Module}}\Http\Resources\{{Entity}}Resource;
 use Lahatre\{{Module}}\Models\{{Entity}};
 use Lahatre\{{Module}}\Services\{{Entity}}Service;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
+use Lahatre\ResponseSelection\ApiResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class {{ClassName}}
 {
     public function __construct(
         protected {{Entity}}Service $service,
-        protected ResponseResponder $responseResponder,
     ) {}
 
-    public function index({{Entity}}FilterRequest $request): JsonResource|JsonResponse|Response
+    public function index({{Entity}}FilterRequest $request): JsonResponse|Response
     {
         Gate::authorize('list', {{Entity}}::class);
 
         $response = $this->service->list({{Entity}}FilterData::fromArray($request->validated()));
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => {{Entity}}Collection::make($response),
-        );
+        return ApiResponse::cursorPage($response, {{Entity}}Resource::class);
     }
 
-    public function store({{Entity}}Request $request): JsonResource|JsonResponse|Response
+    public function store({{Entity}}Request $request): JsonResponse|Response
     {
         Gate::authorize('create', {{Entity}}::class);
 
@@ -44,24 +39,19 @@ class {{ClassName}}
 
         $response = $this->service->create($data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => {{Entity}}Resource::make($response),
-            status: 201,
-        );
+        return ApiResponse::item($response, {{Entity}}Resource::class, 201);
     }
 
-    public function show({{Entity}} ${{EntityLower}}): JsonResource|JsonResponse|Response
+    public function show({{Entity}} ${{EntityLower}}): JsonResponse|Response
     {
         Gate::authorize('retrieve', ${{EntityLower}});
 
         $response = $this->service->retrieve(${{EntityLower}});
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => {{Entity}}Resource::make($response),
-        );
+        return ApiResponse::item($response, {{Entity}}Resource::class);
     }
 
-    public function update({{Entity}}Request $request, {{Entity}} ${{EntityLower}}): JsonResource|JsonResponse|Response
+    public function update({{Entity}}Request $request, {{Entity}} ${{EntityLower}}): JsonResponse|Response
     {
         Gate::authorize('update', ${{EntityLower}});
 
@@ -69,9 +59,7 @@ class {{ClassName}}
 
         $response = $this->service->update(${{EntityLower}}, $data);
 
-        return $this->responseResponder->respond(
-            fn (): JsonResource => {{Entity}}Resource::make($response),
-        );
+        return ApiResponse::item($response, {{Entity}}Resource::class);
     }
 
     public function destroy({{Entity}} ${{EntityLower}}): Response
@@ -80,6 +68,6 @@ class {{ClassName}}
 
         $this->service->delete(${{EntityLower}});
 
-        return response()->noContent();
+        return ApiResponse::noContent();
     }
 }

@@ -22,7 +22,7 @@ The internal [author questionnaire](decisions/documentation-author-questions.md)
 - [Application layers](architecture/application-layers.md): request flow,
   authorization, services, transactions, queries, and responses.
 - [Module map](modules.md): module responsibilities and dependency direction.
-- [API documentation](api/): response contracts, response selection, errors,
+- [API documentation](api/): response selection, errors,
   and rate limiting.
 - [API endpoint map](api/endpoints.md): current routes and access boundaries.
 - [Authentication and authorization](authentication/sanctum.md): Sanctum,

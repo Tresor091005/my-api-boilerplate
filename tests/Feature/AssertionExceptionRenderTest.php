@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
-use Lahatre\Shared\Registries\ResponseContractRegistry;
 
 it('renders module assertion exceptions as standardized json responses', function (): void {
     Route::middleware('api')->get('/_test/assertion-exception', function (): void {
@@ -16,10 +15,6 @@ it('renders module assertion exceptions as standardized json responses', functio
             unitCode: 'PCS',
         );
     })->name('_test.assertion-exception');
-
-    app(ResponseContractRegistry::class)->registerMany([
-        '_test.assertion-exception' => [],
-    ]);
 
     $this->getJson('/_test/assertion-exception')
         ->assertStatus(422)

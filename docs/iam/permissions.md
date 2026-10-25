@@ -97,13 +97,7 @@ docker compose exec -T app php artisan permissions:discover --no-interaction
 ```
 
 The morph-map cache must be regenerated before permission discovery so the
-permission names and policy lookups use the same aliases. A deployment should
-also run the response-contract cache command when API routes or response
-contracts changed:
-
-```bash
-docker compose exec -T app php artisan response-contracts:cache --no-interaction
-```
+permission names and policy lookups use the same aliases.
 
 The command synchronizes generated permissions and built-in roles. It does not
 remove permissions for models that no longer exist, so historical or custom

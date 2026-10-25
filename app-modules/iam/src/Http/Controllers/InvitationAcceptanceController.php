@@ -13,14 +13,12 @@ use Lahatre\Iam\Http\Requests\InvitationAcceptanceRequest;
 use Lahatre\Iam\Http\Resources\AuthResource;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\InvitationService;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvitationAcceptanceController
 {
     public function __construct(
         protected InvitationService $invitations,
-        protected ResponseResponder $responseResponder,
     ) {}
 
     public function store(InvitationAcceptanceRequest $request): JsonResponse|Response
@@ -29,9 +27,7 @@ class InvitationAcceptanceController
             'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
         ]));
 
-        return $this->responseResponder->respond(
-            fn (): AuthResource => AuthResource::make($result['user'])->withToken($result['token']), status: 201,
-        );
+        return AuthResource::make($result['user'])->withToken($result['token'])->response()->setStatusCode(201);
     }
 
     public function storeForUser(AuthenticatedInvitationAcceptanceRequest $request): JsonResponse|Response
@@ -41,8 +37,8 @@ class InvitationAcceptanceController
         Gate::authorize('update', $user);
         $this->invitations->acceptForUser($user, $request->validated('token'));
 
-        return $this->responseResponder->respond(fn (): array => [
+        return response()->json([
             'message' => __('iam::messages.invitation.joined'),
-        ], status: 201);
+        ], 201);
     }
 }

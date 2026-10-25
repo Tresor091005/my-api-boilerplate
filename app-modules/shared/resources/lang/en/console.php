@@ -7,11 +7,7 @@ return [
     'api_resource'                 => [
         'already_exists'       => 'The :type already exists.',
         'created_successfully' => 'The :type was created successfully.',
-        'reflection_failed'    => 'Could not reflect model :model. Using the parent resource fallback.',
-        'casts_failed'         => 'An error occurred while processing casts for model :model. Using the parent resource fallback. Error: :error',
-    ],
-    'response_contracts' => [
-        'cached'  => 'Response contracts cached successfully.',
-        'cleared' => 'Response contract cache cleared successfully.',
+        'reflection_failed'    => 'Could not reflect model :model. Declaring the id field only.',
+        'casts_failed'         => 'An error occurred while processing casts for model :model. Declaring the id field only. Error: :error',
     ],
 ];

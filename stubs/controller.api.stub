@@ -7,42 +7,27 @@ namespace {{ namespace }};
 use IlluminateHttpJsonResponse;
 use IlluminateHttpRequest;
 use IlluminateHttpResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 
 final class {{ class }}
 {
-    public function __construct(
-        private ResponseResponder $responseResponder,
-    ) {}
-
-    public function index(Request $request): JsonResource|JsonResponse|Response
+    public function index(Request $request): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
-    public function store(Request $request): JsonResource|JsonResponse|Response
+    public function store(Request $request): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-            status: 201,
-        );
+        return response()->json([], 201);
     }
 
-    public function show(string $id): JsonResource|JsonResponse|Response
+    public function show(string $id): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
-    public function update(Request $request, string $id): JsonResource|JsonResponse|Response
+    public function update(Request $request, string $id): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
     public function destroy(string $id): Response

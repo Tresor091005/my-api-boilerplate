@@ -6,10 +6,9 @@ Clients choose what a response contains (`?response=`, `?fields=`,
 is, why it exists and how to use it, for API clients and backend developers:
 [the package README](../../packages/response-selection/README.md).
 
-This page covers only how Lahatre uses it. The package replaces the response
-contracts of [Standard responses and errors](responses-and-errors.md). Every
-module answers through it, except the few routes listed under
-[Status and remaining work](#status-and-remaining-work).
+This page covers only how Lahatre uses it. Every route rendering a model
+answers through it; the few routes that render none are listed under
+[Status](#status).
 
 ## Wiring
 
@@ -17,7 +16,7 @@ module answers through it, except the few routes listed under
   symlinked in `vendor/lahatre/response-selection`), discovered through its
   `ResponseSelectionServiceProvider`.
 - `bootstrap/app.php` adds `ResolveResponseSelection` to the `api` group, after
-  the legacy `ResolveResponseContext`, and orders it after authentication: a
+  the other `api` middleware, and orders it after authentication: a
   logged-out request gets 401, not a 422 for its selection.
 - `response-selection.tolerate_model_violations` is left at its default
   (production only), which matches `Model::shouldBeStrict(!app()->isProduction())`
@@ -70,10 +69,10 @@ POST /v1/customer/customers?response=resource&fields=name,is_active
 GET  /v1/catalog/products/{product}/variants?fields=name&include=product(name)
 ```
 
-## Status and remaining work
+## Status
 
-Every module is migrated (catalog, customer, inventory, library, master, iam
-and organization): their actions end with an `ApiResponse` call, their
+Every module answers through it (catalog, customer, inventory, library,
+master, iam and organization): their actions end with an `ApiResponse` call, their
 services load nothing for the response, and a Resource renders another
 module's records through that module's own Resource (`UnitGroupResource`,
 `AddressResource`, `InventoryItemResource`, `FileAttachmentApiResource`,
@@ -86,26 +85,16 @@ its file's values beside its own (the `DescribesFile` trait lists them once for
 every library response), and the product
 `options` and category `bloodline` fields render only when listed in `fields`.
 
-Routes that render no model keep a legacy contract and `ResponseResponder`:
+Routes that render no model answer without response selection: their
+controller builds the JSON (`response()->json()` or a `JsonResource`'s
+`response()`), always with a body, or streams a file.
 
 - the file content downloads (catalog products and services, customers,
-  library), which do not answer JSON;
+  library), which stream the file;
 - the IAM sign-in payload (`access_token`, `token_type`, `user`) of the email
   and Google verifications and the invitation acceptances, and the IAM
   confirmation messages and challenges;
 - the inventory lots per location and stock summary, which are computed rows.
-
-The legacy `App\Http\Middleware\ResolveResponseContext` still runs on every
-`api` route and throws for a route without a contract, but skips an action the
-registry declares.
-
-Remaining work: give the routes above their own JSON response, then delete the
-legacy layer: `Lahatre\Shared\Http\Responses\*` (with its duplicate
-`ResponseMode`, `ResponseShape` and `ResponseContext`),
-`ResponseContractRegistry`, the `response-contracts:cache`/`:clear` commands
-and their `optimizes()` registration, `config/api-responses.php`, the legacy
-middleware (and its registry bridge), their translation keys and the
-contract sections of these docs.
 
 ## Tests
 
@@ -115,8 +104,8 @@ contract sections of these docs.
   brings `orchestra/canvas`, kept out of package discovery (`dont-discover`) so
   the `make:*` commands stay Lahatre's.
 - `tests/Feature/Integration/ResponseSelectionIntegrationTest.php`: the
-  application side, that is the registry over every real route, the legacy
-  middleware bridge and the `api` group order.
+  application side, that is the registry over every real route, the `api`
+  group order and the OpenAPI parameters.
 - `tests/Feature/Integration/<Module>ResponseSelectionIntegrationTest.php`:
   each module's lists under `assertBoundedQueries()` and
   `assertFieldsRenderInIsolation()`.

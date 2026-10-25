@@ -6,44 +6,29 @@ namespace {{ namespace }};
 
 use IlluminateHttpJsonResponse;
 use IlluminateHttpResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Shared\Http\Responses\ResponseResponder;
 use {{ namespacedModel }};
 use {{ namespacedRequests }}
 
 final class {{ class }}
 {
-    public function __construct(
-        private ResponseResponder $responseResponder,
-    ) {}
-
-    public function index(): JsonResource|JsonResponse|Response
+    public function index(): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
-    public function store({{ storeRequest }} $request): JsonResource|JsonResponse|Response
+    public function store({{ storeRequest }} $request): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-            status: 201,
-        );
+        return response()->json([], 201);
     }
 
-    public function show({{ model }} ${{ modelVariable }}): JsonResource|JsonResponse|Response
+    public function show({{ model }} ${{ modelVariable }}): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
-    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): JsonResource|JsonResponse|Response
+    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }}): JsonResponse
     {
-        return $this->responseResponder->respond(
-            fn (): JsonResource => JsonResource::make([]),
-        );
+        return response()->json([]);
     }
 
     public function destroy({{ model }} ${{ modelVariable }}): Response

@@ -85,47 +85,12 @@ run the cache command after the new code is available and before workers serve
 requests. The architecture test verifies that every concrete model is present
 in the active map and reports the model class that is missing.
 
-## Response contract lifecycle
+## Response selection
 
-Modules migrated to [response selection](../api/response-selection.md)
-(catalog) declare no contract for the routes that answer through
-`ApiResponse`; the legacy middleware skips them. The rest of this section
-applies to the modules not migrated yet.
-
-API response contracts follow the same application-owned discovery pattern.
-The root API definitions live in `config/response-contracts.php`; each module
-that owns API routes may provide `config/response-contracts.php` under its own
-module directory. The keys are complete route names, and the values contain
-optional shapes, required loads, and allowed includes.
-
-`SharedServiceProvider` discovers these files after providers have registered,
-so module providers do not resolve or register the shared registry manually.
-The registry rejects duplicate route keys and loads the generated
-`bootstrap/cache/response-contracts.php` file only in production. Other
-environments always rediscover the configuration. Use:
-
-```bash
-php artisan response-contracts:clear
-php artisan response-contracts:cache
-```
-
-Every application API route must have a contract. Resource-producing routes
-declare their shape, required loads, and allowed includes. An empty definition
-is reserved for an endpoint with no response body, such as a
-deletion, and must have an inline explanation in the owning module config. An
-empty contract still supplies the method-derived response policy:
-GET returns a resource, POST/PUT/PATCH return no content by default, and DELETE
-is always no content. The architecture test reports both missing route
-contracts and stale contract keys. The HTTP response-context middleware also
-fails before controller execution when a routed API endpoint has no contract.
-Response mode overrides are exceptional and must be documented with the route.
-
-`ResponseContext` is scoped to the application lifecycle, not exclusively to
-HTTP requests. `ResolveResponseContext` is the HTTP adapter that configures it
-from query parameters. The active response shape is the only source of
-required and optional response relation loads; without an active shape, no
-response relations are loaded. Optional includes are loaded only when
-requested, and `response=none` loads no response relations.
+`ResolveResponseSelection` runs in the `api` group, after authentication, and
+validates `response`, `fields` and `include` for the routes whose action
+answers through `ApiResponse`; see [response selection](../api/response-selection.md).
+Other routes build their own JSON or stream a file.
 
 ## Service lifetime
 

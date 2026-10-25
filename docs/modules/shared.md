@@ -10,7 +10,6 @@ It provides:
 - deterministic cursor pagination;
 - handle and SKU generation;
 - model discovery and morph-map caching;
-- response-contract discovery and deployment caching;
 - PostgreSQL-backed, organization-scoped business numbering;
 - module-aware/native Artisan generator overrides;
 - generator architecture support and shared test helpers;

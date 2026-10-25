@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lahatre\Iam\Auth\AuthContext;
-use Lahatre\Shared\Http\Responses\ResponseContext;
 use Lahatre\Shared\Support\DeterministicCursorPagination;
 
 if (!function_exists('authContext')) {
@@ -49,23 +48,5 @@ if (!function_exists('stableCursorPaginate')) {
             $tieBreakerColumn,
             $cursorName
         );
-    }
-}
-
-if (!function_exists('applyResponseContextToQuery')) {
-    /** Apply response-context relation loads to a query when it supports eager loading. */
-    function applyResponseContextToQuery(Builder|QueryBuilder $query): Builder|QueryBuilder
-    {
-        return app(ResponseContext::class)->applyToQuery($query);
-    }
-}
-
-if (!function_exists('responseRelationsToLoad')) {
-    /**
-     * Resolve response relations declared by the active response shape.
-     */
-    function responseRelationsToLoad(): array
-    {
-        return app(ResponseContext::class)->relationsToLoad();
     }
 }

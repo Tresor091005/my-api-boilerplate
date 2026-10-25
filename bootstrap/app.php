@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\ForceJsonResponse;
-use App\Http\Middleware\ResolveResponseContext;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,7 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->appendToGroup('api', [
             ForceJsonResponse::class,
-            ResolveResponseContext::class,
             ResolveResponseSelection::class,
             'throttle:api',
         ]);
