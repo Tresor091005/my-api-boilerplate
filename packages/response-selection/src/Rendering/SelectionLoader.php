@@ -233,7 +233,7 @@ class SelectionLoader
         ));
         $requested = array_values(array_filter(
             $definition->fieldKeys(),
-            fn (string $key) => $key === 'id' || $selection->wantsField($key)
+            fn (string $key) => $definition->selectsField($selection, $key)
         ));
 
         return [$definition->fieldsToBuild([...$requested, ...$includes], $accepts), $includes];

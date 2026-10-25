@@ -24,6 +24,7 @@ final class OpenApiSchemaTestParentResource extends ApiResource
     {
         $resource
             ->field('id')
+            ->field('summary', columns: [], computedBy: fn (): string => 'summary', default: false)
             ->include('lines', OpenApiSchemaTestChildResource::class, limit: 2)
             ->virtualInclude('peers', OpenApiSchemaTestChildResource::class, fn () => [], asList: true, limit: 3);
     }
@@ -47,4 +48,11 @@ it('documents the include limit as the most items of a list include', function (
 
     expect($properties['peers']['maxItems'] ?? null)->toBe(3)
         ->and($properties['lines']['anyOf'][2]['maxItems'] ?? null)->toBe(2);
+});
+
+it('marks the fields rendered only when listed in the fields parameter', function (): void {
+    $extension = (new ReflectionClass(ResponseSelectionOperationExtension::class))->newInstanceWithoutConstructor();
+    $list = (new ReflectionMethod($extension, 'fieldList'))->invoke($extension, OpenApiSchemaTestParentResource::definition());
+
+    expect($list)->toBe('`id`, `summary` (only when listed)');
 });

@@ -105,7 +105,7 @@ final class ResponseContext
             $isField = $definition->hasField($name);
             $child = $isField ? null : $selection->child($name);
 
-            if ($isField ? $name !== 'id' && !$selection->wantsField($name) : $child === null) {
+            if ($isField ? !$definition->selectsField($selection, $name) : $child === null) {
                 continue;
             }
 

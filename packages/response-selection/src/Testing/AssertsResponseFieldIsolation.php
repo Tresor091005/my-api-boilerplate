@@ -42,8 +42,12 @@ trait AssertsResponseFieldIsolation
         $tree = $this->isolationIncludeTree([$resourceClass], $depth);
         $full = [];
 
+        $rootFields = $this->isolationFullFields([$resourceClass]);
+
         foreach ($this->isolationBatches(array_keys($tree)) ?: [[]] as $batch) {
-            [, $body] = $this->isolationGet($uri, $batch === [] ? [] : ['include' => implode(',', $batch)], 'Full selection');
+            $includes = array_map(fn (string $path): string => $path.(($fields = $this->isolationFullFields($tree[$path])) === null ? '' : "({$fields})"), $batch);
+            $selection = array_filter(['fields' => $rootFields, 'include' => implode(',', $includes)], fn (?string $value): bool => $value !== null && $value !== '');
+            [, $body] = $this->isolationGet($uri, $selection, 'Full selection');
 
             $full[''] ??= $body;
 
@@ -222,6 +226,27 @@ trait AssertsResponseFieldIsolation
         }
 
         return $rows;
+    }
+
+    /**
+     * The fields a full selection lists at one level: none, so the default fields render, or every
+     * field by name when some field renders only on request.
+     *
+     * @param  array<int, class-string<ApiResource>>  $classes
+     */
+    private function isolationFullFields(array $classes): ?string
+    {
+        $keys = $this->isolationFieldKeys($classes);
+
+        foreach ($classes as $class) {
+            foreach ($class::definition()->fieldKeys() as $key) {
+                if (!$class::definition()->rendersByDefault($key)) {
+                    return implode(',', $keys);
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

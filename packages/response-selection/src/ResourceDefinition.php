@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
+use Lahatre\ResponseSelection\Selection\SelectionNode;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -22,7 +23,7 @@ use ReflectionParameter;
 final class ResourceDefinition
 {
     /**
-     * @var array<string, array{columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, computedBy: class-string<FieldComputer>|Closure|null, when: Closure|null}>
+     * @var array<string, array{columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, computedBy: class-string<FieldComputer>|Closure|null, when: Closure|null, default: bool}>
      */
     private array $fields = [];
 
@@ -180,9 +181,10 @@ final class ResourceDefinition
      * @param  array<int, string>|null  $relations  relations it reads, loaded with all their columns
      * @param  array<int, string>  $fields  other fields of this Resource it needs
      * @param  class-string<FieldComputer>|(Closure(Model, BuiltValues): mixed)|null  $computedBy
+     * @param  bool  $default  false: rendered only when the client lists it in `fields`
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
      */
-    public function field(string $name, ?array $columns = null, ?array $relations = null, array $fields = [], string|Closure|null $computedBy = null, ?Closure $when = null): self
+    public function field(string $name, ?array $columns = null, ?array $relations = null, array $fields = [], string|Closure|null $computedBy = null, bool $default = true, ?Closure $when = null): self
     {
         $this->assertMutable();
         $this->assertIdentifier($name);
@@ -203,6 +205,7 @@ final class ResourceDefinition
             'fields'     => array_values(array_unique($fields)),
             'computedBy' => $computedBy,
             'when'       => $when,
+            'default'    => $default,
         ];
         $this->remember($name);
 
@@ -490,6 +493,27 @@ final class ResourceDefinition
     }
 
     /**
+     * Whether a field renders when the client lists no fields.
+     */
+    public function rendersByDefault(string $key): bool
+    {
+        return $this->fields[$key]['default'] ?? true;
+    }
+
+    /**
+     * Whether a selection level renders a field: `id` always, the fields the client lists, or every
+     * field rendered by default when it lists none.
+     */
+    public function selectsField(SelectionNode $selection, string $key): bool
+    {
+        if ($key === 'id') {
+            return true;
+        }
+
+        return $selection->selectsAllFields() ? $this->rendersByDefault($key) : $selection->wantsField($key);
+    }
+
+    /**
      * @return array<int, string>
      */
     public function fieldKeys(): array
@@ -498,7 +522,7 @@ final class ResourceDefinition
     }
 
     /**
-     * @return array{columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, computedBy: class-string<FieldComputer>|Closure|null, when: Closure|null}|null
+     * @return array{columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, computedBy: class-string<FieldComputer>|Closure|null, when: Closure|null, default: bool}|null
      */
     public function fieldDefinition(string $key): ?array
     {

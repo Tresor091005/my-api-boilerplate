@@ -955,3 +955,65 @@ it('builds an include resolver a fixed number of times, however many parents ren
 
     expect($builtFor(5))->toBe($builtFor(1));
 });
+
+final class ResponseBuildTestOptInResource extends ApiResource
+{
+    /** @var array<int, int> */
+    public static array $built = [];
+
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('owner_name', relations: ['owner'], computedBy: function (Model $model): ?string {
+                self::$built[] = $model->getKey();
+
+                return $model->getRelation('owner')?->getAttribute('name');
+            }, default: false);
+    }
+}
+
+it('renders a field declared default: false only when the client lists it', function (?string $fields, array $expected, array $built): void {
+    ResponseBuildTestOptInResource::$built = [];
+    $account = new ResponseBuildTestAccount(['id' => 1, 'name' => 'Awa', 'owner_id' => 2]);
+    $account->setRelation('owner', new ResponseBuildTestAccount(['id' => 2, 'name' => 'Binta']));
+    startSelection(ResponseBuildTestOptInResource::class, ResponseShape::Item, $fields);
+
+    $response = ApiResponse::item($account, ResponseBuildTestOptInResource::class);
+
+    expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe($expected)
+        ->and(ResponseBuildTestOptInResource::$built)->toBe($built);
+})->with([
+    'no fields listed'  => [null, ['id' => 1, 'name' => 'Awa'], []],
+    'listed'            => ['owner_name', ['id' => 1, 'owner_name' => 'Binta'], [1]],
+    'listed with other' => ['name,owner_name', ['id' => 1, 'name' => 'Awa', 'owner_name' => 'Binta'], [1]],
+]);
+
+it('renders an included field declared default: false only when the include lists it', function (): void {
+    $account = new ResponseBuildTestAccount(['id' => 1, 'name' => 'Awa', 'owner_id' => 2]);
+    $owner = new ResponseBuildTestAccount(['id' => 2, 'name' => 'Binta', 'owner_id' => 3]);
+    $owner->setRelation('owner', new ResponseBuildTestAccount(['id' => 3, 'name' => 'Coumba']));
+    $account->setRelation('owner', $owner);
+
+    $render = function (string $include) use ($account): mixed {
+        app()->instance(ResponseContext::class, new ResponseContext);
+        startSelection(ResponseBuildTestOptInParentResource::class, ResponseShape::Item, 'id', $include);
+        $response = ApiResponse::item($account, ResponseBuildTestOptInParentResource::class);
+
+        return $response instanceof JsonResponse ? $response->getData(true)['data']['owner'] : null;
+    };
+
+    expect($render('owner'))->toBe(['id' => 2, 'name' => 'Binta'])
+        ->and($render('owner(owner_name)'))->toBe(['id' => 2, 'owner_name' => 'Coumba']);
+});
+
+final class ResponseBuildTestOptInParentResource extends ApiResource
+{
+    protected static function define(ResourceDefinition $resource): void
+    {
+        $resource
+            ->field('id')
+            ->include('owner', ResponseBuildTestOptInResource::class);
+    }
+}

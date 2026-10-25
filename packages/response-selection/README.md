@@ -85,7 +85,8 @@ key, name := [A-Za-z_][A-Za-z0-9_]*
 ```
 
 - `fields` lists the fields of the root resource. Without it, the root renders
-  every declared field.
+  every field rendered by default; a field the API marks as "only when listed"
+  renders only when `fields` names it.
 - `include` lists related resources, each with its own optional field list:
   `include=addresses(id,city)`. Without it, no relation is rendered: relations
   are always opt-in.
@@ -228,7 +229,7 @@ Every argument is named:
 ```php
 field(string $name, ?array $columns = null, ?array $relations = null,
     array $fields = [], string|Closure|null $computedBy = null,
-    ?Closure $when = null)
+    bool $default = true, ?Closure $when = null)
 include(string $name, string|ResourceResolver $resource,
     ?string $relation = null, ?int $limit = null, ?Closure $when = null)
 virtualInclude(string $name, string|ResourceResolver $resource,
@@ -243,7 +244,9 @@ virtualInclude(string $name, string|ResourceResolver $resource,
   reads the column of its key; declaring any of them lists everything it reads,
   and `columns: []` alone reads nothing. A relation path is loaded whole
   (`loadMissing()`); a relation already loaded before rendering is reused as it
-  is.
+  is. `default: false` renders the field only when the client lists it in
+  `fields` (or in an include's list): use it for a costly field few clients
+  need, so nothing is loaded for it by default.
 - `include()`: an Eloquent relation rendered by an `ApiResource`, or, for a
   polymorphic relation, by the Resource a `ResourceResolver` passed as
   `resource` picks per model. `name` is the JSON key clients select; `relation`
@@ -521,6 +524,12 @@ and marks only `id` required. Field values are not typed.
   include up to depth 2, renders the same value as in the full response, so a
   column or relation only a sibling field declares fails. Seed rows at every
   include.
+
+To check what a Resource shows without an HTTP request,
+`renderApiResource($model, XResource::class, $fields, $include)`
+(`RendersApiResources`) renders a model as `ApiResponse::item()` would and
+returns its `data`. A Resource cannot be built directly (`new XResource()`):
+it renders only through `ApiResponse`.
 
 ### Package layout
 

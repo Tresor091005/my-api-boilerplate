@@ -104,6 +104,7 @@ it('reads the column of its key when declared bare', function (): void {
         'fields'     => [],
         'computedBy' => null,
         'when'       => null,
+        'default'    => true,
     ]);
 });
 

@@ -72,7 +72,7 @@ class ResponseSelectionOperationExtension extends OperationExtension
             Parameter::make('fields', 'query')
                 ->setSchema(Schema::fromType(new StringType))
                 ->description('Comma-separated JSON keys of the root resource (`id` is always rendered). Available: '
-                    .implode(', ', array_map(fn (string $key) => "`{$key}`", $definition->fieldKeys())).'.'),
+                    .$this->fieldList($definition).'.'),
             Parameter::make('include', 'query')
                 ->setSchema(Schema::fromType(new StringType))
                 ->description('Comma-separated include paths, each optionally followed by its fields in parentheses: '
@@ -120,6 +120,17 @@ class ResponseSelectionOperationExtension extends OperationExtension
         }
 
         return $response instanceof Response && (int) $response->code >= 200 && (int) $response->code < 300;
+    }
+
+    /**
+     * The field keys clients may list, those rendered only on request marked as such.
+     */
+    private function fieldList(ResourceDefinition $definition): string
+    {
+        return implode(', ', array_map(
+            fn (string $key) => $definition->rendersByDefault($key) ? "`{$key}`" : "`{$key}` (only when listed)",
+            $definition->fieldKeys(),
+        ));
     }
 
     /**
