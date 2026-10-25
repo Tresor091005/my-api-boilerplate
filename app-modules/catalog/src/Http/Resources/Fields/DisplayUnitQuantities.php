@@ -11,9 +11,10 @@ use Lahatre\ResponseSelection\BuiltValues;
 use Lahatre\ResponseSelection\FieldComputer;
 
 /**
- * Converts each bundle item's quantity from base units to its display unit.
+ * Converts each row's quantity from base units to its display unit: bundle items and stock
+ * transfer lines store both.
  */
-final readonly class BundleItemQuantities implements FieldComputer
+final readonly class DisplayUnitQuantities implements FieldComputer
 {
     public function __construct(private MasterInterface $master) {}
 

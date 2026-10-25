@@ -23,8 +23,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CatalogItemType $catalog_item_type
  * @property string $catalog_item_id
  * @property int $position
- * @property int $quantity
- * @property string $display_unit_code
+ * @property int $quantity in base units
+ * @property string $display_unit_code unit the quantity is shown in
  * @property DeductionStrategy|null $strategy
  * @property list<string>|null $stock_ids
  * @property CarbonImmutable|null $created_at

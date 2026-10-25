@@ -32,6 +32,7 @@ use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Library\Models\FileAttachment;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
+use Lahatre\Master\Support\UnitCache;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\ResponseSelection\Testing\AssertsBoundedQueries;
 use Lahatre\ResponseSelection\Testing\AssertsResponseFieldIsolation;
@@ -158,6 +159,8 @@ it('renders every field of the catalog lists alone as in the full selection', fu
         'address'   => ['line' => '1 Main Street', 'city' => 'Cotonou', 'country' => 'Benin'],
     ])->assertNoContent();
     StockTransferLine::factory()->create();
+    // the line factory creates its own unit, which the unit cache does not know yet
+    app(UnitCache::class)->rewarmUnits();
 
     $this->assertFieldsRenderInIsolation('/v1/catalog/categories', CategoryResource::class, 1);
     $this->assertFieldsRenderInIsolation('/v1/catalog/options', OptionResource::class, 1);
@@ -190,7 +193,7 @@ it('runs as many queries for more catalog rows with their includes', function (s
     ],
     'stock transfers' => [
         '/v1/catalog/stock-transfers?include=lines.item,source_location,destination_location',
-        fn (): StockTransferLine => StockTransferLine::factory()->create(),
+        fn (): StockTransferLine => tap(StockTransferLine::factory()->create(), fn () => app(UnitCache::class)->rewarmUnits()),
     ],
 ]);
 

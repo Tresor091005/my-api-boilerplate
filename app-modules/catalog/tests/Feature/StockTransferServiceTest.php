@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Enums\StockTransferStatus;
 use Lahatre\Catalog\Exceptions\StockTransferException;
+use Lahatre\Catalog\Http\Resources\StockTransferLineResource;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -22,8 +23,9 @@ use Lahatre\Master\Models\Currency;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Master\Support\UnitCache;
+use Lahatre\ResponseSelection\Testing\RendersApiResources;
 
-uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class);
+uses(RefreshDatabase::class, InteractsWithCatalogTenantContext::class, RendersApiResources::class);
 
 beforeEach(function (): void {
     $this->initializeCatalogTenantContext();
@@ -129,6 +131,38 @@ it('allows drafts to be updated and deleted but protects completed transfers', f
     $completed = $this->service->complete($this->service->create(transferData($this->source, $this->destination, $this->catalogItem->id, $this->unit->code)));
     expect(fn () => $this->service->update($completed, transferData($this->source, $this->destination, $this->catalogItem->id, $this->unit->code)))
         ->toThrow(StockTransferException::class);
+});
+
+it('stores line quantities in base units and shows them in their display unit', function (): void {
+    $carton = Unit::factory()->create(['organization_id' => null, 'group_id' => $this->group->id, 'ratio' => 10]);
+    app(UnitCache::class)->rewarmUnits();
+    transferStock($this->source, 100, $this->inventoryItem->id, $this->unit->code);
+
+    $transfer = $this->service->create(transferData($this->source, $this->destination, $this->catalogItem->id, $carton->code));
+    $line = $transfer->lines()->firstOrFail();
+
+    expect($line->quantity)->toBe(100)
+        ->and($line->display_unit_code)->toBe($carton->code)
+        ->and($this->renderApiResource($line, StockTransferLineResource::class, 'quantity,unit_code'))
+        ->toBe(['id' => $line->id, 'quantity' => 10, 'unit_code' => $carton->code]);
+
+    $this->service->complete($transfer);
+
+    expect(destinationStock($this->destination, $this->inventoryItem->id)->remaining)->toBe(100);
+});
+
+it('rejects a line whose unit is not in the item unit group', function (): void {
+    $otherGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    $foreignUnit = Unit::factory()->create(['organization_id' => null, 'group_id' => $otherGroup->id, 'ratio' => 1]);
+    app(UnitCache::class)->rewarmUnits();
+
+    try {
+        $this->service->create(transferData($this->source, $this->destination, $this->catalogItem->id, $foreignUnit->code));
+        $this->fail('The transfer was created with a unit of another group.');
+    } catch (StockTransferException $exception) {
+        expect($exception->context()['errors'][0]['code'] ?? null)->toBe('unit_invalid')
+            ->and(StockTransfer::query()->count())->toBe(0);
+    }
 });
 
 function transferLocation(string $name): StockLocation

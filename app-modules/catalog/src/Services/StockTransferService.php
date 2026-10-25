@@ -22,10 +22,14 @@ use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Master\Contracts\MasterInterface;
 
 final readonly class StockTransferService
 {
-    public function __construct(private InventoryInterface $inventoryInterface) {}
+    public function __construct(
+        private InventoryInterface $inventoryInterface,
+        private MasterInterface $masterInterface,
+    ) {}
 
     public function create(StockTransferData $data): StockTransfer
     {
@@ -224,12 +228,13 @@ final readonly class StockTransferService
                 $errors[] = ['code' => 'catalog_item_tracking_disabled', 'context' => ['item_id' => $line->catalog_item_id]];
                 continue;
             }
+            // a line stores its quantity in base units
             $movements[] = [
                 'item_id'        => $inventoryItem->id,
                 'location_id'    => $source->id,
                 'to_location_id' => $destination->id,
                 'quantity'       => $line->quantity,
-                'unit_code'      => $line->display_unit_code,
+                'unit_code'      => $inventoryItem->base_unit_code,
                 'strategy'       => $line->strategy?->value,
                 'stock_ids'      => $line->stock_ids,
             ];
@@ -255,10 +260,12 @@ final readonly class StockTransferService
             ->with('inventoryItem')
             ->get()
             ->keyBy('id');
+        $units = $this->masterInterface->units($data->lines->pluck('unitCode'));
         $errors = [];
 
         foreach ($data->lines as $line) {
             $catalogItem = $catalogItems->get($line->catalogItemId);
+            $unit = $units->get($line->unitCode);
 
             if (!$catalogItem instanceof CatalogItem
                 || !$catalogItem->item_type->isStockable()
@@ -267,6 +274,12 @@ final readonly class StockTransferService
                 $errors[] = [
                     'code'    => 'catalog_item_invalid',
                     'context' => ['item_id' => $line->catalogItemId],
+                ];
+            } elseif ($unit === null || $unit->group_id !== $catalogItem->unit_group_id) {
+                // the quantity is converted to the item's base unit, so the unit must belong to its group
+                $errors[] = [
+                    'code'    => 'unit_invalid',
+                    'context' => ['item_id' => $line->catalogItemId, 'unit_code' => $line->unitCode],
                 ];
             }
         }
@@ -289,7 +302,7 @@ final readonly class StockTransferService
                 'catalog_item_type' => $catalogItem->item_type,
                 'catalog_item_id'   => $line->catalogItemId,
                 'position'          => $position,
-                'quantity'          => $line->quantity,
+                'quantity'          => (int) $this->masterInterface->convertUnitToBase((string) $line->quantity, $line->unitCode)['amount'],
                 'display_unit_code' => $line->unitCode,
                 'strategy'          => $line->strategy,
                 'stock_ids'         => $line->stockIds === []

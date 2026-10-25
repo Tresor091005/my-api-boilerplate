@@ -55,6 +55,10 @@ Unit quantities use ratio-based decimal conversion with BCMath precision.
   type-specific target relations. Their quantity is stored in the component's
   ratio-1 base unit, while `display_unit_code` selects a compatible
   presentation unit.
+- Stock transfer lines follow the same rule: the quantity entered in a unit of
+  the item's unit group is stored in its ratio-1 base unit, `display_unit_code`
+  keeps the entered unit for display, and completion hands the base quantity
+  to Inventory.
 
 Catalog business records are organization-scoped and soft-deletable where the
 model supports lifecycle deletion. Nested routes use scoped bindings for
