@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
+use Lahatre\ResponseSelection\Scramble\ResponseSelectionOperationExtension;
 
 return [
     /*
@@ -134,5 +135,7 @@ return [
         RestrictedDocsAccess::class,
     ],
 
-    'extensions' => [],
+    'extensions' => [
+        ResponseSelectionOperationExtension::class,
+    ],
 ];

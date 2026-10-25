@@ -11,4 +11,9 @@ source code.
 and PHPDoc blocks to build the OpenAPI specification. It provides a web
 interface, `/docs/api` by default, for exploring and testing endpoints.
 
+Routes that answer through response selection are completed by
+`ResponseSelectionOperationExtension`, registered in `config/scramble.php`: it
+adds the `response`, `fields` and `include` parameters and the body schemas
+(see [response selection](../../api/response-selection.md)).
+
 **Official documentation:** [Dedoc Scramble Docs](https://scramble.dedoc.co/)

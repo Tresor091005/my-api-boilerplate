@@ -78,7 +78,10 @@ two file download routes, which do not answer JSON. Its Resources render the
 children of other modules through `UnitGroupApiResource`, `UnitApiResource`,
 `LabelApiResource`, `AddressApiResource` (master), `InventoryItemApiResource`
 (inventory) and `FileAttachmentApiResource` (library), which sit beside the
-legacy Resources of those modules until they migrate. Product and service
+legacy Resources of those modules until they migrate.
+`ResponseSelectionOperationExtension` is registered in `config/scramble.php`,
+so the API documentation describes `response`, `fields`, `include` and the
+body of every route that answers through `ApiResponse`. Product and service
 files are the `main_files` and `gallery_files` includes; each attachment shows
 its file's values beside its own (the `DescribesFile` trait lists them once for
 every library response), and the product
@@ -86,9 +89,6 @@ every library response), and the product
 
 Remaining work:
 
-- Add `ResponseSelectionOperationExtension` to `extensions` in
-  `config/scramble.php` (empty today; `AppServiceProvider::configureScramble()`
-  only adds the Sanctum scheme).
 - Migrate the modules off response contracts: the
   `app-modules/<module>/config/response-contracts.php` files (customer,
   organization, library, iam, master, inventory), `ResponseResponder`
