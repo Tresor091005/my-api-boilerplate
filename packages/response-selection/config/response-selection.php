@@ -11,8 +11,10 @@ return [
         'max_paths' => 20,
         // fields listed for one resource
         'max_fields_per_node' => 50,
-        // children one parent renders in a list include; an include may set a lower `limit:`
-        'max_include_items' => 100,
+        // children one parent renders in a list include, unless the include sets its own `limit:`
+        'default_include_items' => 100,
+        // highest `limit:` an include may set
+        'max_include_items' => 1000,
     ],
 
     // Report a column or relation read without being loaded, instead of failing the request.

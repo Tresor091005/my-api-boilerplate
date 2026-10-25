@@ -100,7 +100,9 @@ paths:
   `include()`, children built in code are `virtualInclude()`. Do not write
   `toArray()`, `whenLoaded()` or Collection classes. A child from another
   module is rendered by that module's own Resource. A costly field few clients
-  need is declared `default: false`.
+  need is declared `default: false`. A list include keeps the default limit; it
+  declares a higher `limit:` only when the list is bounded by design (role
+  permissions grow with the code), with a test proving the whole list fits.
   Test a Resource's output through HTTP or the package's
   `RendersApiResources` helper, not by building it directly.
 - The rules below apply to the plain `JsonResource` classes of the routes left

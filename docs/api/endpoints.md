@@ -190,7 +190,9 @@ the sign-in payloads and confirmation messages above keep their legacy contract.
 | PUT/PATCH | `/v1/iam/roles/{role}` | `iam_role.update` | Edit an organization role, its activation state, and optionally its permissions. |
 | DELETE | `/v1/iam/roles/{role}` | `iam_role.delete` | Soft-delete an organization role without non-deleted member assignments. |
 
-Role responses include permissions only with `?include=permissions`. Create requires `name` and `permission_ids`;
+Role responses include permissions only with `?include=permissions`, up to 500
+per role: more than the system defines, so an editor reads a role's whole set
+before sending `permission_ids` back. Create requires `name` and `permission_ids`;
 `description` and `is_active` are optional; activation defaults to `true` on create.
 On update, omitting `is_active` preserves the stored state. Omitting `permission_ids` preserves the
 assignments, while `[]` clears them. The server sets `team_id`, `is_builtin`,

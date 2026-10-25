@@ -20,7 +20,7 @@ function selectionLimitErrors(?string $fields, ?string $include): array
 }
 
 it('ships lowered limits by default', function (): void {
-    expect(config('response-selection.limits'))->toBe(['max_depth' => 4, 'max_paths' => 20, 'max_fields_per_node' => 50, 'max_include_items' => 100]);
+    expect(config('response-selection.limits'))->toBe(['max_depth' => 4, 'max_paths' => 20, 'max_fields_per_node' => 50, 'default_include_items' => 100, 'max_include_items' => 1000]);
 });
 
 it('rejects an include path deeper than the configured depth', function (): void {

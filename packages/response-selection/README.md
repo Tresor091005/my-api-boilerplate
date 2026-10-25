@@ -143,12 +143,15 @@ answer `204` when it has nothing to return.
 | `max_depth` | 4 | Segments of one include path |
 | `max_paths` | 20 | Include paths, implicit prefixes included (`a.b` counts 2) |
 | `max_fields_per_node` | 50 | Distinct keys in one field list |
-| `max_include_items` | 100 | Children one parent renders in a list include |
+| `default_include_items` | 100 | Children one parent renders in a list include without its own `limit:` |
+| `max_include_items` | 1000 | Highest `limit:` an include may declare |
 
-A list include renders at most `max_include_items` children per parent, or the
-lower `limit:` the include declares. The cut is silent: to read a whole list,
-use its own paginated endpoint. A count field next to the include, when the API
-offers one, tells whether the list was cut.
+A list include renders at most `default_include_items` children per parent, or
+the `limit:` it declares, up to `max_include_items`. Declare a higher limit only
+for a list bounded by design, such as a catalog that grows with the code rather
+than with user data, and keep a test proving the bound. The cut is silent: to
+read a whole list, use its own paginated endpoint. A count field next to the
+include, when the API offers one, tells whether the list was cut.
 
 ### Errors
 
@@ -261,12 +264,12 @@ virtualInclude(string $name, string|ResourceResolver $resource,
 - An include renders a list when it is a virtual include declared `asList`, or
   an Eloquent include whose relation holds a collection; otherwise it renders
   one child or `null`.
-- `limit` caps the children of a list include per parent: `max_include_items`
-  by default, lower when set; a higher value throws at freeze. An Eloquent
-  include loads only those children (a per-parent SQL limit, the first by key
-  when the relation sets no order), unless a field also reads the relation
-  whole. A virtual loader should not fetch more than the limit: the rest is
-  dropped.
+- `limit` caps the children of a list include per parent:
+  `default_include_items` when unset; a value below 1 or above
+  `max_include_items` throws at freeze. An Eloquent include loads only those
+  children (a per-parent SQL limit, the first by key when the relation sets no
+  order), unless a field also reads the relation whole. A virtual loader should
+  not fetch more than the limit: the rest is dropped.
 - A `ResourceResolver` returning `null` for a child (no API representation)
   loads nothing under it: a single include renders `null`, a list include
   leaves the child out.

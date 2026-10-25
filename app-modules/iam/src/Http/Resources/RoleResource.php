@@ -12,6 +12,8 @@ class RoleResource extends RoleSummaryResource
     {
         parent::define($resource);
 
-        $resource->include('permissions', PermissionResource::class);
+        // permissions grow with the code, not with user data: the whole catalog must fit,
+        // since an editor sends `permission_ids` back whole
+        $resource->include('permissions', PermissionResource::class, limit: 500);
     }
 }

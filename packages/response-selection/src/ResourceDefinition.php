@@ -219,7 +219,7 @@ final class ResourceDefinition
      * @param  string  $name  JSON key clients ask for
      * @param  class-string<ApiResource>|ResourceResolver|class-string<ResourceResolver>  $resource
      * @param  string|null  $relation  model relation to load; by default the camelCase of $name
-     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured maximum
+     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured default, at most the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
      */
     public function include(string $name, string|ResourceResolver $resource, ?string $relation = null, ?int $limit = null, ?Closure $when = null): self
@@ -240,7 +240,7 @@ final class ResourceDefinition
      * @param  array<int, string>  $columns  parent columns the loader reads
      * @param  array<int, string>  $relations  parent relations the loader reads
      * @param  array<int, string>  $fields  parent fields the loader needs
-     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured maximum
+     * @param  int|null  $limit  most children rendered per parent for a list; by default the configured default, at most the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
      */
     public function virtualInclude(string $name, string|ResourceResolver $resource, string|Closure $loader, bool $asList = false, array $columns = [], array $relations = [], array $fields = [], ?int $limit = null, ?Closure $when = null): self
@@ -311,16 +311,17 @@ final class ResourceDefinition
     }
 
     /**
-     * Gives every include its limit: its own, or the configured maximum it may not exceed.
+     * Gives every include its limit: its own, or the configured default, never above the configured maximum.
      *
      * @param  class-string<ApiResource>  $resourceClass
      */
     private function resolveLimits(string $resourceClass): void
     {
+        $default = (int) config('response-selection.limits.default_include_items');
         $max = (int) config('response-selection.limits.max_include_items');
 
         foreach ($this->includes as $name => $include) {
-            $limit = $include['limit'] ?? $max;
+            $limit = $include['limit'] ?? $default;
 
             if ($limit < 1 || $limit > $max) {
                 throw ResponseSelectionException::includeLimitInvalid($resourceClass, $name, $limit, $max);
@@ -785,7 +786,7 @@ final class ResourceDefinition
      */
     public function includeLimit(string $name): int
     {
-        return $this->includes[$name]['limit'] ?? (int) config('response-selection.limits.max_include_items');
+        return $this->includes[$name]['limit'] ?? (int) config('response-selection.limits.default_include_items');
     }
 
     /**

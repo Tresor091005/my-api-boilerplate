@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
@@ -83,6 +85,17 @@ it('lists organization roles and system roles with permissions, excluding other 
         ->assertJsonPath('data.is_builtin', true)
         ->assertJsonPath('data.permissions', []);
     $this->getJson("/v1/iam/roles/{$other->id}")->assertForbidden();
+});
+
+it('renders every permission of the administrator role, beyond the default include limit', function (): void {
+    authenticatedRoleContext(['retrieve']);
+    Artisan::call('permissions:discover');
+    $administrator = Role::query()->whereNull('team_id')->where('name', SysRole::Administrator->value)->firstOrFail();
+
+    // a role editor sends `permission_ids` back whole, so a cut list would drop permissions
+    $this->getJson("/v1/iam/roles/{$administrator->id}?fields=id&include=permissions(id)")
+        ->assertOk()
+        ->assertJsonCount(Permission::query()->count(), 'data.permissions');
 });
 
 it('creates a tenant role and synchronizes its permissions', function (): void {
