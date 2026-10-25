@@ -15,9 +15,6 @@ return [
         'max_include_items' => 100,
     ],
 
-    // How many include levels the API documentation describes.
-    'documented_include_depth' => 2,
-
     // Report a column or relation read without being loaded, instead of failing the request.
     // null: in production only.
     'tolerate_model_violations' => null,

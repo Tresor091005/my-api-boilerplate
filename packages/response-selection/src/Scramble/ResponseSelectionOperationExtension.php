@@ -76,12 +76,12 @@ class ResponseSelectionOperationExtension extends OperationExtension
             Parameter::make('include', 'query')
                 ->setSchema(Schema::fromType(new StringType))
                 ->description('Comma-separated include paths, each optionally followed by its fields in parentheses: '
-                    .'`variants(id,sku),variants.optionValues(id,name)`. Max depth '.SelectionParser::maxDepth()
-                    .', max '.SelectionParser::maxPaths().' paths. Available: '
-                    .implode(', ', array_map(fn (string $path) => "`{$path}`", $this->includePaths($resourceClass))).'.'),
+                    .'`variants(id,sku),variants.labels(value)`. Each level offers the includes of its Resource schema, up to '
+                    .SelectionParser::maxDepth().' levels and '.SelectionParser::maxPaths().' paths. Available here: '
+                    .implode(', ', array_map(fn (string $name) => "`{$name}`", $definition->includeNames())).'.'),
         ]);
 
-        $resourceSchema = $this->resourceSchema($resourceClass);
+        $resourceSchema = $this->resourceReference($resourceClass);
         $body = match ($declaration->shape) {
             ResponseShape::Item       => (new OpenApiObjectType)->addProperty('data', $resourceSchema)->setRequired(['data']),
             ResponseShape::List       => (new OpenApiObjectType)->addProperty('data', (new ArrayType)->setItems($resourceSchema))->setRequired(['data']),
@@ -134,65 +134,48 @@ class ResponseSelectionOperationExtension extends OperationExtension
     }
 
     /**
+     * The schema of a Resource, written once in the document's shared schemas and referenced
+     * everywhere else, so every include level is documented and loops cost nothing.
+     *
      * @param  class-string<ApiResource>  $resourceClass
-     * @return array<int, string>
      */
-    private function includePaths(string $resourceClass, string $prefix = '', int $depth = 1): array
+    private function resourceReference(string $resourceClass): Reference
     {
-        if ($depth > (int) config('response-selection.documented_include_depth')) {
-            return [];
+        $components = $this->openApiTransformer->getComponents();
+
+        if ($components->hasSchema($resourceClass)) {
+            return $components->getSchemaReference($resourceClass);
         }
 
-        $definition = $resourceClass::definition();
-        $paths = [];
+        // registered before it is described, so a Resource that includes itself refers back to it
+        $schema = new OpenApiObjectType;
+        $reference = $components->addSchema($resourceClass, Schema::fromType($schema));
+        $this->describeResource($resourceClass, $schema);
 
-        foreach ($definition->includeNames() as $name) {
-            $path = $prefix === '' ? $name : "{$prefix}.{$name}";
-            $paths[] = $path;
-
-            foreach ($definition->includeResourceClasses($name) as $childClass) {
-                array_push($paths, ...$this->includePaths($childClass, $path, $depth + 1));
-            }
-        }
-
-        return array_values(array_unique($paths));
+        return $reference;
     }
 
     /**
      * Describes the body of a Resource. Only `id` is marked required, since the client picks the other keys.
      *
      * @param  class-string<ApiResource>  $resourceClass
-     * @param  array<int, class-string<ApiResource>>  $stack  Resources already being described, to avoid loops
      */
-    private function resourceSchema(string $resourceClass, int $depth = 0, array $stack = []): OpenApiObjectType
+    private function describeResource(string $resourceClass, OpenApiObjectType $schema): void
     {
         $definition = $resourceClass::definition();
-        $schema = new OpenApiObjectType;
 
         foreach ($definition->members() as $name) {
-            $schema->addProperty($name, $definition->hasField($name)
-                ? new MixedType
-                : $this->includeSchema($definition, $name, $depth, [...$stack, $resourceClass]));
+            $schema->addProperty($name, $definition->hasField($name) ? new MixedType : $this->includeSchema($definition, $name));
         }
 
         if ($definition->hasField('id') && $definition->condition('id') === null) {
             $schema->setRequired(['id']);
         }
-
-        return $schema;
     }
 
-    /**
-     * @param  array<int, class-string<ApiResource>>  $stack
-     */
-    private function includeSchema(ResourceDefinition $definition, string $name, int $depth, array $stack): Type
+    private function includeSchema(ResourceDefinition $definition, string $name): Type
     {
-        $children = array_map(
-            fn (string $child) => $depth < (int) config('response-selection.documented_include_depth') && !in_array($child, $stack, true)
-                ? $this->resourceSchema($child, $depth + 1, $stack)
-                : new OpenApiObjectType,
-            $definition->includeResourceClasses($name),
-        );
+        $children = array_map($this->resourceReference(...), $definition->includeResourceClasses($name));
         $child = count($children) === 1 ? $children[0] : (new AnyOf)->setItems($children);
 
         // An AnyOf cannot be marked nullable, so null is added as one of its options

@@ -507,11 +507,13 @@ what an action renders, rebuild the cache, or its `ApiResponse` call throws.
 `ResponseSelectionOperationExtension`, a Scramble extension, documents each
 declared route: the `response` parameter with its allowed values and default, a
 `204` response when `none` is allowed, the `fields` and `include` parameters
-with the names a client can use (include paths up to
-`response-selection.documented_include_depth`, 2 by default), and one body
-schema per status and shape. The schema lists every member in declaration
-order, inlines includes up to the same depth with their `limit` as `maxItems`,
-and marks only `id` required. Field values are not typed.
+with the names a client can use at the root, and one body schema per status
+and shape. Each Resource is described once in the document's shared schemas
+(`components/schemas`) and referenced everywhere else: an include points to its
+child's schema, so every level up to `max_depth` is documented and a Resource
+that includes itself is no problem. A schema lists every member in declaration
+order, gives list includes their `limit` as `maxItems`, and marks only `id`
+required. Field values are not typed.
 
 ### Testing a route
 
