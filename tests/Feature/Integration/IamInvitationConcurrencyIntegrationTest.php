@@ -269,7 +269,8 @@ it('preserves context and session evidence when activity and role switching race
         ['method' => 'GET', 'url' => '/v1/auth/me', 'payload' => [], 'accessToken' => $context['accessToken']],
         ['method' => 'POST', 'url' => '/v1/auth/switch-member-role', 'payload' => ['member_role_id' => $assignment->id], 'accessToken' => $context['accessToken']],
     ]);
-    expect(array_column($results, 'status'))->toBe([200, 200])
+    // the switch answers no content unless the client asks for the account
+    expect(array_column($results, 'status'))->toBe([200, 204])
         ->and($record->fresh()->getMeta('member_role_id'))->toBe($assignment->id)
         ->and($record->fresh()->getMeta('custom'))->toBe('preserved')
         ->and($record->fresh()->getMeta('session.authentication_method'))->toBe('email_otp')

@@ -30,5 +30,9 @@ return new class extends Migration
         });
     }
 
-    public function down(): void {}
+    public function down(): void
+    {
+        Schema::dropIfExists('iam_google_auth_challenges');
+        Schema::dropIfExists('iam_external_identities');
+    }
 };
