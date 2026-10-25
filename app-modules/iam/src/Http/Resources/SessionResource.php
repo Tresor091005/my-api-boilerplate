@@ -18,7 +18,7 @@ class SessionResource extends ApiResource
         $resource
             ->field('id')
             ->field('name')
-            ->field('is_current', columns: [], computedBy: fn (Model $session): bool => $session->getKey() === request()->user()?->currentAccessToken()?->getKey())
+            ->field('is_current', computedBy: fn (Model $session): bool => $session->getKey() === request()->user()?->currentAccessToken()?->getKey())
             ->field('created_at')
             ->field('last_used_at')
             ->field('expires_at')
