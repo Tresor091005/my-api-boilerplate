@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Illuminate\Support\Str;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
-use Lahatre\Library\Http\Resources\FileAttachmentResource;
 use Lahatre\Library\Http\Resources\FileResource;
 use Lahatre\Library\Http\Resources\FolderResource;
 use Lahatre\Library\Http\Resources\TrashFileResource;
 use Lahatre\Library\Models\File;
-use Lahatre\Library\Models\FileAttachment;
 use Lahatre\Library\Models\Folder;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\ResponseSelection\Testing\AssertsBoundedQueries;
@@ -115,26 +112,4 @@ it('renders the file and trash file keys in the legacy order', function (): void
     expect(array_keys($this->getJson('/v1/library/trash/files')->assertOk()->json('data.0')))->toBe([
         'id', 'folder_id', 'name', 'mime_type', 'kind', 'extension', 'size', 'uploaded_by', 'created_at', 'updated_at', 'deleted_at',
     ]);
-});
-
-it('keeps the legacy file attachment rendering its file without the file content url', function (): void {
-    $file = librarySelectionFile($this->member->id);
-    $attachment = (new FileAttachment)->forceFill(['id' => Str::uuid7()->toString(), 'slot' => 'main', 'position' => 1]);
-    $attachment->setRelation('file', $file);
-
-    $rendered = json_decode((new FileAttachmentResource($attachment, 'lahatre.library.files.content', 'file', $file->id))->toJson(), true);
-
-    expect(array_keys($rendered))->toBe(['id', 'slot', 'position', 'file', 'content_url'])
-        ->and($rendered['file'])->toBe([
-            'id'          => $file->id,
-            'folder_id'   => null,
-            'name'        => $file->name,
-            'mime_type'   => 'image/png',
-            'kind'        => 'image',
-            'extension'   => 'png',
-            'size'        => $file->size,
-            'uploaded_by' => $this->member->id,
-            'created_at'  => $file->created_at->toJSON(),
-            'updated_at'  => $file->updated_at->toJSON(),
-        ]);
 });

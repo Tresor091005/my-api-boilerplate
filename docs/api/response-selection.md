@@ -104,8 +104,8 @@ legacy layer: `Lahatre\Shared\Http\Responses\*` (with its duplicate
 `ResponseMode`, `ResponseShape` and `ResponseContext`),
 `ResponseContractRegistry`, the `response-contracts:cache`/`:clear` commands
 and their `optimizes()` registration, `config/api-responses.php`, the legacy
-middleware (and its registry bridge), the legacy `FileAttachmentResource`,
-their translation keys and the contract sections of these docs.
+middleware (and its registry bridge), their translation keys and the
+contract sections of these docs.
 
 ## Tests
 

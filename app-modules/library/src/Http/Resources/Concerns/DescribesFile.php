@@ -7,7 +7,6 @@ namespace Lahatre\Library\Http\Resources\Concerns;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Lahatre\Library\Enums\FileKind;
-use Lahatre\Library\Models\File;
 use Lahatre\ResponseSelection\ResourceDefinition;
 
 /**
@@ -29,24 +28,6 @@ trait DescribesFile
             'extension' => ['columns' => ['extension'], 'value' => fn (Model $file): mixed => $file->getAttribute('extension')],
             'size'      => ['columns' => ['size'], 'value' => fn (Model $file): mixed => $file->getAttribute('size')],
         ];
-    }
-
-    /**
-     * Each JSON key with how to read it on a file.
-     *
-     * @return array<string, Closure(Model): mixed>
-     */
-    protected static function fileValues(): array
-    {
-        return array_map(fn (array $field): Closure => $field['value'], self::fileFields());
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected static function describeFile(File $file): array
-    {
-        return array_map(fn (Closure $value): mixed => $value($file), self::fileValues());
     }
 
     /**

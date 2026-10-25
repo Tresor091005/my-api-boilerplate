@@ -26,8 +26,8 @@ abstract class FileAttachmentApiResource extends ApiResource
             ->field('position')
             ->field('file_id');
 
-        foreach (self::fileValues() as $key => $value) {
-            $resource->field($key, relations: ['file'], computedBy: fn (Model $attachment): mixed => $value($attachment->getRelation('file')));
+        foreach (self::fileFields() as $key => $field) {
+            $resource->field($key, relations: ['file'], computedBy: fn (Model $attachment): mixed => $field['value']($attachment->getRelation('file')));
         }
     }
 }
