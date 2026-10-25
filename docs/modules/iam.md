@@ -45,7 +45,8 @@ For a selected organization, `AuthContext::setContext()` reads the membership,
 assignment, and role from the database on each authenticated request. All three
 must exist, remain non-deleted, and be active; the membership must belong to the
 user and organization, and the role must use the current guard and either be
-global or belong to that organization. The organization must also remain
+a global built-in role or belong to that organization (`Role::isUsableIn()`,
+the one rule every role check and query uses). The organization must also remain
 non-deleted. An unavailable context returns `403` on organization endpoints, including for tokens issued
 before deactivation. Token metadata and Spatie assignments are retained.
 The context is cleared before resolution and is populated only after all checks
@@ -318,7 +319,7 @@ user's own current-user, profile-update, and role-switch responses, where their 
 is available; the sign-in payload shows the same values. Member roles exclude deleted assignments and are
 scoped to the member's organization (`OrganizationMember::organizationMemberRoles()`).
 Nested roles are available only when they belong to that organization or are global
-built-ins for the active guard (`MemberRole::canUseRole()`); unavailable or deleted
+built-ins for the active guard (`Role::isUsableIn()`); unavailable or deleted
 roles resolve to `null`.
 
 Pagination accepts `per_page` (1–100, default 50), `cursor`, `sort_by`

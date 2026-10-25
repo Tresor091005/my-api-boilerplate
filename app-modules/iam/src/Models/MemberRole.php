@@ -106,16 +106,13 @@ class MemberRole extends Model
             && $member->user_id === $user->id
             && $member->organization_id === $this->organization_id
             && $organization->id === $this->organization_id
-            && ($role->team_id === null || $role->team_id === $this->organization_id)
-            && $role->guard_name === config('auth.defaults.guard');
+            && $role->isUsableIn($this->organization_id);
     }
 
-    /** Whether the role is this assignment's role and usable in its organization: a built-in role or one of that organization. */
+    /** Whether the role is this assignment's role and usable in its organization. */
     public function canUseRole(?Role $role): bool
     {
-        return $role !== null && $role->id === $this->role_id
-            && $role->guard_name === config('auth.defaults.guard')
-            && ($role->team_id === $this->organization_id || ($role->team_id === null && $role->is_builtin));
+        return $role !== null && $role->id === $this->role_id && $role->isUsableIn($this->organization_id);
     }
 
     public function organizationMember(): BelongsTo

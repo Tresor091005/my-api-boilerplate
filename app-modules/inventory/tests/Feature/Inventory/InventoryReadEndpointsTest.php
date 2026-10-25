@@ -49,6 +49,7 @@ beforeEach(function (): void {
     $role = Role::query()->create([
         'name'       => 'inventory-read-test-role',
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organizationId,
     ]);
     $memberRole = MemberRole::create([
         'organization_id' => $this->organizationId,

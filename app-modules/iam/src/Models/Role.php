@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -75,4 +76,30 @@ class Role extends SpatieRole
         'updated_at'  => 'immutable_datetime',
         'deleted_at'  => 'immutable_datetime',
     ];
+
+    /**
+     * Whether an assignment in the organization may use this role: one of the organization's own
+     * roles, or a built-in role shared by every organization, on the API guard.
+     */
+    public function isUsableIn(string $organizationId): bool
+    {
+        return $this->guard_name === config('auth.defaults.guard')
+            && ($this->team_id === $organizationId || ($this->team_id === null && $this->is_builtin));
+    }
+
+    /**
+     * The roles usable in the organization: the query form of isUsableIn().
+     *
+     * @param  Builder<Role>  $query
+     */
+    #[Scope]
+    protected function usableIn(Builder $query, string $organizationId): void
+    {
+        $query->where($query->qualifyColumn('guard_name'), config('auth.defaults.guard'))
+            ->where(function (Builder $query) use ($organizationId): void {
+                $query->where($query->qualifyColumn('team_id'), $organizationId)
+                    ->orWhere(fn (Builder $query): Builder => $query->whereNull($query->qualifyColumn('team_id'))
+                        ->where($query->qualifyColumn('is_builtin'), true));
+            });
+    }
 }

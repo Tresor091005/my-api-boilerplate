@@ -30,6 +30,7 @@ beforeEach(function (): void {
     $this->role = Role::query()->firstOrCreate([
         'name'       => 'folder-endpoints-admin',
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organization->id,
     ]);
     $this->memberRole = MemberRole::query()->create([
         'organization_id' => $this->organization->id,

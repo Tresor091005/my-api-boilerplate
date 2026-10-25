@@ -212,11 +212,14 @@ it('clears a previous context before resolving user-only or invalid metadata', f
         ->and($resolver->role())->toBeNull();
 });
 
-it('rejects a role from another organization or guard before using or selecting its context', function (string $mismatch): void {
+it('rejects a role from another organization or guard, or a global role not built in, before using or selecting its context', function (string $mismatch): void {
     $context = createIamActiveContext();
-    $context['role']->update($mismatch === 'organization'
-        ? ['team_id' => Organization::factory()->create()->id]
-        : ['guard_name' => 'web']);
+    $context['role']->update(match ($mismatch) {
+        'organization' => ['team_id' => Organization::factory()->create()->id],
+        'guard'        => ['guard_name' => 'web'],
+        'global'       => ['team_id' => null, 'is_builtin' => false],
+        default        => throw new LogicException("Unknown mismatch [{$mismatch}]."),
+    });
     useIamActiveContextToken($context['user'], $context['assignment']);
     $this->getJson('/v1/auth/current-permissions')->assertForbidden();
     resetIamActiveContext();
@@ -224,7 +227,7 @@ it('rejects a role from another organization or guard before using or selecting 
     $this->withToken($token->plainTextToken)
         ->postJson('/v1/auth/switch-member-role', ['member_role_id' => $context['assignment']->id])->assertNotFound();
     expect(array_diff_key($token->accessToken->fresh()->getAttribute('metadata'), ['session' => true]))->toBe([]);
-})->with(['organization', 'guard']);
+})->with(['organization', 'guard', 'global']);
 
 it('accepts active global built-in roles', function (): void {
     $role = Role::factory()->create(['team_id' => null, 'is_builtin' => true]);

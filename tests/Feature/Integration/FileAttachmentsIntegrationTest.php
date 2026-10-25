@@ -40,7 +40,7 @@ beforeEach(function (): void {
         'user_id'         => $this->user->id,
         'organization_id' => $this->organization->id,
     ]);
-    $role = Role::query()->firstOrCreate(['name' => 'attachment-test-role', 'guard_name' => 'sanctum']);
+    $role = Role::query()->firstOrCreate(['name' => 'attachment-test-role', 'guard_name' => 'sanctum', 'team_id' => $this->organization->id]);
     $memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,
         'member_id'       => $member->id,

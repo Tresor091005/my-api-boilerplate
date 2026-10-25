@@ -35,7 +35,7 @@ beforeEach(function (): void {
 
     $user = User::factory()->create();
     $member = OrganizationMember::create(['user_id' => $user->id, 'organization_id' => $this->organization->id]);
-    $role = Role::query()->firstOrCreate(['name' => 'inventory-selection-reader', 'guard_name' => 'sanctum']);
+    $role = Role::query()->firstOrCreate(['name' => 'inventory-selection-reader', 'guard_name' => 'sanctum', 'team_id' => $this->organization->id]);
     $memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,
         'member_id'       => $member->id,

@@ -45,6 +45,7 @@ beforeEach(function (): void {
     $this->role = Role::query()->firstOrCreate([
         'name'       => 'notes-admin',
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organization->id,
     ]);
     $this->memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,
@@ -361,6 +362,7 @@ it('enforces note ownership, collective permissions, and visible reply counts', 
     $secondRole = Role::query()->firstOrCreate([
         'name'       => 'notes-observer-'.$secondMember->id,
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organization->id,
     ]);
     $secondMemberRole = MemberRole::create([
         'organization_id' => $this->organization->id,

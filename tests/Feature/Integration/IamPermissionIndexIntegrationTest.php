@@ -33,7 +33,7 @@ it('lists every permission for the active guard, including unassigned permission
         'organization_id' => $organization->id,
         'user_id'         => $user->id,
     ]);
-    $role = Role::factory()->create();
+    $role = Role::factory()->create(['team_id' => $organization->id]);
     $memberRole = MemberRole::factory()->create([
         'organization_id' => $organization->id,
         'member_id'       => $member->id,

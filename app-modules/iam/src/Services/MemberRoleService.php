@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -96,10 +95,7 @@ final class MemberRoleService
             $locked = $this->lockMember($organizationId, $member->id);
             $assignments = MemberRole::query()->where('organization_id', $organizationId)
                 ->where('member_id', $locked->id)->whereIn('id', $data->memberRoleIds)
-                ->whereHas('role', fn (Builder $query) => $query
-                    ->where('guard_name', config('auth.defaults.guard'))
-                    ->where(fn (Builder $query) => $query->where('team_id', $organizationId)
-                        ->orWhere(fn (Builder $query) => $query->whereNull('team_id')->where('is_builtin', true))))
+                ->whereIn('role_id', Role::query()->usableIn($organizationId)->select('id'))
                 ->orderBy('id')->lockForUpdate()->get();
             if ($data->memberRoleIds === [] || $assignments->count() !== count($data->memberRoleIds)) {
                 throw MemberRoleException::assignmentsUnavailable();

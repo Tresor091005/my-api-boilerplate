@@ -23,9 +23,7 @@ class RolePolicy extends BasePolicy
      */
     public function retrieve(Authorizable $user, Role $model): bool
     {
-        return $model->guard_name === config('auth.defaults.guard')
-            && $this->canModel('retrieve', $model)
-            && ($model->team_id === currentOrganizationId() || ($model->team_id === null && $model->is_builtin));
+        return $model->isUsableIn(currentOrganizationId()) && $this->canModel('retrieve', $model);
     }
 
     /**

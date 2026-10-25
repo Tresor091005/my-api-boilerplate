@@ -25,15 +25,7 @@ class RoleService
 {
     public function paginate(RoleFilterData $filters): CursorPaginator
     {
-        $organizationId = currentOrganizationId();
-        $query = Role::query()
-            ->where('guard_name', config('auth.defaults.guard'))
-            ->where(function ($query) use ($organizationId): void {
-                $query->where('team_id', $organizationId)
-                    ->orWhere(fn ($query) => $query->whereNull('team_id')->where('is_builtin', true));
-            });
-
-        return stableCursorPaginate($query, $filters);
+        return stableCursorPaginate(Role::query()->usableIn(currentOrganizationId()), $filters);
     }
 
     public function retrieve(Role $role): Role
@@ -152,8 +144,7 @@ class RoleService
 
     private function assertVisible(Role $role): void
     {
-        if ($role->guard_name !== config('auth.defaults.guard')
-            || ($role->team_id !== currentOrganizationId() && !($role->team_id === null && $role->is_builtin))) {
+        if (!$role->isUsableIn(currentOrganizationId())) {
             throw RoleException::unavailable($role->id);
         }
     }

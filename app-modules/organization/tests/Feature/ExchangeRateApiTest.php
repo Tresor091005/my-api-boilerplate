@@ -51,6 +51,7 @@ beforeEach(function (): void {
     $this->role = Role::query()->firstOrCreate([
         'name'       => 'exchange-rate-admin',
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organization->id,
     ]);
     $this->memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,

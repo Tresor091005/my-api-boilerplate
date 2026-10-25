@@ -33,6 +33,7 @@ beforeEach(function (): void {
     $role = Role::query()->firstOrCreate([
         'name'       => 'service-api-admin',
         'guard_name' => 'sanctum',
+        'team_id'    => $this->organization->id,
     ]);
     $this->memberRole = MemberRole::create([
         'organization_id' => $this->organization->id,
