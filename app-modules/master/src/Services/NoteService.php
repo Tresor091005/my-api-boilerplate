@@ -42,7 +42,9 @@ final readonly class NoteService
             })
             ->withCount([
                 'replies' => function (Builder $query): void {
-                    $query->whereNull('master_notes.deleted_at');
+                    // the count renames the replies table: name its columns through the query
+                    $query->where($query->qualifyColumn('organization_id'), currentOrganizationId())
+                        ->whereNull($query->qualifyColumn('deleted_at'));
                     $this->applyVisibility($query);
                 },
             ]);

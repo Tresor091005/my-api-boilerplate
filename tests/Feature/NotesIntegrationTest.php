@@ -136,6 +136,29 @@ it('creates a note file, preserves deleted replies, and updates edited_at', func
         ->assertJsonPath('errors.type', 'NoteException');
 });
 
+it('counts only the live replies of a note in the list', function (): void {
+    $note = [
+        'notable_type' => 'catalog_category',
+        'notable_id'   => $this->category->id,
+        'kind'         => 'info',
+        'visibility'   => 'organization',
+    ];
+    $rootId = $this->postJson('/v1/master/notes?response=resource', [...$note, 'body' => 'Root information'])
+        ->assertCreated()->json('data.id');
+    $replyIds = collect(['First reply', 'Second reply'])->map(
+        fn (string $body): string => $this->postJson('/v1/master/notes?response=resource', [...$note, 'parent_id' => $rootId, 'body' => $body])
+            ->assertCreated()->json('data.id'),
+    );
+
+    $this->deleteJson("/v1/master/notes/{$replyIds[0]}")->assertNoContent();
+
+    $this->getJson('/v1/master/notes')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $rootId)
+        ->assertJsonPath('data.0.replies_count', 1);
+});
+
 it('rejects targets outside the current organization and expires only standalone roots', function (): void {
     $foreignCategory = Category::factory()->create(['organization_id' => $this->otherOrganization->id]);
 
