@@ -4,27 +4,29 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Lahatre\Library\Http\Resources\Concerns\DescribesFile;
-use Lahatre\Library\Models\File;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin File */
-class TrashFileResource extends JsonResource
+/**
+ * A file in the trash: no content URL, since its content is not served until it is restored.
+ */
+class TrashFileResource extends ApiResource
 {
     use DescribesFile;
 
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'        => $this->id,
-            'folder_id' => $this->folder_id,
-            ...self::describeFile($this->resource),
-            'uploaded_by' => $this->uploaded_by,
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
-            'deleted_at'  => $this->deleted_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('folder_id');
+
+        self::defineFileValues($resource);
+
+        $resource
+            ->field('uploaded_by')
+            ->field('created_at')
+            ->field('updated_at')
+            ->field('deleted_at');
     }
 }

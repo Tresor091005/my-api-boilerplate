@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Database\Eloquent\Model;
 use Lahatre\Library\Http\Resources\Concerns\DescribesFile;
-use Lahatre\Library\Models\File;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin File */
-class FileResource extends JsonResource
+class FileResource extends ApiResource
 {
     use DescribesFile;
 
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'        => $this->id,
-            'folder_id' => $this->folder_id,
-            ...self::describeFile($this->resource),
-            'uploaded_by' => $this->uploaded_by,
-            'content_url' => route('lahatre.library.files.content', ['file' => $this->id]),
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('folder_id');
+
+        self::defineFileValues($resource);
+
+        $resource
+            ->field('uploaded_by')
+            ->field('content_url', columns: ['id'], computedBy: fn (Model $file): string => route('lahatre.library.files.content', ['file' => $file->getKey()]))
+            ->field('created_at')
+            ->field('updated_at');
     }
 }

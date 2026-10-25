@@ -116,6 +116,28 @@ it('uploads multiple private files and exposes only safe library metadata', func
     }
 });
 
+it('answers an upload with no content unless the client asks for the selected fields', function (): void {
+    $this->post('/v1/library/files', [
+        'files' => [UploadedFile::fake()->createWithContent('quiet.txt', 'quiet')],
+    ], ['Accept' => 'application/json'])->assertNoContent();
+
+    $this->post('/v1/library/files?response=resource&fields=name,kind', [
+        'files' => [UploadedFile::fake()->createWithContent('loud.txt', 'loud')],
+    ], ['Accept' => 'application/json'])
+        ->assertCreated()
+        ->assertExactJson(['data' => [[
+            'id'   => File::query()->where('name', 'loud.txt')->value('id'),
+            'name' => 'loud.txt',
+            'kind' => 'document',
+        ]]]);
+});
+
+it('rejects an include on library routes, which offer none', function (): void {
+    $this->getJson('/v1/library/files?include=folder')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('include');
+});
+
 it('organizes folders and files without moving stored bytes', function (): void {
     $folderId = (string) $this->postJson('/v1/library/folders?response=resource', [
         'name' => ' Marketing ',

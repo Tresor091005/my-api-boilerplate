@@ -87,6 +87,18 @@ it('supports folder CRUD and soft deletes empty folders', function (): void {
     expect(Folder::withTrashed()->whereKey($folderId)->value('deleted_at'))->not->toBeNull();
 });
 
+it('answers folder writes with no content unless the resource is requested', function (): void {
+    $this->postJson('/v1/library/folders', ['name' => 'Quiet'])->assertNoContent();
+    $folderId = (string) Folder::query()->where('name', 'Quiet')->value('id');
+
+    $this->patchJson("/v1/library/folders/{$folderId}?response=resource&fields=name", ['name' => 'Renamed'])
+        ->assertOk()
+        ->assertExactJson(['data' => ['id' => $folderId, 'name' => 'Renamed']]);
+    $this->deleteJson("/v1/library/folders/{$folderId}?response=resource")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('response');
+});
+
 it('allows reusing the name of a soft-deleted folder', function (): void {
     $folderId = (string) $this->postJson('/v1/library/folders?response=resource', [
         'name' => 'Attachments',

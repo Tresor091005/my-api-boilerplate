@@ -382,8 +382,16 @@ move stored bytes.
 | GET/POST | `/v1/library/files` | List root files or upload a configurable multi-file batch. |
 | GET/PATCH/DELETE | `/v1/library/files/{file}` | Retrieve, rename/move, or delete a file. |
 | GET | `/v1/library/files/{file}/content` | Stream authorized content with private HTTP revalidation. |
+| GET | `/v1/library/trash/files` | List deleted files. |
+| POST | `/v1/library/files/{file}/restore` | Restore a deleted file and its deleted folder chain. |
 | GET/POST | `/v1/library/folders` | List root folders or create a logical folder. |
 | GET/PATCH/DELETE | `/v1/library/folders/{folder}` | Retrieve, rename/move, or delete an empty logical folder. |
+
+Library responses use [response selection](response-selection.md): `?fields=`
+picks fields, such as `?fields=name,kind,content_url` on a file. Files, deleted
+files and folders offer no include. An upload answers `204` by default, or the
+list of uploaded files with `?response=resource`. File content is streamed
+outside response selection.
 
 Use `folder_id` on list requests to navigate a folder; omitting it selects the
 logical root. The daily `library:reconcile --purge-only` run permanently removes

@@ -4,22 +4,18 @@ declare(strict_types=1);
 
 namespace Lahatre\Library\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Lahatre\Library\Models\Folder;
+use Lahatre\ResponseSelection\ApiResource;
+use Lahatre\ResponseSelection\ResourceDefinition;
 
-/** @mixin Folder */
-class FolderResource extends JsonResource
+class FolderResource extends ApiResource
 {
-    /** @return array<string, mixed> */
-    public function toArray(Request $request): array
+    protected static function define(ResourceDefinition $resource): void
     {
-        return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'parent_id'  => $this->parent_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-        ];
+        $resource
+            ->field('id')
+            ->field('name')
+            ->field('parent_id')
+            ->field('created_at')
+            ->field('updated_at');
     }
 }
