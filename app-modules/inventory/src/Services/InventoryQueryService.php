@@ -223,6 +223,14 @@ class InventoryQueryService
             $query->where('movement_type', $filters->movementType);
         }
 
+        if ($filters->transactionId) {
+            $query->where('transaction_id', $filters->transactionId);
+        }
+
+        if ($filters->stockId) {
+            $query->where('stock_id', $filters->stockId);
+        }
+
         if ($filters->referenceType || $filters->referenceId) {
             $query->whereHas('transaction', function (Builder $transactionQuery) use ($filters): void {
                 if ($filters->referenceType) {

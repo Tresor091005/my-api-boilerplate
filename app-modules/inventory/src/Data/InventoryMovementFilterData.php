@@ -21,6 +21,8 @@ final readonly class InventoryMovementFilterData
         public ?MovementType $movementType,
         public ?string $referenceType,
         public ?string $referenceId,
+        public ?string $transactionId,
+        public ?string $stockId,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -38,6 +40,8 @@ final readonly class InventoryMovementFilterData
             movementType: is_string($movementType) ? MovementType::from($movementType) : $movementType,
             referenceType: $data['reference_type'] ?? null,
             referenceId: $data['reference_id'] ?? null,
+            transactionId: $data['transaction_id'] ?? null,
+            stockId: $data['stock_id'] ?? null,
         );
     }
 }

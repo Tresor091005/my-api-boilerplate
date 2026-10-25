@@ -18,7 +18,9 @@ use Lahatre\Inventory\Enums\MovementType;
 use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
+use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
+use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\InventoryService;
 use Lahatre\Inventory\Tests\Concerns\InteractsWithInventoryTestFixtures;
 use Lahatre\Master\Models\Currency;
@@ -288,6 +290,45 @@ it('does not expose inventory item and location registry endpoints', function ()
     $this->getJson("/v1/inventory/items/{$item->id}")->assertNotFound();
     $this->getJson('/v1/inventory/locations')->assertNotFound();
     $this->getJson("/v1/inventory/locations/{$location->id}")->assertNotFound();
+});
+
+it('lists every movement of one transaction or of one stock lot', function (): void {
+    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
+    $location = InventoryLocation::factory()->create();
+    $record = fn (TransactionType $transactionType, MovementType $movementType, int $quantity): InventoryTransaction => $this->inventoryService->recordTransaction([
+        'reference_type'   => 'stock_count',
+        'reference_id'     => Str::uuid7()->toString(),
+        'idempotency_key'  => fake()->uuid(),
+        'transaction_type' => $transactionType->value,
+        'movements'        => [[
+            'item_id'       => $item->id,
+            'location_id'   => $location->id,
+            'type'          => $movementType->value,
+            'quantity'      => $quantity,
+            'unit_code'     => $this->unit->code,
+            'total_cost'    => $movementType === MovementType::In ? 10.00 : null,
+            'currency_code' => $movementType === MovementType::In ? $this->currency->code : null,
+        ]],
+    ]);
+    $firstIn = $record(TransactionType::In, MovementType::In, 10);
+    $record(TransactionType::In, MovementType::In, 10);
+    // 15 units leave the first lot whole and 5 of the second: one movement per lot
+    $out = $record(TransactionType::Out, MovementType::Out, 15);
+    $firstLotId = InventoryMovement::query()->where('transaction_id', $firstIn->id)->value('stock_id');
+
+    $this->getJson("/v1/inventory/movements?transaction_id={$out->id}")
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.transaction_id', $out->id)
+        ->assertJsonPath('data.1.transaction_id', $out->id);
+    $this->getJson("/v1/inventory/movements?stock_id={$firstLotId}")
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.stock_id', $firstLotId)
+        ->assertJsonPath('data.1.stock_id', $firstLotId);
+    $this->getJson('/v1/inventory/movements?transaction_id=not-a-uuid&stock_id=not-a-uuid')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['transaction_id', 'stock_id']);
 });
 
 it('returns movements filtered by item, location, and transaction reference plus transaction details', function (): void {

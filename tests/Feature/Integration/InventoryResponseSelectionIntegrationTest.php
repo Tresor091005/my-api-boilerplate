@@ -144,3 +144,14 @@ it('shows only movements of the caller organization under stocks and transaction
 
     $this->getJson("/v1/inventory/transactions/{$foreignMovement->transaction_id}")->assertForbidden();
 });
+
+it('lists no movement of another organization through the transaction and stock filters', function (): void {
+    inventorySelectionMovement($this->unit, $this->currency);
+    $otherOrganization = Organization::factory()->create();
+    setPermissionsTeamId($otherOrganization->id);
+    $foreignMovement = inventorySelectionMovement($this->unit, $this->currency);
+    setPermissionsTeamId($this->organization->id);
+
+    $this->getJson("/v1/inventory/movements?transaction_id={$foreignMovement->transaction_id}")->assertOk()->assertJsonCount(0, 'data');
+    $this->getJson("/v1/inventory/movements?stock_id={$foreignMovement->stock_id}")->assertOk()->assertJsonCount(0, 'data');
+});

@@ -14,14 +14,18 @@ it('preserves array filters and converts enum and date values', function (): voi
         'location_id' => ['location-1'],
     ]);
     $movements = InventoryMovementFilterData::fromArray([
-        'movement_type' => 'out',
-        'from'          => '2026-08-01',
+        'movement_type'  => 'out',
+        'from'           => '2026-08-01',
+        'transaction_id' => 'transaction-1',
+        'stock_id'       => 'stock-1',
     ]);
 
     expect($summary->itemId)->toBe(['item-1'])
         ->and($summary->locationId)->toBe(['location-1'])
         ->and($movements->movementType)->toBe(MovementType::Out)
-        ->and($movements->from?->toDateString())->toBe('2026-08-01');
+        ->and($movements->from?->toDateString())->toBe('2026-08-01')
+        ->and($movements->transactionId)->toBe('transaction-1')
+        ->and($movements->stockId)->toBe('stock-1');
 });
 
 it('keeps filter validation in form requests', function (): void {

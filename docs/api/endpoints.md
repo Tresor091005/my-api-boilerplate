@@ -386,7 +386,7 @@ and rate updates the updated record (`200`).
 | Method | URI | Purpose |
 | --- | --- | --- |
 | GET | `/v1/inventory/items/{item}/locations/{location}/lots` | Read lots for an item/location pair. |
-| GET | `/v1/inventory/movements` | Read movements, optionally filtered by item, location, type, date, or business reference. |
+| GET | `/v1/inventory/movements` | Read movements, optionally filtered by item, location, type, date, business reference, transaction (`transaction_id`), or stock lot (`stock_id`). |
 | GET | `/v1/inventory/stocks` | Read stock lots; `expiring_within_days` keeps the expiring ones. |
 | GET | `/v1/inventory/stocks/summary` | Read one quantity/value row per item/location pair in the functional currency. |
 | PATCH | `/v1/inventory/stocks/{stock}` | Update stock metadata only. |
@@ -397,9 +397,12 @@ Stocks, movements and transactions use [response selection](response-selection.m
 `?fields=` picks fields and `?include=` nests related resources. Stocks offer
 `location`, `unit`, `currency` and `movements`; movements offer `location`,
 `stock`, `unit` and `currency`; transactions offer `movements`, with nested
-paths such as `?include=movements.stock`. The stock metadata update answers
-`204` by default, or the stock with `?response=resource`. The lots and summary
-reads return computed rows outside response selection.
+paths such as `?include=movements.stock`. An included `movements` list renders
+at most 100 movements per stock or transaction; `GET /v1/inventory/movements`
+with `transaction_id` or `stock_id` pages through all of them. The stock
+metadata update answers `204` by default, or the stock with
+`?response=resource`. The lots and summary reads return computed rows outside
+response selection.
 
 Inventory transaction recording, preview, reversal, item registration, and
 location registration are currently service-level operations rather than

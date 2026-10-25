@@ -30,11 +30,11 @@ normalized at the inbound boundary.
 
 ## History
 
-- `listMovements($filters)`: movements, optionally filtered by item, location, type, date, or business reference;
-- `listTransactions($filters)`: transaction ledger;
+- `paginateMovements($filters)`: movements, optionally filtered by item, location, type, date, business reference, transaction, or stock lot;
+- `paginateTransactions($filters)`: transaction ledger;
 - `retrieveTransaction($transaction)`: one transaction of the active organization, without relations; the HTTP response loads the includes the client selects.
 
-Movement filters support date ranges, `IN`/`OUT` type, and business reference. Transaction filters support IDs, reference type/IDs, transaction type, sorting, and cursors.
+Movement filters support date ranges, `IN`/`OUT` type, business reference, transaction (`transaction_id`), and stock lot (`stock_id`). An included `movements` list renders at most 100 movements per stock or transaction; these two filters page through all of them. Transaction filters support IDs, reference type/IDs, transaction type, sorting, and cursors.
 
 ## HTTP endpoints
 
@@ -43,7 +43,7 @@ All package routes use the `/v1/inventory` prefix. Stocks, movements and transac
 | Method | Endpoint | Read |
 |---|---|---|
 | GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
-| GET | `/movements` | Movement history, optionally filtered by item or location |
+| GET | `/movements` | Movement history, optionally filtered by item, location, transaction or stock lot |
 | GET | `/stocks/summary` | Global item/location summary |
 | GET | `/stocks?expiring_within_days=7` | Expiring active lots |
 | GET | `/transactions` | List transactions |
