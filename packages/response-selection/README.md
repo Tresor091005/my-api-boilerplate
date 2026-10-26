@@ -300,7 +300,10 @@ is reported like any missing attribute.
   accessor).
 
 A field value is data: a model, a `JsonResource` or a paginator throws (use an
-include).
+include). A Carbon date renders as the string its `jsonSerialize()` gives; the
+engine writes that string itself during JSON encoding when it can prove it is
+the same. Formatting remains deferred so later accessors can still change a
+date or its serializer before encoding.
 
 #### Classes and closures
 

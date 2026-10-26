@@ -16,6 +16,7 @@ use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Collection;
 use JsonSerializable;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
+use Lahatre\ResponseSelection\Rendering\JsonDate;
 use Lahatre\ResponseSelection\Rendering\ModelState;
 use Lahatre\ResponseSelection\Rendering\RenderStep;
 use Lahatre\ResponseSelection\Rendering\ResponseContext;
@@ -228,7 +229,7 @@ abstract class ApiResource extends JsonResource
 
         $this->assertFieldValue($key, $value);
 
-        return $value;
+        return JsonDate::serialize($value);
     }
 
     /**
