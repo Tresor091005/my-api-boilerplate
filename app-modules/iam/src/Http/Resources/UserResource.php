@@ -102,7 +102,7 @@ class UserResource extends ApiResource
                     'role'            => [
                         'id'          => $memberRole->role->id,
                         'name'        => $memberRole->role->name,
-                        'description' => $memberRole->role->description,
+                        'description' => RoleSummaryResource::description($memberRole->role),
                         'is_builtin'  => $memberRole->role->is_builtin,
                     ],
                     'organization' => [

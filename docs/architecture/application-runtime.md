@@ -5,6 +5,12 @@ module registration, and shared support classes.
 
 ## Request pipeline
 
+`SetLocale` runs first on every request. When `config('app.supported_locales')`
+lists the language of the `X-Language` header, the request is handled in that
+locale and the previous locale is restored afterwards; otherwise
+`config('app.locale')` applies. Translated messages, permission titles, the
+built-in role description and currency names follow that locale.
+
 Every API route is in the `api` middleware group. The application appends:
 
 1. `ForceJsonResponse`, which makes API responses JSON-oriented.

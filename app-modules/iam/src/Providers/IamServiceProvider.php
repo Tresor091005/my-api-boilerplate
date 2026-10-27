@@ -65,7 +65,6 @@ class IamServiceProvider extends ServiceProvider
         Gate::authorize('update', [$post, $request->category]); when multiple element
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         after direct actions on permissions or roles table with using given methods
-        use enum and lang for builtin roles
         */
     }
 }

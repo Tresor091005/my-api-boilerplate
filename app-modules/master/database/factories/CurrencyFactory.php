@@ -21,7 +21,6 @@ class CurrencyFactory extends Factory
 
         return [
             'code'      => $code,
-            'name'      => $this->faker->word(),
             'symbol'    => $this->faker->lexify('??'),
             'precision' => 2,
         ];

@@ -47,7 +47,6 @@ beforeEach(function (): void {
     $this->currency = Currency::query()->firstOrCreate(
         ['code' => 'XOF'],
         [
-            'name'      => 'West African CFA franc',
             'symbol'    => 'F',
             'precision' => 0,
         ],

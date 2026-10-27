@@ -97,7 +97,6 @@ it('rejects deleting a location with active stock', function (): void {
     $unitGroup = UnitGroup::factory()->create(['organization_id' => null]);
     $unit = Unit::factory()->create(['organization_id' => null, 'group_id' => $unitGroup->id]);
     $currency = Currency::query()->firstOrCreate(['code' => 'XOF'], [
-        'name'      => 'West African CFA franc',
         'symbol'    => 'F',
         'precision' => 0,
     ]);

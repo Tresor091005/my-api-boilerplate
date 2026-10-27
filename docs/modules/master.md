@@ -41,6 +41,11 @@ Currencies are identified by code and precision. The `MasterInterface` exposes
 lookup plus conversion to and from minor units. Currency data is globally
 cached because currencies are not currently tenant-owned.
 
+A currency stores no name. `CurrencyResource` renders `name` from the ISO 4217
+code with the ICU data of ext-intl, in the request locale, and falls back to the
+code when ICU does not know it. The `name` filter of `GET /v1/master/currencies`
+matches the start of that localized name; currencies cannot be sorted by name.
+
 ## Units
 
 Unit groups define a base unit (`ratio = 1`). Other units store a ratio relative

@@ -14,7 +14,6 @@ use Lahatre\Shared\Traits\SharedTraits;
 /**
  * @property string $id
  * @property string $code
- * @property string $name
  * @property string $symbol
  * @property int $precision
  * @property CarbonImmutable|null $created_at
@@ -27,7 +26,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|Currency whereCode($value)
  * @method static Builder<static>|Currency whereCreatedAt($value)
  * @method static Builder<static>|Currency whereId($value)
- * @method static Builder<static>|Currency whereName($value)
  * @method static Builder<static>|Currency wherePrecision($value)
  * @method static Builder<static>|Currency whereSymbol($value)
  * @method static Builder<static>|Currency whereUpdatedAt($value)
@@ -48,7 +46,6 @@ class Currency extends Model
 
     protected $fillable = [
         'code',
-        'name',
         'symbol',
         'precision',
     ];
@@ -56,7 +53,6 @@ class Currency extends Model
     protected $casts = [
         'id'         => 'string',
         'code'       => 'string',
-        'name'       => 'string',
         'symbol'     => 'string',
         'precision'  => 'integer',
         'created_at' => 'immutable_datetime',

@@ -64,9 +64,47 @@ it('lists every permission for the active guard, including unassigned permission
         ->assertJsonCount(3, 'data')
         ->assertJsonPath('data.0.id', $first->id)
         ->assertJsonPath('data.0.name', $first->name)
-        ->assertJsonPath('data.0.title', $first->title)
-        ->assertJsonPath('data.0.description', $first->description)
+        ->assertJsonPath('data.0.title', 'List catalog_product')
+        ->assertJsonPath('data.0.description', 'Allow list catalog_product.')
         ->assertJsonPath('data.1.id', $second->id)
         ->assertJsonPath('data.2.id', $listPermission->id)
         ->assertJsonMissingPath('data.0.guard_name');
+});
+
+it('describes permissions in the request locale from their name', function (): void {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create();
+    $member = OrganizationMember::factory()->create(['organization_id' => $organization->id, 'user_id' => $user->id]);
+    $role = Role::factory()->create(['team_id' => $organization->id]);
+    $memberRole = MemberRole::factory()->create([
+        'organization_id' => $organization->id,
+        'member_id'       => $member->id,
+        'role_id'         => $role->id,
+    ]);
+    setPermissionsTeamId($organization->id);
+    $memberRole->givePermissionTo(Permission::factory()->create(['name' => 'iam_permission.list']));
+    $token = $user->createToken('permissions-test');
+    $token->accessToken->update(['metadata' => [
+        'organization_id' => $organization->id,
+        'member_id'       => $member->id,
+        'member_role_id'  => $memberRole->id,
+        'role_id'         => $role->id,
+    ]]);
+    app('translator')->addLines([
+        'console.permissions.title'       => ':model : :action',
+        'console.permissions.description' => 'Autoriser :action sur :model.',
+    ], 'fr', 'iam');
+
+    $this->withToken($token->plainTextToken)
+        ->getJson('/v1/iam/permissions')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'List iam_permission')
+        ->assertJsonPath('data.0.description', 'Allow list iam_permission.');
+
+    $this->withHeader('X-Language', 'fr');
+
+    $this->getJson('/v1/iam/permissions')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'iam_permission : List')
+        ->assertJsonPath('data.0.description', 'Autoriser list sur iam_permission.');
 });

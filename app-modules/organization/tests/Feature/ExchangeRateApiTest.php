@@ -27,14 +27,12 @@ beforeEach(function (): void {
     Currency::query()->firstOrCreate([
         'code' => 'USD',
     ], [
-        'name'      => 'US Dollar',
         'symbol'    => '$',
         'precision' => 2,
     ]);
     Currency::query()->firstOrCreate([
         'code' => 'EUR',
     ], [
-        'name'      => 'Euro',
         'symbol'    => '€',
         'precision' => 2,
     ]);

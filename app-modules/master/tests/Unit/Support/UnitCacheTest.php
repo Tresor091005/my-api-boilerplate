@@ -34,7 +34,6 @@ beforeEach(function (): void {
 
     $this->currency = Currency::factory()->create([
         'code'      => 'TST',
-        'name'      => 'Test Currency',
         'precision' => 2,
     ]);
 });

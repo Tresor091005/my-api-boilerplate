@@ -98,6 +98,28 @@ it('renders every permission of the administrator role, beyond the default inclu
         ->assertJsonCount(Permission::query()->count(), 'data.permissions');
 });
 
+it('describes built-in roles in the request locale and keeps the description of organization roles', function (): void {
+    $context = authenticatedRoleContext(['retrieve']);
+    Artisan::call('permissions:discover');
+    $administrator = Role::query()->whereNull('team_id')->where('name', SysRole::Administrator->value)->firstOrFail();
+    $own = Role::factory()->create(['team_id' => $context['organization']->id, 'description' => 'Rédige les fiches produit']);
+    app('translator')->addLines(['console.roles.administrator.description' => 'Administrateur avec toutes les permissions.'], 'fr', 'iam');
+
+    expect($administrator->description)->toBeNull();
+    $this->getJson("/v1/iam/roles/{$administrator->id}")
+        ->assertOk()
+        ->assertJsonPath('data.description', 'Administrator with all permissions.');
+
+    $this->withHeader('X-Language', 'fr');
+
+    $this->getJson("/v1/iam/roles/{$administrator->id}")
+        ->assertOk()
+        ->assertJsonPath('data.description', 'Administrateur avec toutes les permissions.');
+    $this->getJson("/v1/iam/roles/{$own->id}")
+        ->assertOk()
+        ->assertJsonPath('data.description', 'Rédige les fiches produit');
+});
+
 it('creates a tenant role and synchronizes its permissions', function (): void {
     $organization = authenticatedRoleContext()['organization'];
     $permission = Permission::factory()->create(['name' => 'catalog_product.list']);

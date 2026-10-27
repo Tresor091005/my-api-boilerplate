@@ -7,4 +7,11 @@ namespace Lahatre\Iam\Enums;
 enum SysRole: string
 {
     case Administrator = 'administrator';
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Administrator => __('iam::console.roles.administrator.description'),
+        };
+    }
 }

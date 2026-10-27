@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Http\Resources\InvitationResource;
 use Lahatre\Iam\Http\Resources\OrganizationMemberResource;
 use Lahatre\Iam\Http\Resources\PermissionResource;
@@ -190,6 +191,25 @@ it('keeps the auth payload of a sign-in unchanged', function (): void {
             ]],
         ],
     ]);
+});
+
+it('describes a built-in member role in the request locale in the account payload', function (): void {
+    $administrator = Role::query()->updateOrCreate(
+        ['team_id' => null, 'name' => SysRole::Administrator->value, 'guard_name' => 'sanctum'],
+        ['is_builtin' => true, 'description' => 'Stale stored description'],
+    );
+    MemberRole::factory()->create([
+        'organization_id' => $this->organization->id,
+        'member_id'       => $this->member->id,
+        'role_id'         => $administrator->id,
+    ]);
+    app('translator')->addLines(['console.roles.administrator.description' => 'Administrateur avec toutes les permissions.'], 'fr', 'iam');
+    $this->withHeader('X-Language', 'fr');
+
+    $memberRoles = collect($this->getJson('/v1/auth/me?fields=member_roles')->assertOk()->json('data.member_roles'));
+
+    expect($memberRoles->firstWhere('role_id', $administrator->id)['role']['description'])->toBe('Administrateur avec toutes les permissions.')
+        ->and($memberRoles->firstWhere('role_id', $this->role->id)['role']['description'])->toBe($this->role->description);
 });
 
 it('shows the same account values in the auth payload and the current-user response', function (): void {

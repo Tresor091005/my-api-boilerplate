@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Lahatre\Master\Data\CurrencyFilterData;
 use Lahatre\Master\Models\Currency;
+use Lahatre\Master\Support\CurrencyNames;
 
 class CurrencyService
 {
@@ -25,7 +26,11 @@ class CurrencyService
             $query->where('code', 'like', "$filters->code%");
         }
         if ($filters->name) {
-            $query->where('name', 'like', "$filters->name%");
+            $query->whereIn('code', CurrencyNames::codesStartingWith(
+                Currency::query()->pluck('code')->all(),
+                $filters->name,
+                app()->getLocale(),
+            ));
         }
 
         return $query;

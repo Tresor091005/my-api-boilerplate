@@ -111,7 +111,10 @@ paths:
 
 - `bootstrap/app.php` defines the `api` group and the `auth.api` middleware
   group, including JSON responses, throttling, Sanctum, authentication
-  context, and organization permission context.
+  context, and organization permission context. It prepends `SetLocale`
+  globally: the `X-Language` header picks a locale among
+  `app.supported_locales` for the duration of the request, else `app.locale`
+  applies.
 - `app/Providers/RateLimitServiceProvider.php` defines the current `api` and
   `auth` limiter values; `config/cache.php` defines the database limiter
   store configuration.

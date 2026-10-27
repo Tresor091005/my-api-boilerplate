@@ -14,8 +14,6 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 /**
  * @property string $id
  * @property string $name
- * @property string|null $title
- * @property string|null $description
  * @property string $guard_name
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -30,11 +28,9 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  * @method static Builder<static>|Permission query()
  * @method static Builder<static>|Permission role($roles, ?string $guard = null, bool $without = false)
  * @method static Builder<static>|Permission whereCreatedAt($value)
- * @method static Builder<static>|Permission whereDescription($value)
  * @method static Builder<static>|Permission whereGuardName($value)
  * @method static Builder<static>|Permission whereId($value)
  * @method static Builder<static>|Permission whereName($value)
- * @method static Builder<static>|Permission whereTitle($value)
  * @method static Builder<static>|Permission whereUpdatedAt($value)
  * @method static Builder<static>|Permission withoutPermission($permissions)
  * @method static Builder<static>|Permission withoutRole($roles, ?string $guard = null)
@@ -52,18 +48,14 @@ class Permission extends SpatiePermission
 
     protected $fillable = [
         'name',
-        'title',
-        'description',
         'guard_name',
     ];
 
     protected $casts = [
-        'id'          => 'string',
-        'name'        => 'string',
-        'title'       => 'string',
-        'description' => 'string',
-        'guard_name'  => 'string',
-        'created_at'  => 'immutable_datetime',
-        'updated_at'  => 'immutable_datetime',
+        'id'         => 'string',
+        'name'       => 'string',
+        'guard_name' => 'string',
+        'created_at' => 'immutable_datetime',
+        'updated_at' => 'immutable_datetime',
     ];
 }

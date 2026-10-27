@@ -34,7 +34,7 @@ beforeEach(function (): void {
     $this->group = UnitGroup::factory()->create(['organization_id' => null]);
     $this->unit = Unit::factory()->create(['organization_id' => null, 'group_id' => $this->group->id, 'ratio' => 1]);
     app(UnitCache::class)->rewarmUnits();
-    Currency::query()->firstOrCreate(['code' => 'XOF'], ['name' => 'West African CFA franc', 'symbol' => 'F', 'precision' => 0]);
+    Currency::query()->firstOrCreate(['code' => 'XOF'], ['symbol' => 'F', 'precision' => 0]);
     $this->source = transferLocation('Source');
     $this->destination = transferLocation('Destination');
     $product = Product::factory()->create(['organization_id' => $this->organizationId]);

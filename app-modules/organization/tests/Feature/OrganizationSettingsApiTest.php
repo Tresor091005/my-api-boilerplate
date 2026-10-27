@@ -23,7 +23,6 @@ beforeEach(function (): void {
 
     foreach (['USD', 'EUR'] as $code) {
         Currency::query()->firstOrCreate(['code' => $code], [
-            'name'      => $code,
             'symbol'    => $code,
             'precision' => 2,
         ]);

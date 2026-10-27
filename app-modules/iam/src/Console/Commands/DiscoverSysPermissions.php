@@ -57,16 +57,10 @@ class DiscoverSysPermissions extends Command
 
             foreach ($actions as $action) {
                 $permissionName = "{$modelName}.{$action}";
-                Permission::updateOrCreate(
-                    [
-                        'name'       => $permissionName,
-                        'guard_name' => $guardName,
-                    ],
-                    [
-                        'title'       => __('iam::console.permissions.title', ['action' => ucfirst($action), 'model' => $modelName]),
-                        'description' => __('iam::console.permissions.description', ['action' => $action, 'model' => $modelName]),
-                    ]
-                );
+                Permission::firstOrCreate([
+                    'name'       => $permissionName,
+                    'guard_name' => $guardName,
+                ]);
                 $this->line(__('iam::console.discovery.created_permission', ['name' => $permissionName]));
             }
         }
@@ -89,7 +83,7 @@ class DiscoverSysPermissions extends Command
             ],
             [
                 'is_builtin'  => true,
-                'description' => __('iam::console.roles.administrator.description'),
+                'description' => null,
             ]
         );
         $allPermissions = Permission::where('guard_name', $guardName)->get();

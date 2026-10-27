@@ -36,10 +36,13 @@ migration customizes Spatie's base structure:
 
 - All primary keys (`id`) are `uuid()`.
 - Foreign keys and pivots use UUIDs.
-- **`iam_permissions`:** Adds `title` and `description` for clearer
-  permissions in a possible management interface.
+- **`iam_permissions`:** Stores no display text. `PermissionResource` derives
+  `title` and `description` from the name `<model_alias>.<action>` with the
+  `iam::console.permissions.*` keys, in the request locale. A later migration
+  dropped the `title` and `description` columns that discovery once filled.
 - **`iam_roles`:** Adds `is_builtin` to identify system roles and `description`
-  for clarity.
+  for organization roles. A built-in role stores no description: the role
+  resources translate it from `SysRole` in the request locale.
 
 ## 4. Morph Map And System Permission Discovery
 
