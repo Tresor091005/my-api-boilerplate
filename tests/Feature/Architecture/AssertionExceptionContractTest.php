@@ -4,25 +4,6 @@ declare(strict_types=1);
 
 use Lahatre\Shared\Exceptions\AssertionException;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
-
-/**
- * Resolve a fully qualified class name from a PHP file.
- */
-function resolveFullyQualifiedClassName(SplFileInfo $file): ?string
-{
-    $content = $file->getContents();
-
-    if (!preg_match('/^namespace\s+([^;]+);/m', $content, $namespaceMatches)) {
-        return null;
-    }
-
-    if (!preg_match('/^(?:abstract\s+|final\s+)?class\s+([A-Za-z_][A-Za-z0-9_]*)/m', $content, $classMatches)) {
-        return null;
-    }
-
-    return $namespaceMatches[1].'\\'.$classMatches[1];
-}
 
 it('ensures all concrete module exceptions extend AssertionException', function (): void {
     $finder = new Finder;

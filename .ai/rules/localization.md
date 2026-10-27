@@ -25,6 +25,7 @@ they are also presented to a user.
   - `messages.php`: general user-facing success, status, and response messages.
   - `notifications.php`: notification titles, bodies, and action text.
   - `console.php`: CLI output, permission descriptions, and command-facing text.
+  - `features.php`: names of the billing features the module declares, keyed by the feature key without its module prefix (`catalog.products` → `catalog::features.products`).
 - Keep exception, validation, message, notification, and console content separate. A validation failure is not an exception message just because both indicate an unsuccessful operation.
 
 ## Keys, Namespaces, and Values

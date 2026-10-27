@@ -11,6 +11,7 @@ use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
+use Symfony\Component\Finder\SplFileInfo;
 use Tests\TestCase;
 
 /*
@@ -75,6 +76,24 @@ function currentTestCase(): TestCase
     }
 
     return $testCase;
+}
+
+/**
+ * Resolve a fully qualified class name from a PHP file.
+ */
+function resolveFullyQualifiedClassName(SplFileInfo $file): ?string
+{
+    $content = $file->getContents();
+
+    if (!preg_match('/^namespace\s+([^;]+);/m', $content, $namespaceMatches)) {
+        return null;
+    }
+
+    if (!preg_match('/^(?:(?:abstract|final|readonly)\s+)*class\s+([A-Za-z_][A-Za-z0-9_]*)/m', $content, $classMatches)) {
+        return null;
+    }
+
+    return $namespaceMatches[1].'\\'.$classMatches[1];
 }
 
 /**
