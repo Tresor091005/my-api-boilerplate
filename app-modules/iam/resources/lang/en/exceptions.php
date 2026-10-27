@@ -23,6 +23,9 @@ return [
         'invalid_code'            => 'The sign-in code is invalid, expired, or no longer available.',
         'invalid_session_context' => 'Invalid session context.',
     ],
+    'platform' => [
+        'access_required' => 'Platform access is required.',
+    ],
     'role' => [
         'unavailable'             => 'Role is not available in this organization.',
         'system_role'             => 'System roles cannot be changed.',

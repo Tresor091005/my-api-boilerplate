@@ -153,3 +153,33 @@ permissions are checked in the correct team context.
 - This ensures that later role or permission checks, such as
   `authContext()->memberRole()->hasPermissionTo('...')`, remain limited to the
   user's team.
+
+## 7. Platform access
+
+Platform access is for the people who operate the platform. It is separate
+from organization permissions: no `<model_alias>.<action>` permission, and no
+role, including Administrator, grants it.
+
+- **Membership:** a row in `iam_platform_users` (`PlatformUser`, unique
+  `user_id`). The `iam_platform_user` model is listed in `skip_models`, so
+  discovery generates no organization permission for it. Membership is managed
+  only from the console:
+
+  ```bash
+  docker compose exec -T app php artisan iam:platform-access user@example.com
+  docker compose exec -T app php artisan iam:platform-access user@example.com --revoke
+  ```
+
+- **Token level:** a token works at exactly one level. Its `metadata.platform`
+  marker is `false` when the token is issued. `POST /v1/auth/switch-platform`
+  answers 403 unless the user is a platform user; otherwise it sets the marker
+  and clears the organization fields. `POST /v1/auth/switch-member-role`
+  clears the marker. A platform token has no organization context, so
+  `auth.api` routes deny it.
+- **Routes:** platform routes use the `auth.platform` middleware group.
+  `EnsurePlatformAccess` accepts a request only when the token is marked
+  platform and the user is still in `iam_platform_users`, so a revocation takes
+  effect on the next request. The result is kept in `AuthContext`.
+- **Authorization:** the `operate-platform` Gate is the only decision point and
+  stays query-free. Platform users can perform every platform action for now;
+  granular abilities can be added beside the Gate later.

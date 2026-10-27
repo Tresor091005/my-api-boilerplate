@@ -47,6 +47,7 @@ class ResolveAuthContext
                 'member_id'       => $context->member()?->id,
                 'member_role_id'  => $context->memberRole()?->id,
                 'role_id'         => $context->role()?->id,
+                'platform'        => $context->hasPlatformToken(),
                 'guard'           => $this->resolveCurrentGuard(),
             ]));
         }

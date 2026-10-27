@@ -21,6 +21,7 @@ and the global API rate limiter. Business module routes additionally use
 | PATCH | `/v1/auth/me` | Sanctum, account owner | Update names and the nullable default member role preference. |
 | POST | `/v1/auth/logout` | Sanctum + optional organization context | Revoke the current access token. |
 | POST | `/v1/auth/switch-member-role` | Sanctum user | Select another member role on the current token; `204` by default, the account with `?response=resource`. |
+| POST | `/v1/auth/switch-platform` | Sanctum user | Move the current token to the platform level and clear its organization context; 403 unless the user is a platform user. `204` by default, the account with `?response=resource`. |
 | GET | `/v1/auth/current-permissions` | `auth.api` | Return permissions for the selected organization/role. |
 | GET | `/v1/iam/permissions` | `auth.api` + `iam_permission.list` | List all permissions for the active guard, including permissions not assigned to the current role. |
 

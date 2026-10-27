@@ -53,6 +53,7 @@ Route::group([
             Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->whereUuid('session')->name('sessions.destroy');
             Route::group(['middleware' => EnsureProfileComplete::class], function (): void {
                 Route::post('/switch-member-role', [AuthController::class, 'switchMemberRole'])->name('switch-member-role');
+                Route::post('/switch-platform', [AuthController::class, 'switchPlatform'])->name('switch-platform');
                 Route::post('/google-identities', [GoogleAuthController::class, 'link'])
                     ->middleware(['throttle:google-auth', EnsureGoogleRequestOrigin::class])->name('google-identities.store');
                 Route::post('/organizations', [AuthController::class, 'createOrganization'])->middleware('throttle:auth')->name('organizations.store');

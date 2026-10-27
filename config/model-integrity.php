@@ -45,6 +45,8 @@ return [
         'iam_external_identities',
         'iam_google_auth_challenges',
         'iam_email_login_challenges',
+        // Platform access is above every organization.
+        'iam_platform_users',
         'iam_roles',
         'iam_permissions',
         'iam_model_has_roles',

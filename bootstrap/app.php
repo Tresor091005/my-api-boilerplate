@@ -11,6 +11,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Iam\Http\Middleware\EnsurePlatformAccess;
 use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
@@ -47,8 +48,16 @@ return Application::configure(basePath: dirname(__DIR__))
             ResolveAuthContext::class,
             SetTeamPermissionsId::class,
         ]);
+        $middleware->group('auth.platform', [
+            'auth:sanctum',
+            EnsureProfileComplete::class,
+            TrackSessionActivity::class,
+            ResolveAuthContext::class.':user',
+            EnsurePlatformAccess::class,
+        ]);
         $middleware->prependToPriorityList(SubstituteBindings::class, ResolveAuthContext::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
+        $middleware->prependToPriorityList(SubstituteBindings::class, EnsurePlatformAccess::class);
         $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
         $middleware->prependToPriorityList(TrackSessionActivity::class, EnsureProfileComplete::class);
         // Authentication answers first: a logged-out request gets 401, not a 422 for its selection.

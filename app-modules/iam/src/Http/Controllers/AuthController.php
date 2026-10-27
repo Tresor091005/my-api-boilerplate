@@ -117,6 +117,17 @@ class AuthController
         return ApiResponse::item($response, UserResource::class);
     }
 
+    public function switchPlatform(): JsonResponse|Response
+    {
+        $user = authContext()->user();
+
+        assert($user instanceof User);
+
+        $response = $this->authService->switchToPlatform($user);
+
+        return ApiResponse::item($response, UserResource::class);
+    }
+
     public function currentPermissions(): JsonResponse|Response
     {
         $memberRole = authContext()->memberRole();

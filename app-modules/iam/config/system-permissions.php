@@ -8,6 +8,7 @@ return [
         'catalog_option_value',
         'catalog_product_variant',
         'catalog_stock_transfer_line',
+        'iam_platform_user',
         'master_address',
         'master_contact',
     ],

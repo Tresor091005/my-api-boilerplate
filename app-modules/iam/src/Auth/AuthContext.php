@@ -23,6 +23,10 @@ class AuthContext
 
     protected ?Role $role = null;
 
+    protected bool $platformToken = false;
+
+    protected bool $platformAccess = false;
+
     /**
      * Resolve fresh access records and publish only a coherent, active context.
      *
@@ -33,6 +37,13 @@ class AuthContext
     public function setContext(Authenticatable $user, ?array $metadata = null): void
     {
         $this->clear();
+
+        if (($metadata['platform'] ?? false) === true) {
+            $this->user = $user;
+            $this->platformToken = true;
+
+            return;
+        }
 
         if ($metadata === null || $metadata === [] || empty($metadata['organization_id'])) {
             $this->user = $user;
@@ -76,11 +87,27 @@ class AuthContext
     {
         $member = $memberRole->organizationMember;
 
+        $this->clear();
         $this->user = $user;
         $this->organization = $member->organization;
         $this->member = $member;
         $this->memberRole = $memberRole;
         $this->role = $memberRole->role;
+    }
+
+    /** Publish a platform context whose membership the caller just verified. */
+    public function usePlatform(Authenticatable $user): void
+    {
+        $this->clear();
+        $this->user = $user;
+        $this->platformToken = true;
+        $this->platformAccess = true;
+    }
+
+    /** Record that the platform token's user is still a platform user, as checked once per request. */
+    public function confirmPlatformAccess(): void
+    {
+        $this->platformAccess = $this->platformToken;
     }
 
     public function clear(): void
@@ -90,6 +117,8 @@ class AuthContext
         $this->member = null;
         $this->memberRole = null;
         $this->role = null;
+        $this->platformToken = false;
+        $this->platformAccess = false;
     }
 
     public function user(): ?Authenticatable
@@ -115,5 +144,15 @@ class AuthContext
     public function role(): ?Role
     {
         return $this->role;
+    }
+
+    public function hasPlatformToken(): bool
+    {
+        return $this->platformToken;
+    }
+
+    public function hasPlatformAccess(): bool
+    {
+        return $this->platformAccess;
     }
 }

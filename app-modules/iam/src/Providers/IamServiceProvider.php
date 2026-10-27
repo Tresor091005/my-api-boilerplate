@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
@@ -25,6 +27,9 @@ class IamServiceProvider extends ServiceProvider
     public function boot(Schedule $schedule): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        Gate::define('operate-platform', fn (Authenticatable $user): bool => authContext()->hasPlatformAccess()
+            && authContext()->user()?->getAuthIdentifier() === $user->getAuthIdentifier());
 
         $schedule
             ->command('iam:geoip-update')

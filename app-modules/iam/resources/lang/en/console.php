@@ -9,6 +9,14 @@ return [
         'unchanged'   => 'The local GeoLite2 City database is already up to date.',
         'locked'      => 'Another GeoLite2 City update is already running.',
     ],
+    'platform_access' => [
+        'description'     => 'Grant or revoke platform access for a user by email',
+        'user_not_found'  => 'No user has the email :email.',
+        'granted'         => 'Platform access granted to :email.',
+        'already_granted' => ':email already has platform access.',
+        'revoked'         => 'Platform access revoked from :email.',
+        'not_granted'     => ':email has no platform access.',
+    ],
     'discovery' => [
         'starting'               => 'Starting permission discovery...',
         'scanning'               => 'Scanning for models in: :path.',

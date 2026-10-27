@@ -55,7 +55,13 @@ the role belongs to the authenticated user's membership and that the membership
 and role refer to the same organization. On success, it stores the selected
 organization, member, member role, and role IDs in the current token. A rejected
 selection leaves its organization context unchanged. Other session metadata is
-preserved; last-request evidence may still be updated.
+preserved; last-request evidence may still be updated. The switch also clears
+the token's `platform` marker.
+
+`POST /v1/auth/switch-platform` moves the current token to the platform level:
+it answers 403 unless the user is a platform user, then sets `platform` to
+`true` and clears the organization fields. A token works at one level only.
+See [Platform access](../iam/permissions.md#7-platform-access).
 
 Memberships and member roles use soft deletes. An active member role is unique
 for its organization, member, and role; a deleted assignment may be followed

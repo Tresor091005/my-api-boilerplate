@@ -19,6 +19,15 @@ paths:
   Sanctum authentication, `ResolveAuthContext`, and
   `SetTeamPermissionsId`. Do not duplicate that stack on ordinary protected
   routes.
+- `auth.platform` is the group for platform operator routes. It applies
+  Sanctum authentication, profile completion, session tracking,
+  `ResolveAuthContext:user`, then `EnsurePlatformAccess`, which answers 403
+  unless the token is marked platform (`POST /v1/auth/switch-platform`) and
+  its user is still in `iam_platform_users`. A token works at one level only:
+  a platform token has no organization context, so `auth.api` routes deny it,
+  and an organization-context token is denied on `auth.platform` routes.
+  Platform membership is managed only through `iam:platform-access`, never
+  through the API.
 - IAM organization registration is public and requires a single-use token sent
   to the supplied email before a user or organization is created. The emailed
   link targets the configured frontend URL; its display-only account flag must
@@ -86,6 +95,12 @@ paths:
   `BasePolicy::canModel()` or `canOnModel()` instead of hardcoded prefixes;
   missing permissions deny access. When this convention changes, update
   `docs/iam/permissions.md` and this rule together.
+- Platform policies authorize with the `operate-platform` Gate, never with
+  `canModel()`: organization permissions, including every permission of the
+  Administrator role, never grant platform access. The Gate reads the platform
+  access `EnsurePlatformAccess` confirmed in `AuthContext`, so it stays
+  query-free. Add granular platform abilities beside that Gate, not in routes
+  or controllers.
 
 ## Resources
 
@@ -120,6 +135,8 @@ paths:
   store configuration.
 - `app-modules/iam/src/Http/Middleware/ResolveAuthContext.php` resolves the
   authenticated user, organization, member, and role context.
+- `app-modules/iam/src/Http/Middleware/EnsurePlatformAccess.php` checks the
+  platform token marker and the platform membership once per request.
 - `app-modules/iam/src/Http/Middleware/SetTeamPermissionsId.php` requires a
   valid organization/member-role context and sets the permission team scope.
 - `app-modules/iam/routes/iam-routes.php` shows the distinction between public
