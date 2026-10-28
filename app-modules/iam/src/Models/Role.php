@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Iam\Models;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -92,8 +91,7 @@ class Role extends SpatieRole
      *
      * @param  Builder<Role>  $query
      */
-    #[Scope]
-    protected function usableIn(Builder $query, string $organizationId): void
+    public function scopeUsableIn(Builder $query, string $organizationId): void
     {
         $query->where($query->qualifyColumn('guard_name'), config('auth.defaults.guard'))
             ->where(function (Builder $query) use ($organizationId): void {

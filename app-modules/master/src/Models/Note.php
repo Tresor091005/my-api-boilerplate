@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Lahatre\Master\Models;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -155,8 +154,7 @@ class Note extends Model
      *
      * @param  Builder<Note>  $query
      */
-    #[Scope]
-    protected function visibleTo(Builder $query, ?string $memberId): void
+    public function scopeVisibleTo(Builder $query, ?string $memberId): void
     {
         $query->where(function (Builder $query) use ($memberId): void {
             $query->where('visibility', NoteVisibility::Organization->value);
