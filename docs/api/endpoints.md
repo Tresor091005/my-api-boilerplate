@@ -260,6 +260,30 @@ session. The recipient then switches to an available member role. See the
 [IAM invitation workflow](../modules/iam.md#organization-invitations) for
 record reuse, expiry, token rotation, and concurrency guarantees.
 
+## Billing offer
+
+Except the public offer list, these are platform routes, in `auth.platform`: a
+platform-level token of a platform user. A plan sells one published version and
+prepares the next in one draft; the API exposes them as the `current` and
+`draft` includes of a plan.
+
+| Method | URI | Access | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/billing/offers` | public | List the plans on sale, cheapest first, flattened with their price, billing interval and features named in the request locale; features disabled since publication are left out. |
+| GET | `/v1/billing/features` | `auth.platform` | List the enabled features a plan can sell, named in the request locale. |
+| GET | `/v1/billing/plans` | `auth.platform` | List plans with their `status`: `on_sale` (a version is published), `retired` (nothing on sale, subscribed at least once) or `unused` (nothing on sale, never subscribed); filter with `status`; `include=current,draft` adds their terms. |
+| POST | `/v1/billing/plans` | `auth.platform` | Create a plan from its name; the code is generated and immutable. |
+| GET | `/v1/billing/plans/{plan}` | `auth.platform` | Return a plan; `include=current.features,draft.features` adds its terms and grants. |
+| PATCH | `/v1/billing/plans/{plan}` | `auth.platform` | Rename the plan. |
+| DELETE | `/v1/billing/plans/{plan}` | `auth.platform` | Delete an `unused` plan; 422 otherwise. |
+| PATCH | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Change the draft price, currency and billing interval, opening the draft from the version on sale. The price is a decimal in units of the currency (`4.30`), stored in its minor unit; more decimals than the currency allows is a 422. The price and the currency are always sent together, and a plan with nothing on sale needs them with the billing interval. Prices render as decimal strings at the currency precision. |
+| DELETE | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Discard the draft. |
+| POST | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Grant features to the draft, or change their allowance (`features[].key`, `features[].allowance`). |
+| DELETE | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Revoke features from the draft (`feature_keys[]`). |
+| POST | `/v1/billing/plans/{plan}/publish` | `auth.platform` | Put the draft on sale and archive the version it replaces; subscribers keep their version. |
+| POST | `/v1/billing/plans/{plan}/archive` | `auth.platform` | Stop selling the plan; subscribers keep their version. |
+| GET | `/v1/billing/plans/{plan}/versions` | `auth.platform` | List the published and archived versions, newest first, with their current `subscribers_count`. |
+
 ## Catalog
 
 `categories`, `options`, and `products` expose standard API resource actions

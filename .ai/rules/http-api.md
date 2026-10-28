@@ -33,6 +33,7 @@ paths:
   link targets the configured frontend URL; its display-only account flag must
   never determine server-side ownership or validation.
 - Prefer `Route::apiResources()` for simple CRUD groups.
+- A state transition of a resource is a `POST` verb sub-route named after it, such as `POST /v1/billing/plans/{plan}/publish` (`plans.publish`).
 - Apply scoped binding explicitly to every nested resource. A request must never resolve a child that does not belong to the route parent.
 - Do not expose a package-generic route in a tenant-scoped host application unless the host access boundary is explicit.
 

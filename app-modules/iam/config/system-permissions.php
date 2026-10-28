@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 return [
     'skip_models' => [
+        'billing_plan',
+        'billing_plan_version',
+        'billing_plan_version_feature',
         'catalog_bundle_item',
         'catalog_option_value',
         'catalog_product_variant',

@@ -46,6 +46,15 @@ final class FeatureRegistry
         return $this->definitions;
     }
 
+    /** @return list<FeatureDefinition> */
+    public function available(): array
+    {
+        $available = array_filter($this->definitions, fn (FeatureDefinition $definition): bool => !$definition->isDisabled());
+        ksort($available);
+
+        return array_values($available);
+    }
+
     /**
      * @throws FeatureException when the feature key is not registered
      */

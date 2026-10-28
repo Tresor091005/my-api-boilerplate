@@ -55,6 +55,10 @@ return [
         'master_currencies',
         'catalog_product_categories',
         'catalog_variant_option_value',
+        // The billing catalog is platform-wide; subscriptions carry the organization.
+        'billing_plans',
+        'billing_plan_versions',
+        'billing_plan_version_features',
     ],
 
     'quantity_bigint_exceptions' => [
@@ -78,6 +82,8 @@ return [
             'master_units_code_unique',
             'master_units_group_id_ratio_unique',
         ],
+        // A payment provider identifies its subscriptions globally.
+        'billing_subscriptions' => ['billing_subscriptions_provider_subscription_unique'],
     ],
 
     'composite_pkey' => [
@@ -112,6 +118,8 @@ return [
         'catalog_services'        => ['handle'],
         'catalog_stock_locations' => ['handle'],
         'library_files'           => ['storage_key'],
+        // Plan codes stay reserved after a soft delete.
+        'billing_plans' => ['code'],
     ],
 
     /*
@@ -152,5 +160,8 @@ return [
         ],
         'library_files'   => ['library_files_organization_id_id_unique'],
         'library_folders' => ['library_folders_organization_id_id_unique'],
+        // Version numbers are never reused, and a revoked feature grant is restored instead of recreated.
+        'billing_plan_versions'         => ['billing_plan_versions_plan_id_version_unique'],
+        'billing_plan_version_features' => ['billing_plan_version_features_version_key_unique'],
     ],
 ];
