@@ -2586,7 +2586,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/response-selection",
-                "reference": "87b1341a25e02ed352f62d2696ecd952eceff07f"
+                "reference": "d6c90c9ff8e9bbd4d52841314209ddb1f730f57e"
             },
             "require": {
                 "illuminate/console": "^13.0",
@@ -2620,8 +2620,11 @@
             },
             "autoload-dev": {
                 "psr-4": {
-                    "Lahatre\\ResponseSelection\\Tests\\": "tests/"
-                }
+                    "Lahatre\\ResponseSelection\\Tests\\Support\\": "tests/Support/"
+                },
+                "classmap": [
+                    "tests/TestCase.php"
+                ]
             },
             "license": [
                 "MIT"
