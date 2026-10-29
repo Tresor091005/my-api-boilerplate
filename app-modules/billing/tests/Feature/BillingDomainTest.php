@@ -19,6 +19,7 @@ use Lahatre\Billing\Enums\PlanVersionStatus;
 use Lahatre\Billing\Enums\SubscriptionStatus;
 use Lahatre\Billing\Exceptions\CheckoutException;
 use Lahatre\Billing\Exceptions\FeatureException;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Billing\Exceptions\PlanException;
 use Lahatre\Billing\Exceptions\PlanVersionException;
 use Lahatre\Billing\Exceptions\SubscriptionException;
@@ -354,7 +355,38 @@ it('cuts a disabled feature for every subscriber, even where a version still gra
     useFeatureRegistry(FeatureDefinition::disabled('test.advanced_reports'));
 
     expect(app(EntitlementService::class)->resolve($this->organizationId, 'test.advanced_reports', $now))
-        ->toMatchArray(['allowed' => false, 'feature_type' => null]);
+        ->toMatchArray(['allowed' => false, 'reason' => 'disabled', 'feature_type' => null]);
+});
+
+it('tells why a feature is refused', function (): void {
+    useFeatureRegistry(
+        FeatureDefinition::boolean('test.advanced_reports'),
+        FeatureDefinition::capacity('test.warehouses', [BillingTestFeatures::class, 'warehouses']),
+        FeatureDefinition::disabled('test.exports'),
+    );
+    $reasonAt = fn (string $featureKey, string $at = '2026-08-21 10:00:00'): ?string => app(EntitlementService::class)
+        ->resolve($this->organizationId, $featureKey, CarbonImmutable::parse($at))['reason'];
+
+    expect($reasonAt('test.warehouses'))->toBe('no_subscription');
+
+    [, $version] = planOnSale(allowances: ['test.warehouses' => 4]);
+    subscribeTo($version, $this->organizationId);
+
+    expect($reasonAt('test.warehouses'))->toBe('limit_reached')
+        ->and($reasonAt('test.advanced_reports'))->toBe('not_in_plan')
+        ->and($reasonAt('test.exports'))->toBe('disabled')
+        ->and($reasonAt('test.warehouses', '2026-09-25 10:00:00'))->toBe('suspended');
+
+    expect(fn () => app(EntitlementService::class)->authorize($this->organizationId, 'test.warehouses'))
+        ->toThrow(function (FeatureUnavailableException $e): void {
+            expect($e->getMessage())->toBe(__('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 4]))
+                ->and($e->context())->toMatchArray([
+                    'reason'           => 'limit_reached',
+                    'feature_key'      => 'test.warehouses',
+                    'allowance'        => 4,
+                    'current_quantity' => 4,
+                ]);
+        });
 });
 
 it('adds a feature again after removing it, and changes the allowance of a feature already added', function (): void {

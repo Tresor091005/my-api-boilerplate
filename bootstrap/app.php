@@ -10,7 +10,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Iam\Http\Middleware\EnsurePlatformAccess;
 use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
@@ -64,6 +66,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToPriorityList(AuthenticatesRequests::class, ResolveResponseSelection::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Registered before AssertionException so it answers first. The client
+        // needs the reason and the limit to offer the right plan, even in production.
+        $exceptions->render(function (FeatureUnavailableException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'errors'  => [
+                        'type' => class_basename($e),
+                        ...Arr::except($e->context(), ['organization_id']),
+                    ],
+                ], 403);
+            }
+        });
+
         $exceptions->render(function (AssertionException $e, $request) {
             if ($request->expectsJson()) {
                 return response()->json([

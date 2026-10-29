@@ -6,7 +6,9 @@ namespace Lahatre\Billing\Services;
 
 use Carbon\CarbonImmutable;
 use Lahatre\Billing\Enums\FeatureType;
+use Lahatre\Billing\Enums\FeatureUnavailableReason;
 use Lahatre\Billing\Exceptions\FeatureException;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Billing\Models\PlanVersionFeature;
 use Lahatre\Billing\Registries\FeatureRegistry;
 
@@ -26,22 +28,39 @@ final readonly class EntitlementService
     }
 
     /**
-     * @throws FeatureException when the feature is not registered or not available for the organization
+     * @throws FeatureException when the feature key is not registered
+     * @throws FeatureUnavailableException when the organization cannot use the feature, with the reason
      */
     public function authorize(string $organizationId, string $featureKey, ?CarbonImmutable $now = null): void
     {
         $entitlement = $this->resolve($organizationId, $featureKey, $now);
 
-        if (!$entitlement['allowed']) {
-            throw FeatureException::unavailable($organizationId, $featureKey);
+        if ($entitlement['allowed']) {
+            return;
         }
+
+        throw match (FeatureUnavailableReason::from((string) $entitlement['reason'])) {
+            FeatureUnavailableReason::Disabled       => FeatureUnavailableException::disabled($organizationId, $featureKey),
+            FeatureUnavailableReason::NoSubscription => FeatureUnavailableException::noSubscription($organizationId, $featureKey),
+            FeatureUnavailableReason::Suspended      => FeatureUnavailableException::suspended($organizationId, $featureKey),
+            FeatureUnavailableReason::NotInPlan      => FeatureUnavailableException::notInPlan($organizationId, $featureKey),
+            FeatureUnavailableReason::LimitReached   => FeatureUnavailableException::limitReached(
+                $organizationId,
+                $featureKey,
+                (int) $entitlement['allowance'],
+                (int) $entitlement['current_quantity'],
+            ),
+        };
     }
 
     /**
+     * The reason is null when the feature is allowed.
+     *
      * @throws FeatureException when the feature key is not registered
      *
      * @return array{
      *     allowed: bool,
+     *     reason: string|null,
      *     feature_key: string,
      *     feature_type: string|null,
      *     allowance: int|null,
@@ -58,6 +77,7 @@ final readonly class EntitlementService
 
         $base = [
             'allowed'          => false,
+            'reason'           => null,
             'feature_key'      => $featureKey,
             'feature_type'     => $definition->type?->value,
             'allowance'        => null,
@@ -66,15 +86,23 @@ final readonly class EntitlementService
             'plan_version_id'  => $subscription?->plan_version_id,
         ];
 
-        if ($definition->isDisabled() || $subscription === null || !$subscription->statusAt($now)->grantsAccess()) {
-            return $base;
+        if ($definition->isDisabled()) {
+            return [...$base, 'reason' => FeatureUnavailableReason::Disabled->value];
+        }
+
+        if ($subscription === null) {
+            return [...$base, 'reason' => FeatureUnavailableReason::NoSubscription->value];
+        }
+
+        if (!$subscription->statusAt($now)->grantsAccess()) {
+            return [...$base, 'reason' => FeatureUnavailableReason::Suspended->value];
         }
 
         $grant = $subscription->planVersion->features
             ->first(fn (PlanVersionFeature $candidate): bool => $candidate->feature_key === $featureKey);
 
         if ($grant === null) {
-            return $base;
+            return [...$base, 'reason' => FeatureUnavailableReason::NotInPlan->value];
         }
 
         if ($definition->type === FeatureType::Boolean) {
@@ -82,10 +110,12 @@ final readonly class EntitlementService
         }
 
         $quantity = $grant->allowance === null ? null : $this->features->count($featureKey, $organizationId);
+        $allowed = $grant->allowance === null || $quantity < $grant->allowance;
 
         return [
             ...$base,
-            'allowed'          => $grant->allowance === null || $quantity < $grant->allowance,
+            'allowed'          => $allowed,
+            'reason'           => $allowed ? null : FeatureUnavailableReason::LimitReached->value,
             'allowance'        => $grant->allowance,
             'current_quantity' => $quantity,
         ];

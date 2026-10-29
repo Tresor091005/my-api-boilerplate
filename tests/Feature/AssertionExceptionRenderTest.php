@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Inventory\Exceptions\InsufficientStockException;
 
 it('renders module assertion exceptions as standardized json responses', function (): void {
@@ -29,4 +30,25 @@ it('renders module assertion exceptions as standardized json responses', functio
         ->assertJsonPath('errors.context.requested', '20')
         ->assertJsonPath('errors.context.available', '15')
         ->assertJsonPath('errors.context.unit_code', 'PCS');
+});
+
+it('renders an unavailable feature as a 403 with its reason, even in production', function (): void {
+    app()->detectEnvironment(fn (): string => 'production');
+
+    Route::middleware('api')->get('/_test/feature-unavailable', function (): void {
+        throw FeatureUnavailableException::limitReached('organization-1', 'catalog.products', 10, 10);
+    })->name('_test.feature-unavailable');
+
+    $this->getJson('/_test/feature-unavailable')
+        ->assertForbidden()
+        ->assertExactJson([
+            'message' => __('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 10]),
+            'errors'  => [
+                'type'             => 'FeatureUnavailableException',
+                'reason'           => 'limit_reached',
+                'feature_key'      => 'catalog.products',
+                'allowance'        => 10,
+                'current_quantity' => 10,
+            ],
+        ]);
 });

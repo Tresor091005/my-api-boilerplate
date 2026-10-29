@@ -8,14 +8,6 @@ use Lahatre\Shared\Exceptions\AssertionException;
 
 final class FeatureException extends AssertionException
 {
-    public static function unavailable(string $organizationId, string $featureKey): self
-    {
-        return new self(__('billing::exceptions.feature.unavailable'), [
-            'organization_id' => $organizationId,
-            'feature_key'     => $featureKey,
-        ]);
-    }
-
     public static function alreadyRegistered(string $featureKey): self
     {
         return new self(__('billing::exceptions.feature.already_registered'), [

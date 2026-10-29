@@ -37,12 +37,18 @@ return [
         'outdated'  => 'The subscription changed since this payment started.',
     ],
     'feature' => [
-        'unavailable'        => 'This feature is not available for the organization.',
         'already_registered' => 'The feature is already registered.',
         'not_registered'     => 'The feature is not registered.',
         'invalid_key'        => 'A feature key must have the form module.feature.',
         'counter_missing'    => 'The counter of a capacity feature does not exist.',
         'not_capacity'       => 'Only a capacity feature counts its usage.',
         'negative_quantity'  => 'A capacity feature counter returned a negative quantity.',
+    ],
+    'feature_unavailable' => [
+        'disabled'        => 'This feature is currently unavailable.',
+        'no_subscription' => 'The organization has no subscription; subscribe to a plan to use this feature.',
+        'suspended'       => 'The subscription is suspended; renew it to use this feature again.',
+        'not_in_plan'     => 'The current plan does not include this feature.',
+        'limit_reached'   => 'The current plan allows at most :allowance; this limit is reached.',
     ],
 ];
