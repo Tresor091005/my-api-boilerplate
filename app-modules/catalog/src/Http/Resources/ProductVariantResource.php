@@ -31,6 +31,7 @@ class ProductVariantResource extends ApiResource
                 ->all())
             ->include('labels', LabelResource::class);
         self::unitGroupInclude($resource);
+        self::taxProfileInclude($resource);
         self::inventoryInclude($resource);
     }
 }

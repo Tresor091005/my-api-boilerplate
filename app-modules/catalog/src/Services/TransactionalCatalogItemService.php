@@ -20,11 +20,13 @@ use Lahatre\Shared\Data\MissingValue;
 use function Lahatre\Shared\Data\withoutMissing;
 
 use Lahatre\Shared\Support\SkuGenerator;
+use Lahatre\Tax\Contracts\TaxInterface;
 
 class TransactionalCatalogItemService
 {
     public function __construct(
         protected InventoryInterface $inventoryService,
+        protected TaxInterface $taxService,
     ) {}
 
     /**
@@ -39,8 +41,13 @@ class TransactionalCatalogItemService
         ?string $sku,
         string $unitGroupId,
         bool $isActive,
+        ?string $taxProfileId = null,
         ?InventoryItemConfigurationData $inventory = null,
     ): CatalogItem {
+        if ($taxProfileId !== null) {
+            $this->taxService->assertProfileAssignable($taxProfileId, collect([$unitGroupId]));
+        }
+
         $catalogItem = new CatalogItem;
         $catalogItem->forceFill([
             'id'              => (string) Str::uuid7(),
@@ -48,6 +55,7 @@ class TransactionalCatalogItemService
             'item_type'       => $type,
             'sku'             => $sku ?? SkuGenerator::generate($skuSource),
             'unit_group_id'   => $unitGroupId,
+            'tax_profile_id'  => $taxProfileId,
             'is_stockable'    => $type->isStockable(),
             'is_active'       => $isActive,
         ])->save();
@@ -68,6 +76,8 @@ class TransactionalCatalogItemService
         string $productName,
         Collection $itemsData,
     ): EloquentCollection {
+        $this->assertTaxProfilesAssignable($itemsData);
+
         $now = now();
         $catalogItemRows = collect();
         $inventoryConfigurations = collect();
@@ -81,6 +91,7 @@ class TransactionalCatalogItemService
                 'item_type'       => CatalogItemType::ProductVariant->value,
                 'sku'             => $itemData->sku ?? SkuGenerator::generate($productName),
                 'unit_group_id'   => $itemData->unitGroupId,
+                'tax_profile_id'  => $itemData->taxProfileId,
                 'is_stockable'    => CatalogItemType::ProductVariant->isStockable(),
                 'is_active'       => $itemData->isActive,
                 'created_at'      => $now,
@@ -111,6 +122,20 @@ class TransactionalCatalogItemService
     }
 
     /**
+     * @param  Collection<int, CatalogItemData>  $itemsData
+     */
+    private function assertTaxProfilesAssignable(Collection $itemsData): void
+    {
+        $itemsData
+            ->filter(fn (CatalogItemData $itemData): bool => $itemData->taxProfileId !== null)
+            ->groupBy('taxProfileId')
+            ->each(fn (Collection $group, string $taxProfileId) => $this->taxService->assertProfileAssignable(
+                $taxProfileId,
+                $group->pluck('unitGroupId')->unique()->values(),
+            ));
+    }
+
+    /**
      * Update the catalog item and its inventory representation.
      *
      * The caller owns the surrounding transaction.
@@ -119,9 +144,14 @@ class TransactionalCatalogItemService
         CatalogItem $catalogItem,
         CatalogItemUpdateData $data,
     ): CatalogItem {
+        if (is_string($data->taxProfileId)) {
+            $this->taxService->assertProfileAssignable($data->taxProfileId, collect([$catalogItem->unit_group_id]));
+        }
+
         $catalogItem->fill(withoutMissing([
-            'sku'       => $data->sku,
-            'is_active' => $data->isActive,
+            'sku'            => $data->sku,
+            'tax_profile_id' => $data->taxProfileId,
+            'is_active'      => $data->isActive,
         ]));
         $catalogItem->save();
 

@@ -36,6 +36,7 @@ use Lahatre\Master\Support\UnitCache;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\ResponseSelection\Testing\AssertsBoundedQueries;
 use Lahatre\ResponseSelection\Testing\AssertsResponseFieldIsolation;
+use Lahatre\Tax\Models\TaxProfile;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(DatabaseTransactions::class, AssertsBoundedQueries::class, AssertsResponseFieldIsolation::class);
@@ -79,6 +80,11 @@ beforeEach(function (): void {
     $this->unit = Unit::factory()->create(['organization_id' => null, 'group_id' => $this->unitGroup->id, 'ratio' => 1]);
 });
 
+function catalogSelectionTaxProfile(): TaxProfile
+{
+    return TaxProfile::factory()->create(['organization_id' => currentOrganizationId()]);
+}
+
 /**
  * A variant with a label, a unit group and an inventory item, so every include it offers has a row.
  */
@@ -86,7 +92,7 @@ function catalogSelectionVariant(Product $product, UnitGroup $unitGroup): Produc
 {
     $variant = createCatalogProductVariant(
         ['organization_id' => $product->organization_id, 'product_id' => $product->id],
-        ['organization_id' => $product->organization_id, 'unit_group_id' => $unitGroup->id],
+        ['organization_id' => $product->organization_id, 'unit_group_id' => $unitGroup->id, 'tax_profile_id' => catalogSelectionTaxProfile()->id],
     );
     $variant->attachLabels(['status' => ['active']]);
     app(InventoryInterface::class)->createItem(CatalogItem::query()->findOrFail($variant->id));
@@ -119,9 +125,10 @@ function catalogSelectionBundle(UnitGroup $unitGroup, Unit $unit): void
     $variants = [catalogSelectionVariant($product, $unitGroup), catalogSelectionVariant($product, $unitGroup)];
 
     currentTestCase()->postJson('/v1/catalog/bundles', [
-        'name'      => 'Selection Pack '.$product->id,
-        'is_active' => true,
-        'items'     => array_map(fn (ProductVariant $variant): array => [
+        'tax_profile_id' => catalogSelectionTaxProfile()->id,
+        'name'           => 'Selection Pack '.$product->id,
+        'is_active'      => true,
+        'items'          => array_map(fn (ProductVariant $variant): array => [
             'item_type' => CatalogItemType::ProductVariant->value,
             'item_id'   => $variant->id,
             'quantity'  => 1,
@@ -138,6 +145,7 @@ function catalogSelectionService(UnitGroup $unitGroup): void
     $catalogItem = CatalogItem::factory()->service()->create([
         'organization_id' => currentOrganizationId(),
         'unit_group_id'   => $unitGroup->id,
+        'tax_profile_id'  => catalogSelectionTaxProfile()->id,
     ]);
     $service = Service::factory()->forCatalogItem($catalogItem)->create();
     ServiceDeliverableTemplate::factory()->create(['organization_id' => currentOrganizationId(), 'service_id' => $service->id]);
@@ -184,11 +192,11 @@ it('runs as many queries for more catalog rows with their includes', function (s
         fn (UnitGroup $unitGroup): Product => catalogSelectionProduct($unitGroup),
     ],
     'bundles' => [
-        '/v1/catalog/bundles?include=items.component,unit_group.units,inventory',
+        '/v1/catalog/bundles?include=items.component,unit_group.units,inventory,tax_profile',
         fn (UnitGroup $unitGroup, Unit $unit) => catalogSelectionBundle($unitGroup, $unit),
     ],
     'services' => [
-        '/v1/catalog/services?include=deliverable_templates,main_files,gallery_files,unit_group',
+        '/v1/catalog/services?include=deliverable_templates,main_files,gallery_files,unit_group,tax_profile',
         fn (UnitGroup $unitGroup) => catalogSelectionService($unitGroup),
     ],
     'stock transfers' => [

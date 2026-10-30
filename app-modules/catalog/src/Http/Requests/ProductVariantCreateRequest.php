@@ -51,6 +51,7 @@ class ProductVariantCreateRequest extends FormRequest
             ],
             'variants.*.sku'             => ['nullable', 'string', 'max:100'],
             'variants.*.unit_group_id'   => ['required', 'uuid'],
+            'variants.*.tax_profile_id'  => ['present', 'nullable', 'uuid'],
             'variants.*.is_active'       => ['boolean'],
             'variants.*.options'         => ['required', 'array', 'min:1', 'max:100'],
             'variants.*.options.*.name'  => ['required', 'string', 'max:100'],

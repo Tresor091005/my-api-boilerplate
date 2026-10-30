@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f3f456dc0e1c13ca2da1a8708dd5b43",
+    "content-hash": "ad689ec85c864830744230c160862ac3",
     "packages": [
         {
             "name": "brick/math",
@@ -2554,7 +2554,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/response-selection",
-                "reference": "87b1341a25e02ed352f62d2696ecd952eceff07f"
+                "reference": "d6c90c9ff8e9bbd4d52841314209ddb1f730f57e"
             },
             "require": {
                 "illuminate/console": "^13.0",
@@ -2588,8 +2588,11 @@
             },
             "autoload-dev": {
                 "psr-4": {
-                    "Lahatre\\ResponseSelection\\Tests\\": "tests/"
-                }
+                    "Lahatre\\ResponseSelection\\Tests\\Support\\": "tests/Support/"
+                },
+                "classmap": [
+                    "tests/TestCase.php"
+                ]
             },
             "license": [
                 "MIT"
@@ -2627,6 +2630,38 @@
                     "src/helpers.php",
                     "src/Data/functions.php"
                 ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "lahatre/tax",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/tax",
+                "reference": "94ac55dd12c2d5fbd04833cac11053f530c78020"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Tax\\Providers\\TaxServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Tax\\": "src/",
+                    "Lahatre\\Tax\\Tests\\": "tests/",
+                    "Lahatre\\Tax\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Tax\\Database\\Seeders\\": "database/seeders/"
+                }
             },
             "license": [
                 "MIT"

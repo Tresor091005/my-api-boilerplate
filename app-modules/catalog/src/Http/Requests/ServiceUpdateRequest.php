@@ -50,6 +50,7 @@ final class ServiceUpdateRequest extends FormRequest
                     ->ignore($service instanceof Service ? $service->id : null),
             ],
             'unit_group_id'         => ['prohibited'],
+            'tax_profile_id'        => ['nullable', 'uuid'],
             'is_active'             => ['boolean'],
             'deliverable_templates' => [
                 'array',

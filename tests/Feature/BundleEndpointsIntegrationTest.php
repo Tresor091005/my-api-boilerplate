@@ -96,9 +96,10 @@ beforeEach(function (): void {
 
 it('exposes the complete bundle CRUD and nested item mutations', function (): void {
     $created = $this->postJson('/v1/catalog/bundles?response=resource&include=items', [
-        'name'      => 'HTTP Starter Pack',
-        'is_active' => true,
-        'items'     => [
+        'tax_profile_id' => null,
+        'name'           => 'HTTP Starter Pack',
+        'is_active'      => true,
+        'items'          => [
             httpBundleItem($this->variants[0], $this->displayUnit, 2),
             httpBundleItem($this->variants[1], $this->unit, 2),
         ],
@@ -165,8 +166,9 @@ it('exposes the complete bundle CRUD and nested item mutations', function (): vo
 
 it('renders bundle item components with their product variant relations', function (): void {
     $created = $this->postJson('/v1/catalog/bundles?response=resource&include=items', [
-        'name'  => 'HTTP Component Pack',
-        'items' => [
+        'tax_profile_id' => null,
+        'name'           => 'HTTP Component Pack',
+        'items'          => [
             httpBundleItem($this->variants[0], $this->displayUnit, 2),
             httpBundleItem($this->variants[1], $this->unit, 2),
         ],
@@ -192,8 +194,9 @@ it('rejects inactive catalog items when creating a bundle', function (): void {
     $this->variants[0]->catalogItem()->update(['is_active' => false]);
 
     $this->postJson('/v1/catalog/bundles', [
-        'name'  => 'Inactive Component Pack',
-        'items' => [
+        'tax_profile_id' => null,
+        'name'           => 'Inactive Component Pack',
+        'items'          => [
             httpBundleItem($this->variants[0], $this->unit, 1),
             httpBundleItem($this->variants[1], $this->unit, 1),
         ],
@@ -203,9 +206,10 @@ it('rejects inactive catalog items when creating a bundle', function (): void {
 
 it('persists bundle inventory configuration on create and update', function (): void {
     $created = $this->postJson('/v1/catalog/bundles?response=resource', [
-        'name'      => 'Inventory Configuration Pack',
-        'is_active' => true,
-        'inventory' => [
+        'tax_profile_id' => null,
+        'name'           => 'Inventory Configuration Pack',
+        'is_active'      => true,
+        'inventory'      => [
             'stock_tracking_enabled' => false,
             'is_expirable'           => true,
             'deduction_strategy'     => 'fefo',
@@ -240,9 +244,10 @@ it('persists bundle inventory configuration on create and update', function (): 
 
 it('creates and exposes bundle stock operation history through nested endpoints', function (): void {
     $created = $this->postJson('/v1/catalog/bundles?response=resource&include=items', [
-        'name'      => 'HTTP Stock Operation Pack',
-        'is_active' => true,
-        'items'     => [
+        'tax_profile_id' => null,
+        'name'           => 'HTTP Stock Operation Pack',
+        'is_active'      => true,
+        'items'          => [
             httpBundleItem($this->variants[0], $this->unit, 1),
             httpBundleItem($this->variants[1], $this->unit, 1),
         ],
@@ -335,16 +340,18 @@ it('validates stock operation locations and type-specific stock fields', functio
 
 it('scopes bundle item bindings to their parent bundle', function (): void {
     $firstBundle = $this->postJson('/v1/catalog/bundles?response=resource', [
-        'name'  => 'First Scoped Bundle',
-        'items' => [
+        'tax_profile_id' => null,
+        'name'           => 'First Scoped Bundle',
+        'items'          => [
             httpBundleItem($this->variants[0], $this->unit, 1),
             httpBundleItem($this->variants[1], $this->unit, 1),
         ],
     ])->assertCreated();
 
     $secondBundle = $this->postJson('/v1/catalog/bundles?response=resource', [
-        'name'  => 'Second Scoped Bundle',
-        'items' => [
+        'tax_profile_id' => null,
+        'name'           => 'Second Scoped Bundle',
+        'items'          => [
             httpBundleItem($this->variants[0], $this->unit, 1),
             httpBundleItem($this->variants[1], $this->unit, 1),
         ],

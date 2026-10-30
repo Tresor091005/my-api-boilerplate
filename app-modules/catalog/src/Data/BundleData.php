@@ -16,6 +16,7 @@ final readonly class BundleData
     private function __construct(
         public MissingValue|string $name,
         public MissingValue|string|null $sku,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|Collection $items,
         public InventoryItemConfigurationData|InventoryItemConfigurationUpdateData|MissingValue $inventory,
@@ -35,6 +36,7 @@ final readonly class BundleData
         return new self(
             name: $read->get('name'),
             sku: $read->get('sku', default: null),
+            taxProfileId: $read->get('tax_profile_id', default: null),
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             items: $items instanceof MissingValue
                 ? $items

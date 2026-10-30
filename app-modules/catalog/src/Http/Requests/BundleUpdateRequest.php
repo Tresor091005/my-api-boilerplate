@@ -44,8 +44,9 @@ final class BundleUpdateRequest extends FormRequest
                     ->where('organization_id', currentOrganizationId())
                     ->ignore($bundle instanceof Bundle ? $bundle->id : null),
             ],
-            'is_active' => ['boolean'],
-            'items'     => ['prohibited'],
+            'tax_profile_id' => ['nullable', 'uuid'],
+            'is_active'      => ['boolean'],
+            'items'          => ['prohibited'],
             ...InventoryItemPayloadRules::rules(),
         ];
     }

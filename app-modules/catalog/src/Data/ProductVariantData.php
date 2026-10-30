@@ -15,6 +15,7 @@ final readonly class ProductVariantData
     private function __construct(
         public ?string $sku,
         public string $unitGroupId,
+        public ?string $taxProfileId,
         public bool $isActive,
         public array $options,
         public array $labels,
@@ -29,6 +30,7 @@ final readonly class ProductVariantData
         return new self(
             sku: $data['sku'] ?? null,
             unitGroupId: $data['unit_group_id'],
+            taxProfileId: $data['tax_profile_id'] ?? null,
             isActive: (bool) ($data['is_active'] ?? false),
             options: $data['options'],
             labels: $data['labels'] ?? [],
@@ -41,6 +43,7 @@ final readonly class ProductVariantData
         return new CatalogItemData(
             sku: $this->sku,
             unitGroupId: $this->unitGroupId,
+            taxProfileId: $this->taxProfileId,
             isActive: $this->isActive,
             inventory: $this->inventory,
         );

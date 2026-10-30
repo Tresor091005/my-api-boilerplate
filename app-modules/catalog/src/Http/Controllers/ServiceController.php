@@ -54,7 +54,7 @@ final readonly class ServiceController
             $service,
             ServiceData::fromArray(
                 $request->validated(),
-                missingFields: ['name', 'sku', 'unit_group_id', 'is_active', 'deliverable_templates'],
+                missingFields: ['name', 'sku', 'unit_group_id', 'tax_profile_id', 'is_active', 'deliverable_templates'],
             ),
         );
 

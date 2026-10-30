@@ -15,6 +15,7 @@ final readonly class ServiceData
         public MissingValue|string $name,
         public MissingValue|string|null $sku,
         public MissingValue|string $unitGroupId,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|Collection $deliverableTemplates,
     ) {}
@@ -33,6 +34,7 @@ final readonly class ServiceData
             name: $read->get('name'),
             sku: $read->get('sku', default: null),
             unitGroupId: $read->get('unit_group_id'),
+            taxProfileId: $read->get('tax_profile_id', default: null),
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             deliverableTemplates: $deliverableTemplates instanceof MissingValue
                 ? $deliverableTemplates

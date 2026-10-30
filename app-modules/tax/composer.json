@@ -1,0 +1,24 @@
+{
+	"name": "lahatre/tax",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "MIT",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Lahatre\\Tax\\": "src/",
+			"Lahatre\\Tax\\Tests\\": "tests/",
+			"Lahatre\\Tax\\Database\\Factories\\": "database/factories/",
+			"Lahatre\\Tax\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Lahatre\\Tax\\Providers\\TaxServiceProvider"
+			]
+		}
+	}
+}

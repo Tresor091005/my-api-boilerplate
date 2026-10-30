@@ -90,9 +90,10 @@ it('validates labels nested in product variants', function (): void {
     $request = ProductRequest::create('/', 'POST', [
         'name'     => 'Labelged product',
         'variants' => [[
-            'unit_group_id' => $this->unitGroup->id,
-            'options'       => [['name' => 'Color', 'value' => 'White']],
-            'labels'        => ['status' => [str_repeat('a', 51)]],
+            'unit_group_id'  => $this->unitGroup->id,
+            'tax_profile_id' => null,
+            'options'        => [['name' => 'Color', 'value' => 'White']],
+            'labels'         => ['status' => [str_repeat('a', 51)]],
         ]],
     ])
         ->setContainer(app())
@@ -116,10 +117,11 @@ it('rejects soft-deleted category ids in product requests', function (): void {
         'categories' => [$deletedCategory->id],
         'variants'   => [
             [
-                'sku'           => 'PRD-DEL-CAT-01',
-                'unit_group_id' => $this->unitGroup->id,
-                'is_active'     => true,
-                'options'       => [
+                'sku'            => 'PRD-DEL-CAT-01',
+                'unit_group_id'  => $this->unitGroup->id,
+                'tax_profile_id' => null,
+                'is_active'      => true,
+                'options'        => [
                     ['name' => 'Color', 'value' => 'Blue'],
                 ],
             ],
@@ -132,10 +134,11 @@ it('rejects soft-deleted category ids in product requests', function (): void {
         'categories' => [$activeCategory->id],
         'variants'   => [
             [
-                'sku'           => 'PRD-ACT-CAT-01',
-                'unit_group_id' => $this->unitGroup->id,
-                'is_active'     => true,
-                'options'       => [
+                'sku'            => 'PRD-ACT-CAT-01',
+                'unit_group_id'  => $this->unitGroup->id,
+                'tax_profile_id' => null,
+                'is_active'      => true,
+                'options'        => [
                     ['name' => 'Color', 'value' => 'Red'],
                 ],
             ],
@@ -149,14 +152,16 @@ it('rejects duplicate variant skus in the same tenant', function (): void {
         'is_active' => true,
         'variants'  => [
             [
-                'sku'           => 'DUPLICATE-SKU',
-                'unit_group_id' => $this->unitGroup->id,
-                'options'       => [['name' => 'Color', 'value' => 'Black']],
+                'sku'            => 'DUPLICATE-SKU',
+                'unit_group_id'  => $this->unitGroup->id,
+                'tax_profile_id' => null,
+                'options'        => [['name' => 'Color', 'value' => 'Black']],
             ],
             [
-                'sku'           => 'DUPLICATE-SKU',
-                'unit_group_id' => $this->unitGroup->id,
-                'options'       => [['name' => 'Color', 'value' => 'White']],
+                'sku'            => 'DUPLICATE-SKU',
+                'unit_group_id'  => $this->unitGroup->id,
+                'tax_profile_id' => null,
+                'options'        => [['name' => 'Color', 'value' => 'White']],
             ],
         ],
     ];
@@ -176,9 +181,10 @@ it('rejects duplicate variant skus in the same tenant', function (): void {
     $request = ProductRequest::create('/', 'POST', [
         ...$payload,
         'variants' => [[
-            'sku'           => 'EXISTING-SKU',
-            'unit_group_id' => $this->unitGroup->id,
-            'options'       => [['name' => 'Color', 'value' => 'Black']],
+            'sku'            => 'EXISTING-SKU',
+            'unit_group_id'  => $this->unitGroup->id,
+            'tax_profile_id' => null,
+            'options'        => [['name' => 'Color', 'value' => 'Black']],
         ]],
     ])
         ->setContainer(app())
@@ -198,14 +204,16 @@ it('reports bulk variant validation errors at each original index', function ():
         ],
         'variants' => [
             [
-                'sku'           => 'DUPLICATE-SKU',
-                'unit_group_id' => '00000000-0000-0000-0000-000000000001',
-                'options'       => [['name' => 'Color', 'value' => 'Black']],
+                'sku'            => 'DUPLICATE-SKU',
+                'unit_group_id'  => '00000000-0000-0000-0000-000000000001',
+                'tax_profile_id' => null,
+                'options'        => [['name' => 'Color', 'value' => 'Black']],
             ],
             [
-                'sku'           => 'DUPLICATE-SKU',
-                'unit_group_id' => '00000000-0000-0000-0000-000000000002',
-                'options'       => [['name' => 'Color', 'value' => 'White']],
+                'sku'            => 'DUPLICATE-SKU',
+                'unit_group_id'  => '00000000-0000-0000-0000-000000000002',
+                'tax_profile_id' => null,
+                'options'        => [['name' => 'Color', 'value' => 'White']],
             ],
         ],
     ])
@@ -240,9 +248,10 @@ it('keeps soft-deleted variant skus reserved', function (): void {
     $request = ProductRequest::create('/', 'POST', [
         'name'     => 'Reserved SKU product',
         'variants' => [[
-            'sku'           => 'RESERVED-SKU',
-            'unit_group_id' => $this->unitGroup->id,
-            'options'       => [['name' => 'Color', 'value' => 'Black']],
+            'sku'            => 'RESERVED-SKU',
+            'unit_group_id'  => $this->unitGroup->id,
+            'tax_profile_id' => null,
+            'options'        => [['name' => 'Color', 'value' => 'Black']],
         ]],
     ])
         ->setContainer(app())

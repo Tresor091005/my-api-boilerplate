@@ -56,6 +56,7 @@ class ProductVariantUpdateRequest extends FormRequest
                     ->ignore($variant instanceof ProductVariant ? $variant->id : null),
             ],
             'unit_group_id'   => ['prohibited'],
+            'tax_profile_id'  => ['nullable', 'uuid'],
             'is_active'       => ['boolean'],
             'options'         => ['array', 'max:100'],
             'options.*.name'  => ['required', 'string', 'max:100'],

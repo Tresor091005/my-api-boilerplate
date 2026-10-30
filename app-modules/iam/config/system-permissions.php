@@ -10,6 +10,10 @@ return [
         'catalog_stock_transfer_line',
         'master_address',
         'master_contact',
+        'tax_bracket',
+        'tax_dependency',
+        'tax_profile_line',
+        'tax_profile_line_bracket',
     ],
     'additional_actions' => [
         'catalog_bundle' => [

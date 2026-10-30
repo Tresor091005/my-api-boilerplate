@@ -154,7 +154,7 @@ it('rejects an incompatible expiration toggle and rolls back the bundle update',
         $this->service->update($bundle, BundleData::fromArray([
             'name'      => 'SHOULD-NOT-PERSIST',
             'inventory' => ['is_expirable' => false],
-        ], missingFields: ['sku', 'is_active', 'items']));
+        ], missingFields: ['sku', 'tax_profile_id', 'is_active', 'items']));
     } catch (ValidationException $exception) {
         $errors = $exception->errors();
     }
@@ -185,7 +185,7 @@ it('rejects enabling expiration and rolls back the bundle update', function (): 
         $this->service->update($bundle, BundleData::fromArray([
             'name'      => 'SHOULD-NOT-PERSIST',
             'inventory' => ['is_expirable' => true],
-        ], missingFields: ['sku', 'is_active', 'items']));
+        ], missingFields: ['sku', 'tax_profile_id', 'is_active', 'items']));
     } catch (ValidationException $exception) {
         $errors = $exception->errors();
     }

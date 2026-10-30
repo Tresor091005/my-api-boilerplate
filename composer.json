@@ -23,6 +23,7 @@
         "lahatre/organization": "*",
         "lahatre/response-selection": "*",
         "lahatre/shared": "*",
+        "lahatre/tax": "*",
         "laravel/doctor": "^0.1",
         "laravel/framework": "^13.0",
         "laravel/horizon": "*",

@@ -27,6 +27,10 @@
   logout, and session management. See [email OTP and sessions](modules/iam.md#email-otp-and-sessions).
 - [x] `customer`: Identity CRUD API with organization-scoped polymorphic
   addresses and contacts.
+- [x] `tax`: Organization taxes (percentage or fixed, progressive brackets,
+  dependencies), tax profiles with standard/custom/zero/exempt treatments,
+  `catalog_items.tax_profile_id`, and a batch calculation engine
+  (`TaxInterface`) returning the explainable result a document will freeze.
 
 ### Partially usable
 
@@ -50,6 +54,18 @@
 Pricing remains handled on the fly for now. A reusable pricing component will
 be designed only once the concrete sales and purchasing requirements are
 clear.
+
+## TODO: tax follow-ups
+
+- [ ] Persist `tax_snapshots` when the `order` module confirms a document; the
+  result format (`TaxResultViewData`, `schema_version` 1) is already fixed.
+- [ ] Tax-inclusive (TTC) input prices: decide where the net amount is derived.
+- [ ] Document-level rounding (per invoice and rate) in addition to per-bracket
+  rounding.
+- [ ] Document-level taxes chosen by context, such as Benin's AIB depending on
+  the customer: a `tax_rules` layer selecting profiles before calculation.
+- [ ] Optional country packs (importable taxes and profiles) and a tax-regime
+  guard (for example, no VAT under Benin's TPS) built on the tax `kind`.
 
 ## TODO: partners and flows
 

@@ -16,6 +16,7 @@ use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Traits\InteractsWithInventoryItem;
 use Lahatre\Master\Models\UnitGroup;
 use Lahatre\Shared\Traits\SharedTraits;
+use Lahatre\Tax\Models\TaxProfile;
 
 /**
  * @property string $id
@@ -23,12 +24,14 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property CatalogItemType $item_type
  * @property string $sku
  * @property string $unit_group_id
+ * @property string|null $tax_profile_id
  * @property bool $is_stockable
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read UnitGroup $unitGroup
+ * @property-read TaxProfile|null $taxProfile
  * @property-read InventoryItem|null $inventoryItem
  *
  * @method static Builder<static>|CatalogItem newModelQuery()
@@ -46,6 +49,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @method static Builder<static>|CatalogItem whereOrganizationId($value)
  * @method static Builder<static>|CatalogItem whereSku($value)
  * @method static Builder<static>|CatalogItem whereUnitGroupId($value)
+ * @method static Builder<static>|CatalogItem whereTaxProfileId($value)
  * @method static Builder<static>|CatalogItem whereUpdatedAt($value)
  * @method static Builder<static>|CatalogItem whereIsStockable($value)
  *
@@ -64,6 +68,7 @@ class CatalogItem extends Model implements HasInventoryItem
         'item_type',
         'sku',
         'unit_group_id',
+        'tax_profile_id',
         'is_stockable',
         'is_active',
     ];
@@ -74,6 +79,7 @@ class CatalogItem extends Model implements HasInventoryItem
         'item_type'       => CatalogItemType::class,
         'sku'             => 'string',
         'unit_group_id'   => 'string',
+        'tax_profile_id'  => 'string',
         'is_stockable'    => 'boolean',
         'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
@@ -94,5 +100,10 @@ class CatalogItem extends Model implements HasInventoryItem
     public function unitGroup(): BelongsTo
     {
         return $this->belongsTo(UnitGroup::class, 'unit_group_id', 'id');
+    }
+
+    public function taxProfile(): BelongsTo
+    {
+        return $this->belongsTo(TaxProfile::class, 'tax_profile_id', 'id');
     }
 }

@@ -24,6 +24,7 @@ class BundleResource extends ApiResource
             ->field('updated_at')
             ->include('items', BundleItemResource::class);
         self::unitGroupInclude($resource);
+        self::taxProfileInclude($resource);
         self::inventoryInclude($resource);
     }
 }

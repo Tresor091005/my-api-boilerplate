@@ -54,6 +54,7 @@ final class ServiceCreateRequest extends FormRequest
                     fn ($query) => $query->whereNull('organization_id')->orWhere('organization_id', $organizationId),
                 ]),
             ],
+            'tax_profile_id'               => ['present', 'nullable', 'uuid'],
             'is_active'                    => ['boolean'],
             'deliverable_templates'        => ['required', 'array', 'min:1', 'max:100'],
             'deliverable_templates.*.id'   => ['prohibited'],
