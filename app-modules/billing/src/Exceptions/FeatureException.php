@@ -37,6 +37,20 @@ final class FeatureException extends AssertionException
         ]);
     }
 
+    public static function invalidOptions(string $featureKey): self
+    {
+        return new self(__('billing::exceptions.feature.invalid_options'), [
+            'feature_key' => $featureKey,
+        ]);
+    }
+
+    public static function valueRequired(string $featureKey): self
+    {
+        return new self(__('billing::exceptions.feature.value_required'), [
+            'feature_key' => $featureKey,
+        ]);
+    }
+
     public static function notCapacity(string $featureKey): self
     {
         return new self(__('billing::exceptions.feature.not_capacity'), [

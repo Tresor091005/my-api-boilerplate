@@ -270,7 +270,7 @@ prepares the next in one draft; the API exposes them as the `current` and
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | `/v1/billing/offers` | public | List the plans on sale, cheapest first, flattened with their price, billing interval and features named in the request locale; features disabled since publication are left out. |
-| GET | `/v1/billing/features` | `auth.platform` | List the enabled features a plan can sell, named in the request locale. |
+| GET | `/v1/billing/features` | `auth.platform` | List the enabled features a plan can sell, named in the request locale, with the `options` of a choice and the `window_seconds` of a capacity counted over time. |
 | GET | `/v1/billing/plans` | `auth.platform` | List plans with `is_trial` (the built-in trial plan, never sold) and their `status`: `on_sale` (a version is published), `retired` (nothing on sale, subscribed at least once) or `unused` (nothing on sale, never subscribed); filter with `status`; `include=current,draft` adds their terms. |
 | POST | `/v1/billing/plans` | `auth.platform` | Create a plan from its name; the code is generated and immutable. |
 | GET | `/v1/billing/plans/{plan}` | `auth.platform` | Return a plan; `include=current.features,draft.features` adds its terms and grants. |
@@ -278,7 +278,7 @@ prepares the next in one draft; the API exposes them as the `current` and
 | DELETE | `/v1/billing/plans/{plan}` | `auth.platform` | Delete an `unused` plan with no payment in progress; 422 otherwise, and always for the trial plan. |
 | PATCH | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Change the draft price, currency and billing interval, opening the draft from the version on sale. The interval is `billing_interval_months`, from 1 to `billing.max_advance_months` (12). The price is a decimal in units of the currency (`4.30`), stored in its minor unit; more decimals than the currency allows is a 422. The price and the currency are always sent together, and a plan with nothing on sale needs them with the billing interval. Prices render as decimal strings at the currency precision. |
 | DELETE | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Discard the draft. |
-| POST | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Grant features to the draft, or change their allowance (`features[].key`, `features[].allowance`). |
+| POST | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Grant features to the draft, or change their allowance (`features[].key`, `features[].allowance`); a choice is granted with `features[].values`, some of its options. |
 | DELETE | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Revoke features from the draft (`feature_keys[]`). |
 | POST | `/v1/billing/plans/{plan}/publish` | `auth.platform` | Put the draft on sale and archive the version it replaces; subscribers keep their version, except running trials, which move to the trial plan's new version. |
 | POST | `/v1/billing/plans/{plan}/archive` | `auth.platform` | Stop selling the plan; subscribers keep their version. |

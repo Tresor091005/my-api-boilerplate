@@ -130,30 +130,30 @@ it('builds, publishes and revises a plan through its draft', function (): void {
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => 20])->assertUnprocessable();
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => 20, 'currency_code' => 'USD', 'billing_interval_months' => 1])->assertNoContent();
     $this->postJson("{$plans}/{$planId}/draft/features", ['features' => [
-        ['key' => 'catalog.products', 'allowance' => 500],
-        ['key' => 'catalog.bundles'],
+        ['key' => 'catalog.stock_locations', 'allowance' => 500],
+        ['key' => 'catalog.bundle_assembly'],
     ]])->assertNoContent();
 
     $created = $this->getJson("{$plans}/{$planId}?include=current,draft.features")
         ->assertOk()
         ->assertJsonPath('data.current', null)
         ->assertJsonPath('data.draft.price', '20.00');
-    expect(grantedAllowances($created, 'data.draft.features'))->toBe(['catalog.bundles' => null, 'catalog.products' => 500])
-        ->and(collect($created->json('data.draft.features'))->firstWhere('key', 'catalog.products')['name'])->toBe('Products');
+    expect(grantedAllowances($created, 'data.draft.features'))->toBe(['catalog.bundle_assembly' => null, 'catalog.stock_locations' => 500])
+        ->and(collect($created->json('data.draft.features'))->firstWhere('key', 'catalog.stock_locations')['name'])->toBe('Stock locations');
 
     $this->postJson("{$plans}/{$planId}/publish")->assertNoContent();
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => 25.5])->assertUnprocessable();
     $this->patchJson("{$plans}/{$planId}/draft", ['currency_code' => 'XOF'])->assertUnprocessable();
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => '25.505', 'currency_code' => 'USD'])->assertUnprocessable();
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => 25.5, 'currency_code' => 'USD'])->assertNoContent();
-    $this->deleteJson("{$plans}/{$planId}/draft/features", ['feature_keys' => ['catalog.bundles']])->assertNoContent();
+    $this->deleteJson("{$plans}/{$planId}/draft/features", ['feature_keys' => ['catalog.bundle_assembly']])->assertNoContent();
 
     $revised = $this->getJson("{$plans}/{$planId}?include=current.features,draft.features")
         ->assertOk()
         ->assertJsonPath('data.current.price', '20.00')
         ->assertJsonPath('data.draft.price', '25.50');
-    expect(grantedAllowances($revised, 'data.current.features'))->toBe(['catalog.bundles' => null, 'catalog.products' => 500])
-        ->and(grantedAllowances($revised, 'data.draft.features'))->toBe(['catalog.products' => 500]);
+    expect(grantedAllowances($revised, 'data.current.features'))->toBe(['catalog.bundle_assembly' => null, 'catalog.stock_locations' => 500])
+        ->and(grantedAllowances($revised, 'data.draft.features'))->toBe(['catalog.stock_locations' => 500]);
 
     $this->postJson("{$plans}/{$planId}/publish?response=resource&include=current,draft")
         ->assertOk()
@@ -205,14 +205,14 @@ it('shows the trial plan to the platform but never deletes it', function (): voi
 it('lists the features a plan can sell, named in the request language', function (): void {
     $this->withToken(billingPlatformToken());
     app(FeatureRegistry::class)->register(FeatureDefinition::disabled('catalog.legacy_exports'));
-    app('translator')->addLines(['features.products' => 'Produits'], 'fr', 'catalog');
+    app('translator')->addLines(['features.stock_locations' => 'Emplacements de stock'], 'fr', 'catalog');
 
     $this->getJson('/v1/billing/features')
         ->assertOk()
-        ->assertJsonFragment(['key' => 'catalog.products', 'type' => 'capacity', 'name' => 'Products'])
+        ->assertJsonFragment(['key' => 'catalog.stock_locations', 'type' => 'capacity', 'name' => 'Stock locations'])
         ->assertJsonMissing(['key' => 'catalog.legacy_exports']);
     $this->getJson('/v1/billing/features', ['X-Language' => 'fr'])
-        ->assertJsonFragment(['key' => 'catalog.products', 'name' => 'Produits']);
+        ->assertJsonFragment(['key' => 'catalog.stock_locations', 'name' => 'Emplacements de stock']);
 });
 
 it('shows anyone the plans on sale, cheapest first, without the features disabled since', function (): void {
@@ -224,16 +224,16 @@ it('shows anyone the plans on sale, cheapest first, without the features disable
 
         return $versions->publish($plan);
     };
-    $offerPlan('Business', '49.9', [['key' => 'catalog.products', 'allowance' => 1000], ['key' => 'catalog.bundles']]);
-    $offerPlan('Starter', '9.9', [['key' => 'catalog.products', 'allowance' => 100]]);
-    $versions->archive($offerPlan('Retired', '5', [['key' => 'catalog.products', 'allowance' => 10]]));
+    $offerPlan('Business', '49.9', [['key' => 'catalog.stock_locations', 'allowance' => 1000], ['key' => 'catalog.bundle_assembly']]);
+    $offerPlan('Starter', '9.9', [['key' => 'catalog.stock_locations', 'allowance' => 100]]);
+    $versions->archive($offerPlan('Retired', '5', [['key' => 'catalog.stock_locations', 'allowance' => 10]]));
     $versions->updateDraft(
         app(PlanService::class)->create(PlanData::fromArray(['name' => 'Upcoming'])),
         PlanTermsData::fromArray(['price' => 100, 'currency_code' => 'USD', 'billing_interval_months' => 1]),
     );
     $registry = new FeatureRegistry;
-    $registry->register(FeatureDefinition::capacity('catalog.products', [CatalogFeatures::class, 'products']));
-    $registry->register(FeatureDefinition::disabled('catalog.bundles'));
+    $registry->register(FeatureDefinition::capacity('catalog.stock_locations', [CatalogFeatures::class, 'stockLocations']));
+    $registry->register(FeatureDefinition::disabled('catalog.bundle_assembly'));
     app()->instance(FeatureRegistry::class, $registry);
 
     $offers = $this->getJson('/v1/billing/offers')->assertOk();
@@ -244,9 +244,9 @@ it('shows anyone the plans on sale, cheapest first, without the features disable
             'price'                   => '9.90',
             'currency_code'           => 'USD',
             'billing_interval_months' => 1,
-            'features'                => [['key' => 'catalog.products', 'name' => 'Products', 'type' => 'capacity', 'allowance' => 100]],
+            'features'                => [['key' => 'catalog.stock_locations', 'name' => 'Stock locations', 'type' => 'capacity', 'allowance' => 100, 'values' => null]],
         ])
-        ->and(collect($offers->json('data.1.features'))->pluck('key')->all())->toBe(['catalog.products']);
+        ->and(collect($offers->json('data.1.features'))->pluck('key')->all())->toBe(['catalog.stock_locations']);
 });
 
 it('tells the administration which plans are on sale, retired or unused, and why a retired plan stays', function (): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Billing\Registries;
 
+use Carbon\CarbonImmutable;
 use Lahatre\Billing\Contracts\ProvidesFeatures;
 use Lahatre\Billing\Exceptions\FeatureException;
 
@@ -66,11 +67,11 @@ final class FeatureRegistry
     /**
      * @throws FeatureException when the feature is unknown, not an enabled capacity, or counts below zero
      */
-    public function count(string $key, string $organizationId): int
+    public function count(string $key, string $organizationId, ?CarbonImmutable $since = null): int
     {
         $counter = $this->get($key)->counter ?? throw FeatureException::notCapacity($key);
         [$class, $method] = $counter;
-        $quantity = app($class)->{$method}($organizationId);
+        $quantity = app($class)->{$method}($organizationId, $since);
 
         if ($quantity < 0) {
             throw FeatureException::negativeQuantity($key, $quantity);

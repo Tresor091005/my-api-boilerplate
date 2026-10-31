@@ -11,4 +11,5 @@ enum FeatureUnavailableReason: string
     case Suspended = 'suspended';
     case NotInPlan = 'not_in_plan';
     case LimitReached = 'limit_reached';
+    case ValueNotInPlan = 'value_not_in_plan';
 }

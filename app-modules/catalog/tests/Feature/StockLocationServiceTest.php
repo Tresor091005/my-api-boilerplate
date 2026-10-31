@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Catalog\Data\StockLocationData;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Catalog\Services\StockLocationService;
@@ -117,4 +118,23 @@ it('rejects deleting a location with active stock', function (): void {
 
     expect(fn () => $this->service->delete($location))
         ->toThrow(InventoryLocationException::class);
+});
+
+it('keeps active stock locations within the plan, inactive ones being free', function (): void {
+    subscribeOrganizationTo($this->organizationId, ['catalog.stock_locations' => ['allowance' => 1]]);
+    $create = fn (string $name, bool $isActive = true): StockLocation => $this->service->create(StockLocationData::fromArray(['name' => $name, 'is_active' => $isActive]));
+    $limitReached = __('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 1]);
+    $main = $create('Main Warehouse');
+    $spare = $create('Spare Warehouse', isActive: false);
+
+    expect(fn (): StockLocation => $create('Second Warehouse'))->toThrow(FeatureUnavailableException::class, $limitReached)
+        ->and(fn (): StockLocation => $this->service->update($spare->fresh(), StockLocationData::fromArray(['is_active' => true], missingFields: ['name', 'address'])))
+        ->toThrow(FeatureUnavailableException::class, $limitReached)
+        ->and($this->service->update($main->fresh(), StockLocationData::fromArray(['name' => 'Central Warehouse'], missingFields: ['is_active', 'address']))->name)
+        ->toBe('Central Warehouse');
+
+    $this->service->update($main->fresh(), StockLocationData::fromArray(['is_active' => false], missingFields: ['name', 'address']));
+
+    expect($this->service->update($spare->fresh(), StockLocationData::fromArray(['is_active' => true], missingFields: ['name', 'address']))->inventoryLocation()->firstOrFail()->is_active)
+        ->toBeTrue();
 });

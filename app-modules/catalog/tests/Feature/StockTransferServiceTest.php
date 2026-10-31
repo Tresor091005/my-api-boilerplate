@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Enums\StockTransferStatus;
 use Lahatre\Catalog\Exceptions\StockTransferException;
@@ -210,3 +211,16 @@ function destinationStock(StockLocation $location, string $inventoryItemId): Inv
         ->where('location_id', $location->inventoryLocation()->firstOrFail()->id)
         ->firstOrFail();
 }
+
+it('counts the transfers of the last 30 days against the plan, deleted drafts included', function (): void {
+    subscribeOrganizationTo($this->organizationId, ['catalog.stock_transfers' => ['allowance' => 1]]);
+    $create = fn (): StockTransfer => $this->service->create(transferData($this->source, $this->destination, $this->catalogItem->id, $this->unit->code));
+
+    $this->service->delete($create());
+
+    expect($create)->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 1]));
+
+    $this->travel(30)->days();
+
+    expect($create()->status)->toBe(StockTransferStatus::Draft);
+});

@@ -8,4 +8,5 @@ enum FeatureType: string
 {
     case Boolean = 'boolean';
     case Capacity = 'capacity';
+    case Choice = 'choice';
 }

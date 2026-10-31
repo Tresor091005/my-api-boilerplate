@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Library\Assertions\FileAssertion;
 use Lahatre\Library\Data\FileFilterData;
 use Lahatre\Library\Data\FileUpdateData;
@@ -34,6 +35,7 @@ final readonly class FileService
     public function __construct(
         private FileAssertion $fileAssertion,
         private OrganizationInterface $organizationInterface,
+        private EntitlementService $entitlements,
     ) {}
 
     public function paginate(FileFilterData $filters): CursorPaginator
@@ -99,6 +101,15 @@ final readonly class FileService
             $files = DB::transaction(function () use ($data, $organizationId, $memberId, &$storedObjects) {
                 $this->lockOrganization($organizationId);
                 $this->resolveFolder($data->folderId, lockForUpdate: true);
+
+                $kinds = array_unique(array_map(
+                    static fn (UploadedFile $file): string => FileKind::fromMimeType((string) ($file->getMimeType() ?: 'application/octet-stream'))->value,
+                    $data->files,
+                ));
+
+                foreach ($kinds as $kind) {
+                    $this->entitlements->authorize($organizationId, 'library.file_kinds', $kind);
+                }
 
                 $incomingSize = array_sum(array_map(
                     static fn (UploadedFile $file): int => (int) ($file->getSize() ?: 0),

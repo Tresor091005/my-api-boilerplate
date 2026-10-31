@@ -13,6 +13,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
+use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Assertions\BundleAssertion;
 use Lahatre\Catalog\Data\BundleData;
 use Lahatre\Catalog\Data\BundleFilterData;
@@ -24,6 +26,8 @@ use Lahatre\Catalog\Exceptions\BundleException;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Inventory\Data\InventoryItemConfigurationData;
+use Lahatre\Inventory\Data\InventoryItemConfigurationUpdateData;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Models\UnitGroup;
@@ -40,6 +44,7 @@ final readonly class BundleService
         private BundleAssertion $bundleAssertion,
         private TransactionalCatalogItemService $transactionalCatalogItemService,
         private MasterInterface $masterInterface,
+        private EntitlementService $entitlements,
     ) {}
 
     public function paginate(BundleFilterData $filters): CursorPaginator
@@ -84,7 +89,7 @@ final readonly class BundleService
                 required($data->sku),
                 $unitGroup->id,
                 required($data->isActive),
-                $data->inventory,
+                $this->inventoryWithStockTracking($organizationId, $data),
             );
 
             $bundle = new Bundle;
@@ -122,6 +127,13 @@ final readonly class BundleService
             $lockedBundle->fill(withoutMissing(['name' => $data->name]));
             $lockedBundle->save();
 
+            if ($data->inventory instanceof InventoryItemConfigurationUpdateData
+                && $data->inventory->stockTrackingEnabled === true
+                && $catalogItem->inventoryItem?->stock_tracking_enabled === false
+            ) {
+                $this->entitlements->authorize($organizationId, 'catalog.bundle_assembly');
+            }
+
             try {
                 $this->transactionalCatalogItemService->update(
                     $catalogItem,
@@ -143,6 +155,27 @@ final readonly class BundleService
         });
 
         return $bundle;
+    }
+
+    /**
+     * The stock of a bundle is what assembly sells: asked for, it needs the
+     * feature; left unsaid, it follows the plan, so a bundle stays creatable.
+     *
+     * @throws FeatureUnavailableException when stock tracking is asked for without the feature
+     */
+    private function inventoryWithStockTracking(string $organizationId, BundleData $data): InventoryItemConfigurationData
+    {
+        $inventory = $data->inventory instanceof InventoryItemConfigurationData ? $data->inventory : new InventoryItemConfigurationData;
+
+        if ($data->stockTrackingRequested === true) {
+            $this->entitlements->authorize($organizationId, 'catalog.bundle_assembly');
+        }
+
+        return new InventoryItemConfigurationData(
+            stockTrackingEnabled: $data->stockTrackingRequested ?? $this->entitlements->canUse($organizationId, 'catalog.bundle_assembly'),
+            isExpirable: $inventory->isExpirable,
+            deductionStrategy: $inventory->deductionStrategy,
+        );
     }
 
     /**

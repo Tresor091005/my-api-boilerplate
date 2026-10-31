@@ -34,7 +34,7 @@ class OfferResource extends ApiResource
         return $current;
     }
 
-    /** @return list<array{key: string, name: string, type: string, allowance: int|null}> */
+    /** @return list<array{key: string, name: string, type: string, allowance: int|null, values: list<string>|null}> */
     private static function features(Model $plan): array
     {
         $registry = app(FeatureRegistry::class);
@@ -47,6 +47,7 @@ class OfferResource extends ApiResource
                 'name'      => __($registry->get($grant->feature_key)->translationKey()),
                 'type'      => $grant->feature_type->value,
                 'allowance' => $grant->allowance,
+                'values'    => $grant->values,
             ])
             ->values()
             ->all();

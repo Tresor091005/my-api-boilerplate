@@ -60,6 +60,7 @@ return new class extends Migration
             $table->text('feature_key');
             $table->string('feature_type', 20);
             $table->unsignedInteger('allowance')->nullable();
+            $table->jsonb('values')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->unique(['plan_version_id', 'feature_key'], 'billing_plan_version_features_version_key_unique');

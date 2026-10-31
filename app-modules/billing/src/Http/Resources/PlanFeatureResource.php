@@ -19,6 +19,7 @@ class PlanFeatureResource extends ApiResource
             ->field('name', columns: ['feature_key'], computedBy: fn (Model $grant): string => __(
                 app(FeatureRegistry::class)->get((string) $grant->getAttribute('feature_key'))->translationKey(),
             ))
-            ->field('allowance');
+            ->field('allowance')
+            ->field('values');
     }
 }

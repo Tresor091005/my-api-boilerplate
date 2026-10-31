@@ -16,6 +16,8 @@ class PlanDraftFeatureCreateRequest extends FormRequest
             'features'             => ['required', 'array', 'list', 'min:1', 'max:100'],
             'features.*.key'       => ['required', 'string', 'distinct'],
             'features.*.allowance' => ['nullable', 'integer', 'min:0'],
+            'features.*.values'    => ['nullable', 'array', 'list', 'min:1'],
+            'features.*.values.*'  => ['string', 'distinct'],
         ];
     }
 }

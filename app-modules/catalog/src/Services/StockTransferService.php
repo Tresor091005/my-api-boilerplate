@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Data\StockTransferFilterData;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Enums\StockTransferStatus;
 use Lahatre\Catalog\Exceptions\StockTransferException;
 use Lahatre\Catalog\Models\CatalogItem;
@@ -29,11 +31,13 @@ final readonly class StockTransferService
     public function __construct(
         private InventoryInterface $inventoryInterface,
         private MasterInterface $masterInterface,
+        private EntitlementService $entitlements,
     ) {}
 
     public function create(StockTransferData $data): StockTransfer
     {
         return DB::transaction(function () use ($data): StockTransfer {
+            $this->entitlements->authorize(currentOrganizationId(), 'catalog.stock_transfers');
             $this->assertLocations($data->sourceLocationId, $data->destinationLocationId);
 
             $transfer = StockTransfer::create([
@@ -209,6 +213,11 @@ final readonly class StockTransferService
         $ids = $transfer->lines->pluck('catalog_item_id');
         $items = CatalogItem::query()->where('organization_id', currentOrganizationId())->whereIn('id', $ids)
             ->with('inventoryItem')->lockForUpdate()->get()->keyBy('id');
+
+        if ($items->contains(fn (CatalogItem $item): bool => $item->item_type === CatalogItemType::Bundle)) {
+            $this->entitlements->authorize(currentOrganizationId(), 'catalog.bundle_assembly');
+        }
+
         $errors = [];
         $movements = [];
         foreach ($transfer->lines as $line) {
@@ -286,6 +295,10 @@ final readonly class StockTransferService
 
         if ($errors !== []) {
             throw StockTransferException::invalidState($errors);
+        }
+
+        if ($catalogItems->contains(fn (CatalogItem $item): bool => $item->item_type === CatalogItemType::Bundle)) {
+            $this->entitlements->authorize(currentOrganizationId(), 'catalog.bundle_assembly');
         }
 
         $transfer->lines()->forceDelete();

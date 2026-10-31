@@ -16,7 +16,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        config(['billing.subscription_required' => false]);
+        config(['billing.subscription_required' => false, 'billing.entitlements_enforced' => false]);
     }
 
     public function disableExceptionHandling(): void

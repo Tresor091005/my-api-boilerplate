@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection as SupportCollection;
+use Lahatre\Billing\Exceptions\FeatureUnavailableException;
+use Lahatre\Billing\Models\PlanVersionFeature;
 use Lahatre\Catalog\Data\BundleData;
 use Lahatre\Catalog\Data\BundleItemData;
 use Lahatre\Catalog\Data\BundleItemQuantityData;
 use Lahatre\Catalog\Data\BundleStockOperationData;
+use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Enums\BundleStockOperationStatus;
 use Lahatre\Catalog\Enums\BundleStockOperationType;
 use Lahatre\Catalog\Enums\CatalogItemType;
@@ -21,8 +24,10 @@ use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\StockLocation;
+use Lahatre\Catalog\Models\StockTransfer;
 use Lahatre\Catalog\Services\BundleService;
 use Lahatre\Catalog\Services\BundleStockOperationService;
+use Lahatre\Catalog\Services\StockTransferService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Models\InventoryLocation;
@@ -361,3 +366,67 @@ function bundleStock(
         ->orderBy('created_at')
         ->get();
 }
+
+it('assembles bundles only on a plan that includes bundle assembly', function (): void {
+    $bundle = createBundle($this->bundleService, $this->variants, $this->unit);
+    $assemble = fn (): BundleStockOperation => $this->operationService->create($bundle, BundleStockOperationData::fromArray([
+        'type'        => BundleStockOperationType::Attach->value,
+        'quantity'    => 1,
+        'location_id' => $this->stockLocation->id,
+        'components'  => $bundle->items->map(fn (BundleItem $item): array => ['bundle_item_id' => $item->id])->all(),
+    ]));
+    $version = subscribeOrganizationTo($this->organizationId, []);
+
+    expect($assemble)->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.not_in_plan'));
+
+    $grant = PlanVersionFeature::factory()->create(['plan_version_id' => $version->id, 'feature_key' => 'catalog.bundle_assembly']);
+    $draft = $assemble();
+    $grant->forceDelete();
+
+    expect($draft->bundle_id)->toBe($bundle->id)
+        ->and(fn (): BundleStockOperation => $this->operationService->complete($bundle, $draft->id))
+        ->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.not_in_plan'));
+});
+
+it('transfers bundles only on a plan that includes bundle assembly', function (): void {
+    $bundle = createBundle($this->bundleService, $this->variants, $this->unit);
+    $destination = StockLocation::factory()->create(['organization_id' => $this->organizationId]);
+    app(InventoryInterface::class)->createLocation($destination);
+    $transfer = fn (): StockTransfer => app(StockTransferService::class)->create(StockTransferData::fromArray([
+        'source_location_id'      => $this->stockLocation->id,
+        'destination_location_id' => $destination->id,
+        'lines'                   => [['catalog_item_id' => $bundle->id, 'quantity' => 1, 'unit_code' => 'bundle', 'stock_ids' => []]],
+    ]));
+    $version = subscribeOrganizationTo($this->organizationId, ['catalog.stock_transfers' => ['allowance' => null]]);
+
+    expect($transfer)->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.not_in_plan'));
+
+    PlanVersionFeature::factory()->create(['plan_version_id' => $version->id, 'feature_key' => 'catalog.bundle_assembly']);
+
+    expect($transfer()->lines->first()->catalog_item_id)->toBe($bundle->id);
+});
+
+it('leaves bundle stock to the plan unless asked for, and asks for assembly to track it', function (): void {
+    $version = subscribeOrganizationTo($this->organizationId, []);
+    $tracked = fn (Bundle $bundle): bool => CatalogItem::query()->findOrFail($bundle->id)->inventoryItem()->firstOrFail()->stock_tracking_enabled;
+    $withInventory = fn (array $inventory): BundleData => BundleData::fromArray([
+        'name'      => 'Tracked Bundle',
+        'is_active' => true,
+        'inventory' => $inventory,
+        'items'     => $this->variants->take(2)->map(fn (ProductVariant $variant): array => [
+            'item_type' => CatalogItemType::ProductVariant->value, 'item_id' => $variant->id, 'quantity' => 1, 'unit_code' => $this->unit->code,
+        ])->all(),
+    ]);
+    $untracked = createBundle($this->bundleService, $this->variants, $this->unit);
+
+    expect($tracked($untracked))->toBeFalse()
+        ->and(fn (): Bundle => $this->bundleService->create($withInventory(['stock_tracking_enabled' => true])))
+        ->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.not_in_plan'))
+        ->and(fn (): Bundle => $this->bundleService->update($untracked, BundleData::fromArray(['inventory' => ['stock_tracking_enabled' => true]], missingFields: ['name', 'sku', 'is_active', 'items'])))
+        ->toThrow(FeatureUnavailableException::class, __('billing::exceptions.feature_unavailable.not_in_plan'));
+
+    PlanVersionFeature::factory()->create(['plan_version_id' => $version->id, 'feature_key' => 'catalog.bundle_assembly']);
+
+    expect($tracked($this->bundleService->create($withInventory([]))))->toBeTrue()
+        ->and($tracked($this->bundleService->create($withInventory(['stock_tracking_enabled' => false]))))->toBeFalse();
+});

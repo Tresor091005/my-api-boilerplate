@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Billing\Contracts\ProvidesFeatures;
@@ -40,6 +41,7 @@ use Lahatre\Billing\Services\TrialService;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    config(['billing.entitlements_enforced' => true]);
     currentTestCase()->travelTo(CarbonImmutable::parse('2026-08-20 10:00:00'));
     // the user model comes from config, so Billing does not import IAM
     $this->ownerId = (config('auth.providers.users.model'))::factory()->create()->getKey();
@@ -338,10 +340,10 @@ it('resolves boolean and capacity entitlements from the current subscription ver
     $entitlements = app(EntitlementService::class);
     $now = CarbonImmutable::parse('2026-09-01 10:00:00');
 
-    expect($entitlements->canUse($this->organizationId, 'test.advanced_reports', $now))->toBeTrue()
-        ->and($entitlements->resolve($this->organizationId, 'test.warehouses', $now)['current_quantity'])->toBe(4)
-        ->and($entitlements->canUse($this->organizationId, 'test.warehouses', $now))->toBeTrue()
-        ->and(fn (): bool => $entitlements->canUse($this->organizationId, 'test.unknown', $now))
+    expect($entitlements->canUse($this->organizationId, 'test.advanced_reports', now: $now))->toBeTrue()
+        ->and($entitlements->resolve($this->organizationId, 'test.warehouses', now: $now)['current_quantity'])->toBe(4)
+        ->and($entitlements->canUse($this->organizationId, 'test.warehouses', now: $now))->toBeTrue()
+        ->and(fn (): bool => $entitlements->canUse($this->organizationId, 'test.unknown', now: $now))
         ->toThrow(FeatureException::class, __('billing::exceptions.feature.not_registered'));
 });
 
@@ -351,11 +353,11 @@ it('cuts a disabled feature for every subscriber, even where a version still gra
     subscribeTo($version, $this->organizationId);
     $now = CarbonImmutable::parse('2026-09-01 10:00:00');
 
-    expect(app(EntitlementService::class)->canUse($this->organizationId, 'test.advanced_reports', $now))->toBeTrue();
+    expect(app(EntitlementService::class)->canUse($this->organizationId, 'test.advanced_reports', now: $now))->toBeTrue();
 
     useFeatureRegistry(FeatureDefinition::disabled('test.advanced_reports'));
 
-    expect(app(EntitlementService::class)->resolve($this->organizationId, 'test.advanced_reports', $now))
+    expect(app(EntitlementService::class)->resolve($this->organizationId, 'test.advanced_reports', now: $now))
         ->toMatchArray(['allowed' => false, 'reason' => 'disabled', 'feature_type' => null]);
 });
 
@@ -366,7 +368,7 @@ it('tells why a feature is refused', function (): void {
         FeatureDefinition::disabled('test.exports'),
     );
     $reasonAt = fn (string $featureKey, string $at = '2026-08-21 10:00:00'): ?string => app(EntitlementService::class)
-        ->resolve($this->organizationId, $featureKey, CarbonImmutable::parse($at))['reason'];
+        ->resolve($this->organizationId, $featureKey, now: CarbonImmutable::parse($at))['reason'];
 
     expect($reasonAt('test.warehouses'))->toBe('no_subscription');
 
@@ -565,7 +567,7 @@ it('derives active, in grace and suspended from the end of paid coverage', funct
     $subscription = pay($this->organizationId, CheckoutAction::Subscribe, $basic);
     $statusAt = fn (string $at): SubscriptionStatus => $subscription->statusAt(CarbonImmutable::parse($at));
     $canUseAt = fn (string $at): bool => app(EntitlementService::class)
-        ->canUse($this->organizationId, 'test.advanced_reports', CarbonImmutable::parse($at));
+        ->canUse($this->organizationId, 'test.advanced_reports', now: CarbonImmutable::parse($at));
 
     expect($statusAt('2026-02-01 09:59:59'))->toBe(SubscriptionStatus::Active)
         ->and($statusAt('2026-02-01 10:00:00'))->toBe(SubscriptionStatus::InGrace)
@@ -801,7 +803,7 @@ it('gives the features of the trial plan while the trial runs, with no grace aft
     app(PlanVersionService::class)->publish($trialPlan);
     app(TrialService::class)->start($this->organizationId);
     $reasonAt = fn (string $at): ?string => app(EntitlementService::class)
-        ->resolve($this->organizationId, 'test.advanced_reports', CarbonImmutable::parse($at))['reason'];
+        ->resolve($this->organizationId, 'test.advanced_reports', now: CarbonImmutable::parse($at))['reason'];
 
     expect($reasonAt('2026-09-20 09:59:59'))->toBeNull()
         ->and($reasonAt('2026-09-20 10:00:00'))->toBe('no_subscription');
@@ -949,5 +951,47 @@ final class BillingTestFeatures implements ProvidesFeatures
     public function warehouses(string $organizationId): int
     {
         return 4;
+    }
+}
+
+it('grants a choice feature with some of its options, and resolves it for one value', function (): void {
+    useFeatureRegistry(FeatureDefinition::choice('test.file_kinds', ['image', 'video']));
+    $plan = draftPlan();
+
+    expect(fn (): Plan => grantPlanFeatures($plan, ['test.file_kinds' => null]))
+        ->toThrow(PlanVersionException::class, __('billing::exceptions.plan_version.values_required'))
+        ->and(fn (): Plan => app(PlanVersionService::class)->addFeatures($plan, PlanFeatureGrantsData::fromArray(['features' => [['key' => 'test.file_kinds', 'values' => ['audio']]]])))
+        ->toThrow(PlanVersionException::class, __('billing::exceptions.plan_version.unknown_values'));
+
+    app(PlanVersionService::class)->addFeatures($plan, PlanFeatureGrantsData::fromArray(['features' => [['key' => 'test.file_kinds', 'values' => ['image']]]]));
+    subscribeTo(app(PlanVersionService::class)->publish($plan)->currentVersion()->firstOrFail(), $this->organizationId);
+    $entitlements = app(EntitlementService::class);
+
+    expect($entitlements->resolve($this->organizationId, 'test.file_kinds', 'image'))->toMatchArray(['allowed' => true, 'values' => ['image']])
+        ->and($entitlements->resolve($this->organizationId, 'test.file_kinds', 'video'))->toMatchArray(['allowed' => false, 'reason' => 'value_not_in_plan'])
+        ->and(fn (): array => $entitlements->resolve($this->organizationId, 'test.file_kinds'))
+        ->toThrow(FeatureException::class, __('billing::exceptions.feature.value_required'));
+});
+
+it('counts a capacity with a window only since the window started', function (): void {
+    useFeatureRegistry(FeatureDefinition::capacity('test.exports', [BillingWindowCounter::class, 'exports'], CarbonInterval::hours(1)));
+    [, $version] = planOnSale(allowances: ['test.exports' => 3]);
+    subscribeTo($version, $this->organizationId);
+    $now = CarbonImmutable::parse('2026-08-20 12:00:00');
+
+    expect(app(EntitlementService::class)->resolve($this->organizationId, 'test.exports', now: $now))
+        ->toMatchArray(['allowed' => true, 'current_quantity' => 2])
+        ->and(BillingWindowCounter::$lastSince?->toDateTimeString())->toBe('2026-08-20 11:00:00');
+});
+
+final class BillingWindowCounter
+{
+    public static ?CarbonImmutable $lastSince = null;
+
+    public function exports(string $organizationId, ?CarbonImmutable $since): int
+    {
+        self::$lastSince = $since;
+
+        return 2;
     }
 }

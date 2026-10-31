@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\StockLocationData;
 use Lahatre\Catalog\Data\StockLocationFilterData;
 use Lahatre\Catalog\Models\StockLocation;
@@ -27,6 +28,7 @@ final readonly class StockLocationService
 {
     public function __construct(
         private InventoryInterface $inventoryInterface,
+        private EntitlementService $entitlements,
     ) {}
 
     public function paginate(StockLocationFilterData $filters): CursorPaginator
@@ -56,6 +58,11 @@ final readonly class StockLocationService
         );
 
         DB::transaction(function () use ($stockLocation, $data): void {
+            // only active locations count: creating an inactive one is free
+            if ($data->isActive === true) {
+                $this->entitlements->authorize($stockLocation->organization_id, 'catalog.stock_locations');
+            }
+
             $stockLocation->save();
             $this->inventoryInterface->createLocation(
                 $stockLocation,
@@ -74,6 +81,10 @@ final readonly class StockLocationService
         $stockLocation->fill(withoutMissing(['name' => $data->name]));
 
         DB::transaction(function () use ($stockLocation, $data): void {
+            if ($data->isActive === true && $stockLocation->inventoryLocation?->is_active === false) {
+                $this->entitlements->authorize($stockLocation->organization_id, 'catalog.stock_locations');
+            }
+
             $stockLocation->save();
             if (!$data->isActive instanceof MissingValue) {
                 $this->inventoryInterface->updateLocation($stockLocation, [

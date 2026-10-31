@@ -36,7 +36,7 @@ it('renders an unavailable feature as a 403 with its reason, even in production'
     app()->detectEnvironment(fn (): string => 'production');
 
     Route::middleware('api')->get('/_test/feature-unavailable', function (): void {
-        throw FeatureUnavailableException::limitReached('organization-1', 'catalog.products', 10, 10);
+        throw FeatureUnavailableException::limitReached('organization-1', 'catalog.stock_locations', 10, 10);
     })->name('_test.feature-unavailable');
 
     $this->getJson('/_test/feature-unavailable')
@@ -46,7 +46,7 @@ it('renders an unavailable feature as a 403 with its reason, even in production'
             'errors'  => [
                 'type'             => 'FeatureUnavailableException',
                 'reason'           => 'limit_reached',
-                'feature_key'      => 'catalog.products',
+                'feature_key'      => 'catalog.stock_locations',
                 'allowance'        => 10,
                 'current_quantity' => 10,
             ],

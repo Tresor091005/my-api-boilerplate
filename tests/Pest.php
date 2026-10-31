@@ -6,9 +6,15 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Testing\Fakes\QueueFake;
 use Illuminate\Testing\TestResponse;
+use Lahatre\Billing\Enums\PlanVersionStatus;
+use Lahatre\Billing\Models\PlanVersion;
+use Lahatre\Billing\Models\PlanVersionFeature;
+use Lahatre\Billing\Models\Subscription;
+use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
+use Lahatre\Master\Models\Currency;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
 use Symfony\Component\Finder\SplFileInfo;
@@ -142,4 +148,35 @@ function queuedLoginCodes(): Collection
     }
 
     return $queue->pushed(SendLoginCode::class);
+}
+
+/**
+ * Gives the organization a running subscription to a plan granting these features, and turns the feature checks on.
+ *
+ * @param  array<string, array{allowance?: int|null, values?: list<string>}>  $grants
+ */
+function subscribeOrganizationTo(string $organizationId, array $grants): PlanVersion
+{
+    config(['billing.entitlements_enforced' => true]);
+    Currency::query()->firstOrCreate(['code' => 'USD'], ['symbol' => '$', 'precision' => 2]);
+    $version = PlanVersion::factory()->create(['status' => PlanVersionStatus::Published, 'published_at' => now()]);
+
+    foreach ($grants as $featureKey => $grant) {
+        PlanVersionFeature::factory()->create([
+            'plan_version_id' => $version->id,
+            'feature_key'     => $featureKey,
+            'feature_type'    => app(FeatureRegistry::class)->get($featureKey)->type,
+            'allowance'       => $grant['allowance'] ?? null,
+            'values'          => $grant['values'] ?? null,
+        ]);
+    }
+
+    Subscription::factory()->create([
+        'organization_id' => $organizationId,
+        'plan_version_id' => $version->id,
+        'starts_at'       => now()->subDay()->startOfSecond(),
+        'ends_at'         => now()->addYear()->startOfSecond(),
+    ]);
+
+    return $version;
 }

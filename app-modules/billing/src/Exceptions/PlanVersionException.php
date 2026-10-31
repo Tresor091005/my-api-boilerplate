@@ -80,6 +80,36 @@ final class PlanVersionException extends AssertionException
         ]);
     }
 
+    public static function choiceFeatureAllowance(string $featureKey): self
+    {
+        return new self(__('billing::exceptions.plan_version.choice_feature_allowance'), [
+            'feature_key' => $featureKey,
+        ]);
+    }
+
+    public static function valuesRequired(string $featureKey): self
+    {
+        return new self(__('billing::exceptions.plan_version.values_required'), [
+            'feature_key' => $featureKey,
+        ]);
+    }
+
+    public static function valuesNotChoice(string $featureKey): self
+    {
+        return new self(__('billing::exceptions.plan_version.values_not_choice'), [
+            'feature_key' => $featureKey,
+        ]);
+    }
+
+    /** @param  list<string>  $values */
+    public static function unknownValues(string $featureKey, array $values): self
+    {
+        return new self(__('billing::exceptions.plan_version.unknown_values'), [
+            'feature_key' => $featureKey,
+            'values'      => $values,
+        ]);
+    }
+
     public static function booleanFeatureAllowance(string $featureKey): self
     {
         return new self(__('billing::exceptions.plan_version.boolean_feature_allowance'), [

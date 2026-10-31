@@ -16,6 +16,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $feature_key
  * @property FeatureType $feature_type
  * @property int|null $allowance
+ * @property list<string>|null $values
  * @property-read PlanVersion $planVersion
  */
 class PlanVersionFeature extends Model
@@ -30,6 +31,7 @@ class PlanVersionFeature extends Model
         'feature_key',
         'feature_type',
         'allowance',
+        'values',
     ];
 
     protected $casts = [
@@ -38,6 +40,7 @@ class PlanVersionFeature extends Model
         'feature_type'    => FeatureType::class,
         'plan_version_id' => 'string',
         'allowance'       => 'integer',
+        'values'          => 'array',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',

@@ -64,6 +64,18 @@ final class FeatureUnavailableException extends AssertionException
         );
     }
 
+    /** @param  list<string>  $allowedValues */
+    public static function valueNotInPlan(string $organizationId, string $featureKey, string $value, array $allowedValues): self
+    {
+        return self::because(
+            __('billing::exceptions.feature_unavailable.value_not_in_plan'),
+            FeatureUnavailableReason::ValueNotInPlan,
+            $organizationId,
+            $featureKey,
+            extra: ['value' => $value, 'values' => $allowedValues],
+        );
+    }
+
     /** Unlike other assertions, the context is shown in production: the client needs the reason and the limit. */
     public function render(Request $request): ?JsonResponse
     {
@@ -87,6 +99,7 @@ final class FeatureUnavailableException extends AssertionException
         string $featureKey,
         ?int $allowance = null,
         ?int $currentQuantity = null,
+        array $extra = [],
     ): self {
         return new self($message, [
             'organization_id'  => $organizationId,
@@ -94,6 +107,7 @@ final class FeatureUnavailableException extends AssertionException
             'feature_key'      => $featureKey,
             'allowance'        => $allowance,
             'current_quantity' => $currentQuantity,
+            ...$extra,
         ]);
     }
 

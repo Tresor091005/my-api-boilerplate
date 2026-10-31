@@ -6,8 +6,10 @@ namespace Lahatre\Library\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Library\Console\Commands\ReconcileLibraryCommand;
 use Lahatre\Library\Contracts\LibraryInterface;
+use Lahatre\Library\Services\LibraryFeatures;
 use Lahatre\Library\Services\LibraryService;
 
 class LibraryServiceProvider extends ServiceProvider
@@ -21,8 +23,10 @@ class LibraryServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function boot(Schedule $schedule): void
+    public function boot(Schedule $schedule, FeatureRegistry $features): void
     {
+        $features->registerModule(LibraryFeatures::class);
+
         $schedule
             ->command('library:reconcile --purge-only')
             ->dailyAt('02:15')

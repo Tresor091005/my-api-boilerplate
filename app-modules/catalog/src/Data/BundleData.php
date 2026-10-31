@@ -12,13 +12,17 @@ use Lahatre\Shared\Data\MissingValueReader;
 
 final readonly class BundleData
 {
-    /** @param MissingValue|Collection<int, BundleItemData> $items */
+    /**
+     * @param  MissingValue|Collection<int, BundleItemData>  $items
+     * @param  bool|null  $stockTrackingRequested  on creation, whether stock tracking was asked for; null when left to the plan
+     */
     private function __construct(
         public MissingValue|string $name,
         public MissingValue|string|null $sku,
         public MissingValue|bool $isActive,
         public MissingValue|Collection $items,
         public InventoryItemConfigurationData|InventoryItemConfigurationUpdateData|MissingValue $inventory,
+        public ?bool $stockTrackingRequested = null,
     ) {}
 
     /**
@@ -44,6 +48,9 @@ final readonly class BundleData
                 : ($missingFields === []
                     ? InventoryItemConfigurationData::fromArray($inventory)
                     : InventoryItemConfigurationUpdateData::fromArray($inventory)),
+            stockTrackingRequested: is_array($inventory) && array_key_exists('stock_tracking_enabled', $inventory)
+                ? (bool) $inventory['stock_tracking_enabled']
+                : null,
         );
     }
 }

@@ -11,6 +11,8 @@ use Lahatre\Billing\Exceptions\FeatureException;
 use Lahatre\Billing\Exceptions\FeatureUnavailableException;
 use Lahatre\Billing\Models\PlanVersionFeature;
 use Lahatre\Billing\Registries\FeatureRegistry;
+use Lahatre\Shared\Support\TransactionLock;
+use LogicException;
 
 final readonly class EntitlementService
 {
@@ -21,20 +23,37 @@ final readonly class EntitlementService
     ) {}
 
     /**
-     * @throws FeatureException when the feature key is not registered
+     * @throws FeatureException when the feature key is not registered, or a value is missing or not expected
      */
-    public function canUse(string $organizationId, string $featureKey, ?CarbonImmutable $now = null): bool
+    public function canUse(string $organizationId, string $featureKey, ?string $value = null, ?CarbonImmutable $now = null): bool
     {
-        return $this->resolve($organizationId, $featureKey, $now)['allowed'];
+        if (!config('billing.entitlements_enforced')) {
+            return true;
+        }
+
+        return $this->resolve($organizationId, $featureKey, $value, $now)['allowed'];
     }
 
     /**
-     * @throws FeatureException when the feature key is not registered
+     * Call it inside the transaction that uses the feature: for a capacity, it
+     * locks the feature for the organization until that transaction ends, so two
+     * requests cannot both take the last unit.
+     *
+     * @throws FeatureException when the feature key is not registered, or a value is missing or not expected
      * @throws FeatureUnavailableException when the organization cannot use the feature, with the reason
+     * @throws LogicException when a capacity is checked outside a transaction
      */
-    public function authorize(string $organizationId, string $featureKey, ?CarbonImmutable $now = null): void
+    public function authorize(string $organizationId, string $featureKey, ?string $value = null, ?CarbonImmutable $now = null): void
     {
-        $entitlement = $this->resolve($organizationId, $featureKey, $now);
+        if (!config('billing.entitlements_enforced')) {
+            return;
+        }
+
+        if ($this->features->get($featureKey)->type === FeatureType::Capacity) {
+            TransactionLock::acquire("billing-entitlement:{$organizationId}:{$featureKey}");
+        }
+
+        $entitlement = $this->resolve($organizationId, $featureKey, $value, $now);
 
         if ($entitlement['allowed']) {
             return;
@@ -51,13 +70,20 @@ final readonly class EntitlementService
                 (int) $entitlement['allowance'],
                 (int) $entitlement['current_quantity'],
             ),
+            FeatureUnavailableReason::ValueNotInPlan => FeatureUnavailableException::valueNotInPlan(
+                $organizationId,
+                $featureKey,
+                (string) $value,
+                $entitlement['values'] ?? [],
+            ),
         };
     }
 
     /**
-     * The reason is null when the feature is allowed.
+     * What the organization may do with the feature now; the reason is null when it is allowed.
+     * A choice feature is resolved for one value; `values` lists those the plan grants.
      *
-     * @throws FeatureException when the feature key is not registered
+     * @throws FeatureException when the feature key is not registered, or a value is missing or not expected
      *
      * @return array{
      *     allowed: bool,
@@ -66,14 +92,20 @@ final readonly class EntitlementService
      *     feature_type: string|null,
      *     allowance: int|null,
      *     current_quantity: int|null,
+     *     values: list<string>|null,
      *     subscription_id: string|null,
      *     plan_version_id: string|null,
      * }
      */
-    public function resolve(string $organizationId, string $featureKey, ?CarbonImmutable $now = null): array
+    public function resolve(string $organizationId, string $featureKey, ?string $value = null, ?CarbonImmutable $now = null): array
     {
         $now ??= CarbonImmutable::now();
         $definition = $this->features->get($featureKey);
+
+        if (($definition->type === FeatureType::Choice) !== ($value !== null) && !$definition->isDisabled()) {
+            throw FeatureException::valueRequired($featureKey);
+        }
+
         $subscription = $this->subscriptions->current($organizationId, $now)?->load('planVersion.features');
         $version = $subscription?->statusAt($now)->grantsAccess() === true
             ? $subscription->planVersion
@@ -86,6 +118,7 @@ final readonly class EntitlementService
             'feature_type'     => $definition->type?->value,
             'allowance'        => null,
             'current_quantity' => null,
+            'values'           => null,
             'subscription_id'  => $subscription?->getKey(),
             'plan_version_id'  => $version?->getKey() ?? $subscription?->plan_version_id,
         ];
@@ -111,7 +144,19 @@ final readonly class EntitlementService
             return [...$base, 'allowed' => true];
         }
 
-        $quantity = $grant->allowance === null ? null : $this->features->count($featureKey, $organizationId);
+        if ($definition->type === FeatureType::Choice) {
+            $allowed = in_array($value, $grant->values ?? [], true);
+
+            return [
+                ...$base,
+                'allowed' => $allowed,
+                'reason'  => $allowed ? null : FeatureUnavailableReason::ValueNotInPlan->value,
+                'values'  => $grant->values ?? [],
+            ];
+        }
+
+        $since = $definition->window === null ? null : $now->sub($definition->window);
+        $quantity = $grant->allowance === null ? null : $this->features->count($featureKey, $organizationId, $since);
         $allowed = $grant->allowance === null || $quantity < $grant->allowance;
 
         return [

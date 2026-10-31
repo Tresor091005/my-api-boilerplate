@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
@@ -568,4 +569,19 @@ it('reconciles deleted and orphan storage objects without scanning active files'
         ->and($report->orphanObjectsRemoved)->toBe(1);
     Storage::disk('library-test')->assertMissing($deletedFile->storage_key);
     Storage::disk('library-test')->assertMissing($orphanKey);
+});
+
+it('stores only the kinds of file the plan includes, and says which', function (): void {
+    config()->set('library.upload.allowed_mimes', ['image/jpeg', 'video/mp4']);
+    subscribeOrganizationTo($this->organization->id, ['library.file_kinds' => ['values' => ['image', 'document']]]);
+    $upload = fn (UploadedFile $file): TestResponse => $this->post('/v1/library/files?response=resource', ['files' => [$file]], ['Accept' => 'application/json']);
+
+    $upload(UploadedFile::fake()->createWithContent('cover.jpg', 'image bytes')->mimeType('image/jpeg'))->assertCreated();
+    $upload(UploadedFile::fake()->createWithContent('clip.mp4', 'video bytes')->mimeType('video/mp4'))
+        ->assertForbidden()
+        ->assertJsonPath('errors.reason', 'value_not_in_plan')
+        ->assertJsonPath('errors.value', 'video')
+        ->assertJsonPath('errors.values', ['image', 'document']);
+
+    expect(File::query()->where('organization_id', $this->organization->id)->count())->toBe(1);
 });

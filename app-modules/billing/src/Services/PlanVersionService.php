@@ -77,7 +77,7 @@ final readonly class PlanVersionService
 
         foreach ($grants->allowances as $featureKey => $allowance) {
             $features[$featureKey] = $this->features->get($featureKey);
-            $this->assertGrantable($features[$featureKey], $allowance);
+            $this->assertGrantable($features[$featureKey], $allowance, $grants->values[$featureKey]);
         }
 
         $this->assertGrantedWithSameTypes($features);
@@ -90,10 +90,11 @@ final readonly class PlanVersionService
                     'feature_key'     => $featureKey,
                     'feature_type'    => $features[$featureKey]->type?->value,
                     'allowance'       => $grants->allowances[$featureKey],
+                    'values'          => $grants->values[$featureKey] === null ? null : json_encode($grants->values[$featureKey]),
                     'deleted_at'      => null,
                 ], array_keys($features)),
                 ['plan_version_id', 'feature_key'],
-                ['feature_type', 'allowance', 'deleted_at'],
+                ['feature_type', 'allowance', 'values', 'deleted_at'],
             );
 
             return $plan->freshWithStatus();
@@ -244,6 +245,7 @@ final readonly class PlanVersionService
             'feature_key'     => $grant->feature_key,
             'feature_type'    => $grant->feature_type,
             'allowance'       => $grant->allowance,
+            'values'          => $grant->values,
         ])->all());
 
         return $draft;
@@ -261,7 +263,8 @@ final readonly class PlanVersionService
         return (int) $this->master->toMinor($price, $currencyCode);
     }
 
-    private function assertGrantable(FeatureDefinition $feature, ?int $allowance): void
+    /** @param  list<string>|null  $values */
+    private function assertGrantable(FeatureDefinition $feature, ?int $allowance, ?array $values): void
     {
         if ($feature->isDisabled()) {
             throw PlanVersionException::featureDisabled($feature->key);
@@ -273,6 +276,24 @@ final readonly class PlanVersionService
 
         if ($feature->type === FeatureType::Boolean && $allowance !== null) {
             throw PlanVersionException::booleanFeatureAllowance($feature->key);
+        }
+
+        if ($feature->type === FeatureType::Choice && $allowance !== null) {
+            throw PlanVersionException::choiceFeatureAllowance($feature->key);
+        }
+
+        if ($feature->type === FeatureType::Choice && $values === null) {
+            throw PlanVersionException::valuesRequired($feature->key);
+        }
+
+        if ($feature->type !== FeatureType::Choice && $values !== null) {
+            throw PlanVersionException::valuesNotChoice($feature->key);
+        }
+
+        $unknownValues = array_values(array_diff($values ?? [], $feature->options ?? []));
+
+        if ($unknownValues !== []) {
+            throw PlanVersionException::unknownValues($feature->key, $unknownValues);
         }
     }
 

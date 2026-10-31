@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\BundleStockOperationComponentData;
 use Lahatre\Catalog\Data\BundleStockOperationData;
 use Lahatre\Catalog\Data\BundleStockOperationFilterData;
@@ -37,6 +38,7 @@ final readonly class BundleStockOperationService
     public function __construct(
         private InventoryInterface $inventoryInterface,
         private MasterInterface $masterInterface,
+        private EntitlementService $entitlements,
     ) {}
 
     /**
@@ -50,6 +52,7 @@ final readonly class BundleStockOperationService
         $organizationId = currentOrganizationId();
 
         return DB::transaction(function () use ($bundle, $data, $organizationId): BundleStockOperation {
+            $this->entitlements->authorize($organizationId, 'catalog.bundle_assembly');
             $lockedBundle = $this->lockBundleWithEvidence($bundle, $organizationId);
             $prepared = $this->validateAndPrepareOperation($lockedBundle, $data);
 
@@ -94,6 +97,9 @@ final readonly class BundleStockOperationService
             if ($operation->status === BundleStockOperationStatus::Completed) {
                 return $operation;
             }
+
+            // a draft created on a plan with assembly cannot be completed after leaving it
+            $this->entitlements->authorize($organizationId, 'catalog.bundle_assembly');
 
             $data = BundleStockOperationData::fromArray($operation->payload);
             $prepared = $this->validateAndPrepareOperation($lockedBundle, $data, $operation);

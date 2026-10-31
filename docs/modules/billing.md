@@ -9,11 +9,34 @@ charging, no refund and no credit balance. Routes are listed in
 
 A module declares the features a plan can sell in a `ProvidesFeatures` class
 registered from its provider into `FeatureRegistry`. A feature is a key
-`module.feature` and a type: boolean, or capacity with the method counting an
-organization's usage. Its name is the translation `<module>::features.<feature>`.
-Disabling a feature cuts it for every subscriber. `billing:features:check`
-guards deployments: every granted key must still be registered with the type
-it was granted with.
+`module.feature` and a type. Its name is the translation
+`<module>::features.<feature>`.
+
+- **Boolean**: the plan has it or not.
+- **Capacity**: the plan grants an allowance, and a counter method of the
+  module measures the organization's usage. With a window
+  (`CarbonInterval`), the counter receives the moment the window started and
+  counts only what was used since, so the allowance comes back as time passes.
+- **Choice**: the feature lists its options; the plan grants some of them as
+  `values`, and the check is made for one value.
+
+Only what sets plans apart is a feature: what every organization has needs no
+check, the subscription middleware already guarding access. Disabling a
+feature cuts it for every subscriber, whatever the plan grants.
+`billing:features:check` guards deployments: every granted key must still be
+registered with the type it was granted with, and granted values must still be
+options. `php artisan doctor` runs the same check
+(`BillingFeatureGrantsMatchCode`) and fails on any difference.
+
+Each type has one example in the code: `catalog.bundle_assembly` (the stock of
+a bundle: asking to track it needs the feature, and left unsaid it follows the
+plan, so a bundle stays creatable; any stock operation on a bundle, assembling,
+taking apart or transferring, is checked when the draft is created and again
+when it is completed), `catalog.stock_locations`
+(the active locations: checked when a location is created or reactivated, so
+a smaller plan keeps only as many active ones), `catalog.stock_transfers` (a
+count over 30 days, deleted drafts included) and `library.file_kinds` (the
+kinds of file stored, checked at upload).
 
 ## Plans
 
@@ -102,13 +125,23 @@ outside production, plays that role.
 `EntitlementService` answers whether an organization may use a feature now,
 from the plan of its subscription giving access, or else of its running trial.
 `resolve()` returns the decision with its `reason` when refused: `disabled`,
-`no_subscription`, `suspended`, `not_in_plan` or `limit_reached`, checked in
-that order. Grace still grants access. A capacity feature is refused once the
-counted usage reaches the allowance; a grant without allowance is unlimited.
-`canUse()` returns the decision alone. `authorize()` throws
-`FeatureUnavailableException`, which answers 403 with the reason, the feature
-key, the allowance and the counted quantity, in production too, so the client
-can offer the right plan. An unregistered key is a `FeatureException`.
+`no_subscription`, `suspended`, `not_in_plan`, `limit_reached` or
+`value_not_in_plan`, checked in that order. Grace still grants access. A
+capacity feature is refused once the counted usage reaches the allowance; a
+grant without allowance is unlimited. A choice feature is resolved for one
+value and also returns the granted `values`. `canUse()` returns the decision
+alone. `authorize()` throws `FeatureUnavailableException`, which answers 403
+with the reason, the feature key, the allowance and the counted quantity (or
+the value and the granted values), in production too, so the client can offer
+the right plan. An unregistered key, or a value missing for a choice or given
+for another type, is a `FeatureException`.
+
+Call `authorize()` inside the transaction that uses the feature. For a
+capacity it takes the transaction lock `billing-entitlement:<organization>:<feature>`
+before counting and keeps it until that transaction ends, so two concurrent
+requests cannot both take the last unit; outside a transaction it fails.
+`billing.entitlements_enforced` (true) can turn every check off: the test suite
+and the demo seeder do, billing tests turn it back on.
 
 ## Permissions
 
@@ -120,9 +153,6 @@ generate no permission of their own.
 
 ## Next steps and open questions
 
-- Entitlements: decide where modules call `authorize()`, such as refusing a
-  product beyond the allowance, and how two concurrent creations are kept
-  under it.
 - Payment provider: research pointed to FedaPay for local mobile money and to
   Polar or Paddle for international cards; none is chosen.
 - A checkout paid after it was cancelled or expired is not applied; handling

@@ -19,6 +19,10 @@ return [
         'feature_type_changed'      => 'The feature is already granted with another type.',
         'negative_allowance'        => 'A feature allowance cannot be negative.',
         'boolean_feature_allowance' => 'A boolean feature cannot have an allowance.',
+        'choice_feature_allowance'  => 'A choice feature grants values, not an allowance.',
+        'values_required'           => 'A choice feature is granted with the values it allows.',
+        'values_not_choice'         => 'Only a choice feature is granted with values.',
+        'unknown_values'            => 'Some granted values are not options of the feature.',
     ],
     'subscription' => [
         'already_subscribed'                  => 'The organization already has a subscription; renew it or change its plan.',
@@ -44,6 +48,8 @@ return [
         'invalid_key'        => 'A feature key must have the form module.feature.',
         'counter_missing'    => 'The counter of a capacity feature does not exist.',
         'not_capacity'       => 'Only a capacity feature counts its usage.',
+        'invalid_options'    => 'A choice feature needs distinct options in snake_case.',
+        'value_required'     => 'A choice feature is checked for one value, and only a choice feature takes a value.',
         'negative_quantity'  => 'A capacity feature counter returned a negative quantity.',
     ],
     'subscription_required' => [
@@ -51,10 +57,11 @@ return [
         'suspended'       => 'The subscription is suspended; subscribe to a plan to continue.',
     ],
     'feature_unavailable' => [
-        'disabled'        => 'This feature is currently unavailable.',
-        'no_subscription' => 'The organization has no subscription; subscribe to a plan to use this feature.',
-        'suspended'       => 'The subscription is suspended; subscribe to a plan to use this feature again.',
-        'not_in_plan'     => 'The current plan does not include this feature.',
-        'limit_reached'   => 'The current plan allows at most :allowance; this limit is reached.',
+        'disabled'          => 'This feature is currently unavailable.',
+        'no_subscription'   => 'The organization has no subscription; subscribe to a plan to use this feature.',
+        'suspended'         => 'The subscription is suspended; subscribe to a plan to use this feature again.',
+        'not_in_plan'       => 'The current plan does not include this feature.',
+        'limit_reached'     => 'The current plan allows at most :allowance; this limit is reached.',
+        'value_not_in_plan' => 'The current plan does not include this option of the feature.',
     ],
 ];

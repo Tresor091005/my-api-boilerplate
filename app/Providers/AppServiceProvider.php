@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Doctor\Diagnostics\BillingFeatureGrantsMatchCode;
 use App\Doctor\Diagnostics\EnvironmentFileMatchesExample;
 use App\Doctor\Diagnostics\GeoipDatabaseIsAvailable;
 use App\Doctor\Diagnostics\HorizonServiceIsManaged;
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerStrMacros();
         Doctor::diagnostics([
+            BillingFeatureGrantsMatchCode::class,
             EnvironmentFileMatchesExample::class,
             GeoipDatabaseIsAvailable::class,
             HorizonServiceIsManaged::class,

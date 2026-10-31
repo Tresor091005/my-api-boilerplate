@@ -32,6 +32,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // demo data is created before any plan grants these features
+        config(['billing.entitlements_enforced' => false]);
+
         $user = User::firstOrCreate(
             ['email' => 'admin@lahatre.com'],
             [
