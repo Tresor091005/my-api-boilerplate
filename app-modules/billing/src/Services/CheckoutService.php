@@ -19,6 +19,7 @@ use Lahatre\Billing\Models\Checkout;
 use Lahatre\Billing\Models\PlanVersion;
 use Lahatre\Billing\Models\Subscription;
 use Lahatre\Billing\Support\BillingCalendar;
+use Lahatre\Shared\Support\TransactionLock;
 
 final readonly class CheckoutService
 {
@@ -361,7 +362,7 @@ final readonly class CheckoutService
 
     private function lockOrganization(string $organizationId): void
     {
-        DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ['billing-subscription:'.$organizationId]);
+        TransactionLock::acquire('billing-subscription:'.$organizationId);
     }
 
     private function lockPlanVersion(string $planVersionId): void

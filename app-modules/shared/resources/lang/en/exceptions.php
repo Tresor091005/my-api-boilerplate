@@ -21,6 +21,9 @@ return [
         'counter_missing'        => 'The database counter did not return a value.',
         'invalid_format'         => 'Invalid format.',
     ],
+    'child_limit' => [
+        'reached' => 'No more than :max can be added here; remove some first.',
+    ],
     'enum' => [
         'invalid_value' => "Invalid value ':value' for enum :enum_class.",
     ],

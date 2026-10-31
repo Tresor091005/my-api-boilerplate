@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Lahatre\Iam\Services;
 
-use Illuminate\Support\Facades\DB;
 use Lahatre\Iam\Exceptions\EmailAccountException;
 use Lahatre\Iam\Models\User;
+use Lahatre\Shared\Support\TransactionLock;
 
 /** Transactional support shared by email ownership onboarding flows. */
 final class EmailAccountService
@@ -17,7 +17,7 @@ final class EmailAccountService
      */
     public function findForUpdate(string $email): ?User
     {
-        DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ['iam-email:'.$email]);
+        TransactionLock::acquire('iam-email:'.$email);
 
         return User::withTrashed()->where('email', $email)->lockForUpdate()->first();
     }

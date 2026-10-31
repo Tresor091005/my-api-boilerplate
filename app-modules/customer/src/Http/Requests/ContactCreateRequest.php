@@ -15,7 +15,7 @@ final class ContactCreateRequest extends FormRequest
     public function rules(): array
     {
         $rules = ContactPayloadRules::rules();
-        $rules['contacts'] = ['required', 'array', 'min:1', 'max:50'];
+        $rules['contacts'] = ['required', 'array', 'min:1', 'max:'.config('child-limits.master_contacts.contactable_id')];
         $rules['contacts.*.id'] = ['prohibited'];
 
         return $rules;

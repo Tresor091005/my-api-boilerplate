@@ -166,14 +166,23 @@ it('enforces the configured maximum folder depth', function (): void {
     ])->assertUnprocessable();
 });
 
-it('enforces the configured maximum folder width', function (): void {
-    $maximumChildren = (int) config('library.folders.max_children');
-
-    Folder::factory()->count($maximumChildren)->create([
+it('enforces the declared maximum of folders at the root and inside a folder', function (): void {
+    Folder::factory()->count(config('child-limits.library_folders.organization_id.max'))->create([
         'organization_id' => $this->organization->id,
     ]);
 
     $this->postJson('/v1/library/folders?response=resource', [
         'name' => 'Too wide',
-    ])->assertUnprocessable();
+    ])->assertUnprocessable()->assertJsonPath('errors.type', 'ChildLimitException');
+
+    $parent = Folder::query()->where('organization_id', $this->organization->id)->firstOrFail();
+    Folder::factory()->count(config('child-limits.library_folders.parent_id'))->create([
+        'organization_id' => $this->organization->id,
+        'parent_id'       => $parent->id,
+    ]);
+
+    $this->postJson('/v1/library/folders?response=resource', [
+        'name'      => 'Too wide inside',
+        'parent_id' => $parent->id,
+    ])->assertUnprocessable()->assertJsonPath('errors.type', 'ChildLimitException');
 });

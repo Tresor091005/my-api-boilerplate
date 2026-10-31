@@ -14,7 +14,7 @@ class MemberRoleCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role_ids' => ['required', 'array', 'list', 'min:1', 'max:100', new BulkExists(
+            'role_ids' => ['required', 'array', 'list', 'min:1', 'max:'.config('child-limits.iam_member_roles.member_id'), new BulkExists(
                 'iam_roles', handleSoftDelete: true, extraConditions: [
                     'team_id'    => currentOrganizationId(),
                     'is_builtin' => false,

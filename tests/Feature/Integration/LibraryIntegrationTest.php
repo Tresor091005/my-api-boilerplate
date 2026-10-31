@@ -482,7 +482,7 @@ it('does not restore a folder when its parent has reached the maximum width', fu
     $this->deleteJson("/v1/library/files/{$fileId}")->assertNoContent();
     $this->deleteJson("/v1/library/folders/{$folder->id}")->assertNoContent();
 
-    Folder::factory()->count((int) config('library.folders.max_children'))->create([
+    Folder::factory()->count(config('child-limits.library_folders.organization_id.max'))->create([
         'organization_id' => $this->organization->id,
     ]);
 

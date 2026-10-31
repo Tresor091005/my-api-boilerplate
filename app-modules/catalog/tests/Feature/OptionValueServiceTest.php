@@ -2,7 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Lahatre\Catalog\Data\OptionData;
 use Lahatre\Catalog\Data\OptionValueData;
 use Lahatre\Catalog\Data\OptionValueFilterData;
 use Lahatre\Catalog\Exceptions\OptionValueException;
@@ -11,6 +17,7 @@ use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\Services\Option\TransactionalOptionService;
+use Lahatre\Catalog\Services\OptionService;
 use Lahatre\Catalog\Services\OptionValueService;
 use Lahatre\Catalog\Tests\Concerns\InteractsWithCatalogTenantContext;
 
@@ -129,4 +136,45 @@ it('creates active option values idempotently and allows recreation after soft d
             ->where('option_id', $option->id)
             ->where('value', 'Blue')
             ->count())->toBe(2);
+});
+
+it('caps an option at its maximum number of values, whichever way they get there', function (): void {
+    $max = (int) config('child-limits.catalog_option_values.option_id');
+    $option = Option::factory()->create(['organization_id' => $this->organizationId, 'name' => 'Size']);
+    $other = Option::factory()->create(['organization_id' => $this->organizationId, 'name' => 'Color']);
+    $valueRow = fn (Option $parent, string $value): array => [
+        'id'              => (string) Str::uuid7(),
+        'organization_id' => $this->organizationId,
+        'option_id'       => $parent->id,
+        'value'           => $value,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ];
+    DB::table('catalog_option_values')->insert(array_map(fn (int $index): array => $valueRow($option, "v{$index}"), range(1, $max - 1)));
+    $addValues = fn (array $values): EloquentCollection => $this->service->create($option, OptionValueData::fromArray(['option_id' => $option->id, 'values' => $values]));
+    $resolveValue = fn (string $value): Collection => DB::transaction(fn (): Collection => app(TransactionalOptionService::class)
+        ->resolveOrCreateValues(collect([['name' => 'Size', 'value' => $value]])));
+    $limitReached = "child_limit:catalog_option_values.option_id:{$max}";
+
+    expect(fn (): EloquentCollection => $addValues(['extra-1', 'extra-2']))->toThrow(QueryException::class, $limitReached);
+
+    $addValues(['v1', 'extra-1']);
+    $spare = OptionValue::factory()->create(['organization_id' => $this->organizationId, 'option_id' => $other->id, 'value' => 'spare']);
+
+    expect($option->values()->count())->toBe($max)
+        ->and(fn (): Option => app(OptionService::class)->update($option, OptionData::fromArray(['values' => ['extra-2']], missingFields: ['name'])))
+        ->toThrow(QueryException::class, $limitReached)
+        ->and(fn (): Collection => $resolveValue('extra-2'))->toThrow(QueryException::class, $limitReached)
+        ->and($resolveValue('v2')->has('Size-v2'))->toBeTrue()
+        ->and(fn (): bool => DB::transaction(fn (): bool => DB::table('catalog_option_values')->insert($valueRow($option, 'raw'))))
+        ->toThrow(QueryException::class, $limitReached)
+        ->and(fn (): bool => DB::transaction(fn (): bool => $spare->update(['option_id' => $option->id])))
+        ->toThrow(QueryException::class, $limitReached);
+
+    $removed = OptionValue::query()->where('option_id', $option->id)->where('value', 'v3')->firstOrFail();
+    $this->service->delete($option, $removed);
+    $addValues(['extra-2']);
+
+    expect($option->values()->count())->toBe($max)
+        ->and(fn (): bool => DB::transaction(fn (): bool => (bool) $removed->restore()))->toThrow(QueryException::class, $limitReached);
 });

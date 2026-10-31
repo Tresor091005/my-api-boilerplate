@@ -13,6 +13,7 @@ use Lahatre\Iam\Exceptions\GoogleAuthException;
 use Lahatre\Iam\Integrations\GoogleIdentityVerifier;
 use Lahatre\Iam\Models\ExternalIdentity;
 use Lahatre\Iam\Models\User;
+use Lahatre\Shared\Support\TransactionLock;
 use stdClass;
 
 /**
@@ -134,7 +135,7 @@ final class GoogleAuthService
     /** Serialize concurrent attempts, including creation when no external identity row exists yet. @param GoogleIdentity $identity */
     private function lockIdentity(array $identity): ?ExternalIdentity
     {
-        DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ['iam-google:'.$identity['issuer'].':'.$identity['subject']]);
+        TransactionLock::acquire('iam-google:'.$identity['issuer'].':'.$identity['subject']);
 
         return ExternalIdentity::query()->where('provider', 'google')
             ->where('issuer', $identity['issuer'])->where('subject', $identity['subject'])->lockForUpdate()->first();

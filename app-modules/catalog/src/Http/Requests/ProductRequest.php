@@ -51,6 +51,7 @@ class ProductRequest extends FormRequest
             'categories'  => [
                 'nullable',
                 'array',
+                'max:'.config('child-limits.catalog_product_categories.product_id'),
                 new BulkExists('catalog_categories', handleSoftDelete: true, extraConditions: ['organization_id' => $organizationId]),
             ],
             'variants' => [
@@ -68,7 +69,7 @@ class ProductRequest extends FormRequest
             'variants.*.sku'             => ['nullable', 'string', 'max:100'],
             'variants.*.unit_group_id'   => ['required', 'uuid'],
             'variants.*.is_active'       => ['boolean'],
-            'variants.*.options'         => ['required', 'array', 'min:1', 'max:100'],
+            'variants.*.options'         => ['required', 'array', 'min:1', 'max:'.config('child-limits.catalog_variant_option_value.variant_id')],
             'variants.*.options.*.name'  => ['required', 'string', 'max:100'],
             'variants.*.options.*.value' => ['required', 'string', 'max:100'],
             ...LabelPayloadRules::rules('variants.*.labels'),

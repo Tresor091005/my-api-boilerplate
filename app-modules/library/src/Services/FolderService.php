@@ -49,7 +49,6 @@ final readonly class FolderService
         return DB::transaction(function () use ($data, $organizationId): Folder {
             $parent = $this->resolveParent($data->parentId, lockForUpdate: true);
             $this->folderAssertion->assertCanCreateAtDepth($parent);
-            $this->folderAssertion->assertCanHaveChild($organizationId, $parent);
             $this->folderAssertion->assertNameAvailable($organizationId, $data->name, $parent?->getKey());
 
             $folder = Folder::query()->create([
@@ -79,7 +78,6 @@ final readonly class FolderService
             if (!($data->parentId instanceof MissingValue)) {
                 $this->folderAssertion->assertCanMoveTo($ownedFolder, $parent);
                 $this->folderAssertion->assertCanMoveAtDepth($ownedFolder, $parent);
-                $this->folderAssertion->assertCanHaveChild($organizationId, $parent, $ownedFolder->getKey());
             }
 
             $this->folderAssertion->assertNameAvailable(

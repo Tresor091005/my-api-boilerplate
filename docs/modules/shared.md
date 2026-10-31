@@ -11,6 +11,7 @@ It provides:
 - handle and SKU generation;
 - model discovery and morph-map caching;
 - PostgreSQL-backed, organization-scoped business numbering;
+- transaction locks and database-enforced caps on the number of children of a parent;
 - module-aware/native Artisan generator overrides;
 - generator architecture support and shared test helpers;
 - an enum-based state machine for domain-owned workflows.
@@ -192,6 +193,66 @@ $actor->trigger(OrderEvent::Confirm); // to OrderStatus::Completed
 Guards are evaluated for each check, so they should not perform persistence or
 other side effects. The domain service owns the transaction and any durable
 state change.
+
+## Transaction locks and child limits
+
+`TransactionLock::acquire(...$keys)` takes PostgreSQL advisory locks held until
+the current transaction ends. They lock a key, not a row: only code asking for
+the same key waits, and nothing is written. It refuses to run outside a
+transaction, takes several keys in sorted order so two transactions cannot
+deadlock, and waits at most `TransactionLock::WAIT` (5 s) before failing. Use it
+instead of calling `pg_advisory_xact_lock` directly; keep a few keys per
+transaction, since PostgreSQL's lock table has a fixed size.
+
+`config/child-limits.php` is the single list of how many children a parent
+row may have, by child table and foreign key;
+`null` means no limit, on purpose. `['max' => n, 'where' => 'sql']` only counts
+the children meeting the condition: the notes of a record without their
+replies (`parent_id IS NULL`), or the root folders of an organization with
+`organization_id` as the key. PostgreSQL enforces every number, so no
+service has to: `child-limits:sync` attaches two triggers per declared key and
+runs by itself after every `migrate`, even when nothing is pending, so deploys,
+`migrate:fresh` and the test database follow the file. `child-limits:sync
+--check` only reports the differences; a test runs it.
+
+- After an insert statement, once per parent touched in sorted order, the
+  trigger takes the advisory lock `child-limit:<table>.<key>:<parent>` (the key
+  format `TransactionLock` uses), then fails if a child meeting the condition
+  exists at rank `max`.
+  It probes at most `max` rows, never counts them all. Bulk inserts, raw SQL and
+  imports are covered alike.
+- After an update that moves a child to another parent, restores it
+  (`deleted_at` back to null) or makes it meet the condition, the same check
+  runs for the new parent.
+- The error is a check violation with the message
+  `child_limit:<table>.<key>:<max>`; the exception handler turns it into a 422
+  `ChildLimitException`. Services that call the database directly receive the
+  `QueryException`; `ChildLimitException::fromQueryException()` reads it.
+- The check uses an index the table already has. The index may start with
+  `organization_id` or, for a polymorphic key, its `*_type` column before the
+  key: children of one parent share both, so the check filters on them too and
+  counts the same rows. A partial index serves only if each part of its
+  condition is one the check applies (`deleted_at IS NULL`, the declared
+  condition). The sync refuses an unknown column, a maximum below 1, an
+  invalid condition and a key no index can serve; the trigger name carries a
+  hash of what it runs, so any change replaces it. Changing a number needs no
+  migration: edit the file,
+  the next `migrate` replaces the triggers.
+- The triggers depend on the columns they watch, so `migrate` drops them all
+  before running migrations and puts them back afterwards: a migration may
+  drop, retype or rename a limited key or `deleted_at` freely. Until a failed
+  `migrate` is run again successfully, no limit is enforced; `--check` shows it.
+  `--pretend` touches nothing, and concurrent syncs wait for each other.
+- Limits per organization (`organization_id` as the key) work the same way;
+  the root folders of the library are one.
+
+Every parent to children relation of the models is declared there, with a
+number or `null`, including the `children()` of the tree package; an
+architecture test fails on a relation left out, and
+another runs `--check`. Numbers follow Shopify where it has one: 2 048
+variants per product, 3 options per variant, 250 for the lists attached to a
+record (option values, files, labels), 30 items per bundle; 50 categories per
+product, 20 roles per member or invitation, 20 notes per record.
 
 ## Generated identifiers
 

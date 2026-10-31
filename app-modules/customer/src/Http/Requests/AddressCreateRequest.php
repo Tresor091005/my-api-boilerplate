@@ -15,7 +15,7 @@ final class AddressCreateRequest extends FormRequest
     public function rules(): array
     {
         $rules = AddressPayloadRules::rules();
-        $rules['addresses'] = ['required', 'array', 'min:1', 'max:50'];
+        $rules['addresses'] = ['required', 'array', 'min:1', 'max:'.config('child-limits.master_addresses.addressable_id')];
         $rules['addresses.*.id'] = ['prohibited'];
 
         return $rules;

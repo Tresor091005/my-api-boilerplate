@@ -21,6 +21,7 @@ use Lahatre\Master\Enums\NoteVisibility;
 use Lahatre\Master\Exceptions\NoteException;
 use Lahatre\Master\Models\Note;
 use Lahatre\Master\Models\NoteMention;
+use Lahatre\Master\Models\Unit;
 use Lahatre\Master\Services\NoteService;
 use Lahatre\Organization\Models\Organization;
 use Spatie\Permission\PermissionRegistrar;
@@ -587,4 +588,20 @@ it('rejects pinning an expired note after locking its current row state', functi
 
     expect($usedRowLock)->toBeTrue()
         ->and($expiredNote->fresh()->pinned_at)->toBeNull();
+});
+
+it('caps the notes of a record without counting their replies', function (): void {
+    $max = config('child-limits.master_notes.notable_id.max');
+    $onRecord = [
+        'organization_id' => $this->organization->id,
+        'notable_type'    => 'master_unit',
+        'notable_id'      => Unit::factory()->create(['organization_id' => $this->organization->id])->id,
+        'author_id'       => $this->member->id,
+    ];
+    $notes = Note::factory()->count($max)->create($onRecord);
+
+    Note::factory()->create([...$onRecord, 'parent_id' => $notes->first()->id, 'position' => 1]);
+
+    expect(fn (): Note => DB::transaction(fn (): Note => Note::factory()->create($onRecord)))
+        ->toThrow(QueryException::class, "child_limit:master_notes.notable_id:{$max}");
 });

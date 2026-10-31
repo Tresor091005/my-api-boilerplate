@@ -32,6 +32,8 @@ Models, Jobs, Support classes, and other application code.
 - PostgreSQL-specific SQL, expressions, partial indexes, CTEs, window functions, or locking may be used when they provide a clear atomicity or performance benefit. Keep bindings parameterized, preserve tenant and soft-delete boundaries, and cover the behavior with tests.
 - For non-obvious performance work, validate the expected gain with the query shape, production-like cardinality, or `EXPLAIN`/`EXPLAIN ANALYZE`; do not add database-specific complexity for a hypothetical micro-optimization.
 - Prevent check-then-write races with database constraints, atomic statements, or row locks. Keep the protecting check and write in the same transaction.
+- Take advisory locks only through `Lahatre\Shared\Support\TransactionLock::acquire()`, never with raw `pg_advisory_*` calls or session-level locks.
+- Cap the number of children of a parent in `config/child-limits.php` only (child table, foreign key, maximum, maximum with a `where` condition, or `null`); the check uses an existing index, never one added for it; PostgreSQL triggers synced by `child-limits:sync` enforce it on every write path. A request `max:` rule only limits one payload and reads the same entry. Do not add service-side counts for these caps.
 - Sort inputs come from a Data whitelist, never directly from request values. For custom cursor ordering, write the explicit `orderBy()` chain and finish with `cursorPaginate()`.
 
 ## Models

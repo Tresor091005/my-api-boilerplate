@@ -14,7 +14,7 @@ class InvitationRolesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role_ids' => ['required', 'array', 'min:1', 'max:100', new BulkExists(
+            'role_ids' => ['required', 'array', 'min:1', 'max:'.config('child-limits.iam_invitation_roles.invitation_id'), new BulkExists(
                 'iam_roles', handleSoftDelete: true, extraConditions: [
                     'team_id'    => currentOrganizationId(),
                     'is_builtin' => false,

@@ -78,13 +78,6 @@ final class LibraryException extends AssertionException
         ]);
     }
 
-    public static function folderWidthExceeded(int $maximum): self
-    {
-        return new self(__('library::exceptions.folder_width_exceeded', ['maximum' => $maximum]), [
-            'maximum' => $maximum,
-        ]);
-    }
-
     public static function folderNotEmpty(Folder $folder): self
     {
         return new self(__('library::exceptions.folder_not_empty'), [

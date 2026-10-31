@@ -313,6 +313,13 @@ organization can see why and pay.
 product's `update_variant` permission. Option values are nested and scoped under
 `options/{option}/values`.
 
+`config/child-limits.php` caps the children of a record, however they are
+added; going beyond answers 422 `ChildLimitException`. In the catalog: 250
+values per option, 2 048 variants per product, 3 options per variant, 250
+categories per product, 30 items per bundle, 500 lines per stock transfer.
+Elsewhere: 250 files and 250 labels per record, 20 addresses and 20 contacts
+per customer or location. Request arrays never accept more than these caps.
+
 All catalog routes require `auth.api`. Nested scoped binding prevents a child
 from being addressed through a parent that does not own it.
 

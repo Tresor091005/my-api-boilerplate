@@ -66,31 +66,6 @@ final class FolderAssertion
     }
 
     /** @throws LibraryException */
-    public function assertCanHaveChild(
-        string $organizationId,
-        ?Folder $parent,
-        ?string $ignoredFolderId = null,
-    ): void {
-        $query = Folder::query()
-            ->where('organization_id', $organizationId);
-
-        if ($parent === null) {
-            $query->whereNull('parent_id');
-        } else {
-            $query->where('parent_id', $parent->getKey());
-        }
-
-        if ($ignoredFolderId !== null) {
-            $query->whereKeyNot($ignoredFolderId);
-        }
-
-        $maximumChildren = $this->maximumChildren();
-        if ($query->count() >= $maximumChildren) {
-            throw LibraryException::folderWidthExceeded($maximumChildren);
-        }
-    }
-
-    /** @throws LibraryException */
     public function assertCanMoveAtDepth(Folder $folder, ?Folder $parent): void
     {
         $maximumDepth = $this->maximumDepth();
@@ -122,10 +97,5 @@ final class FolderAssertion
     private function maximumDepth(): int
     {
         return max(1, (int) config('library.folders.max_depth', 5));
-    }
-
-    private function maximumChildren(): int
-    {
-        return max(1, (int) config('library.folders.max_children', 50));
     }
 }

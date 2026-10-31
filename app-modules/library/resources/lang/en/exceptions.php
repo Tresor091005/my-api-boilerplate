@@ -14,7 +14,6 @@ return [
     'folder_cannot_contain_itself'       => 'A folder cannot contain itself.',
     'folder_cannot_move_into_descendant' => 'A folder cannot be moved into one of its descendants.',
     'folder_depth_exceeded'              => 'The folder hierarchy cannot exceed :maximum levels.',
-    'folder_width_exceeded'              => 'A folder cannot contain more than :maximum direct children.',
     'folder_not_empty'                   => 'The folder must be empty before it can be deleted.',
     'upload_file_count_exceeded'         => 'An upload cannot contain more than :maximum files.',
     'upload_file_too_large'              => 'A file cannot exceed :maximum bytes.',

@@ -32,7 +32,7 @@ class StoreOptionValueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'values'   => ['required', 'array', 'min:1', 'max:100'],
+            'values'   => ['required', 'array', 'min:1', 'max:'.config('child-limits.catalog_option_values.option_id')],
             'values.*' => ['string', 'max:100'],
         ];
     }

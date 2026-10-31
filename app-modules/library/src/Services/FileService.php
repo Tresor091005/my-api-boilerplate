@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Lahatre\Library\Assertions\FileAssertion;
-use Lahatre\Library\Assertions\FolderAssertion;
 use Lahatre\Library\Data\FileFilterData;
 use Lahatre\Library\Data\FileUpdateData;
 use Lahatre\Library\Data\FileUploadData;
@@ -34,7 +33,6 @@ final readonly class FileService
 
     public function __construct(
         private FileAssertion $fileAssertion,
-        private FolderAssertion $folderAssertion,
         private OrganizationInterface $organizationInterface,
     ) {}
 
@@ -285,7 +283,6 @@ final readonly class FileService
 
         $parent = $activeParent;
         foreach (array_reverse($folders) as $folder) {
-            $this->folderAssertion->assertCanHaveChild($organizationId, $parent);
             $folder->name = $this->restoredFolderName($folder);
             $folder->restore();
             $parent = $folder;

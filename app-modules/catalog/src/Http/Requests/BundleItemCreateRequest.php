@@ -30,7 +30,7 @@ final class BundleItemCreateRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
-                'max:50',
+                'max:'.config('child-limits.catalog_bundle_items.bundle_id'),
                 new ValidBundleItems(
                     currentOrganizationId(),
                     app(MasterInterface::class),

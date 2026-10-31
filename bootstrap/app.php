@@ -8,10 +8,12 @@ use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Lahatre\ResponseSelection\ResolveResponseSelection;
 use Lahatre\Shared\Exceptions\AssertionException;
+use Lahatre\Shared\Exceptions\ChildLimitException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -55,6 +57,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToPriorityList(AuthenticatesRequests::class, ResolveResponseSelection::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->map(fn (QueryException $e): Throwable => ChildLimitException::fromQueryException($e) ?? $e);
+
         $exceptions->render(function (AssertionException $e, $request) {
             if ($request->expectsJson()) {
                 return response()->json([

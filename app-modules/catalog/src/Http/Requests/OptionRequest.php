@@ -50,7 +50,7 @@ class OptionRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->ignore($isUpdate ? $option : null),
             ],
-            'values'   => ['nullable', 'array', 'max:100'],
+            'values'   => ['nullable', 'array', 'max:'.config('child-limits.catalog_option_values.option_id')],
             'values.*' => ['string', 'max:100'],
         ];
     }

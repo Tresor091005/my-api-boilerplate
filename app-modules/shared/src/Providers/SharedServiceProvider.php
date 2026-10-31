@@ -6,7 +6,11 @@ namespace Lahatre\Shared\Providers;
 
 use Closure;
 use Illuminate\Console\Application as Artisan;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Database\Events\MigrationsStarted;
+use Illuminate\Database\Events\NoPendingMigrations;
 use Illuminate\Foundation\Console\ClassMakeCommand;
 use Illuminate\Foundation\Console\EnumMakeCommand;
 use Illuminate\Foundation\Console\InterfaceMakeCommand;
@@ -17,6 +21,7 @@ use Illuminate\Foundation\Console\TestMakeCommand;
 use Illuminate\Foundation\Console\TraitMakeCommand;
 use Illuminate\Foundation\Console\ViewMakeCommand;
 use Illuminate\Routing\Console\ControllerMakeCommand;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Shared\Console\Commands\HelpersListCommand;
 use Lahatre\Shared\Console\Commands\Make\MakeClass;
@@ -31,7 +36,9 @@ use Lahatre\Shared\Console\Commands\Make\MakeTrait;
 use Lahatre\Shared\Console\Commands\Make\MakeView;
 use Lahatre\Shared\Console\Commands\MorphMapCacheCommand;
 use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
+use Lahatre\Shared\Console\Commands\SyncChildLimitsCommand;
 use Lahatre\Shared\Registries\MorphMapRegistry;
+use Lahatre\Shared\Support\ChildLimitTriggers;
 
 class SharedServiceProvider extends ServiceProvider
 {
@@ -45,12 +52,15 @@ class SharedServiceProvider extends ServiceProvider
             HelpersListCommand::class,
             MorphMapCacheCommand::class,
             MorphMapClearCommand::class,
+            SyncChildLimitsCommand::class,
         ]);
     }
 
     public function boot(MorphMapRegistry $morphMapRegistry): void
     {
         $morphMapRegistry->discover();
+
+        $this->syncChildLimitsAroundMigrations();
 
         $this->extendNativeGeneratorCommands();
         Artisan::starting(function (Artisan $artisan): void {
@@ -84,5 +94,28 @@ class SharedServiceProvider extends ServiceProvider
     protected function makeGeneratorFactory(string $generatorClass): Closure
     {
         return fn (object $command, Application $app): object => new $generatorClass($app['files']);
+    }
+
+    /**
+     * The child limit triggers depend on the columns they watch: they are dropped before migrations
+     * run and put back from config/child-limits.php afterwards, even when nothing was pending.
+     */
+    private function syncChildLimitsAroundMigrations(): void
+    {
+        $isPretend = false;
+
+        Event::listen(function (CommandStarting $event) use (&$isPretend): void {
+            $isPretend = $event->input->hasParameterOption('--pretend', true);
+        });
+        Event::listen(function (MigrationsStarted $event) use (&$isPretend): void {
+            if ($event->method === 'up' && !$isPretend) {
+                $this->app->make(ChildLimitTriggers::class)->dropAll();
+            }
+        });
+        Event::listen(function (MigrationsEnded|NoPendingMigrations $event) use (&$isPretend): void {
+            if ($event->method === 'up' && !$isPretend) {
+                $this->app->make(ChildLimitTriggers::class)->sync();
+            }
+        });
     }
 }
