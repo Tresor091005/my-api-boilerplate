@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Lahatre\Billing\Exceptions;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Lahatre\Billing\Enums\FeatureUnavailableReason;
 use Lahatre\Shared\Exceptions\AssertionException;
 
-/**
- * An organization uses a feature its subscription does not give.
- * The API renders it as a 403 that tells the client why.
- */
 final class FeatureUnavailableException extends AssertionException
 {
     public static function disabled(string $organizationId, string $featureKey): self
@@ -63,6 +62,22 @@ final class FeatureUnavailableException extends AssertionException
             $allowance,
             $currentQuantity,
         );
+    }
+
+    /** Unlike other assertions, the context is shown in production: the client needs the reason and the limit. */
+    public function render(Request $request): ?JsonResponse
+    {
+        if (!$request->expectsJson()) {
+            return null;
+        }
+
+        return response()->json([
+            'message' => $this->getMessage(),
+            'errors'  => [
+                'type' => class_basename($this),
+                ...Arr::except($this->context(), ['organization_id']),
+            ],
+        ], 403);
     }
 
     private static function because(

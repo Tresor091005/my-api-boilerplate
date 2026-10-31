@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 return [
     'plan' => [
-        'in_use' => 'A plan on sale, with subscribers, or with a payment in progress cannot be deleted.',
+        'in_use'          => 'A plan on sale, with subscribers, or with a payment in progress cannot be deleted.',
+        'trial_plan_kept' => 'The trial plan cannot be deleted; archive it to stop giving trials.',
     ],
     'plan_version' => [
         'terms_required'            => 'A new plan needs a price, a currency and a billing interval first.',
         'price_without_currency'    => 'A price and its currency are given together.',
+        'trial_plan_not_free'       => 'The trial plan is free; its price stays 0.',
         'price_precision_exceeded'  => 'The price has more decimals than its currency allows.',
         'billing_interval_invalid'  => 'A billing interval must be from 1 to :max months.',
         'draft_missing'             => 'The plan has no draft.',
@@ -44,10 +46,14 @@ return [
         'not_capacity'       => 'Only a capacity feature counts its usage.',
         'negative_quantity'  => 'A capacity feature counter returned a negative quantity.',
     ],
+    'subscription_required' => [
+        'no_subscription' => 'The organization has no subscription; subscribe to a plan to continue.',
+        'suspended'       => 'The subscription is suspended; subscribe to a plan to continue.',
+    ],
     'feature_unavailable' => [
         'disabled'        => 'This feature is currently unavailable.',
         'no_subscription' => 'The organization has no subscription; subscribe to a plan to use this feature.',
-        'suspended'       => 'The subscription is suspended; renew it to use this feature again.',
+        'suspended'       => 'The subscription is suspended; subscribe to a plan to use this feature again.',
         'not_in_plan'     => 'The current plan does not include this feature.',
         'limit_reached'   => 'The current plan allows at most :allowance; this limit is reached.',
     ],

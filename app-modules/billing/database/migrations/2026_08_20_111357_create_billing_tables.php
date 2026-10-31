@@ -15,10 +15,13 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->text('code')->unique();
             $table->text('name');
+            $table->boolean('is_trial')->default(false);
             $table->timestamps();
             $table->softDeletes();
             $table->index('deleted_at');
         });
+
+        DB::statement('CREATE UNIQUE INDEX billing_plans_one_trial ON billing_plans (is_trial) WHERE is_trial AND deleted_at IS NULL');
 
         Schema::create('billing_plan_versions', function (Blueprint $table): void {
             $table->uuid('id')->primary();

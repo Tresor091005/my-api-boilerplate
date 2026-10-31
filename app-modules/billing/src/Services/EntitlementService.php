@@ -16,6 +16,7 @@ final readonly class EntitlementService
 {
     public function __construct(
         private SubscriptionService $subscriptions,
+        private TrialService $trials,
         private FeatureRegistry $features,
     ) {}
 
@@ -74,6 +75,9 @@ final readonly class EntitlementService
         $now ??= CarbonImmutable::now();
         $definition = $this->features->get($featureKey);
         $subscription = $this->subscriptions->current($organizationId, $now)?->load('planVersion.features');
+        $version = $subscription?->statusAt($now)->grantsAccess() === true
+            ? $subscription->planVersion
+            : $this->trials->runningAt($organizationId, $now)?->load('planVersion.features')->planVersion;
 
         $base = [
             'allowed'          => false,
@@ -83,22 +87,20 @@ final readonly class EntitlementService
             'allowance'        => null,
             'current_quantity' => null,
             'subscription_id'  => $subscription?->getKey(),
-            'plan_version_id'  => $subscription?->plan_version_id,
+            'plan_version_id'  => $version?->getKey() ?? $subscription?->plan_version_id,
         ];
 
         if ($definition->isDisabled()) {
             return [...$base, 'reason' => FeatureUnavailableReason::Disabled->value];
         }
 
-        if ($subscription === null) {
-            return [...$base, 'reason' => FeatureUnavailableReason::NoSubscription->value];
+        if ($version === null) {
+            return [...$base, 'reason' => $subscription === null
+                ? FeatureUnavailableReason::NoSubscription->value
+                : FeatureUnavailableReason::Suspended->value];
         }
 
-        if (!$subscription->statusAt($now)->grantsAccess()) {
-            return [...$base, 'reason' => FeatureUnavailableReason::Suspended->value];
-        }
-
-        $grant = $subscription->planVersion->features
+        $grant = $version->features
             ->first(fn (PlanVersionFeature $candidate): bool => $candidate->feature_key === $featureKey);
 
         if ($grant === null) {

@@ -63,6 +63,7 @@ final class PlanService
     {
         return Plan::query()
             ->whereStatus(PlanStatus::OnSale)
+            ->where('is_trial', false)
             ->with('currentVersion')
             ->get()
             ->sortBy(fn (Plan $plan): int => $plan->currentVersion->price)
@@ -99,10 +100,14 @@ final class PlanService
     /**
      * Delete a plan that never served, with its versions and their grants: nothing on sale and no subscription ever.
      *
-     * @throws PlanException when the plan is not unused
+     * @throws PlanException when the plan is the trial plan or is not unused
      */
     public function delete(Plan $plan): void
     {
+        if ($plan->is_trial) {
+            throw PlanException::trialPlanKept($plan->getKey());
+        }
+
         DB::transaction(function () use ($plan): void {
             $versionIds = PlanVersion::withTrashed()->where('plan_id', $plan->getKey())->lockForUpdate()->pluck('id');
 

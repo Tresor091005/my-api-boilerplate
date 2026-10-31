@@ -17,6 +17,7 @@ class PlanResource extends ApiResource
             ->field('id')
             ->field('code')
             ->field('name')
+            ->field('is_trial')
             ->field('status', columns: [], computedBy: fn (Model $plan): string => PlanStatus::of(
                 (bool) $plan->getAttribute('is_on_sale'),
                 (bool) $plan->getAttribute('has_been_subscribed'),

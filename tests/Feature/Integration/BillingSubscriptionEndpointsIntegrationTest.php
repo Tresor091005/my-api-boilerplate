@@ -5,22 +5,28 @@ declare(strict_types=1);
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Lahatre\Billing\Data\PlanData;
 use Lahatre\Billing\Data\PlanTermsData;
+use Lahatre\Billing\Http\Middleware\EnsureSubscriptionAccess;
 use Lahatre\Billing\Models\Checkout;
 use Lahatre\Billing\Models\Plan;
 use Lahatre\Billing\Models\Subscription;
 use Lahatre\Billing\Services\CheckoutService;
 use Lahatre\Billing\Services\PlanService;
 use Lahatre\Billing\Services\PlanVersionService;
+use Lahatre\Billing\Services\TrialService;
+use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Permission;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
 use Lahatre\Organization\Models\Organization;
+use Lahatre\Organization\Models\OrganizationSetting;
 
 uses(RefreshDatabase::class);
 
@@ -125,6 +131,103 @@ it('lets a member who may pay subscribe, choose the next plan and renew it, then
     expect(Subscription::query()->orderBy('starts_at')->get()->map(fn (Subscription $row): array => [
         $row->starts_at->toDateString(), $row->ends_at->toDateString(),
     ])->all())->toBe([['2026-08-20', '2026-09-20'], ['2026-09-20', '2026-12-20']]);
+});
+
+it('lets an organization in only while its subscription gives access, but always lets it see its billing and pay', function (): void {
+    config(['billing.subscription_required' => true]);
+    $pro = subscriptionPlanOnSale('Pro', '20');
+    ['token' => $token, 'organization_id' => $organizationId] = subscriptionMemberToken([
+        'master_label.create', 'master_label.list', 'organization_setting.retrieve',
+        'billing_subscription.retrieve', 'billing_subscription.list', 'billing_subscription.pay',
+    ]);
+    OrganizationSetting::factory()->create(['organization_id' => $organizationId]);
+    $this->withToken($token);
+    $createLabel = fn (string $value): TestResponse => $this->postJson('/v1/master/labels', ['labels' => ['status' => [$value]]]);
+
+    $createLabel('Active')
+        ->assertForbidden()
+        ->assertExactJson([
+            'message' => __('billing::exceptions.subscription_required.no_subscription'),
+            'errors'  => ['type' => 'SubscriptionRequiredException', 'reason' => 'no_subscription'],
+        ]);
+    $this->getJson('/v1/master/labels')->assertForbidden()->assertJsonPath('errors.reason', 'no_subscription');
+    $this->getJson('/v1/organization/settings')->assertForbidden()->assertJsonPath('errors.reason', 'no_subscription');
+    $this->getJson('/v1/organization/current-settings')->assertOk();
+    $this->getJson('/v1/auth/current-permissions')->assertOk();
+    $this->getJson('/v1/billing/checkouts')->assertOk();
+
+    confirmCheckout($this->postJson('/v1/billing/checkouts?response=resource', ['action' => 'subscribe', 'plan_id' => $pro->id])
+        ->assertCreated()
+        ->json('data.id'));
+    $createLabel('Active')->assertNoContent();
+
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-09-22 10:00:00'));
+    $createLabel('Pending')->assertNoContent();
+    $this->getJson('/v1/billing/subscription')->assertOk()->assertJsonPath('data.status', 'in_grace');
+
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-09-25 10:00:00'));
+
+    $createLabel('Archived')->assertForbidden()->assertJsonPath('errors.reason', 'suspended');
+    $this->getJson('/v1/master/labels')->assertForbidden()->assertJsonPath('errors.reason', 'suspended');
+    $this->getJson('/v1/billing/subscription')
+        ->assertOk()
+        ->assertJsonPath('data.status', 'suspended');
+});
+
+it('exempts only the routes needed to see the billing and pay from the subscription check', function (): void {
+    $router = app('router');
+    $exempt = collect($router->getRoutes()->getRoutes())
+        ->filter(function (Route $route) use ($router): bool {
+            $middleware = $router->gatherRouteMiddleware($route);
+
+            return in_array(ResolveAuthContext::class, $middleware, true)
+                && !in_array(EnsureSubscriptionAccess::class, $middleware, true);
+        })
+        ->map(fn (Route $route): string => $route->methods()[0].' '.$route->uri())
+        ->sort()
+        ->values()
+        ->all();
+
+    expect($exempt)->toBe([
+        'GET v1/auth/current-permissions',
+        'GET v1/billing/checkouts',
+        'GET v1/billing/checkouts/{checkout}',
+        'GET v1/billing/subscription',
+        'GET v1/billing/trial',
+        'GET v1/organization/current-settings',
+        'POST v1/billing/checkouts',
+    ]);
+});
+
+it('lets an organization write during its trial only, and shows the trial apart from any subscription', function (): void {
+    config(['billing.subscription_required' => true]);
+    ['token' => $token, 'organization_id' => $organizationId] = subscriptionMemberToken(['master_label.create', 'billing_subscription.retrieve']);
+    $this->withToken($token);
+
+    $this->getJson('/v1/billing/trial')->assertNotFound();
+
+    app(TrialService::class)->start($organizationId);
+
+    $this->postJson('/v1/master/labels', ['labels' => ['status' => ['Active']]])->assertNoContent();
+    $this->getJson('/v1/billing/subscription')->assertNotFound();
+    $this->getJson('/v1/billing/trial')
+        ->assertOk()
+        ->assertJsonPath('data.plan_name', 'Trial')
+        ->assertJsonPath('data.starts_at', '2026-08-20T10:00:00.000000Z')
+        ->assertJsonPath('data.ends_at', '2026-09-20T10:00:00.000000Z');
+
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-09-20 10:00:00'));
+
+    $this->postJson('/v1/master/labels', ['labels' => ['status' => ['Archived']]])
+        ->assertForbidden()
+        ->assertJsonPath('errors.reason', 'no_subscription');
+});
+
+it('shows the trial only to a member who may retrieve the subscription', function (): void {
+    ['token' => $token, 'organization_id' => $organizationId] = subscriptionMemberToken([]);
+    app(TrialService::class)->start($organizationId);
+
+    $this->withToken($token)->getJson('/v1/billing/trial')->assertForbidden();
 });
 
 it('denies paying without the pay permission, and reading without the retrieve permission', function (): void {

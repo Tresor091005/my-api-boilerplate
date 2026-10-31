@@ -12,6 +12,9 @@ Route::group([
     'middleware' => 'api',
 ], function (): void {
     Route::group(['middleware' => 'auth.api'], function (): void {
+        Route::get('current-settings', [OrganizationSettingsController::class, 'current'])
+            ->name('current-settings.show')
+            ->withoutMiddleware('billing.subscription');
         Route::get('settings', [OrganizationSettingsController::class, 'show'])->name('settings.show');
         Route::patch('settings', [OrganizationSettingsController::class, 'update'])->name('settings.update');
         Route::apiResource('exchange-rates', ExchangeRateController::class);

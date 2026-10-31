@@ -10,6 +10,7 @@ use Lahatre\Billing\Http\Controllers\PlanController;
 use Lahatre\Billing\Http\Controllers\PlanDraftController;
 use Lahatre\Billing\Http\Controllers\PlanLifecycleController;
 use Lahatre\Billing\Http\Controllers\SubscriptionController;
+use Lahatre\Billing\Http\Controllers\TrialController;
 
 Route::group([
     'as'         => 'lahatre.billing.',
@@ -21,8 +22,11 @@ Route::group([
     Route::group([
         'middleware' => 'auth.api',
     ], function (): void {
-        Route::get('subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
-        Route::apiResource('checkouts', CheckoutController::class)->only(['index', 'store', 'show']);
+        Route::get('subscription', [SubscriptionController::class, 'show'])->name('subscription.show')->withoutMiddleware('billing.subscription');
+        Route::get('trial', [TrialController::class, 'show'])->name('trial.show')->withoutMiddleware('billing.subscription');
+        Route::apiResource('checkouts', CheckoutController::class)
+            ->only(['index', 'store', 'show'])
+            ->withoutMiddleware('billing.subscription');
     });
 
     Route::group([

@@ -16,8 +16,8 @@ The IAM module owns authentication and organization-scoped authorization.
    and organization data to `POST /v1/auth/organization-registrations`. New accounts also supply
    names; existing accounts must omit those fields.
    The API rechecks the email and token, sets `email_verified_at`, then creates
-   the organization, settings, membership, and one member role in one
-   transaction. The owner receives the built-in Administrator role,
+   the organization, settings, membership, one member role and the billing
+   trial, in one transaction. The owner receives the built-in Administrator role,
    assigned through Spatie's team-scoped pivot so its permissions work after
    role switching.
    Registration returns a success message without user data or an access token.

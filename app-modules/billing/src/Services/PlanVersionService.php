@@ -19,6 +19,7 @@ use Lahatre\Billing\Models\Plan;
 use Lahatre\Billing\Models\PlanVersion;
 use Lahatre\Billing\Models\PlanVersionFeature;
 use Lahatre\Billing\Models\Subscription;
+use Lahatre\Billing\Models\Trial;
 use Lahatre\Billing\Registries\FeatureDefinition;
 use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Master\Contracts\MasterInterface;
@@ -46,6 +47,10 @@ final readonly class PlanVersionService
 
         if ($terms->price instanceof MissingValue !== $terms->currencyCode instanceof MissingValue) {
             throw PlanVersionException::priceWithoutCurrency();
+        }
+
+        if ($plan->is_trial && !$terms->price instanceof MissingValue && bccomp($terms->price, '0', 8) !== 0) {
+            throw PlanVersionException::trialPlanNotFree($plan->getKey());
         }
 
         return DB::transaction(function () use ($plan, $terms): Plan {
@@ -146,6 +151,10 @@ final readonly class PlanVersionService
             $versions->firstWhere('status', PlanVersionStatus::Published)?->update(['status' => PlanVersionStatus::Archived]);
             $draft->update(['status' => PlanVersionStatus::Published, 'published_at' => CarbonImmutable::now()]);
 
+            if ($plan->is_trial) {
+                $this->moveRunningTrials($plan, $draft);
+            }
+
             return $plan->freshWithStatus();
         });
     }
@@ -177,6 +186,15 @@ final readonly class PlanVersionService
                 }]),
             $filters,
         );
+    }
+
+    /** Nobody paid for a trial, so running trials take the new version at once. */
+    private function moveRunningTrials(Plan $trialPlan, PlanVersion $to): void
+    {
+        Trial::query()
+            ->whereIn('plan_version_id', PlanVersion::withTrashed()->where('plan_id', $trialPlan->getKey())->select('id'))
+            ->where('ends_at', '>', CarbonImmutable::now())
+            ->update(['plan_version_id' => $to->getKey()]);
     }
 
     private function lockPlan(Plan $plan): Plan

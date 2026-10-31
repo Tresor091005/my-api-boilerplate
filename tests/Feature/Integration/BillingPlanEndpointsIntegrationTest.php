@@ -109,7 +109,7 @@ it('denies plans to an organization token, even one holding every organization p
     $this->postJson('/v1/billing/plans', ['name' => 'Starter'])->assertForbidden();
     $this->getJson('/v1/billing/features')->assertForbidden();
 
-    expect(Plan::query()->exists())->toBeFalse();
+    expect(Plan::query()->where('is_trial', false)->exists())->toBeFalse();
 });
 
 it('creates no organization permission for the billing offer', function (): void {
@@ -187,6 +187,21 @@ it('discards a draft, archives the plan, then deletes it', function (): void {
     $this->deleteJson("{$plans}/{$planId}")->assertNoContent();
 });
 
+it('shows the trial plan to the platform but never deletes it', function (): void {
+    $this->withToken(billingPlatformToken());
+    $plans = '/v1/billing/plans';
+    $trialPlanId = Plan::query()->where('is_trial', true)->value('id');
+    $planId = $this->postJson("{$plans}?response=resource", ['name' => 'Starter'])->assertCreated()->json('data.id');
+
+    $this->getJson("{$plans}/{$trialPlanId}")->assertOk()->assertJsonPath('data.is_trial', true);
+    $this->getJson("{$plans}/{$planId}")->assertOk()->assertJsonPath('data.is_trial', false);
+    $this->deleteJson("{$plans}/{$trialPlanId}")
+        ->assertUnprocessable()
+        ->assertJsonPath('message', __('billing::exceptions.plan.trial_plan_kept'));
+
+    expect(Plan::query()->whereKey($trialPlanId)->exists())->toBeTrue();
+});
+
 it('lists the features a plan can sell, named in the request language', function (): void {
     $this->withToken(billingPlatformToken());
     app(FeatureRegistry::class)->register(FeatureDefinition::disabled('catalog.legacy_exports'));
@@ -253,7 +268,7 @@ it('tells the administration which plans are on sale, retired or unused, and why
     $this->postJson("{$plans}/{$planIds['Retired']}/archive")->assertNoContent();
 
     foreach (['on_sale' => 'On sale', 'retired' => 'Retired', 'unused' => 'Unused'] as $status => $name) {
-        $this->getJson("{$plans}?status={$status}")
+        $this->getJson("{$plans}?status={$status}&name={$name}")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $planIds[$name])

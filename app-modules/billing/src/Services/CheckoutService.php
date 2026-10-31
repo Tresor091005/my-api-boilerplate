@@ -24,6 +24,7 @@ final readonly class CheckoutService
 {
     public function __construct(
         private SubscriptionService $subscriptions,
+        private TrialService $trials,
         private BillingCalendar $calendar,
     ) {}
 
@@ -250,6 +251,8 @@ final readonly class CheckoutService
 
     private function applySubscription(Checkout $checkout): Subscription
     {
+        $this->trials->endAt($checkout->organization_id, $checkout->covers_from);
+
         return Subscription::query()->create([
             'organization_id' => $checkout->organization_id,
             'plan_version_id' => $checkout->plan_version_id,
@@ -331,6 +334,7 @@ final readonly class CheckoutService
         return PlanVersion::query()
             ->where('plan_id', $planId)
             ->where('status', PlanVersionStatus::Published)
+            ->whereRelation('plan', 'is_trial', false)
             ->sharedLock()
             ->first() ?? throw SubscriptionException::planNotOnSale($planId);
     }

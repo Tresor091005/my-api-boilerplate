@@ -92,6 +92,19 @@ it('reads and updates the organization currency whitelist', function (): void {
         ->assertJsonPath('data.timezone', 'Europe/Paris');
 });
 
+it('lets any member read the current settings, but only a permitted one manage them', function (): void {
+    $this->memberRole->syncPermissions([]);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $this->getJson('/v1/organization/current-settings')
+        ->assertOk()
+        ->assertJsonPath('data.name', $this->organization->name)
+        ->assertJsonPath('data.functional_currency_code', 'XOF')
+        ->assertJsonPath('data.enable_currencies', ['XOF'])
+        ->assertJsonPath('data.timezone', 'Africa/Porto-Novo');
+    $this->getJson('/v1/organization/settings')->assertForbidden();
+});
+
 it('rejects invalid organization timezones', function (): void {
     $this->patchJson('/v1/organization/settings', [
         'enable_currencies' => ['XOF'],

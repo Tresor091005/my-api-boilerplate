@@ -25,6 +25,11 @@ API yet.
 with the organization's `name` and immutable `functional_currency_code` in the
 same `data` object. Organization IDs, owner IDs, and organization timestamps are
 not added to this response. The settings model's own ID and timestamps remain.
+It requires `organization_setting.retrieve`: it is the page that manages them.
+
+`GET /v1/organization/current-settings` returns the same data to any member of
+the current organization, without a permission and even when the organization
+has no subscription, so the frontend can read its timezone and currencies.
 
 `PATCH /v1/organization/settings` accepts any subset of `name`,
 `enable_currencies`, and `timezone`. Names are sanitized, non-empty strings of

@@ -19,8 +19,9 @@ use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Iam\Models\User;
+use Lahatre\Iam\Services\OrganizationOnboardingService;
+use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Models\Organization;
-use Lahatre\Organization\Models\OrganizationSetting;
 
 class DatabaseSeeder extends Seeder
 {
@@ -43,21 +44,22 @@ class DatabaseSeeder extends Seeder
             $user->markEmailAsVerified();
         }
 
-        $organization = Organization::firstOrCreate(
-            ['name' => 'kouri'],
-            ['owner_id' => $user->id, 'functional_currency_code' => 'XOF'],
-        );
-        OrganizationSetting::firstOrCreate(
-            ['organization_id' => $organization->id],
-            ['enable_currencies' => ['XOF'], 'timezone' => 'Africa/Porto-Novo'],
-        );
-
-        $member = OrganizationMember::firstOrCreate([
-            'user_id'         => $user->id,
-            'organization_id' => $organization->id,
-        ]);
-
         Artisan::call('permissions:discover');
+
+        $organization = Organization::query()->where('name', 'kouri')->first();
+
+        if ($organization === null) {
+            app(OrganizationOnboardingService::class)->createForUser($user, OrganizationData::fromArray(
+                ['name' => 'kouri', 'currency_code' => 'XOF', 'timezone' => 'Africa/Porto-Novo'],
+                $user->id,
+            ));
+            $organization = Organization::query()->where('name', 'kouri')->firstOrFail();
+        }
+
+        $member = OrganizationMember::query()
+            ->where('user_id', $user->id)
+            ->where('organization_id', $organization->id)
+            ->firstOrFail();
 
         setPermissionsTeamId($organization->id);
 

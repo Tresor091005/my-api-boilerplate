@@ -9,15 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
-use Lahatre\Billing\Exceptions\FeatureUnavailableException;
-use Lahatre\Iam\Http\Middleware\EnsurePlatformAccess;
-use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
-use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
-use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
-use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 use Lahatre\ResponseSelection\ResolveResponseSelection;
 use Lahatre\Shared\Exceptions\AssertionException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -43,43 +35,26 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:api',
         ]);
 
+        // Aliases and their priorities come from the module providers (iam, billing).
         $middleware->group('auth.api', [
             'auth:sanctum',
-            EnsureProfileComplete::class,
-            TrackSessionActivity::class,
-            ResolveAuthContext::class,
-            SetTeamPermissionsId::class,
+            'iam.profile-complete',
+            'iam.session-activity',
+            'iam.organization-context',
+            'iam.organization-permissions',
+            'billing.subscription',
         ]);
         $middleware->group('auth.platform', [
             'auth:sanctum',
-            EnsureProfileComplete::class,
-            TrackSessionActivity::class,
-            ResolveAuthContext::class.':user',
-            EnsurePlatformAccess::class,
+            'iam.profile-complete',
+            'iam.session-activity',
+            'iam.user-context',
+            'iam.platform-access',
         ]);
-        $middleware->prependToPriorityList(SubstituteBindings::class, ResolveAuthContext::class);
-        $middleware->prependToPriorityList(SubstituteBindings::class, SetTeamPermissionsId::class);
-        $middleware->prependToPriorityList(SubstituteBindings::class, EnsurePlatformAccess::class);
-        $middleware->prependToPriorityList(ResolveAuthContext::class, TrackSessionActivity::class);
-        $middleware->prependToPriorityList(TrackSessionActivity::class, EnsureProfileComplete::class);
         // Authentication answers first: a logged-out request gets 401, not a 422 for its selection.
         $middleware->appendToPriorityList(AuthenticatesRequests::class, ResolveResponseSelection::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Registered before AssertionException so it answers first. The client
-        // needs the reason and the limit to offer the right plan, even in production.
-        $exceptions->render(function (FeatureUnavailableException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                    'errors'  => [
-                        'type' => class_basename($e),
-                        ...Arr::except($e->context(), ['organization_id']),
-                    ],
-                ], 403);
-            }
-        });
-
         $exceptions->render(function (AssertionException $e, $request) {
             if ($request->expectsJson()) {
                 return response()->json([

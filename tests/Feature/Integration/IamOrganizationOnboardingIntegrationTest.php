@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Testing\Fakes\QueueFake;
+use Lahatre\Billing\Models\PlanVersion;
+use Lahatre\Billing\Models\Subscription;
+use Lahatre\Billing\Models\Trial;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Jobs\SendOrganizationRegistrationLink;
 use Lahatre\Iam\Models\MemberRole;
@@ -147,6 +150,25 @@ it('lets an existing account create an organization with its email token and no 
         ->and(MemberRole::query()->where('organization_id', $organization->id)->whereHas('role', fn ($query) => $query->where('name', 'administrator'))->exists())->toBeTrue()
         ->and(MemberRole::query()->where('organization_id', $organization->id)->whereHas('role', fn ($query) => $query->where('name', 'read-only'))->exists())->toBeFalse()
         ->and(Organization::query()->count())->toBe(1);
+});
+
+it('starts the trial for the organization it creates', function (): void {
+    $user = User::factory()->create();
+    $this->postJson('/v1/auth/organization-registration-tokens', ['email' => $user->email])->assertOk();
+    queuedOrganizationRegistrationLinks()->first()->handle(app(OrganizationOnboardingService::class));
+    $url = Notification::sent(new AnonymousNotifiable, OrganizationRegistrationLinkNotification::class)->first()->url;
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+    $this->postJson('/v1/auth/organization-registrations', [
+        'email'        => $user->email,
+        'token'        => $query['token'],
+        'organization' => ['name' => 'Trial Company', 'currency_code' => 'xof', 'timezone' => 'Africa/Porto-Novo'],
+    ])->assertCreated();
+
+    $trial = Trial::query()->sole();
+    expect($trial->organization_id)->toBe(Organization::query()->where('owner_id', $user->id)->value('id'))
+        ->and($trial->plan_version_id)->toBe(PlanVersion::query()->whereRelation('plan', 'is_trial', true)->value('id'))
+        ->and(Subscription::query()->exists())->toBeFalse();
 });
 
 it('uses the same public response for unavailable addresses without sending a link', function (): void {

@@ -54,6 +54,36 @@ exceed it; a platform selling yearly plans raises it to 24 or 36.
 Periods are counted from the row's start, so a start on January 31 renews on
 February 28, then March 31.
 
+## Trial and access
+
+A trial is not a subscription: a trialing organization is treated like one
+with no subscription. It may subscribe, which starts the plan now and ends the
+trial; renewing and changing now are refused. A trial has no grace and is
+stored apart, in `billing_trials`, at most one per organization.
+
+The trial plan is a built-in plan (`is_trial`, code `trial`) created by a
+migration with one free monthly version and no feature. There is only one; it
+is never sold nor listed in the offers, its price stays 0, and it cannot be
+deleted. Creating an organization gives it a trial lasting one period of the
+trial plan's published version, unless it already had a trial or a
+subscription. The platform sets the length and the features through the
+usual draft and publication; publishing moves the running trials to the new
+version at once, since nobody paid for them. Archiving the trial plan stops
+giving trials.
+
+Every request in `auth.api`, reads included, needs a subscription giving
+access or a running trial: `EnsureSubscriptionAccess` (alias `billing.subscription`)
+answers 403 otherwise, with `reason` `no_subscription` or `suspended`. It
+checks nothing else; what a plan allows is decided by each action through
+`EntitlementService`. A route a blocked organization must reach excludes it
+with `withoutMiddleware('billing.subscription')`, without importing billing. Only
+seven do, to show why the organization is blocked and let it pay: the
+subscription, the trial, the checkouts (list, start, show), the current
+permissions and the current settings. A test pins that list.
+`billing.subscription_required` turns the check off for an application that
+sells no subscription; the base test case turns it off too, and billing tests
+turn it back on.
+
 ## Checkouts
 
 A checkout freezes what the customer is about to pay: the action, the plan,
@@ -67,18 +97,32 @@ payment history.
 will call. Until then, `billing:checkout:confirm {checkout}`, registered
 outside production, plays that role.
 
+## Entitlements
+
+`EntitlementService` answers whether an organization may use a feature now,
+from the plan of its subscription giving access, or else of its running trial.
+`resolve()` returns the decision with its `reason` when refused: `disabled`,
+`no_subscription`, `suspended`, `not_in_plan` or `limit_reached`, checked in
+that order. Grace still grants access. A capacity feature is refused once the
+counted usage reaches the allowance; a grant without allowance is unlimited.
+`canUse()` returns the decision alone. `authorize()` throws
+`FeatureUnavailableException`, which answers 403 with the reason, the feature
+key, the allowance and the counted quantity, in production too, so the client
+can offer the right plan. An unregistered key is a `FeatureException`.
+
 ## Permissions
 
 Plans need the `operate-platform` Gate; organization permissions never grant
-it. Organizations use `billing_subscription.retrieve` (subscription and a
-checkout), `billing_subscription.list` (checkouts) and
-`billing_subscription.pay` (starting checkouts). Checkouts generate no
-permission of their own.
+it. Organizations use `billing_subscription.retrieve` (subscription, trial
+and a checkout), `billing_subscription.list` (checkouts) and
+`billing_subscription.pay` (starting checkouts). Checkouts and trials
+generate no permission of their own.
 
 ## Next steps and open questions
 
-- Entitlements: review `EntitlementService` and decide how modules check a
-  feature when it is used, such as refusing a product beyond the allowance.
+- Entitlements: decide where modules call `authorize()`, such as refusing a
+  product beyond the allowance, and how two concurrent creations are kept
+  under it.
 - Payment provider: research pointed to FedaPay for local mobile money and to
   Polar or Paddle for international cards; none is chosen.
 - A checkout paid after it was cancelled or expired is not applied; handling

@@ -8,6 +8,7 @@ return [
         'billing_plan_version',
         'billing_plan_version_feature',
         'billing_checkout',
+        'billing_trial',
         'catalog_bundle_item',
         'catalog_option_value',
         'catalog_product_variant',

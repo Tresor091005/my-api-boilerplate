@@ -271,16 +271,16 @@ prepares the next in one draft; the API exposes them as the `current` and
 | --- | --- | --- | --- |
 | GET | `/v1/billing/offers` | public | List the plans on sale, cheapest first, flattened with their price, billing interval and features named in the request locale; features disabled since publication are left out. |
 | GET | `/v1/billing/features` | `auth.platform` | List the enabled features a plan can sell, named in the request locale. |
-| GET | `/v1/billing/plans` | `auth.platform` | List plans with their `status`: `on_sale` (a version is published), `retired` (nothing on sale, subscribed at least once) or `unused` (nothing on sale, never subscribed); filter with `status`; `include=current,draft` adds their terms. |
+| GET | `/v1/billing/plans` | `auth.platform` | List plans with `is_trial` (the built-in trial plan, never sold) and their `status`: `on_sale` (a version is published), `retired` (nothing on sale, subscribed at least once) or `unused` (nothing on sale, never subscribed); filter with `status`; `include=current,draft` adds their terms. |
 | POST | `/v1/billing/plans` | `auth.platform` | Create a plan from its name; the code is generated and immutable. |
 | GET | `/v1/billing/plans/{plan}` | `auth.platform` | Return a plan; `include=current.features,draft.features` adds its terms and grants. |
 | PATCH | `/v1/billing/plans/{plan}` | `auth.platform` | Rename the plan. |
-| DELETE | `/v1/billing/plans/{plan}` | `auth.platform` | Delete an `unused` plan with no payment in progress; 422 otherwise. |
+| DELETE | `/v1/billing/plans/{plan}` | `auth.platform` | Delete an `unused` plan with no payment in progress; 422 otherwise, and always for the trial plan. |
 | PATCH | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Change the draft price, currency and billing interval, opening the draft from the version on sale. The interval is `billing_interval_months`, from 1 to `billing.max_advance_months` (12). The price is a decimal in units of the currency (`4.30`), stored in its minor unit; more decimals than the currency allows is a 422. The price and the currency are always sent together, and a plan with nothing on sale needs them with the billing interval. Prices render as decimal strings at the currency precision. |
 | DELETE | `/v1/billing/plans/{plan}/draft` | `auth.platform` | Discard the draft. |
 | POST | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Grant features to the draft, or change their allowance (`features[].key`, `features[].allowance`). |
 | DELETE | `/v1/billing/plans/{plan}/draft/features` | `auth.platform` | Revoke features from the draft (`feature_keys[]`). |
-| POST | `/v1/billing/plans/{plan}/publish` | `auth.platform` | Put the draft on sale and archive the version it replaces; subscribers keep their version. |
+| POST | `/v1/billing/plans/{plan}/publish` | `auth.platform` | Put the draft on sale and archive the version it replaces; subscribers keep their version, except running trials, which move to the trial plan's new version. |
 | POST | `/v1/billing/plans/{plan}/archive` | `auth.platform` | Stop selling the plan; subscribers keep their version. |
 | GET | `/v1/billing/plans/{plan}/versions` | `auth.platform` | List the published and archived versions, newest first, with their current `subscribers_count`. |
 
@@ -289,12 +289,18 @@ prepares the next in one draft; the API exposes them as the `current` and
 Organization routes, in `auth.api`. An organization pays each period through
 a checkout; a payment provider, or `billing:checkout:confirm` outside
 production, confirms it. Customers name an offer by its plan `id` and never see
-a plan version.
+a plan version. Every other `auth.api` route, reads included, answers 403
+with `errors.reason` `no_subscription` or `suspended` while the organization
+has neither a subscription giving access nor a running trial. The routes of
+this section, `GET /v1/auth/current-permissions` and
+`GET /v1/organization/current-settings` stay reachable, so a blocked
+organization can see why and pay.
 
 | Method | URI | Permission | Purpose |
 | --- | --- | --- | --- |
 | GET | `/v1/billing/subscription` | `billing_subscription.retrieve` | Return the subscription in effect: plan, price, `status` (`active`, `in_grace`, `suspended`), `ends_at` and `grace_ends_at`; `include=next` adds the plan already paid for after it. 404 when the organization never subscribed. |
 | GET | `/v1/billing/checkouts` | `billing_subscription.list` | List the checkouts of the organization, newest first; `status=confirmed` gives the payment history, `status=pending` the payment in progress. |
+| GET | `/v1/billing/trial` | `billing_subscription.retrieve` | Return the organization's trial: `plan_name`, `starts_at` and `ends_at`, moved earlier when a subscription ended it. 404 when it never had one. A trial is not a subscription: subscribing ends it. |
 | POST | `/v1/billing/checkouts` | `billing_subscription.pay` | Start a checkout and replace the pending one: `action` is `subscribe`, `renew` or `change_now`; `plan_id` is required except to renew the current plan; `periods` (1 to 12) is refused on `change_now`. With `?response=resource` it returns the preview: `total_amount`, `covers_from`, `covers_until`, `expires_at`. A business rule refusal is a 422. |
 | GET | `/v1/billing/checkouts/{checkout}` | `billing_subscription.retrieve` | Return a checkout of the organization, for example to see whether it is `confirmed`. |
 
@@ -403,6 +409,7 @@ The target must use `InteractsWithLabels` and belong to the active organization.
 
 | Method | URI | Purpose |
 | --- | --- | --- |
+| GET | `/v1/organization/current-settings` | Retrieve the same data for any member, without a permission, even when the organization has no subscription: the frontend reads its timezone and currencies there. |
 | GET | `/v1/organization/settings` | Retrieve the active organization's name, functional currency, and settings. |
 | PATCH | `/v1/organization/settings` | Partially update the organization name, enabled currencies, and timezone. |
 | GET | `/v1/organization/exchange-rates` | List exchange rates for the active organization. |

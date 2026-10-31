@@ -16,9 +16,20 @@ paths:
 - Name module route files `<module>-routes.php`, use the `v1/<module>` URL prefix, and use the `lahatre.<module>.` route-name prefix.
 - Apply `api` middleware to API routes and `auth.api` to authenticated routes. Use RESTful, plural, `kebab-case`, action-free URIs and name every route.
 - `auth.api` is the project's authenticated API group: it currently applies
-  Sanctum authentication, `ResolveAuthContext`, and
-  `SetTeamPermissionsId`. Do not duplicate that stack on ordinary protected
-  routes.
+  Sanctum authentication, profile completion, session tracking,
+  `ResolveAuthContext`, `SetTeamPermissionsId`, then billing's
+  `EnsureSubscriptionAccess` (alias `billing.subscription`), which answers 403 to any
+  request without a subscription giving access or a running trial. It checks
+  nothing else: what a plan allows is decided by each action. Do not
+  duplicate that stack on ordinary protected routes. A route an organization
+  must reach while blocked excludes it with `withoutMiddleware('billing.subscription')`;
+  the exempt list is pinned by a test and changes only by decision.
+- A module provider registers its own middleware aliases and their priority
+  (iam, billing); `bootstrap/app.php` composes `auth.api` and `auth.platform`
+  from those aliases without importing module classes. An alias reads
+  `<module>.<what it ensures>`, such as `iam.organization-context` or
+  `billing.subscription`; a variant gets its own alias (`iam.user-context`)
+  rather than a parameter.
 - `auth.platform` is the group for platform operator routes. It applies
   Sanctum authentication, profile completion, session tracking,
   `ResolveAuthContext:user`, then `EnsurePlatformAccess`, which answers 403

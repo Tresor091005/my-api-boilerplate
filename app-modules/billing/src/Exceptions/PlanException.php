@@ -15,6 +15,13 @@ final class PlanException extends AssertionException
         ]);
     }
 
+    public static function trialPlanKept(string $planId): self
+    {
+        return new self(__('billing::exceptions.plan.trial_plan_kept'), [
+            'plan_id' => $planId,
+        ]);
+    }
+
     private function __construct(string $message, array $context = [])
     {
         parent::__construct($message, $context);

@@ -93,13 +93,13 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
     $dependencyMap = [
         'shared'       => [],
         'master'       => ['shared'],
+        'billing'      => ['shared', 'master'],
         'organization' => ['shared', 'master'],
         'inventory'    => ['shared', 'master', 'organization'],
         'library'      => ['shared', 'organization'],
-        'iam'          => ['shared', 'master', 'organization'],
+        'iam'          => ['shared', 'master', 'organization', 'billing'],
         'catalog'      => ['shared', 'master', 'inventory', 'library', 'billing'],
         'customer'     => ['shared', 'master', 'library'],
-        'billing'      => ['shared', 'master'],
     ];
 
     $failures = [];

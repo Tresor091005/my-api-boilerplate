@@ -6,11 +6,20 @@ namespace Lahatre\Iam\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Iam\Auth\AuthContext;
 use Lahatre\Iam\Auth\PersonalAccessToken;
+use Lahatre\Iam\Http\Middleware\EnsurePlatformAccess;
+use Lahatre\Iam\Http\Middleware\EnsureProfileComplete;
+use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
+use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
+use Lahatre\Iam\Http\Middleware\TrackSessionActivity;
 use Lahatre\Iam\Integrations\GeoipDatabaseUpdater;
 use Laravel\Sanctum\Sanctum;
 
@@ -24,9 +33,10 @@ class IamServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/system-permissions.php', 'iam.system_permissions');
     }
 
-    public function boot(Schedule $schedule): void
+    public function boot(Schedule $schedule, Router $router, HttpKernelContract $httpKernel): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+        $this->registerMiddleware($router, $httpKernel);
 
         Gate::define('operate-platform', fn (Authenticatable $user): bool => authContext()->hasPlatformAccess()
             && authContext()->user()?->getAuthIdentifier() === $user->getAuthIdentifier());
@@ -71,5 +81,24 @@ class IamServiceProvider extends ServiceProvider
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         after direct actions on permissions or roles table with using given methods
         */
+    }
+
+    /** The organization context must be resolved before route bindings, so bound models are looked up inside it. */
+    private function registerMiddleware(Router $router, HttpKernelContract $httpKernel): void
+    {
+        $router->aliasMiddleware('iam.profile-complete', EnsureProfileComplete::class);
+        $router->aliasMiddleware('iam.session-activity', TrackSessionActivity::class);
+        $router->aliasMiddleware('iam.organization-context', ResolveAuthContext::class);
+        $router->aliasMiddleware('iam.user-context', ResolveAuthContext::class.':user');
+        $router->aliasMiddleware('iam.organization-permissions', SetTeamPermissionsId::class);
+        $router->aliasMiddleware('iam.platform-access', EnsurePlatformAccess::class);
+
+        if ($httpKernel instanceof HttpKernel) {
+            $httpKernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, ResolveAuthContext::class);
+            $httpKernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, SetTeamPermissionsId::class);
+            $httpKernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, EnsurePlatformAccess::class);
+            $httpKernel->addToMiddlewarePriorityBefore(ResolveAuthContext::class, TrackSessionActivity::class);
+            $httpKernel->addToMiddlewarePriorityBefore(TrackSessionActivity::class, EnsureProfileComplete::class);
+        }
     }
 }

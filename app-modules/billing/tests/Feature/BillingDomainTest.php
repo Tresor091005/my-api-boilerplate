@@ -35,6 +35,7 @@ use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Billing\Services\PlanService;
 use Lahatre\Billing\Services\PlanVersionService;
 use Lahatre\Billing\Services\SubscriptionService;
+use Lahatre\Billing\Services\TrialService;
 
 uses(RefreshDatabase::class);
 
@@ -232,7 +233,7 @@ it('derives a plan status from what is on sale and from every subscription it ev
     [$unsold] = planOnSale();
     $versions->archive($unsold);
 
-    $plansIn = fn (PlanStatus $status): array => Plan::query()->whereStatus($status)->pluck('id')->sort()->values()->all();
+    $plansIn = fn (PlanStatus $status): array => Plan::query()->where('is_trial', false)->whereStatus($status)->pluck('id')->sort()->values()->all();
 
     expect($plansIn(PlanStatus::OnSale))->toBe([$onSale->id])
         ->and($plansIn(PlanStatus::Retired))->toBe([$retired->id])
@@ -377,16 +378,22 @@ it('tells why a feature is refused', function (): void {
         ->and($reasonAt('test.exports'))->toBe('disabled')
         ->and($reasonAt('test.warehouses', '2026-09-25 10:00:00'))->toBe('suspended');
 
-    expect(fn () => app(EntitlementService::class)->authorize($this->organizationId, 'test.warehouses'))
-        ->toThrow(function (FeatureUnavailableException $e): void {
-            expect($e->getMessage())->toBe(__('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 4]))
-                ->and($e->context())->toMatchArray([
-                    'reason'           => 'limit_reached',
-                    'feature_key'      => 'test.warehouses',
-                    'allowance'        => 4,
-                    'current_quantity' => 4,
-                ]);
-        });
+    $exception = null;
+
+    try {
+        app(EntitlementService::class)->authorize($this->organizationId, 'test.warehouses');
+    } catch (FeatureUnavailableException $caught) {
+        $exception = $caught;
+    }
+
+    expect($exception)->toBeInstanceOf(FeatureUnavailableException::class)
+        ->and($exception?->getMessage())->toBe(__('billing::exceptions.feature_unavailable.limit_reached', ['allowance' => 4]))
+        ->and($exception?->context())->toMatchArray([
+            'reason'           => 'limit_reached',
+            'feature_key'      => 'test.warehouses',
+            'allowance'        => 4,
+            'current_quantity' => 4,
+        ]);
 });
 
 it('adds a feature again after removing it, and changes the allowance of a feature already added', function (): void {
@@ -665,16 +672,16 @@ it('changes plan now for the new price minus what remains, upward and downward',
     $upgrade = startCheckout($this->organizationId, CheckoutAction::ChangeNow, $pro);
     app(CheckoutService::class)->confirm($upgrade);
 
-    currentTestCase()->travelTo(CarbonImmutable::parse('2026-12-01 00:00:00'));
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-12-07 00:00:00'));
     $downgrade = startCheckout($this->organizationId, CheckoutAction::ChangeNow, $basic);
     app(CheckoutService::class)->confirm($downgrade);
 
     expect($upgrade->total_amount)->toBe(1500)
-        ->and($downgrade->total_amount)->toBe(0)
+        ->and($downgrade->total_amount)->toBe(1000 - 600)
         ->and(coverageOf($this->organizationId))->toBe([
             [$basic->id, '2026-11-01 00:00:00', '2026-11-16 00:00:00'],
-            [$pro->id, '2026-11-16 00:00:00', '2026-12-01 00:00:00'],
-            [$basic->id, '2026-12-01 00:00:00', '2027-01-01 00:00:00'],
+            [$pro->id, '2026-11-16 00:00:00', '2026-12-07 00:00:00'],
+            [$basic->id, '2026-12-07 00:00:00', '2027-01-07 00:00:00'],
         ]);
 });
 
@@ -735,6 +742,85 @@ it('refuses to change now when what remains covers the price, across currencies,
 
     expect(fn (): Checkout => $changeTo($basic))
         ->toThrow(SubscriptionException::class, __('billing::exceptions.subscription.change_requires_active_subscription'));
+});
+
+it('gives a new organization one trial lasting a period of the trial plan, and none once it is archived or after a subscription', function (): void {
+    $trialPlan = Plan::query()->where('is_trial', true)->sole();
+    $trials = app(TrialService::class);
+    [, $basic] = planOnSale();
+    $subscribedOrganizationId = insertBillingOrganization($this->ownerId);
+    pay($subscribedOrganizationId, CheckoutAction::Subscribe, $basic);
+    $laterOrganizationId = insertBillingOrganization($this->ownerId);
+
+    $trial = $trials->start($this->organizationId);
+
+    expect($trial?->plan_version_id)->toBe($trialPlan->currentVersion()->firstOrFail()->id)
+        ->and([$trial?->starts_at->toDateTimeString(), $trial?->ends_at->toDateTimeString()])->toBe(['2026-08-20 10:00:00', '2026-09-20 10:00:00'])
+        ->and($trials->start($this->organizationId))->toBeNull()
+        ->and($trials->start($subscribedOrganizationId))->toBeNull();
+
+    app(PlanVersionService::class)->archive($trialPlan);
+
+    expect($trials->start($laterOrganizationId))->toBeNull();
+});
+
+it('never sells the trial plan, never deletes it, and keeps it free', function (): void {
+    $trialPlan = Plan::query()->where('is_trial', true)->sole();
+    planOnSale();
+
+    expect(fn (): Checkout => app(CheckoutService::class)->start($this->organizationId, CheckoutData::fromArray(['action' => 'subscribe', 'plan_id' => $trialPlan->id])))
+        ->toThrow(SubscriptionException::class, __('billing::exceptions.subscription.plan_not_on_sale'))
+        ->and(app(PlanService::class)->offers()->pluck('id')->all())->not->toContain($trialPlan->id)
+        ->and(fn () => app(PlanService::class)->delete($trialPlan))
+        ->toThrow(PlanException::class, __('billing::exceptions.plan.trial_plan_kept'))
+        ->and(fn () => app(PlanVersionService::class)->updateDraft($trialPlan, draftTerms(['price' => 5, 'currency_code' => 'USD'])))
+        ->toThrow(PlanVersionException::class, __('billing::exceptions.plan_version.trial_plan_not_free'));
+});
+
+it('treats a trial as no subscription: subscribing starts now and ends it, renewing or changing is refused', function (): void {
+    [, $basic] = planOnSale(['price' => 10]);
+    $trials = app(TrialService::class);
+    $trials->start($this->organizationId);
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-08-25 10:00:00'));
+
+    expect(fn (): Checkout => startCheckout($this->organizationId, CheckoutAction::Renew, $basic))
+        ->toThrow(SubscriptionException::class, __('billing::exceptions.subscription.not_subscribed'))
+        ->and(fn (): Checkout => startCheckout($this->organizationId, CheckoutAction::ChangeNow, $basic))
+        ->toThrow(SubscriptionException::class, __('billing::exceptions.subscription.change_requires_active_subscription'));
+
+    pay($this->organizationId, CheckoutAction::Subscribe, $basic);
+
+    expect(coverageOf($this->organizationId))->toBe([[$basic->id, '2026-08-25 10:00:00', '2026-09-25 10:00:00']])
+        ->and($trials->find($this->organizationId)?->ends_at->toDateTimeString())->toBe('2026-08-25 10:00:00')
+        ->and($trials->runningAt($this->organizationId, CarbonImmutable::now()))->toBeNull();
+});
+
+it('gives the features of the trial plan while the trial runs, with no grace after it', function (): void {
+    useFeatureRegistry(FeatureDefinition::boolean('test.advanced_reports'));
+    $trialPlan = grantPlanFeatures(Plan::query()->where('is_trial', true)->sole(), ['test.advanced_reports' => null]);
+    app(PlanVersionService::class)->publish($trialPlan);
+    app(TrialService::class)->start($this->organizationId);
+    $reasonAt = fn (string $at): ?string => app(EntitlementService::class)
+        ->resolve($this->organizationId, 'test.advanced_reports', CarbonImmutable::parse($at))['reason'];
+
+    expect($reasonAt('2026-09-20 09:59:59'))->toBeNull()
+        ->and($reasonAt('2026-09-20 10:00:00'))->toBe('no_subscription');
+});
+
+it('moves running trials to the new version of the trial plan, even after it was archived', function (): void {
+    $trialPlan = Plan::query()->where('is_trial', true)->sole();
+    $versions = app(PlanVersionService::class);
+    $trials = app(TrialService::class);
+    $ended = $trials->start(insertBillingOrganization($this->ownerId));
+    currentTestCase()->travelTo(CarbonImmutable::parse('2026-09-25 10:00:00'));
+    $running = $trials->start($this->organizationId);
+    $versions->archive($trialPlan);
+    $versions->updateDraft($trialPlan, draftTerms(['price' => 0, 'currency_code' => 'USD', 'billing_interval_months' => 1]));
+
+    $newVersion = $versions->publish($trialPlan)->currentVersion()->firstOrFail();
+
+    expect($running?->fresh()?->plan_version_id)->toBe($newVersion->id)
+        ->and($ended?->fresh()?->plan_version_id)->not->toBe($newVersion->id);
 });
 
 it('replaces a row that starts in the same second as a change now instead of leaving it empty', function (): void {

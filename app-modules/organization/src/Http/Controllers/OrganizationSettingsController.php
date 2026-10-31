@@ -19,6 +19,14 @@ final readonly class OrganizationSettingsController
         private OrganizationSettingsService $settingsService,
     ) {}
 
+    public function current(): JsonResponse|Response
+    {
+        $settings = $this->settingsService->retrieve();
+        Gate::authorize('retrieveCurrent', $settings);
+
+        return ApiResponse::item($settings, OrganizationSettingsResource::class);
+    }
+
     public function show(): JsonResponse|Response
     {
         $settings = $this->settingsService->retrieve();

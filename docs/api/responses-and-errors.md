@@ -134,3 +134,22 @@ $exceptions->render(function (AssertionException $e, $request) {
     }
 });
 ```
+
+The context is hidden in production. An exception that needs another answer
+defines its own `render()` method, which Laravel calls before these callbacks.
+`FeatureUnavailableException` and `SubscriptionRequiredException` (billing)
+answer 403 and keep their reason in production, because the client needs it
+to offer a plan:
+
+```json
+{
+  "message": "The current plan allows at most 10; this limit is reached.",
+  "errors": {
+    "type": "FeatureUnavailableException",
+    "reason": "limit_reached",
+    "feature_key": "catalog.products",
+    "allowance": 10,
+    "current_quantity": 10
+  }
+}
+```

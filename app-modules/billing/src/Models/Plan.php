@@ -19,6 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $code
  * @property string $name
+ * @property bool $is_trial
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -40,6 +41,7 @@ class Plan extends Model
         'id'         => 'string',
         'code'       => 'string',
         'name'       => 'string',
+        'is_trial'   => 'boolean',
         'created_at' => 'immutable_datetime',
         'updated_at' => 'immutable_datetime',
         'deleted_at' => 'immutable_datetime',

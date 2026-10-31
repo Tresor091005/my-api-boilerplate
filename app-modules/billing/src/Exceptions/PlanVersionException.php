@@ -15,6 +15,13 @@ final class PlanVersionException extends AssertionException
         ]);
     }
 
+    public static function trialPlanNotFree(string $planId): self
+    {
+        return new self(__('billing::exceptions.plan_version.trial_plan_not_free'), [
+            'plan_id' => $planId,
+        ]);
+    }
+
     public static function priceWithoutCurrency(): self
     {
         return new self(__('billing::exceptions.plan_version.price_without_currency'));

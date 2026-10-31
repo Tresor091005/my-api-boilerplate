@@ -17,8 +17,14 @@ Every API route is in the `api` middleware group. The application appends:
 2. `throttle:api`, limited to 90 requests per minute per authenticated user or
    IP address.
 
-The `auth.api` group adds Sanctum authentication, `ResolveAuthContext`, and
-`SetTeamPermissionsId`. It is required by business module routes.
+The `auth.api` group is composed in `bootstrap/app.php` from aliases that the
+iam and billing providers register, with their priority. It adds Sanctum
+authentication, profile completion, session tracking, `ResolveAuthContext`,
+`SetTeamPermissionsId` and
+`EnsureSubscriptionAccess` (alias `billing.subscription`), which refuses any request
+without a subscription giving access or a running trial (see
+[billing](../modules/billing.md#trial-and-access)). It is
+required by business module routes.
 
 `ResolveAuthContext` reads the current personal access token metadata and
 resolves the selected organization, member, member role, and role. An

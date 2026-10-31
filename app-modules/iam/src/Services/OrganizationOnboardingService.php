@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Lahatre\Billing\Services\TrialService;
 use Lahatre\Iam\Data\OrganizationRegistrationData;
 use Lahatre\Iam\Enums\SysRole;
 use Lahatre\Iam\Exceptions\EmailAccountException;
@@ -27,6 +28,7 @@ final class OrganizationOnboardingService
     public function __construct(
         private readonly OrganizationInterface $organizations,
         private readonly EmailAccountService $accounts,
+        private readonly TrialService $trials,
     ) {}
 
     public function requestRegistrationToken(string $email): void
@@ -157,6 +159,8 @@ final class OrganizationOnboardingService
         } finally {
             setPermissionsTeamId($previousTeamId);
         }
+
+        $this->trials->start($organization->id);
 
         return $organization;
     }

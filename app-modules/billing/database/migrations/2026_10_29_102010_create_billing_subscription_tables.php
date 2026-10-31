@@ -35,6 +35,23 @@ return new class extends Migration
         DB::statement('CREATE INDEX billing_subscriptions_organization_id_starts_at_index ON billing_subscriptions (organization_id, starts_at) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX billing_subscriptions_plan_version_id_index ON billing_subscriptions (plan_version_id) WHERE deleted_at IS NULL');
 
+        Schema::create('billing_trials', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->unique()
+                ->constrained('organization_organizations')
+                ->restrictOnDelete();
+            $table->foreignUuid('plan_version_id')
+                ->index()
+                ->constrained('billing_plan_versions')
+                ->restrictOnDelete();
+            $table->timestamp('starts_at');
+            $table->timestamp('ends_at');
+            $table->timestamps();
+        });
+
+        DB::statement('ALTER TABLE billing_trials ADD CONSTRAINT billing_trials_coverage_check CHECK (ends_at >= starts_at)');
+
         Schema::create('billing_checkouts', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')
@@ -77,6 +94,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('billing_checkouts');
+        Schema::dropIfExists('billing_trials');
         Schema::dropIfExists('billing_subscriptions');
     }
 };

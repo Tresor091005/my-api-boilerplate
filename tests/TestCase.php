@@ -11,6 +11,14 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
  */
 abstract class TestCase extends BaseTestCase
 {
+    /** Organizations built by factories have no subscription; billing tests turn the check back on. */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['billing.subscription_required' => false]);
+    }
+
     public function disableExceptionHandling(): void
     {
         $this->withoutExceptionHandling();
