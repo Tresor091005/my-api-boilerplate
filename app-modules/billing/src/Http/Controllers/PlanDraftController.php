@@ -30,7 +30,7 @@ final readonly class PlanDraftController
         return ApiResponse::item($response, PlanResource::class);
     }
 
-    public function destroy(Plan $plan): Response
+    public function destroy(Plan $plan): \Illuminate\Http\Response
     {
         Gate::authorize('update', $plan);
         $this->planVersionService->discardDraft($plan);
@@ -46,7 +46,7 @@ final readonly class PlanDraftController
         return ApiResponse::item($response, PlanResource::class);
     }
 
-    public function removeFeatures(PlanDraftFeatureDeleteRequest $request, Plan $plan): Response
+    public function removeFeatures(PlanDraftFeatureDeleteRequest $request, Plan $plan): \Illuminate\Http\Response
     {
         Gate::authorize('update', $plan);
         $this->planVersionService->removeFeatures($plan, $request->validated('feature_keys'));

@@ -100,7 +100,7 @@ it('renders every field of the inventory reads alone as in the full selection', 
 
 it('runs as many queries for more inventory rows with their includes', function (string $uri): void {
     $this->assertBoundedQueries(
-        fn (int $count) => collect(range(1, $count))->each(fn () => inventorySelectionMovement($this->unit, $this->currency)),
+        fn (int $count) => collect(range(1, $count))->each(fn (): InventoryMovement => inventorySelectionMovement($this->unit, $this->currency)),
         fn () => $this->getJson($uri)->assertOk(),
     );
 })->with([

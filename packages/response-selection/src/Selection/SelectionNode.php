@@ -15,7 +15,7 @@ final class SelectionNode
      */
     public function __construct(
         public readonly string $path = '',
-        private ?array $fields = null,
+        private readonly ?array $fields = null,
         private array $children = [],
     ) {}
 
@@ -91,7 +91,7 @@ final class SelectionNode
     {
         return [
             'fields'  => $this->fields,
-            'include' => array_map(fn (SelectionNode $child) => $child->toArray(), $this->children),
+            'include' => array_map(fn (SelectionNode $child): array => $child->toArray(), $this->children),
         ];
     }
 }

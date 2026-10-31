@@ -25,7 +25,7 @@ final readonly class PlanFeatureGrantsData
 
         foreach ($data['features'] as $feature) {
             $allowances[$feature['key']] = isset($feature['allowance']) ? (int) $feature['allowance'] : null;
-            $values[$feature['key']] = isset($feature['values']) ? array_map('strval', $feature['values']) : null;
+            $values[$feature['key']] = isset($feature['values']) ? array_map(strval(...), $feature['values']) : null;
         }
 
         return new self($allowances, $values);

@@ -49,7 +49,7 @@ final readonly class ProductFileController
         return ApiResponse::item($product, ProductResource::class);
     }
 
-    public function destroyGallery(AttachmentListRequest $request, Product $product): Response
+    public function destroyGallery(AttachmentListRequest $request, Product $product): \Illuminate\Http\Response
     {
         Gate::authorize('update', $product);
         $this->files->removeGallery($product, $request->validated('attachment_ids'));

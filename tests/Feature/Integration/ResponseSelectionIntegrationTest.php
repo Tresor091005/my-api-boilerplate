@@ -19,8 +19,8 @@ it('builds the declarations of every application route without error', function 
 it('runs in the api group, after authentication when the route requires it', function (): void {
     expect(app('router')->getMiddlewareGroups()['api'])->toContain(ResolveResponseSelection::class);
 
-    $route = app('router')->get('/selection-order-test', fn () => null)->middleware(['api', 'auth.api']);
-    $middleware = array_map(fn (string $name) => explode(':', $name)[0], app('router')->gatherRouteMiddleware($route));
+    $route = app('router')->get('/selection-order-test', fn (): null => null)->middleware(['api', 'auth.api']);
+    $middleware = array_map(fn (string $name): string => explode(':', $name)[0], app('router')->gatherRouteMiddleware($route));
 
     expect(array_search(Authenticate::class, $middleware, true))
         ->toBeLessThan(array_search(ResolveResponseSelection::class, $middleware, true));

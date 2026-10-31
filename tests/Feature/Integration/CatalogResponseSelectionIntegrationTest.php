@@ -181,7 +181,7 @@ it('runs as many queries for more catalog rows with their includes', function (s
 })->with([
     'products' => [
         '/v1/catalog/products?fields=name,options&include=variants.labels,variants.unit_group,variants.inventory,categories,main_files,gallery_files',
-        fn (UnitGroup $unitGroup): Product => catalogSelectionProduct($unitGroup),
+        catalogSelectionProduct(...),
     ],
     'bundles' => [
         '/v1/catalog/bundles?include=items.component,unit_group.units,inventory',
@@ -189,7 +189,7 @@ it('runs as many queries for more catalog rows with their includes', function (s
     ],
     'services' => [
         '/v1/catalog/services?include=deliverable_templates,main_files,gallery_files,unit_group',
-        fn (UnitGroup $unitGroup) => catalogSelectionService($unitGroup),
+        catalogSelectionService(...),
     ],
     'stock transfers' => [
         '/v1/catalog/stock-transfers?include=lines.item,source_location,destination_location',

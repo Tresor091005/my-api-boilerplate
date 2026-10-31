@@ -129,15 +129,15 @@ it('runs as many queries for more IAM rows with their includes', function (strin
 })->with([
     'roles' => [
         '/v1/iam/roles?include=permissions',
-        fn (string $organizationId): Role => iamSelectionRole($organizationId),
+        iamSelectionRole(...),
     ],
     'organization members' => [
         '/v1/iam/organization-members?include=user,member_roles.role',
-        fn (string $organizationId): OrganizationMember => iamSelectionMember($organizationId),
+        iamSelectionMember(...),
     ],
     'invitations' => [
         '/v1/iam/invitations?include=roles',
-        fn (string $organizationId): Invitation => iamSelectionInvitation($organizationId),
+        iamSelectionInvitation(...),
     ],
     'sessions' => [
         '/v1/auth/sessions',

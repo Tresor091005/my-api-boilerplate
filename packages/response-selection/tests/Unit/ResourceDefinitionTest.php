@@ -58,6 +58,7 @@ final class ResourceDefinitionTestWrongComputerResource extends ApiResource
     {
         $resource
             ->field('id')
+            // @phpstan-ignore argument.type (a class that is not a computer is the point of the test)
             ->field('balance', computedBy: ResourceDefinitionTestNotAComputer::class);
     }
 }
@@ -77,7 +78,7 @@ it('loads the relation an include names', function (): void {
 
 it('loads no relation for a virtual include', function (): void {
     $definition = (new ResourceDefinition)
-        ->virtualInclude('source_location', ResourceDefinitionTestChildResource::class, fn () => null)
+        ->virtualInclude('source_location', ResourceDefinitionTestChildResource::class, fn (): null => null)
         ->include('location', ResourceDefinitionTestChildResource::class, relation: 'sourceLocation');
 
     expect($definition->includeRelation('source_location'))->toBeNull()
@@ -157,7 +158,7 @@ it('gives an include the configured default, or the limit it sets up to the conf
         ->include('cashiers', ResourceDefinitionTestChildResource::class)
         ->include('roles', ResourceDefinitionTestChildResource::class, limit: 5)
         ->include('permissions', ResourceDefinitionTestChildResource::class, limit: 60)
-        ->virtualInclude('peers', ResourceDefinitionTestChildResource::class, fn () => [], asList: true, limit: 45)
+        ->virtualInclude('peers', ResourceDefinitionTestChildResource::class, fn (): array => [], asList: true, limit: 45)
         ->freeze(ResourceDefinitionTestChildResource::class);
 
     expect($definition->includeLimit('cashiers'))->toBe(30)

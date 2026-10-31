@@ -70,7 +70,7 @@ final class DeclarationTestBundleResource extends ApiResource
 
 final class DeclarationTestSubjectResolver implements ResourceResolver
 {
-    public function resourceFor(Model $model): ?string
+    public function resourceFor(Model $model): string
     {
         return DeclarationTestVariantResource::class;
     }
@@ -192,7 +192,7 @@ function declarationTestRouter(array $routes = []): Router
     foreach ($routes as $uri => [$method, $action]) {
         $router->addRoute($method, $uri, $action);
     }
-    $router->get('closure', fn () => null);
+    $router->get('closure', fn (): null => null);
 
     return $router;
 }
@@ -224,7 +224,7 @@ function runSelection(string $uri, string $method, string $query = ''): array
     $router = declarationTestRouter();
     $route = declarationTestRoute($router, $uri);
     $request = Request::create("/{$uri}?{$query}", $method);
-    $request->setRouteResolver(fn () => $route);
+    $request->setRouteResolver(fn (): Route => $route);
     $context = app(ResponseContext::class);
     $middleware = new ResolveResponseSelection($context, declarationTestRegistry($router), new SelectionParser, new SelectionValidator);
     $result = ['ran' => false, 'response' => null, 'context' => null];
@@ -341,7 +341,7 @@ it('reads the cache file in production only, and analyzes an action it does not 
 
         // a stale cache declaring show() as a list and update() as making no ApiResponse call, built before store()
         file_put_contents($path, '<?php return '.var_export([
-            DeclarationTestController::class.'@show'   => (new ResponseDeclaration(DeclarationTestResource::class, ResponseShape::List, [200]))->toArray(),
+            DeclarationTestController::class.'@show'   => new ResponseDeclaration(DeclarationTestResource::class, ResponseShape::List, [200])->toArray(),
             DeclarationTestController::class.'@update' => null,
         ], true).';');
 

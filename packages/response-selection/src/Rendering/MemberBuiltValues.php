@@ -14,7 +14,7 @@ use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
  *
  * @internal
  */
-final class MemberBuiltValues implements BuiltValues
+final readonly class MemberBuiltValues implements BuiltValues
 {
     /**
      * @param  class-string<ApiResource>  $resourceClass
@@ -22,10 +22,10 @@ final class MemberBuiltValues implements BuiltValues
      * @param  array<int, string>  $fields  fields the builder may read
      */
     public function __construct(
-        private readonly ResponseContext $context,
-        private readonly string $resourceClass,
-        private readonly string $builder,
-        private readonly array $fields,
+        private ResponseContext $context,
+        private string $resourceClass,
+        private string $builder,
+        private array $fields,
     ) {}
 
     public function get(Model $model, string $field): mixed

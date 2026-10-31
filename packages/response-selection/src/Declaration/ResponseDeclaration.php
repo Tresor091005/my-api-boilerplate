@@ -10,7 +10,7 @@ use Lahatre\ResponseSelection\Enums\ResponseShape;
 /**
  * What a controller action answers with: a Resource, its shape and its statuses, or no content at all.
  */
-final class ResponseDeclaration
+final readonly class ResponseDeclaration
 {
     /**
      * @param  class-string<ApiResource>|null  $resourceClass  null when the action never answers with a body
@@ -18,10 +18,10 @@ final class ResponseDeclaration
      * @param  bool  $canBeEmpty  the action may also answer 204 with no body
      */
     public function __construct(
-        public readonly ?string $resourceClass,
-        public readonly ?ResponseShape $shape,
-        public readonly array $statuses,
-        public readonly bool $canBeEmpty = false,
+        public ?string $resourceClass,
+        public ?ResponseShape $shape,
+        public array $statuses,
+        public bool $canBeEmpty = false,
     ) {}
 
     public static function noContentOnly(): self

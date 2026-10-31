@@ -46,7 +46,7 @@ final readonly class CustomerContactController
         return ApiResponse::item($response, ContactResource::class);
     }
 
-    public function destroy(Customer $customer, ContactDeleteRequest $request): Response
+    public function destroy(Customer $customer, ContactDeleteRequest $request): \Illuminate\Http\Response
     {
         Gate::authorize('update', $customer);
         $customer->removeContacts($request->validated('ids'));

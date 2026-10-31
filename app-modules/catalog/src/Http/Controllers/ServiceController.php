@@ -61,7 +61,7 @@ final readonly class ServiceController
         return ApiResponse::item($service, ServiceResource::class);
     }
 
-    public function destroy(Service $service): Response
+    public function destroy(Service $service): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $service);
         $this->serviceService->delete($service);

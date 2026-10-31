@@ -50,7 +50,7 @@ function createIamActiveContext(
     $assignment->syncRoles($role);
     setPermissionsTeamId(null);
 
-    return compact('organization', 'user', 'member', 'role', 'assignment');
+    return ['organization' => $organization, 'user' => $user, 'member' => $member, 'role' => $role, 'assignment' => $assignment];
 }
 
 /** @return array{organization_id: string, member_id: string, member_role_id: string, role_id: string} */

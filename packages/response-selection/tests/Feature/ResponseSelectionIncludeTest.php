@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Schema;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
@@ -255,9 +256,9 @@ it('loads at most the include limit of children per parent, the first by key', f
 
     $response = ApiResponse::list($locations, ResponseSelectionTestLimitedLocationResource::class);
 
-    expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe(array_map(fn (int $location) => [
+    expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe(array_map(fn (int $location): array => [
         'id'        => $location,
-        'transfers' => array_map(fn (int $id) => ['id' => $id], array_slice($transfers[$location], 0, 2)),
+        'transfers' => array_map(fn (int $id): array => ['id' => $id], array_slice($transfers[$location], 0, 2)),
     ], array_keys($transfers)))
         ->and($locations->map(fn (Model $location) => $location->getRelation('transfers')->count())->all())->toBe([2, 2]);
 });
@@ -272,7 +273,7 @@ it('loads a relation a field reads whole, and still renders only the include lim
     expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe([
         'id'             => $location,
         'transfer_count' => 3,
-        'transfers'      => array_map(fn (int $id) => ['id' => $id], array_slice($transfers[$location], 0, 2)),
+        'transfers'      => array_map(fn (int $id): array => ['id' => $id], array_slice($transfers[$location], 0, 2)),
     ]);
 });
 
@@ -295,6 +296,6 @@ it('renders a count the service query added, and fails loudly when it did not', 
     $response = ApiResponse::item(ResponseSelectionTestLocation::query()->withCount('transfers')->findOrFail($location), ResponseSelectionTestLimitedLocationResource::class);
 
     expect($response instanceof JsonResponse ? $response->getData(true)['data'] : null)->toBe(['id' => $location, 'transfers_count' => 3])
-        ->and(fn () => ApiResponse::item(ResponseSelectionTestLocation::query()->findOrFail($location), ResponseSelectionTestLimitedLocationResource::class))
+        ->and(fn (): JsonResponse|Response => ApiResponse::item(ResponseSelectionTestLocation::query()->findOrFail($location), ResponseSelectionTestLimitedLocationResource::class))
         ->toThrow(MissingAttributeException::class);
 });

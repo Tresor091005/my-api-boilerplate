@@ -46,7 +46,7 @@ function authenticatedOrganizationMemberReadContext(array $abilities = ['list', 
     ]]);
     currentTestCase()->withToken($token->plainTextToken);
 
-    return compact('organization', 'user', 'member', 'role', 'memberRole');
+    return ['organization' => $organization, 'user' => $user, 'member' => $member, 'role' => $role, 'memberRole' => $memberRole];
 }
 
 it('requires authentication and a selected organization for member reads', function (): void {

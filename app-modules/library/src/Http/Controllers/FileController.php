@@ -71,7 +71,7 @@ final readonly class FileController
         return ApiResponse::item($response, FileResource::class);
     }
 
-    public function destroy(File $file): Response
+    public function destroy(File $file): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $file);
         $this->fileService->delete($file);

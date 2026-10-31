@@ -39,7 +39,7 @@ function authenticatedMemberRemovalContext(bool $canDelete = true): array
     }
     currentTestCase()->withToken(memberRemovalAccessToken($user, $memberRole));
 
-    return compact('organization', 'member', 'user');
+    return ['organization' => $organization, 'member' => $member, 'user' => $user];
 }
 
 function memberRemovalAccessToken(User $user, MemberRole $memberRole): string

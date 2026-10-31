@@ -79,7 +79,7 @@ it('renders every field of the organization resources alone as in the full selec
 it('runs as many queries for more exchange rates', function (): void {
     $this->assertBoundedQueries(
         fn (int $count, int $alreadySeeded) => collect(range(1, $count))->each(
-            fn (int $position) => organizationSelectionRate($alreadySeeded + $position),
+            fn (int $position): ExchangeRate => organizationSelectionRate($alreadySeeded + $position),
         ),
         fn () => $this->getJson('/v1/organization/exchange-rates')->assertOk(),
     );

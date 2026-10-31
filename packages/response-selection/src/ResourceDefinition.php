@@ -471,7 +471,7 @@ final class ResourceDefinition
             array_push($pending, ...$this->dependencies($name));
         }
 
-        return array_values(array_filter($this->buildOrder(), fn (string $key) => isset($needed[$key])));
+        return array_values(array_filter($this->buildOrder(), fn (string $key): bool => isset($needed[$key])));
     }
 
     /**
@@ -692,7 +692,7 @@ final class ResourceDefinition
      */
     private function readsRequestOnly(Closure $when, string $resourceClass, string $member): bool
     {
-        $parameters = (new ReflectionFunction($when))->getParameters();
+        $parameters = new ReflectionFunction($when)->getParameters();
 
         foreach ($parameters as $parameter) {
             if ($parameter->isVariadic()) {

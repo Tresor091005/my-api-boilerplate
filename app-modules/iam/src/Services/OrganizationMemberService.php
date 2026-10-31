@@ -14,11 +14,11 @@ use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 
-final class OrganizationMemberService
+final readonly class OrganizationMemberService
 {
     public function __construct(
-        private readonly OrganizationInterface $organizations,
-        private readonly MemberRoleDeletionService $memberRoleDeletions,
+        private OrganizationInterface $organizations,
+        private MemberRoleDeletionService $memberRoleDeletions,
     ) {}
 
     public function paginate(OrganizationMemberFilterData $filters): CursorPaginator

@@ -59,7 +59,7 @@ final readonly class CustomerController
         return ApiResponse::item($response, CustomerResource::class);
     }
 
-    public function destroy(Customer $customer): Response
+    public function destroy(Customer $customer): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $customer);
         $this->customerService->delete($customer);

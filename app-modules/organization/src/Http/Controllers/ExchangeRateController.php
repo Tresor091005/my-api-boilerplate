@@ -56,7 +56,7 @@ final readonly class ExchangeRateController
         return ApiResponse::item($rate, ExchangeRateResource::class);
     }
 
-    public function destroy(ExchangeRate $exchangeRate): Response
+    public function destroy(ExchangeRate $exchangeRate): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $exchangeRate);
         $this->exchangeRateService->delete($exchangeRate);

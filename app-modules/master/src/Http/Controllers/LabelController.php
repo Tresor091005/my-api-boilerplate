@@ -54,7 +54,7 @@ final class LabelController
         return ApiResponse::item($response, LabelResource::class);
     }
 
-    public function reorder(LabelReorderRequest $request): Response
+    public function reorder(LabelReorderRequest $request): \Illuminate\Http\Response
     {
         Gate::authorize('reorder', Label::class);
         $this->labelService->reorder(LabelReorderData::fromArray($request->validated()));
@@ -62,7 +62,7 @@ final class LabelController
         return ApiResponse::noContent();
     }
 
-    public function destroy(Label $label): Response
+    public function destroy(Label $label): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $label);
         $this->labelService->delete($label);

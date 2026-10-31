@@ -64,7 +64,7 @@ final readonly class StockLocationController
         return ApiResponse::item($location, StockLocationResource::class);
     }
 
-    public function destroy(StockLocation $stockLocation): Response
+    public function destroy(StockLocation $stockLocation): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $stockLocation);
         $this->stockLocationService->delete($stockLocation);

@@ -84,7 +84,7 @@ function iamActivationManagementContext(bool $authorized = true): array
     $targetToken = iamActivationAccessToken($member->user, $assignment);
     useIamActivationAccessToken($actorToken);
 
-    return compact('organization', 'owner', 'member', 'role', 'assignment', 'actorToken', 'targetToken');
+    return ['organization' => $organization, 'owner' => $owner, 'member' => $member, 'role' => $role, 'assignment' => $assignment, 'actorToken' => $actorToken, 'targetToken' => $targetToken];
 }
 
 it('creates inactive roles and preserves activation when omitted from partial updates', function (): void {

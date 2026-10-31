@@ -57,7 +57,7 @@ final readonly class PlanController
         return ApiResponse::item($response, PlanResource::class);
     }
 
-    public function destroy(Plan $plan): Response
+    public function destroy(Plan $plan): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $plan);
         $this->planService->delete($plan);

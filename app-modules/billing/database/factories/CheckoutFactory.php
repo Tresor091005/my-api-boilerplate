@@ -23,7 +23,7 @@ class CheckoutFactory extends Factory
         $startedAt = now()->startOfSecond();
 
         return [
-            'organization_id' => fn (): string => currentOrganizationId(),
+            'organization_id' => currentOrganizationId(...),
             'plan_version_id' => PlanVersion::factory(),
             'subscription_id' => null,
             'action'          => CheckoutAction::Subscribe,

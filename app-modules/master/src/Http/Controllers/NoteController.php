@@ -67,7 +67,7 @@ final readonly class NoteController
         return ApiResponse::item($response, NoteResource::class);
     }
 
-    public function updateVisibility(NoteVisibilityUpdateRequest $request, Note $note): Response
+    public function updateVisibility(NoteVisibilityUpdateRequest $request, Note $note): \Illuminate\Http\Response
     {
         $data = NoteVisibilityUpdateData::fromArray($request->validated());
         Gate::authorize('updateVisibility', [$note, $data->visibility]);
@@ -76,7 +76,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function destroy(Note $note): Response
+    public function destroy(Note $note): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $note);
         $this->noteService->delete($note);
@@ -84,7 +84,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function pin(Note $note): Response
+    public function pin(Note $note): \Illuminate\Http\Response
     {
         Gate::authorize('pin', $note);
         $this->noteService->setPinned($note, true);
@@ -92,7 +92,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function unpin(Note $note): Response
+    public function unpin(Note $note): \Illuminate\Http\Response
     {
         Gate::authorize('pin', $note);
         $this->noteService->setPinned($note, false);
@@ -100,7 +100,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function addMention(NoteMentionRequest $request, Note $note): Response
+    public function addMention(NoteMentionRequest $request, Note $note): \Illuminate\Http\Response
     {
         Gate::authorize('mention', $note);
         $this->noteService->addMentions($note, NoteMentionData::fromArray($request->validated()));
@@ -108,7 +108,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function removeMention(NoteMentionRequest $request, Note $note): Response
+    public function removeMention(NoteMentionRequest $request, Note $note): \Illuminate\Http\Response
     {
         Gate::authorize('mention', $note);
         $this->noteService->removeMentions($note, NoteMentionData::fromArray($request->validated()));
@@ -116,7 +116,7 @@ final readonly class NoteController
         return ApiResponse::noContent();
     }
 
-    public function markMentionRead(Note $note): Response
+    public function markMentionRead(Note $note): \Illuminate\Http\Response
     {
         $this->noteService->markMentionRead($note);
 

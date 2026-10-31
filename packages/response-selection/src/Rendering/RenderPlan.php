@@ -10,14 +10,14 @@ namespace Lahatre\ResponseSelection\Rendering;
  *
  * @internal
  */
-final class RenderPlan
+final readonly class RenderPlan
 {
     /**
      * @param  array<int, RenderStep>  $steps
      * @param  bool  $readsConditions  some step checks a per-model `when:`
      */
     public function __construct(
-        public readonly array $steps,
-        public readonly bool $readsConditions,
+        public array $steps,
+        public bool $readsConditions,
     ) {}
 }

@@ -52,7 +52,7 @@ class UserResource extends ApiResource
             'member_roles' => [
                 'columns'   => ['id', 'default_member_role_id'],
                 'relations' => ['organizationMemberships.organization', 'organizationMemberships.memberRoles.role'],
-                'read'      => fn (Model $user): array => self::memberRoles($user),
+                'read'      => self::memberRoles(...),
             ],
         ];
     }

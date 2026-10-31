@@ -19,9 +19,9 @@ use JsonSerializable;
  *
  * @internal
  */
-final class JsonDate implements JsonSerializable
+final readonly class JsonDate implements JsonSerializable
 {
-    private function __construct(private readonly CarbonInterface $date) {}
+    private function __construct(private CarbonInterface $date) {}
 
     /**
      * Classes whose JSON form is Carbon's own toJSON(): a subclass may change it.

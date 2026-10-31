@@ -45,7 +45,7 @@ function authenticatedMemberRoleManagementContext(bool $canUpdate = true): array
     currentTestCase()->withToken($token->plainTextToken);
     $member = OrganizationMember::factory()->create(['organization_id' => $organization->id]);
 
-    return compact('organization', 'member');
+    return ['organization' => $organization, 'member' => $member];
 }
 
 function memberRoleManagementUrl(OrganizationMember $member): string

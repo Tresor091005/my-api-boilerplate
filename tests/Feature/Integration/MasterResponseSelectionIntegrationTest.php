@@ -123,7 +123,7 @@ it('runs as many queries for more master rows with their includes', function (st
     'currencies' => ['/v1/master/currencies', fn (): Currency => Currency::factory()->create()],
     'labels'     => ['/v1/master/labels', fn (OrganizationMember $member): Label => Label::factory()->create(['organization_id' => $member->organization_id])],
     'units'      => ['/v1/master/units?include=group.units', fn (OrganizationMember $member): Unit => masterSelectionUnit($member->organization_id)],
-    'notes'      => ['/v1/master/notes?include=replies.mentions,mentions', fn (OrganizationMember $member): Note => masterSelectionNote($member)],
+    'notes'      => ['/v1/master/notes?include=replies.mentions,mentions', masterSelectionNote(...)],
 ]);
 
 it('renders a deleted reply with its place in the thread only, and mentions without id', function (): void {

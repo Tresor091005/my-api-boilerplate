@@ -19,14 +19,14 @@ use stdClass;
 /**
  * @phpstan-type GoogleIdentity array{issuer: string, subject: string, email: string, authoritative_email: bool, first_name: ?string, last_name: ?string, nonce: string}
  */
-final class GoogleAuthService
+final readonly class GoogleAuthService
 {
     public const int EXPIRATION_MINUTES = 10;
 
     public function __construct(
-        private readonly GoogleIdentityVerifier $verifier,
-        private readonly EmailAccountService $accounts,
-        private readonly AuthService $auth,
+        private GoogleIdentityVerifier $verifier,
+        private EmailAccountService $accounts,
+        private AuthService $auth,
     ) {}
 
     /** @return array{challenge_id: string, nonce: string, expires_at: string} */

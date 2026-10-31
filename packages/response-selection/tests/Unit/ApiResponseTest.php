@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Fluent;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
@@ -108,7 +109,7 @@ it('wraps a list in data', function (): void {
 });
 
 it('rejects an item that is not a model', function (mixed $item): void {
-    expect(fn () => ApiResponse::item($item, ApiResponseTestResource::class))
+    expect(fn (): JsonResponse|Response => ApiResponse::item($item, ApiResponseTestResource::class))
         ->toThrow(ResponseSelectionException::class, ApiResponseTestResource::class);
 })->with([
     'associative array' => [['id' => 1, 'name' => 'Alpha']],
@@ -118,11 +119,12 @@ it('rejects an item that is not a model', function (mixed $item): void {
 
 it('rejects a list containing an item that is not a model', function (): void {
     startApiResponseTest(new ResponseDeclaration(ApiResponseTestResource::class, ResponseShape::List, [200]));
+    // @phpstan-ignore argument.type (the wrong item is the point of the test)
     ApiResponse::list([new ApiResponseTestModel(['id' => 1]), ['id' => 2]], ApiResponseTestResource::class);
 })->throws(ResponseSelectionException::class, 'array');
 
 it('refuses to render a resource outside ApiResponse', function (): void {
-    (new ApiResponseTestResource(new ApiResponseTestModel(['id' => 1, 'name' => 'Alpha'])))->resolve();
+    new ApiResponseTestResource(new ApiResponseTestModel(['id' => 1, 'name' => 'Alpha']))->resolve();
 })->throws(ResponseSelectionException::class);
 
 it('forbids lazy loading on the rendered model while rendering and restores its flag', function (): void {
@@ -137,7 +139,7 @@ it('forbids lazy loading on the rendered model while rendering and restores its 
 it('rejects a factory call that does not match the declaration and names the expected one', function (ResponseDeclaration $declaration, string $expected): void {
     startApiResponseTest($declaration);
 
-    expect(fn () => ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestResource::class))
+    expect(fn (): JsonResponse|Response => ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestResource::class))
         ->toThrow(ResponseSelectionException::class, "calls ApiResponse::item(ApiResponseTestResource::class), but its response declaration is {$expected}");
 })->with([
     'other Resource'  => [new ResponseDeclaration(ApiResponseTestOtherResource::class, ResponseShape::Item, [200]), 'item(ApiResponseTestOtherResource::class)'],
@@ -150,8 +152,8 @@ it('rejects a call without a started context, as for an action missing from a st
 
     expect($call)->toThrow(ResponseSelectionException::class, 'unknown action calls ApiResponse without a response declaration');
 })->with([
-    'item'      => [fn () => ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestResource::class)],
-    'noContent' => [fn () => ApiResponse::noContent()],
+    'item'      => [fn (): JsonResponse|Response => ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestResource::class)],
+    'noContent' => [ApiResponse::noContent(...)],
 ]);
 
 it('allows noContent() only when the declaration may answer empty', function (): void {
@@ -162,7 +164,7 @@ it('allows noContent() only when the declaration may answer empty', function ():
     expect(ApiResponse::noContent()->getStatusCode())->toBe(204);
 
     startApiResponseTest(new ResponseDeclaration(ApiResponseTestResource::class, ResponseShape::Item, [200]));
-    expect(fn () => ApiResponse::noContent())
+    expect(fn (): Response => ApiResponse::noContent())
         ->toThrow(ResponseSelectionException::class, 'calls ApiResponse::noContent(), but its response declaration is item(ApiResponseTestResource::class)');
 });
 
@@ -187,6 +189,6 @@ it('rejects a field value that is a model, even nested in an array', function (m
 
     ApiResponse::item(new ApiResponseTestModel(['id' => 1]), ApiResponseTestValueResource::class);
 })->with([
-    'model'          => [fn () => new ApiResponseTestModel(['id' => 2])],
-    'nested in list' => [fn () => ['a', [new ApiResponseTestModel(['id' => 2])]]],
+    'model'          => [fn (): ApiResponseTestModel => new ApiResponseTestModel(['id' => 2])],
+    'nested in list' => [fn (): array => ['a', [new ApiResponseTestModel(['id' => 2])]]],
 ])->throws(ResponseSelectionException::class);

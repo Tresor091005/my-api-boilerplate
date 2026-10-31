@@ -16,13 +16,13 @@ use Lahatre\Iam\Jobs\SendLoginCode;
 use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Notifications\EmailLoginCodeNotification;
 
-final class EmailLoginService
+final readonly class EmailLoginService
 {
     public const int EXPIRATION_MINUTES = 10;
 
     public const int MAX_ATTEMPTS = 5;
 
-    public function __construct(private readonly EmailAccountService $accounts, private readonly AuthService $auth) {}
+    public function __construct(private EmailAccountService $accounts, private AuthService $auth) {}
 
     /** Owns the transaction. A generic challenge ID never discloses whether an email is available. */
     public function requestCode(string $email): string

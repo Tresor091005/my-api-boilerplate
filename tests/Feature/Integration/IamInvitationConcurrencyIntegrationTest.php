@@ -57,7 +57,7 @@ function invitationConcurrencyContext(): array
     ]]);
     $accessToken = $access->plainTextToken;
 
-    return compact('organization', 'role', 'user', 'invitation', 'token', 'accessToken');
+    return ['organization' => $organization, 'role' => $role, 'user' => $user, 'invitation' => $invitation, 'token' => $token, 'accessToken' => $accessToken];
 }
 
 /**

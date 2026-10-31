@@ -46,7 +46,7 @@ final readonly class CustomerAddressController
         return ApiResponse::item($response, AddressResource::class);
     }
 
-    public function destroy(Customer $customer, AddressDeleteRequest $request): Response
+    public function destroy(Customer $customer, AddressDeleteRequest $request): \Illuminate\Http\Response
     {
         Gate::authorize('update', $customer);
         $customer->removeAddresses($request->validated('ids'));

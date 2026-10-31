@@ -31,7 +31,7 @@ final class OpenApiSchemaTestParentResource extends ApiResource
             ->field('id')
             ->field('summary', columns: [], computedBy: fn (): string => 'summary', default: false)
             ->include('lines', OpenApiSchemaTestChildResource::class, limit: 2)
-            ->virtualInclude('peers', OpenApiSchemaTestChildResource::class, fn () => [], asList: true, limit: 3);
+            ->virtualInclude('peers', OpenApiSchemaTestChildResource::class, fn (): array => [], asList: true, limit: 3);
     }
 }
 
@@ -61,7 +61,7 @@ function openApiResourceSchemas(string $resourceClass): array
     $transformer = new TypeTransformer(app(Infer::class), new OpenApiContext($openApi, $config));
     $extension = new ResponseSelectionOperationExtension(app(Infer::class), $transformer, $config);
 
-    (new ReflectionMethod($extension, 'resourceReference'))->invoke($extension, $resourceClass);
+    new ReflectionMethod($extension, 'resourceReference')->invoke($extension, $resourceClass);
 
     return $openApi->components->toArray()['schemas'] ?? [];
 }
@@ -91,8 +91,8 @@ it('documents a Resource that includes itself by pointing back to its own schema
 });
 
 it('marks the fields rendered only when listed in the fields parameter', function (): void {
-    $extension = (new ReflectionClass(ResponseSelectionOperationExtension::class))->newInstanceWithoutConstructor();
-    $list = (new ReflectionMethod($extension, 'fieldList'))->invoke($extension, OpenApiSchemaTestParentResource::definition());
+    $extension = new ReflectionClass(ResponseSelectionOperationExtension::class)->newInstanceWithoutConstructor();
+    $list = new ReflectionMethod($extension, 'fieldList')->invoke($extension, OpenApiSchemaTestParentResource::definition());
 
     expect($list)->toBe('`id`, `summary` (only when listed)');
 });

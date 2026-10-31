@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ApiResponse;
 use Lahatre\ResponseSelection\BuiltValues;
@@ -23,7 +24,6 @@ use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
 use Lahatre\ResponseSelection\FieldComputer;
 use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\Rendering\SelectionLoader;
-use Lahatre\ResponseSelection\ResolveResponseSelection;
 use Lahatre\ResponseSelection\ResourceDefinition;
 use Lahatre\ResponseSelection\ResourceResolver;
 use Lahatre\ResponseSelection\Selection\SelectionNode;
@@ -99,7 +99,7 @@ final class ResponseBuildTestCurrencies implements FieldComputer
     {
         ResponseBuildTestCalls::record(self::class, $models, $fields);
 
-        return $models->mapWithKeys(fn (Model $model) => [$model->getKey() => ['currency_code' => 'XOF']])->all();
+        return $models->mapWithKeys(fn (Model $model): array => [$model->getKey() => ['currency_code' => 'XOF']])->all();
     }
 }
 
@@ -156,7 +156,7 @@ final class ResponseBuildTestConversions implements FieldComputer
     {
         ResponseBuildTestCalls::record(self::class, $models, $fields);
 
-        return $models->mapWithKeys(fn (Model $model) => [$model->getKey() => ['converted' => $built->get($model, 'rate') * 10]])->all();
+        return $models->mapWithKeys(fn (Model $model): array => [$model->getKey() => ['converted' => $built->get($model, 'rate') * 10]])->all();
     }
 }
 
@@ -166,7 +166,7 @@ final class ResponseBuildTestKinds implements FieldComputer
     {
         ResponseBuildTestCalls::record(self::class, $models, $fields);
 
-        return $models->mapWithKeys(fn (Model $model) => [$model->getKey() => ['kind_name' => class_basename($model)]])->all();
+        return $models->mapWithKeys(fn (Model $model): array => [$model->getKey() => ['kind_name' => class_basename($model)]])->all();
     }
 }
 
@@ -282,7 +282,7 @@ final class ResponseBuildTestBundleResource extends ApiResource
 
 final class ResponseBuildTestSubjectResolver implements ResourceResolver
 {
-    public function resourceFor(Model $model): ?string
+    public function resourceFor(Model $model): string
     {
         return $model instanceof ResponseBuildTestOtherAccount ? ResponseBuildTestBundleResource::class : ResponseBuildTestVariantResource::class;
     }
@@ -327,7 +327,7 @@ final class ResponseBuildTestPartners implements VirtualIncludeLoader
     {
         ResponseBuildTestCalls::see(class_basename($parents->first()).':'.implode(',', $parents->modelKeys()));
 
-        return $parents->mapWithKeys(fn (Model $parent) => [$parent->getKey() => new ResponseBuildTestAccount([
+        return $parents->mapWithKeys(fn (Model $parent): array => [$parent->getKey() => new ResponseBuildTestAccount([
             'id'   => 100 + $parent->getKey(),
             'name' => class_basename($parent).' partner',
         ])])->all();
@@ -348,7 +348,7 @@ final class ResponseBuildTestUndeclaredRead implements FieldComputer
 {
     public function compute(Collection $models, array $fields, BuiltValues $built): array
     {
-        return $models->mapWithKeys(fn (Model $model) => [$model->getKey() => [$fields[0] => $built->get($model, $fields[0] === 'reads_other' ? 'currency_code' : 'name')]])->all();
+        return $models->mapWithKeys(fn (Model $model): array => [$model->getKey() => [$fields[0] => $built->get($model, $fields[0] === 'reads_other' ? 'currency_code' : 'name')]])->all();
     }
 }
 
@@ -454,14 +454,14 @@ function startSelection(string $resourceClass, ResponseShape $shape, ?string $fi
 function renderAccounts(string $resourceClass, ?string $fields, array $rows, ?string $include = null): array
 {
     startSelection($resourceClass, ResponseShape::List, $fields, $include);
-    $models = new Collection(array_map(fn (array $row) => new ResponseBuildTestAccount($row), $rows));
+    $models = new Collection(array_map(fn (array $row): ResponseBuildTestAccount => new ResponseBuildTestAccount($row), $rows));
     $response = ApiResponse::list($models, $resourceClass);
 
     return $response instanceof JsonResponse ? $response->getData(true)['data'] : [];
 }
 
 it('rejects a fields: cycle at freeze and names it', function (): void {
-    expect(fn () => ResponseBuildTestCycleResource::definition())
+    expect(fn (): ResourceDefinition => ResponseBuildTestCycleResource::definition())
         ->toThrow(ResponseSelectionException::class, ResponseBuildTestCycleResource::class.': fields need each other in a cycle through `fields:`: balance → currency_code → rate → balance');
 });
 
@@ -545,7 +545,7 @@ it('generates toArray() in declaration order, parent::define() where it is calle
 });
 
 it('restricts BuiltValues to the fields: of the builder', function (string $field, string $message): void {
-    expect(fn () => renderAccounts(ResponseBuildTestRestrictedResource::class, $field, [['id' => 1, 'name' => 'Awa']]))
+    expect(fn (): array => renderAccounts(ResponseBuildTestRestrictedResource::class, $field, [['id' => 1, 'name' => 'Awa']]))
         ->toThrow(ResponseSelectionException::class, $message);
 })->with([
     'undeclared key'     => ['reads_other', 'do not list it'],
@@ -752,7 +752,7 @@ it('restores every lazy-loading flag when building throws', function (): void {
     $account->setRelation('owner', $owner);
     startSelection(ResponseBuildTestThrowingResource::class, ResponseShape::Item, 'boom');
 
-    expect(fn () => ApiResponse::item($account, ResponseBuildTestThrowingResource::class))->toThrow(RuntimeException::class, 'boom')
+    expect(fn (): JsonResponse|Response => ApiResponse::item($account, ResponseBuildTestThrowingResource::class))->toThrow(RuntimeException::class, 'boom')
         ->and($account->preventsLazyLoading)->toBeFalse()
         ->and($owner->preventsLazyLoading)->toBeTrue();
 });
@@ -792,6 +792,7 @@ it('prevents lazy loading on a virtual child while building it, then restores it
 
     expect(renderAccounts(ResponseBuildTestFlagParentResource::class, 'id', [['id' => 1]], 'buddy'))->toBe([['id' => 1, 'buddy' => ['id' => 3, 'guarded' => true]]])
         ->and(ResponseBuildTestFlagResource::$seen)->toBe([true])
+        // @phpstan-ignore property.nonObject (rendering sets the child after the reset above)
         ->and(ResponseBuildTestFlagParentResource::$child?->preventsLazyLoading)->toBeFalse();
 });
 
@@ -853,7 +854,7 @@ final class ResponseBuildTestOwnedResource extends ApiResource
 it('rejects a relation the model lacks, a method that is not a relation, and a path after a MorphTo', function (string $field, string $message): void {
     startSelection(ResponseBuildTestBrokenRelationResource::class, ResponseShape::Item, $field);
 
-    expect(fn () => ApiResponse::item(new ResponseBuildTestLinkedAccount(['id' => 1]), ResponseBuildTestBrokenRelationResource::class))
+    expect(fn (): JsonResponse|Response => ApiResponse::item(new ResponseBuildTestLinkedAccount(['id' => 1]), ResponseBuildTestBrokenRelationResource::class))
         ->toThrow(ResponseSelectionException::class, $message);
 })->with([
     'missing relation' => ['missing', 'has no such relation'],
@@ -948,7 +949,7 @@ it('builds an include resolver a fixed number of times, however many parents ren
     $builtFor = function (int $parents): int {
         ResponseBuildTestCountingResolver::$built = 0;
         app()->instance(ResponseContext::class, new ResponseContext);
-        renderAccounts(ResponseBuildTestCountingResolverResource::class, 'id', array_map(fn (int $id) => ['id' => $id], range(1, $parents)), 'peer');
+        renderAccounts(ResponseBuildTestCountingResolverResource::class, 'id', array_map(fn (int $id): array => ['id' => $id], range(1, $parents)), 'peer');
 
         return ResponseBuildTestCountingResolver::$built;
     };

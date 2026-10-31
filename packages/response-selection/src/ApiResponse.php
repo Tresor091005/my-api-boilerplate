@@ -51,8 +51,8 @@ final class ApiResponse
 
         $result = self::assertItem($result, $resourceClass, 'item');
 
-        return self::respond($result, $resourceClass, ResponseShape::Item, $status, $possibleStatuses, fn (SelectionNode $selection) => [
-            'data' => (new $resourceClass($result))->attachSelection($selection),
+        return self::respond($result, $resourceClass, ResponseShape::Item, $status, $possibleStatuses, fn (SelectionNode $selection): array => [
+            'data' => new $resourceClass($result)->attachSelection($selection),
         ]);
     }
 
@@ -68,7 +68,7 @@ final class ApiResponse
     {
         $items = self::toList($items, $resourceClass, 'list');
 
-        return self::respond($items, $resourceClass, ResponseShape::List, $status, $possibleStatuses, fn (SelectionNode $selection) => [
+        return self::respond($items, $resourceClass, ResponseShape::List, $status, $possibleStatuses, fn (SelectionNode $selection): array => [
             'data' => ApiResource::attachSelectionToEach($resourceClass::collection($items), $selection),
         ]);
     }
@@ -85,7 +85,7 @@ final class ApiResponse
     {
         $items = self::toList(collect($page->items()), $resourceClass, 'cursorPage');
 
-        return self::respond($items, $resourceClass, ResponseShape::CursorPage, $status, $possibleStatuses, fn (SelectionNode $selection) => [
+        return self::respond($items, $resourceClass, ResponseShape::CursorPage, $status, $possibleStatuses, fn (SelectionNode $selection): array => [
             'data' => ApiResource::attachSelectionToEach($resourceClass::collection($items), $selection),
             'meta' => [
                 'per_page'    => $page->perPage(),
@@ -114,11 +114,11 @@ final class ApiResponse
     {
         $items = collect($items);
 
-        if ($items->keys()->contains(fn ($key) => is_string($key))) {
+        if ($items->keys()->contains(fn ($key): bool => is_string($key))) {
             throw ResponseSelectionException::listHasStringKeys($factory);
         }
 
-        return new EloquentCollection($items->map(fn ($item) => self::assertItem($item, $resourceClass, $factory))->values()->all());
+        return new EloquentCollection($items->map(fn ($item): Model => self::assertItem($item, $resourceClass, $factory))->values()->all());
     }
 
     private static function assertItem(mixed $item, string $resourceClass, string $factory): Model

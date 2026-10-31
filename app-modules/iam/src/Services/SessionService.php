@@ -15,9 +15,9 @@ use Lahatre\Iam\Integrations\SessionGeoLocator;
 use Lahatre\Iam\Jobs\EnrichSession;
 use Lahatre\Iam\Models\User;
 
-final class SessionService
+final readonly class SessionService
 {
-    public function __construct(private readonly SessionDeviceDetector $devices, private readonly SessionGeoLocator $locations) {}
+    public function __construct(private SessionDeviceDetector $devices, private SessionGeoLocator $locations) {}
 
     public function paginate(User $user, SessionFilterData $filters): CursorPaginator
     {

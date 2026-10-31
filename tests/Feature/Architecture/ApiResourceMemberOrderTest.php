@@ -20,7 +20,7 @@ it('declares the fields of every ApiResource first, then its includes, then its 
         $resourceClass = $namespace[1].'\\'.$class[1];
 
         // an abstract Resource is checked through the Resources extending it
-        if (!is_subclass_of($resourceClass, ApiResource::class) || (new ReflectionClass($resourceClass))->isAbstract()) {
+        if (!is_subclass_of($resourceClass, ApiResource::class) || new ReflectionClass($resourceClass)->isAbstract()) {
             continue;
         }
 

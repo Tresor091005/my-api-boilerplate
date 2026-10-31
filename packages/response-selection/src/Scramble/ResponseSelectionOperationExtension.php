@@ -51,7 +51,7 @@ class ResponseSelectionOperationExtension extends OperationExtension
 
         $operation->responses = array_values(array_filter(
             $operation->responses ?? [],
-            fn ($response) => !$this->isSuccessResponse($response)
+            fn (Response|Reference $response): bool => !$this->isSuccessResponse($response)
         ));
 
         if (in_array(ResponseMode::None, $allowed, true)) {
@@ -78,7 +78,7 @@ class ResponseSelectionOperationExtension extends OperationExtension
                 ->description('Comma-separated include paths, each optionally followed by its fields in parentheses: '
                     .'`variants(id,sku),variants.labels(value)`. Each level offers the includes of its Resource schema, up to '
                     .SelectionParser::maxDepth().' levels and '.SelectionParser::maxPaths().' paths. Available here: '
-                    .implode(', ', array_map(fn (string $name) => "`{$name}`", $definition->includeNames())).'.'),
+                    .implode(', ', array_map(fn (string $name): string => "`{$name}`", $definition->includeNames())).'.'),
         ]);
 
         $resourceSchema = $this->resourceReference($resourceClass);
@@ -128,7 +128,7 @@ class ResponseSelectionOperationExtension extends OperationExtension
     private function fieldList(ResourceDefinition $definition): string
     {
         return implode(', ', array_map(
-            fn (string $key) => $definition->rendersByDefault($key) ? "`{$key}`" : "`{$key}` (only when listed)",
+            fn (string $key): string => $definition->rendersByDefault($key) ? "`{$key}`" : "`{$key}` (only when listed)",
             $definition->fieldKeys(),
         ));
     }

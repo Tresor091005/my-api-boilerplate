@@ -118,7 +118,7 @@ abstract class ApiResource extends JsonResource
      */
     final public static function collection($resource)
     {
-        return static::newCollection($resource);
+        return self::newCollection($resource);
     }
 
     final protected static function newCollection($resource)
@@ -138,6 +138,8 @@ abstract class ApiResource extends JsonResource
 
     /**
      * Ignores Laravel's `$attributes` property: only what define() declares is rendered.
+     *
+     * @return array<string, mixed>
      */
     final public function toAttributes(Request $request)
     {
@@ -172,7 +174,7 @@ abstract class ApiResource extends JsonResource
      */
     final public function toArray(Request $request): array
     {
-        static::definition();
+        self::definition();
         $selection = $this->attachedSelection();
         $model = $this->model();
         $context = app(ResponseContext::class);
@@ -297,7 +299,7 @@ abstract class ApiResource extends JsonResource
 
         $resourceClass = $step->childClass;
         // built once per response, when the first child renders
-        $resolver = $resourceClass === null ? ($step->resolver ??= static::definition()->includeResolver($step->name)) : null;
+        $resolver = $resourceClass === null ? ($step->resolver ??= self::definition()->includeResolver($step->name)) : null;
         $childSelection = $step->child ?? new SelectionNode;
 
         if ($step->isVirtual ? $step->asList : $value instanceof Collection) {
@@ -312,8 +314,8 @@ abstract class ApiResource extends JsonResource
             }
 
             // a child the resolver gives no Resource is left out of the list
-            return $items->map(fn (Model $item) => $this->makeChild($step, $resolver, null, $item, $childSelection))
-                ->filter(fn (?ApiResource $child) => $child !== null)
+            return $items->map(fn (Model $item): ?ApiResource => $this->makeChild($step, $resolver, null, $item, $childSelection))
+                ->filter(fn (?ApiResource $child): bool => $child !== null)
                 ->values()
                 ->all();
         }
@@ -345,6 +347,6 @@ abstract class ApiResource extends JsonResource
             }
         }
 
-        return (new $class($item))->attachSelection($childSelection);
+        return new $class($item)->attachSelection($childSelection);
     }
 }

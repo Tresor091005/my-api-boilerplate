@@ -15,7 +15,7 @@ use Lahatre\ResponseSelection\FieldComputer;
  */
 final class ExampleTransferTotals implements FieldComputer
 {
-    private const AGGREGATES = [
+    private const array AGGREGATES = [
         'line_count'     => 'count(*)',
         'total_quantity' => 'coalesce(sum(quantity), 0)',
     ];

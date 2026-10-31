@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class SelectionParser
 {
-    private const IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*\z/';
+    private const string IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*\z/';
 
     public static function maxDepth(): int
     {

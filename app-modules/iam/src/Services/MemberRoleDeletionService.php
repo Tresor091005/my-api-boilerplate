@@ -13,9 +13,9 @@ use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 
-final class MemberRoleDeletionService
+final readonly class MemberRoleDeletionService
 {
-    public function __construct(private readonly OrganizationInterface $organizations) {}
+    public function __construct(private OrganizationInterface $organizations) {}
 
     /**
      * Clear Spatie roles before soft-deleting assignments in the current organization.

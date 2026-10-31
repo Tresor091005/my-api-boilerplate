@@ -15,7 +15,7 @@ use Lahatre\ResponseSelection\ResolveResponseSelection;
  */
 final class ExampleSchema
 {
-    public const PREFIX = 'response-selection-example';
+    public const string PREFIX = 'response-selection-example';
 
     public static function createTables(): void
     {

@@ -49,7 +49,7 @@ final readonly class ServiceFileController
         return ApiResponse::item($service, ServiceResource::class);
     }
 
-    public function destroyGallery(AttachmentListRequest $request, Service $service): Response
+    public function destroyGallery(AttachmentListRequest $request, Service $service): \Illuminate\Http\Response
     {
         Gate::authorize('update', $service);
         $this->files->removeGallery($service, $request->validated('attachment_ids'));

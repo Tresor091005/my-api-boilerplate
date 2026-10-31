@@ -16,6 +16,7 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -37,7 +38,7 @@ final class ResponseDeclarationAnalyzer
     /**
      * Position of each argument of the ApiResponse factories, for calls that pass them by position.
      */
-    private const FACTORY_ARGUMENTS = [
+    private const array FACTORY_ARGUMENTS = [
         'item'       => ['resourceClass' => 1, 'status' => 2, 'possibleStatuses' => 3],
         'list'       => ['resourceClass' => 1, 'status' => 2, 'possibleStatuses' => 3],
         'cursorPage' => ['resourceClass' => 1, 'status' => 2, 'possibleStatuses' => 3],
@@ -84,16 +85,16 @@ final class ResponseDeclarationAnalyzer
         $line = $reflection->getStartLine();
         $candidates = array_values(array_filter(
             (new NodeFinder)->findInstanceOf($statements, ClassMethod::class),
-            fn (ClassMethod $node) => $node->getStartLine() <= $line && $line <= $node->getEndLine(),
+            fn (ClassMethod $node): bool => $node->getStartLine() <= $line && $line <= $node->getEndLine(),
         ));
-        $named = array_values(array_filter($candidates, fn (ClassMethod $node) => $node->name->toLowerString() === strtolower($method)));
+        $named = array_values(array_filter($candidates, fn (ClassMethod $node): bool => $node->name->toLowerString() === strtolower($method)));
         $node = $named[0] ?? (count($candidates) === 1 ? $candidates[0] : null);
 
         if (!$node instanceof ClassMethod) {
             throw ResponseDeclarationException::actionNotFound($action, $file);
         }
 
-        $calls = (new NodeFinder)->find($node->stmts ?? [], fn (Node $node) => $node instanceof StaticCall
+        $calls = (new NodeFinder)->find($node->stmts ?? [], fn (Node $node): bool => $node instanceof StaticCall
             && $node->class instanceof Name && strtolower($node->class->toString()) === strtolower(ApiResponse::class));
 
         return $calls === [] ? null : $this->declaration($node, $action);
@@ -124,7 +125,7 @@ final class ResponseDeclarationAnalyzer
         if ((self::$parsed[$file]['hash'] ?? null) !== $hash) {
             self::$parser ??= (new ParserFactory)->createForNewestSupportedVersion();
             $statements = self::$parser->parse($code) ?? [];
-            self::$parsed[$file] = ['hash' => $hash, 'statements' => (new NodeTraverser(new NameResolver))->traverse($statements)];
+            self::$parsed[$file] = ['hash' => $hash, 'statements' => new NodeTraverser(new NameResolver)->traverse($statements)];
         }
 
         return $this->files[$file] = self::$parsed[$file]['statements'];
@@ -133,9 +134,9 @@ final class ResponseDeclarationAnalyzer
     public function declaration(?ClassMethod $method, ?string $action = null): ResponseDeclaration
     {
         $action ??= $method?->name->toString() ?? 'unknown action';
-        $dynamic = $method === null ? [] : (new NodeFinder)->find($method->stmts ?? [], fn (Node $node) => $node instanceof StaticCall
+        $dynamic = $method === null ? [] : (new NodeFinder)->find($method->stmts ?? [], fn (Node $node): bool => $node instanceof StaticCall
             && $node->class instanceof Name && strtolower($node->class->toString()) === strtolower(ApiResponse::class)
-            && !$node->name instanceof Node\Identifier);
+            && !$node->name instanceof Identifier);
 
         if ($dynamic !== []) {
             throw ResponseDeclarationException::dynamicFactoryCall($action);
@@ -159,7 +160,7 @@ final class ResponseDeclarationAnalyzer
         $allowed = $this->argument($arguments, 'possibleStatuses', $positions['possibleStatuses'])?->value;
 
         if (!$resource instanceof ClassConstFetch || !$resource->class instanceof Name
-            || !$resource->name instanceof Node\Identifier || $resource->name->toString() !== 'class') {
+            || !$resource->name instanceof Identifier || $resource->name->toString() !== 'class') {
             throw ResponseDeclarationException::resourceClassNotLiteral($action, $factory);
         }
 
@@ -169,7 +170,7 @@ final class ResponseDeclarationAnalyzer
         }
 
         if ($status === null || $status instanceof Int_) {
-            $code = $status?->value ?? 200;
+            $code = $status->value ?? 200;
             $this->validateStatus($code, $action);
 
             if ($codes !== [] && !in_array($code, $codes, true)) {
@@ -190,7 +191,7 @@ final class ResponseDeclarationAnalyzer
      */
     private function factoryName(StaticCall $call): string
     {
-        $called = $call->name instanceof Node\Identifier ? $call->name->toString() : '';
+        $called = $call->name instanceof Identifier ? $call->name->toString() : '';
 
         foreach (array_keys(self::FACTORY_ARGUMENTS) as $factory) {
             if (strcasecmp($factory, $called) === 0) {
@@ -223,9 +224,12 @@ final class ResponseDeclarationAnalyzer
 
         $names = array_map(strtolower(...), $names);
 
-        return (new NodeFinder)->find($method->stmts ?? [], fn (Node $node) => $node instanceof StaticCall
+        /** @var array<int, StaticCall> $calls */
+        $calls = (new NodeFinder)->find($method->stmts ?? [], fn (Node $node): bool => $node instanceof StaticCall
             && $node->class instanceof Name && strtolower($node->class->toString()) === strtolower(ApiResponse::class)
-            && $node->name instanceof Node\Identifier && in_array($node->name->toLowerString(), $names, true));
+            && $node->name instanceof Identifier && in_array($node->name->toLowerString(), $names, true));
+
+        return $calls;
     }
 
     /**
@@ -331,7 +335,7 @@ final class ResponseDeclarationAnalyzer
 
     private function requireClass(string $class, string $contract, string $path): void
     {
-        if (!is_subclass_of($class, $contract) || !(new ReflectionClass($class))->isInstantiable()) {
+        if (!is_subclass_of($class, $contract) || !new ReflectionClass($class)->isInstantiable()) {
             throw ResponseDeclarationException::classNotConcrete($path, $class, $contract);
         }
     }

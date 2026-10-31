@@ -60,7 +60,7 @@ function authenticateApiBindingTestContext(): array
     currentTestCase()->withToken($token->plainTextToken);
     clearApiBindingTestContext();
 
-    return compact('organization', 'user', 'assignment');
+    return ['organization' => $organization, 'user' => $user, 'assignment' => $assignment];
 }
 
 it('resolves the token organization before binding option values for every fresh request', function (): void {

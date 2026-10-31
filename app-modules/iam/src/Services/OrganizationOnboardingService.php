@@ -23,12 +23,12 @@ use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Models\Organization;
 
-final class OrganizationOnboardingService
+final readonly class OrganizationOnboardingService
 {
     public function __construct(
-        private readonly OrganizationInterface $organizations,
-        private readonly EmailAccountService $accounts,
-        private readonly TrialService $trials,
+        private OrganizationInterface $organizations,
+        private EmailAccountService $accounts,
+        private TrialService $trials,
     ) {}
 
     public function requestRegistrationToken(string $email): void

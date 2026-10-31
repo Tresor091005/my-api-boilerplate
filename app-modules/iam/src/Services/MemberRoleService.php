@@ -16,9 +16,9 @@ use Lahatre\Iam\Models\MemberRole;
 use Lahatre\Iam\Models\OrganizationMember;
 use Lahatre\Iam\Models\Role;
 
-final class MemberRoleService
+final readonly class MemberRoleService
 {
-    public function __construct(private readonly MemberRoleDeletionService $deletions) {}
+    public function __construct(private MemberRoleDeletionService $deletions) {}
 
     /**
      * Add a complete batch of organization roles and their Spatie assignments.

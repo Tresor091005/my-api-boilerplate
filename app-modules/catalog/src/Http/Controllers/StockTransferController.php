@@ -53,7 +53,7 @@ final readonly class StockTransferController
         return ApiResponse::item($transfer, StockTransferResource::class);
     }
 
-    public function destroy(StockTransfer $stockTransfer): Response
+    public function destroy(StockTransfer $stockTransfer): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $stockTransfer);
         $this->stockTransferService->delete($stockTransfer);

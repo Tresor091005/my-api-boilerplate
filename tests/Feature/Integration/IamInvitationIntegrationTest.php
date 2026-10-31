@@ -58,7 +58,7 @@ function authenticatedInvitationContext(array $abilities = ['list', 'retrieve', 
     ]]);
     currentTestCase()->withToken($token->plainTextToken);
 
-    return compact('organization', 'user', 'role');
+    return ['organization' => $organization, 'user' => $user, 'role' => $role];
 }
 
 /** @return Collection<int, SendInvitationLink> */

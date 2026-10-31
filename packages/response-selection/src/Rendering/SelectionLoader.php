@@ -229,7 +229,7 @@ class SelectionLoader
 
         $includes = array_values(array_filter(
             $definition->includeNames(),
-            fn (string $name) => $selection->hasChild($name) && $accepts($name)
+            fn (string $name): bool => $selection->hasChild($name) && $accepts($name)
         ));
         $requested = array_values(array_filter(
             $definition->fieldKeys(),
@@ -253,7 +253,7 @@ class SelectionLoader
             $groups[$item::class][] = $item;
         }
 
-        return array_values(array_map(fn (array $models) => new EloquentCollection($models), $groups));
+        return array_values(array_map(fn (array $models): EloquentCollection => new EloquentCollection($models), $groups));
     }
 
     /**
@@ -364,7 +364,7 @@ class SelectionLoader
         foreach ($members as $member) {
             $accepted[$member] = $definition->condition($member) === null
                 ? $items
-                : $items->filter(fn ($item) => $context->accepts($definition, $resourceClass, $member, $item, $request))->values();
+                : $items->filter(fn (Model $item): bool => $context->accepts($definition, $resourceClass, $member, $item, $request))->values();
         }
 
         return $accepted;
@@ -410,7 +410,7 @@ class SelectionLoader
     protected function loadIncludes(string $resourceClass, SelectionNode $selection, array $fields, array $includes, array $accepted): void
     {
         $definition = $resourceClass::definition();
-        $roots = array_map(fn (string $path) => explode('.', $path)[0], $this->relationPaths($definition, $fields, $includes));
+        $roots = array_map(fn (string $path): string => explode('.', $path)[0], $this->relationPaths($definition, $fields, $includes));
         $batches = [];
 
         foreach ($includes as $name) {
@@ -444,7 +444,7 @@ class SelectionLoader
 
                 $relations[$relationName] = $columns === null && $limit === null
                     ? null
-                    : fn ($query) => $this->constrain($query, $columns, $limit);
+                    : fn (Relation $query) => $this->constrain($query, $columns, $limit);
             }
 
             $models->loadMissing($this->toEagerLoadArray($relations));
@@ -485,7 +485,7 @@ class SelectionLoader
         $definition = $resourceClass::definition();
         [$fields, $includes] = $this->members($resourceClass, $selection);
         $columns = [$model->getKeyName()];
-        $relationRoots = array_map(fn (string $path) => explode('.', $path)[0], $this->relationPaths($definition, $fields, $includes));
+        $relationRoots = array_map(fn (string $path): string => explode('.', $path)[0], $this->relationPaths($definition, $fields, $includes));
 
         foreach ($fields as $key) {
             array_push($columns, ...($definition->fieldDefinition($key)['columns'] ?? []));
@@ -602,7 +602,7 @@ class SelectionLoader
         $model = $query->getModel();
 
         if ($columns !== null) {
-            $query->select(array_map(fn (string $column) => $model->qualifyColumn($column), $columns));
+            $query->select(array_map($model->qualifyColumn(...), $columns));
         }
 
         if ($limit !== null) {
@@ -721,7 +721,7 @@ class SelectionLoader
     protected function buildFields(string $resourceClass, array $fields, array $accepted): void
     {
         $definition = $resourceClass::definition();
-        $pending = array_values(array_filter($fields, fn (string $key) => $definition->builderOf($resourceClass, $key) !== null));
+        $pending = array_values(array_filter($fields, fn (string $key): bool => $definition->builderOf($resourceClass, $key) !== null));
 
         while ($pending !== []) {
             $computedBy = $definition->fieldDefinition($pending[0])['computedBy'] ?? null;
@@ -731,7 +731,7 @@ class SelectionLoader
                 $batch = [$pending[0]];
             } else {
                 // the first pending field is ready, since build order puts it after what it needs
-                $batch = array_values(array_filter($pending, fn (string $key) => ($definition->fieldDefinition($key)['computedBy'] ?? null) === $computedBy
+                $batch = array_values(array_filter($pending, fn (string $key): bool => ($definition->fieldDefinition($key)['computedBy'] ?? null) === $computedBy
                     && array_intersect($definition->dependencies($key), $pending) === []));
                 $this->computeWithClass($accepted, $resourceClass, (string) $computedBy, $batch);
             }
@@ -897,7 +897,7 @@ class SelectionLoader
             return new Collection;
         }
 
-        if (!$value instanceof Collection && !(is_array($value) && array_is_list($value))) {
+        if (!$value instanceof Collection && (!is_array($value) || !array_is_list($value))) {
             throw ResponseSelectionException::virtualIncludeNotModel($resourceClass, $name, get_debug_type($value));
         }
 

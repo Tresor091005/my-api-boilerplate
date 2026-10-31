@@ -48,7 +48,7 @@ function sessionManagementContext(): array
     ])]);
     currentTestCase()->withToken($token);
 
-    return compact('user', 'organization', 'member', 'role', 'assignment', 'token', 'record');
+    return ['user' => $user, 'organization' => $organization, 'member' => $member, 'role' => $role, 'assignment' => $assignment, 'token' => $token, 'record' => $record];
 }
 
 it('lists only the callers unexpired sessions and exposes no token secrets or organization claims', function (): void {

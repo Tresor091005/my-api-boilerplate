@@ -19,7 +19,7 @@ class TrialFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => fn (): string => currentOrganizationId(),
+            'organization_id' => currentOrganizationId(...),
             'plan_version_id' => PlanVersion::factory(),
             'starts_at'       => now()->startOfSecond(),
             'ends_at'         => now()->startOfSecond()->addMonthNoOverflow(),

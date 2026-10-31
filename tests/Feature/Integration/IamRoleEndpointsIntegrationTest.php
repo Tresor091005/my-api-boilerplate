@@ -52,7 +52,7 @@ function authenticatedRoleContext(array $abilities = ['list', 'retrieve', 'creat
     ]]);
     $test->withToken($token->plainTextToken);
 
-    return compact('organization', 'user', 'member', 'memberRole');
+    return ['organization' => $organization, 'user' => $user, 'member' => $member, 'memberRole' => $memberRole];
 }
 
 it('lists organization roles and system roles with permissions, excluding other organizations', function (): void {

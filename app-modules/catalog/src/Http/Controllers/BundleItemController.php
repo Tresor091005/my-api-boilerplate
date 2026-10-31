@@ -48,7 +48,7 @@ final readonly class BundleItemController
         return ApiResponse::item($item, BundleItemResource::class);
     }
 
-    public function destroy(BundleItemDeleteRequest $request, Bundle $bundle): Response
+    public function destroy(BundleItemDeleteRequest $request, Bundle $bundle): \Illuminate\Http\Response
     {
         Gate::authorize('manageComposition', $bundle);
         $this->bundleService->removeItems($bundle, $request->validated('ids'));

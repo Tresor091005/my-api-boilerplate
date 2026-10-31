@@ -59,7 +59,7 @@ final readonly class BundleController
         return ApiResponse::item($bundle, BundleResource::class);
     }
 
-    public function destroy(Bundle $bundle): Response
+    public function destroy(Bundle $bundle): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $bundle);
         $this->bundleService->delete($bundle);

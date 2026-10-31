@@ -26,9 +26,9 @@ final class GoogleIdentityVerifier
         $verifier = new AccessToken(fn (RequestInterface $request): ResponseInterface => $this->certificates($request));
         try {
             $claims = $verifier->verify($credential, ['audience' => $clientId]);
-        } catch (\InvalidArgumentException|\UnexpectedValueException $exception) {
+        } catch (\InvalidArgumentException|\UnexpectedValueException) {
             throw GoogleAuthException::invalidCredential();
-        } catch (\RuntimeException $exception) {
+        } catch (\RuntimeException) {
             throw GoogleAuthException::verificationUnavailable();
         }
         if (!is_array($claims)

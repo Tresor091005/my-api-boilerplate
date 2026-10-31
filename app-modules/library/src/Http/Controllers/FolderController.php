@@ -59,7 +59,7 @@ final readonly class FolderController
         return ApiResponse::item($response, FolderResource::class);
     }
 
-    public function destroy(Folder $folder): Response
+    public function destroy(Folder $folder): \Illuminate\Http\Response
     {
         Gate::authorize('delete', $folder);
         $this->folderService->delete($folder);

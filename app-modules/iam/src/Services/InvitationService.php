@@ -24,11 +24,11 @@ use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Notifications\InvitationLinkNotification;
 use Lahatre\Organization\Models\Organization;
 
-final class InvitationService
+final readonly class InvitationService
 {
     private const int EXPIRATION_DAYS = 7;
 
-    public function __construct(private readonly EmailAccountService $accounts, private readonly AuthService $auth) {}
+    public function __construct(private EmailAccountService $accounts, private AuthService $auth) {}
 
     public function paginate(InvitationFilterData $filters): CursorPaginator
     {

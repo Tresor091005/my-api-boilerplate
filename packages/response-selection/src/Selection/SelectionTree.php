@@ -8,9 +8,9 @@ namespace Lahatre\ResponseSelection\Selection;
  * What the client asked for with `fields` and `include`: the fields of the main Resource and each
  * included relation with its own fields.
  */
-final class SelectionTree
+final readonly class SelectionTree
 {
-    public function __construct(private readonly SelectionNode $root) {}
+    public function __construct(private SelectionNode $root) {}
 
     /**
      * Every field of the root, no include.

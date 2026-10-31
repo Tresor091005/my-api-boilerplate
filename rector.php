@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\SetList;
+use RectorLaravel\Rector\ClassMethod\ScopeNamedClassMethodToScopeAttributedClassMethodRector;
 use RectorLaravel\Set\LaravelSetList;
 
 return RectorConfig::configure()
@@ -23,6 +24,8 @@ return RectorConfig::configure()
         __DIR__.'/node_modules',
         // Skip instanceof transformations for nullable strict return types.
         FlipTypeControlToUseExclusiveTypeRector::class,
+        // Local scopes stay scopeName() methods, the form the model stub uses.
+        ScopeNamedClassMethodToScopeAttributedClassMethodRector::class,
     ])
     ->withPhpSets(
         php84: true,

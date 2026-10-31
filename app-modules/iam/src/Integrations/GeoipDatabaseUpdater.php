@@ -17,11 +17,11 @@ use UnexpectedValueException;
 
 final class GeoipDatabaseUpdater
 {
-    private const DOWNLOAD_URL = 'https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz';
+    private const string DOWNLOAD_URL = 'https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz';
 
-    private const MAX_ARCHIVE_BYTES = 134_217_728;
+    private const int MAX_ARCHIVE_BYTES = 134_217_728;
 
-    private const MAX_UNPACKED_BYTES = 536_870_912;
+    private const int MAX_UNPACKED_BYTES = 536_870_912;
 
     public function isConfigured(): bool
     {

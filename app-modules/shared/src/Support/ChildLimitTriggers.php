@@ -269,13 +269,7 @@ final class ChildLimitTriggers
 
         $known = array_map($this->normalize(...), $filters);
 
-        foreach ($this->conjuncts($predicate) as $part) {
-            if (!in_array($this->normalize($part), $known, true)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($this->conjuncts($predicate), fn (string $part): bool => in_array($this->normalize($part), $known, true));
     }
 
     /** @return list<string> */

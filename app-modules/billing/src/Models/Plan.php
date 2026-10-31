@@ -80,7 +80,7 @@ class Plan extends Model
     {
         $query->withExists([
             'currentVersion as is_on_sale',
-            'versions as has_been_subscribed' => fn (Builder $versions): Builder => self::subscribedVersions($versions),
+            'versions as has_been_subscribed' => $this->subscribedVersions(...),
         ]);
     }
 
@@ -90,9 +90,9 @@ class Plan extends Model
         match ($status) {
             PlanStatus::OnSale  => $query->whereHas('currentVersion'),
             PlanStatus::Retired => $query->whereDoesntHave('currentVersion')
-                ->whereHas('versions', fn (Builder $versions): Builder => self::subscribedVersions($versions)),
+                ->whereHas('versions', fn (Builder $versions): Builder => $this->subscribedVersions($versions)),
             PlanStatus::Unused => $query->whereDoesntHave('currentVersion')
-                ->whereDoesntHave('versions', fn (Builder $versions): Builder => self::subscribedVersions($versions)),
+                ->whereDoesntHave('versions', fn (Builder $versions): Builder => $this->subscribedVersions($versions)),
         };
     }
 
@@ -104,7 +104,7 @@ class Plan extends Model
      * @param  Builder<TModel>  $versions
      * @return Builder<TModel>
      */
-    private static function subscribedVersions(Builder $versions): Builder
+    private function subscribedVersions(Builder $versions): Builder
     {
         return $versions->withoutGlobalScope(SoftDeletingScope::class)->whereHas(
             'subscriptions',

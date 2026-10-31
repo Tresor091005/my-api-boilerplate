@@ -354,7 +354,9 @@ it('requires a persisted attachable parent for attachment factories', function (
     expect(fn () => FileAttachment::factory()->create())->toThrow(LogicException::class);
 
     $fileWithoutTrait = File::factory()->create(['organization_id' => $this->organization->id]);
+    // @phpstan-ignore argument.type (a parent without file slots is the point of the test)
     expect(fn () => FileAttachment::factory()->forParent($fileWithoutTrait))->toThrow(TypeError::class);
+    // @phpstan-ignore argument.type (same)
     expect(fn () => app(LibraryInterface::class)->find($fileWithoutTrait, (string) Str::uuid7()))
         ->toThrow(TypeError::class);
 });

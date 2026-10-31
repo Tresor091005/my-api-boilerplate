@@ -73,7 +73,7 @@ final class Actor
                 StateMachineValue::normalize($event),
                 StateMachineValue::normalize($from),
                 array_map(
-                    static fn (UnitEnum $allowedEvent): string => StateMachineValue::normalize($allowedEvent),
+                    StateMachineValue::normalize(...),
                     $failure->allowedEvents,
                 ),
             );

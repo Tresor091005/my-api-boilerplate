@@ -13,6 +13,9 @@ use Lahatre\ResponseSelection\Rendering\ModelViolationReporter;
 
 /**
  * Hydrated without a query: `exists` is true, so Eloquent applies its protections.
+ *
+ * @property mixed $cost
+ * @property mixed $quantity
  */
 final class ModelViolationTestLot extends Model
 {
