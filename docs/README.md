@@ -57,6 +57,7 @@ The internal [author questionnaire](decisions/documentation-author-questions.md)
 
 ### Application domains
 
+- [Billing module](modules/billing.md)
 - [Catalog feature blueprints](features/)
 - [Inventory module documentation](../app-modules/inventory/README.md)
 - [Inventory threshold and alert specification](../app-modules/inventory/docs/specs/thresholds-and-alerts.md)

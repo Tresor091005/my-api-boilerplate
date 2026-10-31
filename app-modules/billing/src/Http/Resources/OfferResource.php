@@ -22,7 +22,7 @@ class OfferResource extends ApiResource
             ->field('name')
             ->field('price', columns: [], relations: ['currentVersion'], computedBy: fn (Model $plan): string => PlanPrice::decimal(self::current($plan)))
             ->field('currency_code', columns: [], relations: ['currentVersion'], computedBy: fn (Model $plan): string => self::current($plan)->currency_code)
-            ->field('billing_interval', columns: [], relations: ['currentVersion'], computedBy: fn (Model $plan): int => self::current($plan)->billing_interval)
+            ->field('billing_interval_months', columns: [], relations: ['currentVersion'], computedBy: fn (Model $plan): int => self::current($plan)->billing_interval_months)
             ->field('features', columns: [], relations: ['currentVersion.features'], computedBy: fn (Model $plan): array => self::features($plan));
     }
 

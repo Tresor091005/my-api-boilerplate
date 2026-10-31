@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Lahatre\Billing\Http\Controllers\CheckoutController;
 use Lahatre\Billing\Http\Controllers\FeatureController;
 use Lahatre\Billing\Http\Controllers\OfferController;
 use Lahatre\Billing\Http\Controllers\PlanController;
 use Lahatre\Billing\Http\Controllers\PlanDraftController;
 use Lahatre\Billing\Http\Controllers\PlanLifecycleController;
+use Lahatre\Billing\Http\Controllers\SubscriptionController;
 
 Route::group([
     'as'         => 'lahatre.billing.',
@@ -15,6 +17,13 @@ Route::group([
     'middleware' => 'api',
 ], function (): void {
     Route::get('offers', [OfferController::class, 'index'])->name('offers.index');
+
+    Route::group([
+        'middleware' => 'auth.api',
+    ], function (): void {
+        Route::get('subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
+        Route::apiResource('checkouts', CheckoutController::class)->only(['index', 'store', 'show']);
+    });
 
     Route::group([
         'middleware' => 'auth.platform',

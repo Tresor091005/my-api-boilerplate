@@ -128,7 +128,7 @@ it('builds, publishes and revises a plan through its draft', function (): void {
         ->json('data.id');
 
     $this->patchJson("{$plans}/{$planId}/draft", ['price' => 20])->assertUnprocessable();
-    $this->patchJson("{$plans}/{$planId}/draft", ['price' => 20, 'currency_code' => 'USD', 'billing_interval' => 1])->assertNoContent();
+    $this->patchJson("{$plans}/{$planId}/draft", ['price' => 20, 'currency_code' => 'USD', 'billing_interval_months' => 1])->assertNoContent();
     $this->postJson("{$plans}/{$planId}/draft/features", ['features' => [
         ['key' => 'catalog.products', 'allowance' => 500],
         ['key' => 'catalog.bundles'],
@@ -172,7 +172,7 @@ it('discards a draft, archives the plan, then deletes it', function (): void {
     $this->withToken(billingPlatformToken());
     $plans = '/v1/billing/plans';
     $planId = $this->postJson("{$plans}?response=resource", ['name' => 'Starter'])->assertCreated()->json('data.id');
-    $this->patchJson("{$plans}/{$planId}/draft", ['price' => 900, 'currency_code' => 'USD', 'billing_interval' => 1])->assertNoContent();
+    $this->patchJson("{$plans}/{$planId}/draft", ['price' => 900, 'currency_code' => 'USD', 'billing_interval_months' => 1])->assertNoContent();
     $this->postJson("{$plans}/{$planId}/publish")->assertNoContent();
 
     $this->deleteJson("{$plans}/{$planId}")->assertUnprocessable();
@@ -204,7 +204,7 @@ it('shows anyone the plans on sale, cheapest first, without the features disable
     $versions = app(PlanVersionService::class);
     $offerPlan = function (string $name, string $price, array $features) use ($versions): Plan {
         $plan = app(PlanService::class)->create(PlanData::fromArray(['name' => $name]));
-        $versions->updateDraft($plan, PlanTermsData::fromArray(['price' => $price, 'currency_code' => 'USD', 'billing_interval' => 1]));
+        $versions->updateDraft($plan, PlanTermsData::fromArray(['price' => $price, 'currency_code' => 'USD', 'billing_interval_months' => 1]));
         $versions->addFeatures($plan, PlanFeatureGrantsData::fromArray(['features' => $features]));
 
         return $versions->publish($plan);
@@ -214,7 +214,7 @@ it('shows anyone the plans on sale, cheapest first, without the features disable
     $versions->archive($offerPlan('Retired', '5', [['key' => 'catalog.products', 'allowance' => 10]]));
     $versions->updateDraft(
         app(PlanService::class)->create(PlanData::fromArray(['name' => 'Upcoming'])),
-        PlanTermsData::fromArray(['price' => 100, 'currency_code' => 'USD', 'billing_interval' => 1]),
+        PlanTermsData::fromArray(['price' => 100, 'currency_code' => 'USD', 'billing_interval_months' => 1]),
     );
     $registry = new FeatureRegistry;
     $registry->register(FeatureDefinition::capacity('catalog.products', [CatalogFeatures::class, 'products']));
@@ -225,11 +225,11 @@ it('shows anyone the plans on sale, cheapest first, without the features disable
 
     expect(collect($offers->json('data'))->pluck('name')->all())->toBe(['Starter', 'Business'])
         ->and($offers->json('data.0'))->toMatchArray([
-            'code'             => 'starter',
-            'price'            => '9.90',
-            'currency_code'    => 'USD',
-            'billing_interval' => 1,
-            'features'         => [['key' => 'catalog.products', 'name' => 'Products', 'type' => 'capacity', 'allowance' => 100]],
+            'code'                    => 'starter',
+            'price'                   => '9.90',
+            'currency_code'           => 'USD',
+            'billing_interval_months' => 1,
+            'features'                => [['key' => 'catalog.products', 'name' => 'Products', 'type' => 'capacity', 'allowance' => 100]],
         ])
         ->and(collect($offers->json('data.1.features'))->pluck('key')->all())->toBe(['catalog.products']);
 });
@@ -241,7 +241,7 @@ it('tells the administration which plans are on sale, retired or unused, and why
 
     foreach (['On sale', 'Retired', 'Unused'] as $name) {
         $planIds[$name] = $this->postJson("{$plans}?response=resource", ['name' => $name])->assertCreated()->json('data.id');
-        $this->patchJson("{$plans}/{$planIds[$name]}/draft", ['price' => 900, 'currency_code' => 'USD', 'billing_interval' => 1])->assertNoContent();
+        $this->patchJson("{$plans}/{$planIds[$name]}/draft", ['price' => 900, 'currency_code' => 'USD', 'billing_interval_months' => 1])->assertNoContent();
     }
 
     $this->postJson("{$plans}/{$planIds['On sale']}/publish")->assertNoContent();

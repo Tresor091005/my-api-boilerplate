@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Lahatre\Billing\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Lahatre\Billing\Enums\CollectionMethod;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lahatre\Billing\Enums\SubscriptionStatus;
 use Lahatre\Shared\Traits\SharedTraits;
 
@@ -16,63 +18,75 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $organization_id
  * @property string $plan_version_id
- * @property bool $is_current
- * @property SubscriptionStatus $status
- * @property CarbonImmutable $current_period_starts_at
- * @property CarbonImmutable $current_period_ends_at
- * @property int $billing_anchor_day
- * @property CollectionMethod $collection_method
- * @property bool $is_cancellation_scheduled
- * @property CarbonImmutable|null $cancelled_at
- * @property CarbonImmutable|null $grace_ends_at
+ * @property CarbonImmutable $starts_at
+ * @property CarbonImmutable $ends_at
  * @property-read PlanVersion $planVersion
+ * @property-read Subscription|null $next
  */
 class Subscription extends Model
 {
     use SharedTraits;
     use SoftDeletes;
 
+    public const int GRACE_DAYS = 5;
+
     protected $table = 'billing_subscriptions';
 
     protected $fillable = [
         'organization_id',
         'plan_version_id',
-        'is_current',
-        'status',
-        'current_period_starts_at',
-        'current_period_ends_at',
-        'billing_anchor_day',
-        'collection_method',
-        'is_cancellation_scheduled',
-        'cancelled_at',
-        'grace_ends_at',
-        'provider',
-        'provider_subscription_id',
+        'starts_at',
+        'ends_at',
     ];
 
     protected $casts = [
-        'id'                        => 'string',
-        'organization_id'           => 'string',
-        'plan_version_id'           => 'string',
-        'is_current'                => 'boolean',
-        'status'                    => SubscriptionStatus::class,
-        'current_period_starts_at'  => 'immutable_datetime',
-        'current_period_ends_at'    => 'immutable_datetime',
-        'billing_anchor_day'        => 'integer',
-        'collection_method'         => CollectionMethod::class,
-        'is_cancellation_scheduled' => 'boolean',
-        'cancelled_at'              => 'immutable_datetime',
-        'grace_ends_at'             => 'immutable_datetime',
-        'provider'                  => 'string',
-        'provider_subscription_id'  => 'string',
-        'created_at'                => 'immutable_datetime',
-        'updated_at'                => 'immutable_datetime',
-        'deleted_at'                => 'immutable_datetime',
+        'id'              => 'string',
+        'organization_id' => 'string',
+        'plan_version_id' => 'string',
+        'starts_at'       => 'immutable_datetime',
+        'ends_at'         => 'immutable_datetime',
+        'created_at'      => 'immutable_datetime',
+        'updated_at'      => 'immutable_datetime',
+        'deleted_at'      => 'immutable_datetime',
     ];
+
+    public function graceEndsAt(): CarbonImmutable
+    {
+        return $this->ends_at->addDays(self::GRACE_DAYS);
+    }
+
+    public function statusAt(CarbonImmutable $at): SubscriptionStatus
+    {
+        return match (true) {
+            $at < $this->ends_at       => SubscriptionStatus::Active,
+            $at < $this->graceEndsAt() => SubscriptionStatus::InGrace,
+            default                    => SubscriptionStatus::Suspended,
+        };
+    }
 
     /** @return BelongsTo<PlanVersion, $this> */
     public function planVersion(): BelongsTo
     {
         return $this->belongsTo(PlanVersion::class);
+    }
+
+    /** @return HasOne<Subscription, $this> */
+    public function next(): HasOne
+    {
+        return $this->hasOne(self::class, 'organization_id', 'organization_id')
+            ->where('starts_at', '>', CarbonImmutable::now());
+    }
+
+    /** @param  Builder<Subscription>  $query */
+    public function scopeGivingAccessAt(Builder $query, CarbonImmutable $at): void
+    {
+        $query->where($query->qualifyColumn('starts_at'), '<=', $at)
+            ->where($query->qualifyColumn('ends_at'), '>', $at->subDays(self::GRACE_DAYS))
+            ->whereNotExists(fn (QueryBuilder $later): QueryBuilder => $later
+                ->from('billing_subscriptions as later')
+                ->whereColumn('later.organization_id', $query->qualifyColumn('organization_id'))
+                ->whereColumn('later.starts_at', '>', $query->qualifyColumn('starts_at'))
+                ->where('later.starts_at', '<=', $at)
+                ->whereNull('later.deleted_at'));
     }
 }

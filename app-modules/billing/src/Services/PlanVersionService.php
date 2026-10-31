@@ -18,6 +18,7 @@ use Lahatre\Billing\Exceptions\PlanVersionException;
 use Lahatre\Billing\Models\Plan;
 use Lahatre\Billing\Models\PlanVersion;
 use Lahatre\Billing\Models\PlanVersionFeature;
+use Lahatre\Billing\Models\Subscription;
 use Lahatre\Billing\Registries\FeatureDefinition;
 use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Master\Contracts\MasterInterface;
@@ -37,8 +38,10 @@ final readonly class PlanVersionService
      */
     public function updateDraft(Plan $plan, PlanTermsData $terms): Plan
     {
-        if (!$terms->billingInterval instanceof MissingValue && $terms->billingInterval < 1) {
-            throw PlanVersionException::billingIntervalInvalid($terms->billingInterval);
+        $maxMonths = (int) config('billing.max_advance_months');
+
+        if (!$terms->billingIntervalMonths instanceof MissingValue && ($terms->billingIntervalMonths < 1 || $terms->billingIntervalMonths > $maxMonths)) {
+            throw PlanVersionException::billingIntervalInvalid($terms->billingIntervalMonths, $maxMonths);
         }
 
         if ($terms->price instanceof MissingValue !== $terms->currencyCode instanceof MissingValue) {
@@ -51,8 +54,8 @@ final readonly class PlanVersionService
                 'price' => $terms->price instanceof MissingValue || $terms->currencyCode instanceof MissingValue
                     ? MissingValue::Instance
                     : $this->minorPrice($terms->price, $terms->currencyCode),
-                'currency_code'    => $terms->currencyCode,
-                'billing_interval' => $terms->billingInterval,
+                'currency_code'           => $terms->currencyCode,
+                'billing_interval_months' => $terms->billingIntervalMonths,
             ]));
 
             return $plan->freshWithStatus();
@@ -168,7 +171,10 @@ final readonly class PlanVersionService
         return stableCursorPaginate(
             $plan->versions()
                 ->where('status', '!=', PlanVersionStatus::Draft)
-                ->withCount(['subscriptions as subscribers_count' => fn (Builder $query): Builder => $query->where('is_current', true)]),
+                ->withCount(['subscriptions as subscribers_count' => function (Builder $query): void {
+                    /** @var Builder<Subscription> $query */
+                    $query->givingAccessAt(CarbonImmutable::now());
+                }]),
             $filters,
         );
     }
@@ -195,25 +201,25 @@ final readonly class PlanVersionService
 
         if ($current === null) {
             if ($terms === null || $terms->price instanceof MissingValue || $terms->currencyCode instanceof MissingValue
-                || $terms->billingInterval instanceof MissingValue) {
+                || $terms->billingIntervalMonths instanceof MissingValue) {
                 throw PlanVersionException::termsRequired($plan->getKey());
             }
 
             return $plan->versions()->create([
-                'version'          => $version,
-                'status'           => PlanVersionStatus::Draft,
-                'price'            => $this->minorPrice($terms->price, $terms->currencyCode),
-                'currency_code'    => $terms->currencyCode,
-                'billing_interval' => $terms->billingInterval,
+                'version'                 => $version,
+                'status'                  => PlanVersionStatus::Draft,
+                'price'                   => $this->minorPrice($terms->price, $terms->currencyCode),
+                'currency_code'           => $terms->currencyCode,
+                'billing_interval_months' => $terms->billingIntervalMonths,
             ]);
         }
 
         $draft = $plan->versions()->create([
-            'version'          => $version,
-            'status'           => PlanVersionStatus::Draft,
-            'price'            => $current->price,
-            'currency_code'    => $current->currency_code,
-            'billing_interval' => $current->billing_interval,
+            'version'                 => $version,
+            'status'                  => PlanVersionStatus::Draft,
+            'price'                   => $current->price,
+            'currency_code'           => $current->currency_code,
+            'billing_interval_months' => $current->billing_interval_months,
         ]);
         PlanVersionFeature::query()->fillAndInsert($current->features->map(fn (PlanVersionFeature $grant): array => [
             'plan_version_id' => $draft->getKey(),

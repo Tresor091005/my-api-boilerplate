@@ -29,10 +29,11 @@ final class PlanVersionException extends AssertionException
         ]);
     }
 
-    public static function billingIntervalInvalid(mixed $billingInterval): self
+    public static function billingIntervalInvalid(mixed $billingIntervalMonths, int $maxMonths): self
     {
-        return new self(__('billing::exceptions.plan_version.billing_interval_invalid'), [
-            'billing_interval' => $billingInterval,
+        return new self(__('billing::exceptions.plan_version.billing_interval_invalid', ['max' => $maxMonths]), [
+            'billing_interval_months' => $billingIntervalMonths,
+            'max_months'              => $maxMonths,
         ]);
     }
 

@@ -12,7 +12,7 @@ final readonly class PlanTermsData
     private function __construct(
         public MissingValue|string $price,
         public MissingValue|string $currencyCode,
-        public MissingValue|int $billingInterval,
+        public MissingValue|int $billingIntervalMonths,
     ) {}
 
     /**
@@ -23,12 +23,12 @@ final readonly class PlanTermsData
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
         $price = $read->get('price');
-        $billingInterval = $read->get('billing_interval');
+        $billingIntervalMonths = $read->get('billing_interval_months');
 
         return new self(
             price: $price instanceof MissingValue ? $price : (string) $price,
             currencyCode: $read->get('currency_code'),
-            billingInterval: $billingInterval instanceof MissingValue ? $billingInterval : (int) $billingInterval,
+            billingIntervalMonths: $billingIntervalMonths instanceof MissingValue ? $billingIntervalMonths : (int) $billingIntervalMonths,
         );
     }
 }

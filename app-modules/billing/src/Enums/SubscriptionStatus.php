@@ -7,7 +7,11 @@ namespace Lahatre\Billing\Enums;
 enum SubscriptionStatus: string
 {
     case Active = 'active';
-    case PastDue = 'past_due';
+    case InGrace = 'in_grace';
     case Suspended = 'suspended';
-    case Cancelled = 'cancelled';
+
+    public function grantsAccess(): bool
+    {
+        return $this !== self::Suspended;
+    }
 }

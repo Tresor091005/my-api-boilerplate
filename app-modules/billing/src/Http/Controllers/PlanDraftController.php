@@ -24,7 +24,7 @@ final readonly class PlanDraftController
     public function update(PlanDraftRequest $request, Plan $plan): JsonResponse|Response
     {
         Gate::authorize('update', $plan);
-        $terms = PlanTermsData::fromArray($request->validated(), missingFields: ['price', 'currency_code', 'billing_interval']);
+        $terms = PlanTermsData::fromArray($request->validated(), missingFields: ['price', 'currency_code', 'billing_interval_months']);
         $response = $this->planVersionService->updateDraft($plan, $terms);
 
         return ApiResponse::item($response, PlanResource::class);

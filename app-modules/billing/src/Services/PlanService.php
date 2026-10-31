@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Lahatre\Billing\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Billing\Data\PlanData;
 use Lahatre\Billing\Data\PlanFilterData;
+use Lahatre\Billing\Enums\CheckoutStatus;
 use Lahatre\Billing\Enums\PlanStatus;
 use Lahatre\Billing\Exceptions\PlanException;
+use Lahatre\Billing\Models\Checkout;
 use Lahatre\Billing\Models\Plan;
 use Lahatre\Billing\Models\PlanVersion;
 use Lahatre\Billing\Models\PlanVersionFeature;
@@ -104,8 +107,13 @@ final class PlanService
             $versionIds = PlanVersion::withTrashed()->where('plan_id', $plan->getKey())->lockForUpdate()->pluck('id');
 
             $isUnused = Plan::query()->whereKey($plan->getKey())->whereStatus(PlanStatus::Unused)->exists();
+            $isBeingPaid = Checkout::query()
+                ->whereIn('plan_version_id', $versionIds)
+                ->where('status', CheckoutStatus::Pending)
+                ->where('expires_at', '>', CarbonImmutable::now())
+                ->exists();
 
-            if (!$isUnused) {
+            if (!$isUnused || $isBeingPaid) {
                 throw PlanException::inUse($plan->getKey());
             }
 

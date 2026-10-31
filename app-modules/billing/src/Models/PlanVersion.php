@@ -19,7 +19,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property PlanVersionStatus $status
  * @property int $price
  * @property string $currency_code
- * @property int $billing_interval
+ * @property int $billing_interval_months
  * @property-read Plan $plan
  * @property-read Collection<int, PlanVersionFeature> $features
  */
@@ -36,22 +36,22 @@ class PlanVersion extends Model
         'status',
         'price',
         'currency_code',
-        'billing_interval',
+        'billing_interval_months',
         'published_at',
     ];
 
     protected $casts = [
-        'id'               => 'string',
-        'plan_id'          => 'string',
-        'version'          => 'integer',
-        'status'           => PlanVersionStatus::class,
-        'price'            => 'integer',
-        'currency_code'    => 'string',
-        'billing_interval' => 'integer',
-        'published_at'     => 'immutable_datetime',
-        'created_at'       => 'immutable_datetime',
-        'updated_at'       => 'immutable_datetime',
-        'deleted_at'       => 'immutable_datetime',
+        'id'                      => 'string',
+        'plan_id'                 => 'string',
+        'version'                 => 'integer',
+        'status'                  => PlanVersionStatus::class,
+        'price'                   => 'integer',
+        'currency_code'           => 'string',
+        'billing_interval_months' => 'integer',
+        'published_at'            => 'immutable_datetime',
+        'created_at'              => 'immutable_datetime',
+        'updated_at'              => 'immutable_datetime',
+        'deleted_at'              => 'immutable_datetime',
     ];
 
     /** @return BelongsTo<Plan, $this> */

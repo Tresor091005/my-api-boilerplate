@@ -19,7 +19,7 @@ class PlanVersionResource extends ApiResource
             ->field('status')
             ->field('price', columns: ['price', 'currency_code'], computedBy: fn (Model $version): string => PlanPrice::decimal($version))
             ->field('currency_code')
-            ->field('billing_interval')
+            ->field('billing_interval_months')
             ->field('published_at')
             ->field('subscribers_count', columns: [])
             ->include('features', PlanFeatureResource::class);

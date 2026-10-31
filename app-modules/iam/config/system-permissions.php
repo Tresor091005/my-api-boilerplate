@@ -7,6 +7,7 @@ return [
         'billing_plan',
         'billing_plan_version',
         'billing_plan_version_feature',
+        'billing_checkout',
         'catalog_bundle_item',
         'catalog_option_value',
         'catalog_product_variant',
@@ -16,6 +17,9 @@ return [
         'master_contact',
     ],
     'additional_actions' => [
+        'billing_subscription' => [
+            'pay',
+        ],
         'catalog_bundle' => [
             'assemble',
             'manage_composition',

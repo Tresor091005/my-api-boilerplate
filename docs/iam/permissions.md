@@ -123,10 +123,13 @@ models are:
 - `catalog_product_variant`, managed through `catalog_product.create_variant`,
   `catalog_product.update_variant`, and `catalog_product.delete_variant`;
 - `master_address` and `master_contact`, managed through
-  `customer_customer.update` on customer-owned endpoints.
+  `customer_customer.update` on customer-owned endpoints;
+- `billing_checkout`, read through `billing_subscription.retrieve` and
+  started through `billing_subscription.pay`.
 
-The Catalog bundle and product capabilities are declared as additional actions
-on their parent model in `iam.system_permissions.additional_actions`.
+The Catalog bundle and product capabilities, and `billing_subscription.pay`,
+are declared as additional actions on their parent model in
+`iam.system_permissions.additional_actions`.
 
 Note policies may intentionally bypass standard CRUD permissions for
 author-owned operations while retaining these explicit permissions for

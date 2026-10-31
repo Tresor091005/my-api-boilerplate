@@ -20,13 +20,13 @@ class PlanVersionFactory extends Factory
     public function definition(): array
     {
         return [
-            'plan_id'          => Plan::factory(),
-            'version'          => 1,
-            'status'           => PlanVersionStatus::Draft,
-            'price'            => 10,
-            'currency_code'    => 'USD',
-            'billing_interval' => 1,
-            'published_at'     => null,
+            'plan_id'                 => Plan::factory(),
+            'version'                 => 1,
+            'status'                  => PlanVersionStatus::Draft,
+            'price'                   => 10,
+            'currency_code'           => 'USD',
+            'billing_interval_months' => 1,
+            'published_at'            => null,
         ];
     }
 }

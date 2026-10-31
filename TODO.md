@@ -10,3 +10,7 @@
 - Add evidence submission, review, requested changes, approval, and rejection flows.
 - Keep execution state and client validation state as separate state machines.
 - Add the necessary domain assertions, authorization rules, API endpoints, and Pest coverage for each transition.
+
+## Authorization
+
+- Answer 404 instead of 403 when a route model belongs to another organization. Implicit route model binding loads the record before the policy (`canOnModel()`) denies it, so a 403 confirms to another tenant that the id exists. Fix it once for every module, for example by scoping route binding to the current organization, and cover it with an integration test.

@@ -82,8 +82,6 @@ return [
             'master_units_code_unique',
             'master_units_group_id_ratio_unique',
         ],
-        // A payment provider identifies its subscriptions globally.
-        'billing_subscriptions' => ['billing_subscriptions_provider_subscription_unique'],
     ],
 
     'composite_pkey' => [
