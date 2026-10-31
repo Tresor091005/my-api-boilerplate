@@ -153,6 +153,13 @@ generate no permission of their own.
 
 ## Next steps and open questions
 
+- Payment provider confirmation: `CheckoutService::confirm()` is idempotent for
+  one checkout but must still check the amount and currency paid, keep the
+  provider payment id, and the webhook route must verify its signature.
+- A capacity window is rolling; one reset at each paid period would need the
+  counter to receive the start of the period.
+- The features in place are one example per type; the others will be declared
+  module by module when plans are designed.
 - Payment provider: research pointed to FedaPay for local mobile money and to
   Polar or Paddle for international cards; none is chosen.
 - A checkout paid after it was cancelled or expired is not applied; handling
