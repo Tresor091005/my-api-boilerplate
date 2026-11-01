@@ -89,6 +89,7 @@ final readonly class BundleService
                 required($data->sku),
                 $unitGroup->id,
                 required($data->isActive),
+                required($data->taxProfileId),
                 $this->inventoryWithStockTracking($organizationId, $data),
             );
 
@@ -139,6 +140,7 @@ final readonly class BundleService
                     $catalogItem,
                     new CatalogItemUpdateData(
                         sku: $data->sku ?? MissingValue::Instance,
+                        taxProfileId: $data->taxProfileId,
                         isActive: $data->isActive,
                         inventory: $data->inventory,
                     ),

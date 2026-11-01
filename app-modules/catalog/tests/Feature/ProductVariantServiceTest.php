@@ -144,7 +144,7 @@ it('manages product variants through service methods', function (): void {
                 'deduction_strategy'     => null,
             ],
         ],
-        missingFields: ['is_active', 'options'],
+        missingFields: ['tax_profile_id', 'is_active', 'options'],
     ));
 
     /** @var CatalogItem $updatedCatalogItem */
@@ -342,7 +342,7 @@ it('remaps persisted inventory configuration errors during a partial update', fu
             $variant,
             ProductVariantUpdateData::fromArray(
                 ['inventory' => ['deduction_strategy' => DeductionStrategy::Fefo->value]],
-                missingFields: ['sku', 'is_active', 'options', 'inventory'],
+                missingFields: ['sku', 'tax_profile_id', 'is_active', 'options', 'inventory'],
             ),
         );
     } catch (ValidationException $exception) {
@@ -378,7 +378,7 @@ it('rejects an incompatible expiration toggle and rolls back the variant update'
                     'sku'       => 'SHOULD-NOT-PERSIST',
                     'inventory' => ['is_expirable' => false],
                 ],
-                missingFields: ['is_active', 'options', 'labels'],
+                missingFields: ['tax_profile_id', 'is_active', 'options', 'labels'],
             ),
         );
     } catch (ValidationException $exception) {
@@ -417,7 +417,7 @@ it('rejects enabling expiration and rolls back the variant update', function ():
                     'sku'       => 'SHOULD-NOT-PERSIST',
                     'inventory' => ['is_expirable' => true],
                 ],
-                missingFields: ['is_active', 'options', 'labels'],
+                missingFields: ['tax_profile_id', 'is_active', 'options', 'labels'],
             ),
         );
     } catch (ValidationException $exception) {
@@ -449,7 +449,7 @@ it('syncs only submitted label types when updating a variant', function (): void
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['labels' => ['status' => ['inactive']]],
-        missingFields: ['sku', 'is_active', 'options', 'inventory'],
+        missingFields: ['sku', 'tax_profile_id', 'is_active', 'options', 'inventory'],
     ));
 
     expect($variant->fresh()->labels->pluck('value')->all())
@@ -457,7 +457,7 @@ it('syncs only submitted label types when updating a variant', function (): void
 
     $this->service->update($this->product, $variant, ProductVariantUpdateData::fromArray(
         ['labels' => ['status' => []]],
-        missingFields: ['sku', 'is_active', 'options', 'inventory'],
+        missingFields: ['sku', 'tax_profile_id', 'is_active', 'options', 'inventory'],
     ));
 
     expect($variant->fresh()->labels->pluck('value')->all())->toBe(['online']);

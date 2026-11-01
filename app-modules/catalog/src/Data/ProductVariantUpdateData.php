@@ -16,6 +16,7 @@ final readonly class ProductVariantUpdateData
      */
     private function __construct(
         public MissingValue|string $sku,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|array $options,
         public MissingValue|array $labels,
@@ -34,6 +35,7 @@ final readonly class ProductVariantUpdateData
 
         return new self(
             sku: $read->get('sku'),
+            taxProfileId: $read->get('tax_profile_id'),
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             options: $read->get('options'),
             labels: $read->get('labels', default: []),
@@ -47,6 +49,7 @@ final readonly class ProductVariantUpdateData
     {
         return new CatalogItemUpdateData(
             sku: $this->sku,
+            taxProfileId: $this->taxProfileId,
             isActive: $this->isActive,
             inventory: $this->inventory,
         );

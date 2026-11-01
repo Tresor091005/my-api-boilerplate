@@ -7,6 +7,8 @@ namespace Lahatre\Catalog\Providers;
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Catalog\Services\CatalogFeatures;
+use Lahatre\Catalog\Services\CatalogTaxProfileUsage;
+use Lahatre\Tax\Contracts\TaxProfileUsageInterface;
 
 class CatalogServiceProvider extends ServiceProvider
 {
@@ -15,5 +17,6 @@ class CatalogServiceProvider extends ServiceProvider
     public function boot(FeatureRegistry $features): void
     {
         $features->registerModule(CatalogFeatures::class);
+        $this->app->bind(TaxProfileUsageInterface::class, CatalogTaxProfileUsage::class);
     }
 }

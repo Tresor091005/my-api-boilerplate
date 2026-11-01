@@ -48,9 +48,11 @@ class ProductVariantCreateRequest extends FormRequest
                 new BulkUnique('catalog_items', 'sku', 'sku', false, [
                     'organization_id' => $organizationId,
                 ]),
+                new BulkExists('tax_profiles', 'id', 'tax_profile_id', 'uuid', true, ['organization_id' => $organizationId]),
             ],
             'variants.*.sku'             => ['nullable', 'string', 'max:100'],
             'variants.*.unit_group_id'   => ['required', 'uuid'],
+            'variants.*.tax_profile_id'  => ['present', 'nullable', 'uuid'],
             'variants.*.is_active'       => ['boolean'],
             'variants.*.options'         => ['required', 'array', 'min:1', 'max:100'],
             'variants.*.options.*.name'  => ['required', 'string', 'max:100'],

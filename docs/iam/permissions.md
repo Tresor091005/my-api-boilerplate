@@ -125,7 +125,16 @@ models are:
 - `master_address` and `master_contact`, managed through
   `customer_customer.update` on customer-owned endpoints;
 - `billing_checkout`, read through `billing_subscription.retrieve` and
-  started through `billing_subscription.pay`.
+  started through `billing_subscription.pay`;
+- `tax_bracket` and `tax_dependency`, written with their tax through
+  `tax_tax.create` and `tax_tax.update`;
+- `tax_profile_line` and `tax_profile_line_bracket`, written with their
+  profile through `tax_profile.create` and `tax_profile.update`.
+
+The tax module uses the five generated permissions of `tax_tax` (taxes) and
+`tax_profile` (tax profiles), with no additional action. The calculation
+preview of a profile needs `tax_profile.retrieve`. See the
+[tax module](../modules/tax.md#permissions).
 
 The Catalog bundle and product capabilities, and `billing_subscription.pay`,
 are declared as additional actions on their parent model in

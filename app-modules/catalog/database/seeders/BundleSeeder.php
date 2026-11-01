@@ -100,7 +100,7 @@ final class BundleSeeder extends Seeder
             BundleData::fromArray([
                 'name'      => $name,
                 'is_active' => true,
-            ], missingFields: ['sku', 'items', 'inventory']),
+            ], missingFields: ['sku', 'tax_profile_id', 'items', 'inventory']),
         );
 
         $desiredItems = $variants->mapWithKeys(

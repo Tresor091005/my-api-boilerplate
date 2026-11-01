@@ -16,6 +16,10 @@ return [
         'iam_platform_user',
         'master_address',
         'master_contact',
+        'tax_bracket',
+        'tax_dependency',
+        'tax_profile_line',
+        'tax_profile_line_bracket',
     ],
     'additional_actions' => [
         'billing_subscription' => [

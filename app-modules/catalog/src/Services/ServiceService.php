@@ -69,6 +69,7 @@ final readonly class ServiceService
                 required($data->sku),
                 required($data->unitGroupId),
                 required($data->isActive),
+                required($data->taxProfileId),
             );
 
             $service = new Service;
@@ -109,6 +110,7 @@ final readonly class ServiceService
                 $catalogItem,
                 new CatalogItemUpdateData(
                     sku: $data->sku ?? MissingValue::Instance,
+                    taxProfileId: $data->taxProfileId,
                     isActive: $data->isActive,
                     inventory: MissingValue::Instance,
                 ),

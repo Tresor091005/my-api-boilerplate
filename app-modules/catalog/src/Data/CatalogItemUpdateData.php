@@ -11,6 +11,7 @@ final readonly class CatalogItemUpdateData
 {
     public function __construct(
         public MissingValue|string $sku,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|InventoryItemConfigurationUpdateData $inventory,
     ) {}

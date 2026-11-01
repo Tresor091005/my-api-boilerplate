@@ -13,6 +13,7 @@ http:
         "variants": [
           {
             "unit_group_id": "{{unitGroupId}}",
+            "tax_profile_id": null,
             "is_active": true,
             "inventory": { "stock_tracking_enabled": true, "is_expirable": false, "deduction_strategy": "fifo" },
             "options": [

@@ -11,6 +11,7 @@ final readonly class CatalogItemData
     public function __construct(
         public ?string $sku,
         public string $unitGroupId,
+        public ?string $taxProfileId,
         public bool $isActive,
         public InventoryItemConfigurationData $inventory,
     ) {}

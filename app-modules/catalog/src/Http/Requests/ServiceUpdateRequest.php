@@ -49,7 +49,15 @@ final class ServiceUpdateRequest extends FormRequest
                     ->where('organization_id', currentOrganizationId())
                     ->ignore($service instanceof Service ? $service->id : null),
             ],
-            'unit_group_id'         => ['prohibited'],
+            'unit_group_id'  => ['prohibited'],
+            'tax_profile_id' => [
+                'nullable',
+                'bail',
+                'uuid',
+                Rule::exists('tax_profiles', 'id')
+                    ->where('organization_id', currentOrganizationId())
+                    ->whereNull('deleted_at'),
+            ],
             'is_active'             => ['boolean'],
             'deliverable_templates' => [
                 'array',

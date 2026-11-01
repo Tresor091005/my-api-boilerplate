@@ -108,8 +108,9 @@ it('enforces catalog permissions at http layer', function (): void {
     $this->postJson('/v1/catalog/products', [
         'name'     => 'x',
         'variants' => [[
-            'unit_group_id' => $unitGroup->id,
-            'options'       => [['name' => 'color', 'value' => 'blue']],
+            'unit_group_id'  => $unitGroup->id,
+            'tax_profile_id' => null,
+            'options'        => [['name' => 'color', 'value' => 'blue']],
         ]],
     ])->assertForbidden();
     $this->getJson("/v1/catalog/products/{$product->id}/variants")->assertForbidden();

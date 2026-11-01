@@ -198,11 +198,15 @@ state change.
 
 `TransactionLock::acquire(...$keys)` takes PostgreSQL advisory locks held until
 the current transaction ends. They lock a key, not a row: only code asking for
-the same key waits, and nothing is written. It refuses to run outside a
-transaction, takes several keys in sorted order so two transactions cannot
-deadlock, and waits at most `TransactionLock::WAIT` (5 s) before failing. Use it
-instead of calling `pg_advisory_xact_lock` directly; keep a few keys per
-transaction, since PostgreSQL's lock table has a fixed size.
+the same key waits, and nothing is written. `TransactionLock::acquireShared(...$keys)`
+takes the same keys in shared mode: shared holders do not wait for each other,
+but an exclusive request waits for them and they wait for an exclusive holder
+(readers share, writers take the key alone). Both refuse to run outside a
+transaction, take several keys in sorted order so two transactions cannot
+deadlock, and wait at most `TransactionLock::WAIT` (5 s) before failing. Use them
+instead of calling `pg_advisory_xact_lock` or `pg_advisory_xact_lock_shared`
+directly; keep a few keys per transaction, since PostgreSQL's lock table has a
+fixed size.
 
 `config/child-limits.php` is the single list of how many children a parent
 row may have, by child table and foreign key;

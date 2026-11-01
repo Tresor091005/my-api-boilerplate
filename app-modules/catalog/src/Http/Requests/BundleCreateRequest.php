@@ -42,8 +42,17 @@ final class BundleCreateRequest extends FormRequest
         );
 
         return [
-            'name'              => ['required', 'string', 'max:150'],
-            'sku'               => ['nullable', 'string', 'max:100', Rule::unique('catalog_items', 'sku')->where('organization_id', $organizationId)],
+            'name'           => ['required', 'string', 'max:150'],
+            'sku'            => ['nullable', 'string', 'max:100', Rule::unique('catalog_items', 'sku')->where('organization_id', $organizationId)],
+            'tax_profile_id' => [
+                'present',
+                'nullable',
+                'bail',
+                'uuid',
+                Rule::exists('tax_profiles', 'id')
+                    ->where('organization_id', $organizationId)
+                    ->whereNull('deleted_at'),
+            ],
             'is_active'         => ['boolean'],
             'items'             => ['required', 'array', 'min:2', 'max:'.config('child-limits.catalog_bundle_items.bundle_id'), new ValidBundleItems($organizationId, app(MasterInterface::class))],
             'items.*.item_type' => ['required', 'string', Rule::in($allowedTypes)],

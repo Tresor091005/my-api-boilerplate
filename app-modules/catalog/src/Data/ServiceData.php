@@ -15,6 +15,7 @@ final readonly class ServiceData
         public MissingValue|string $name,
         public MissingValue|string|null $sku,
         public MissingValue|string $unitGroupId,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|Collection $deliverableTemplates,
     ) {}
@@ -27,12 +28,17 @@ final readonly class ServiceData
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
         $isActive = $read->get('is_active', default: false);
+        // No profile on creation means no tax; on update an absent key keeps the current profile.
+        $taxProfileId = array_key_exists('tax_profile_id', $data)
+            ? $data['tax_profile_id']
+            : ($missingFields === [] ? null : MissingValue::Instance);
         $deliverableTemplates = $read->get('deliverable_templates');
 
         return new self(
             name: $read->get('name'),
             sku: $read->get('sku', default: null),
             unitGroupId: $read->get('unit_group_id'),
+            taxProfileId: $taxProfileId,
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             deliverableTemplates: $deliverableTemplates instanceof MissingValue
                 ? $deliverableTemplates

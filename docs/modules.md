@@ -14,6 +14,7 @@ tests. The root `App` namespace contains framework-level wiring only.
 | `library` | Private organization files, logical folders, quotas, authorized streaming, and storage reconciliation | `/v1/library/*` and `library:reconcile` | Runtime contract is defined by the module configuration, routes, and tests. |
 | `customer` | Customer identity and organization-scoped polymorphic addresses and contacts | `/v1/customer/*` | Customer module documentation and feature tests. |
 | `billing` | Code-declared features, platform plans and versions, organization subscriptions paid through checkouts | `/v1/billing/*`, `billing:features:check` and `billing:checkout:confirm` | [Billing module](modules/billing.md). |
+| `tax` | Organization taxes, brackets, dependencies, tax profiles, and the calculation engine (`TaxInterface`) | `/v1/tax/*` | [Tax module](modules/tax.md). |
 | `shared` | Cross-module exceptions, traits, generators, state machines, morph-map registry, pagination, handles, and model discovery | Artisan commands and internal contracts | Cross-cutting behavior documented in [Shared module](modules/shared.md) and [application runtime](architecture/application-runtime.md). |
 
 Detailed module notes:
@@ -23,6 +24,7 @@ Detailed module notes:
 - [Master](modules/master.md)
 - [Organization](modules/organization.md)
 - [Shared](modules/shared.md)
+- [Tax](modules/tax.md)
 
 ## Dependency direction
 
@@ -41,6 +43,11 @@ Detailed module notes:
   Business modules never receive physical storage keys.
 - `customer` may consume the public polymorphic address and contact primitives
   from `master`; it does not own those shared tables.
+- `tax` depends on `master` (units, currencies) and `organization` (functional
+  currency). `catalog` depends on `tax`: it stores `catalog_items.tax_profile_id`,
+  checks assignments through `TaxInterface`, and implements
+  `TaxProfileUsageInterface` so profile changes are checked against the items
+  using them. The tax module never imports catalog code.
 
 The architecture tests in `tests/Feature/Architecture` enforce the dependency
 boundaries and should be updated when a new module contract is introduced.

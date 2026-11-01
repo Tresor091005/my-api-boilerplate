@@ -61,4 +61,9 @@ return [
         'parent_id'  => 1000,
     ],
     'master_units' => ['group_id' => 100],
+
+    'tax_brackets'              => ['tax_id' => 50],
+    'tax_dependencies'          => ['tax_id' => 20],
+    'tax_profile_line_brackets' => ['tax_profile_line_id' => 50],
+    'tax_profile_lines'         => ['tax_profile_id' => 20],
 ];

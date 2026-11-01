@@ -323,6 +323,18 @@ per customer or location. Request arrays never accept more than these caps.
 All catalog routes require `auth.api`. Nested scoped binding prevents a child
 from being addressed through a parent that does not own it.
 
+Variants, bundles and services carry `tax_profile_id`, the
+[tax profile](../modules/tax.md#catalog-items) of the item, or `null` when it
+is not taxed. On create the key is required and may be `null`: a bundle or a
+service sends `tax_profile_id`, and each entry of `variants` sends
+`variants.N.tax_profile_id`, when creating a product or adding variants. On
+update (variant, bundle, service) it is optional: an omitted key keeps the
+profile, `null` removes it, and an id replaces it. An id that is not a
+non-deleted profile of the organization is a validation error on that exact
+field. An inactive profile (`profile_inactive`) or an applicable per-unit tax
+whose unit is outside the item's unit group (`tax_unit_incompatible`) is then
+refused with a 422 `TaxException`. `?include=tax_profile` renders the profile.
+
 Catalog responses use [response selection](response-selection.md): `?fields=`
 picks fields and `?include=` nests related resources, such as
 `?include=items.component` on a bundle or `?include=lines.item` on a stock
@@ -498,6 +510,36 @@ through `LIBRARY_*` environment variables documented in `.env.example`. The
 organization quota comes from `organization_settings`, with a 5 GiB Library
 fallback when no value is configured.
 Library refuses to delete a file while any business record still links it.
+
+## Tax
+
+All tax routes require `auth.api`. Taxes and profiles belong to the current
+organization; another organization's record answers 403. A create or update
+sends the complete definition and replaces its children. Business rule
+refusals are 422 `TaxException` responses. See the [tax module](../modules/tax.md)
+for the rules.
+
+Definition values (`base_min`, `base_max`, `value`, `tax_amount_min`,
+`tax_amount_max`, override `value`) are decimal strings in units of the
+functional currency, with up to 18 digits and 6 decimals; except the rate of a
+`per_tax_unit` tax, they may not have more decimals than the currency allows.
+Calculation amounts are whole numbers of minor units, as strings. Lists are
+cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
+`created_at`, `sort_order`).
+
+| Method | URI | Permission | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/tax/taxes` | `tax_tax.list` | List taxes; filter with `kind` and `is_active`; `include=brackets,dependencies.depends_on_tax`. |
+| POST | `/v1/tax/taxes` | `tax_tax.create` | Create a tax: `code`, `name`, `kind` (`vat`, `other`), `calculation_type` (`percentage`, `fixed`), `fixed_mode` (`per_line`, `per_tax_unit`) and `tax_unit_code` for a fixed tax, `base_type`, `is_progressive`, `bracket_mode` (`whole_amount`, `marginal`) for a progressive percentage tax, `rounding_mode` (`half_up`, `up`, `down`), `is_active`, `brackets` (1 to 50) and `dependencies` (up to 20, `depends_on_tax_id` and `operator` `add` or `subtract`). |
+| GET | `/v1/tax/taxes/{tax}` | `tax_tax.retrieve` | Return a tax, with the same includes. |
+| PUT/PATCH | `/v1/tax/taxes/{tax}` | `tax_tax.update` | Replace the definition. A bracket sent with its `id` keeps its identity and its profile overrides; a bracket left out is deleted unless a profile overrides it. Profiles using the tax must stay valid. |
+| DELETE | `/v1/tax/taxes/{tax}` | `tax_tax.delete` | Soft-delete a tax no profile uses and no tax depends on. |
+| GET | `/v1/tax/profiles` | `tax_profile.list` | List profiles; filter with `is_active`; `include=lines.tax,lines.bracket_overrides`. |
+| POST | `/v1/tax/profiles` | `tax_profile.create` | Create a profile: `code`, `name`, `is_active`, `lines` (1 to 20) with `tax_id` (once each), `treatment` (`standard`, `custom`, `zero`, `exempt`) and, for `custom` only, `bracket_overrides` (up to 50, `tax_bracket_id` and `value`). |
+| GET | `/v1/tax/profiles/{profile}` | `tax_profile.retrieve` | Return a profile, with the same includes. |
+| PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups. |
+| DELETE | `/v1/tax/profiles/{profile}` | `tax_profile.delete` | Soft-delete a profile no catalog item uses. |
+| POST | `/v1/tax/profiles/{profile}/calculations` | `tax_profile.retrieve` | Preview the taxes of one line: `base_amount` (whole minor units), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. Accepts an inactive profile and inactive taxes. Returns `data`, the explainable result with every amount in minor units. |
 
 ## Root routes
 
