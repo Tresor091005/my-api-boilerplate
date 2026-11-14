@@ -6,13 +6,22 @@ Planned on 2026-10-29, in this order:
    access for subscribers only, and plan features checked where they are used
    (one example per type). See [Billing module](modules/billing.md); what is
    left is listed there under its open questions.
-2. **Price and tax on catalog items.** A default sale price on what is sold
-   (variant, bundle, service), in the organization currency. Tax rates
-   configured per organization (for example VAT 18%), with one rate or none on
-   each item. Decide whether prices are entered before or including tax.
+2. **Price and tax on catalog items.**
+   - [x] Tax: the `tax` module, and a tax profile or none on each item
+     (`catalog_items.tax_profile_id`). See [Tax module](modules/tax.md).
+   - [ ] Price: a default sale price on what is sold (variant, bundle,
+     service), in the organization currency. Decide whether prices are entered
+     before or including tax, and so where the net amount of a tax-inclusive
+     price is derived.
 3. **Sale, first slice: the sale and its configuration.**
    - Create a sale with its lines and charges. A line copies the item price and
      tax when the sale is made, so later price changes leave past sales intact.
+   - Taxes of a sale: calculate its lines through `TaxInterface` and keep the
+     result of each line (`TaxResultViewData`, `schema_version` 1, already
+     fixed) as a tax snapshot when the sale is confirmed. Add document-level
+     rounding (per invoice and rate) on top of the per-bracket rounding.
+   - Taxes chosen by context, such as Benin's AIB depending on the customer: a
+     `tax_rules` layer selecting the profiles of a sale before calculation.
    - A sale configuration per organization drives the later slices: when
      payment is expected (before, at or after delivery), when the invoice is
      issued (at confirmation or delivery), whether credit is allowed, whether
@@ -84,15 +93,10 @@ purchasing requirements are clear.
 
 ## TODO: tax follow-ups
 
-- [ ] Persist `tax_snapshots` when the `order` module confirms a document; the
-  result format (`TaxResultViewData`, `schema_version` 1) is already fixed.
-- [ ] Tax-inclusive (TTC) input prices: decide where the net amount is derived.
-- [ ] Document-level rounding (per invoice and rate) in addition to per-bracket
-  rounding.
-- [ ] Document-level taxes chosen by context, such as Benin's AIB depending on
-  the customer: a `tax_rules` layer selecting profiles before calculation.
 - [ ] Optional country packs (importable taxes and profiles) and a tax-regime
-  guard (for example, no VAT under Benin's TPS) built on the tax `kind`.
+  guard (for example, no VAT under Benin's TPS) built on the tax `kind`. It
+  waits for regulatory expertise and real users to validate it; the engine
+  already takes these as data, so it needs no engine change.
 
 ## TODO: partners and flows
 

@@ -234,6 +234,6 @@ have no permission of their own. The preview needs `tax_profile.retrieve`. See
 
 ## Open questions
 
-- See the [tax follow-ups](../roadmap.md#todo-tax-follow-ups) for tax
-  snapshots, tax-inclusive prices, document-level rounding and taxes chosen
-  by context.
+- See the [tax follow-ups](../roadmap.md#todo-tax-follow-ups) for country
+  packs, and the [next steps](../roadmap.md#next-steps) for tax-inclusive
+  prices, tax snapshots, document-level rounding and taxes chosen by context.
