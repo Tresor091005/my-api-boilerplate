@@ -6,6 +6,7 @@ namespace Lahatre\Organization\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Lahatre\Organization\Contracts\OrganizationInterface;
+use Lahatre\Organization\Services\FunctionalCurrencyResolver;
 use Lahatre\Organization\Services\OrganizationService;
 
 class OrganizationServiceProvider extends ServiceProvider
@@ -13,6 +14,7 @@ class OrganizationServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(OrganizationInterface::class, OrganizationService::class);
+        $this->app->scoped(FunctionalCurrencyResolver::class);
     }
 
     public function boot(): void {}

@@ -499,6 +499,36 @@ organization quota comes from `organization_settings`, with a 5 GiB Library
 fallback when no value is configured.
 Library refuses to delete a file while any business record still links it.
 
+## Tax
+
+All tax routes require `auth.api`. Taxes and profiles belong to the current
+organization; another organization's record answers 403. A create or update
+sends the complete definition and replaces its children. Business rule
+refusals are 422 `TaxException` responses. See the [tax module](../modules/tax.md)
+for the rules.
+
+Definition values (`base_min`, `base_max`, `value`, `tax_amount_min`,
+`tax_amount_max`, for a tax or a custom grid) are decimal strings in units of the
+functional currency, with up to 18 digits and 6 decimals; except the rate of a
+`per_tax_unit` tax, they may not have more decimals than the currency allows.
+Calculation amounts are whole numbers of minor units, as strings. Lists are
+cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
+`created_at`, `sort_order`).
+
+| Method | URI | Permission | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/tax/taxes` | `tax_tax.list` | List taxes; filter with `kind` and `is_active`; `include=brackets,dependencies.depends_on_tax`. |
+| POST | `/v1/tax/taxes` | `tax_tax.create` | Create a tax: `code`, `name`, `kind` (`vat`, `other`), `calculation_type` (`percentage`, `fixed`), `fixed_mode` (`per_line`, `per_tax_unit`) and `tax_unit_code` for a fixed tax, `base_type`, `is_progressive`, `bracket_mode` (`whole_amount`, `marginal`) for a progressive percentage tax, `rounding_mode` (`half_up`, `up`, `down`), `is_active`, `brackets` (1 to 50) and `dependencies` (up to 20, `depends_on_tax_id` and `operator` `add` or `subtract`). |
+| GET | `/v1/tax/taxes/{tax}` | `tax_tax.retrieve` | Return a tax, with the same includes. |
+| PUT/PATCH | `/v1/tax/taxes/{tax}` | `tax_tax.update` | Replace the definition, its own grid included; custom grids of profiles stay as they are. Profiles using the tax must stay valid. |
+| DELETE | `/v1/tax/taxes/{tax}` | `tax_tax.delete` | Soft-delete a tax no profile uses and no tax depends on. |
+| GET | `/v1/tax/profiles` | `tax_profile.list` | List profiles; filter with `is_active`; `include=lines.tax,lines.brackets`. |
+| POST | `/v1/tax/profiles` | `tax_profile.create` | Create a profile: `code`, `name`, `is_active`, `lines` (1 to 20) with `tax_id` (once each), `treatment` (`standard`, `custom`, `zero`, `exempt`) and, for `custom` only, `brackets` (1 to 50): a complete grid with the same fields and rules as the tax's brackets. |
+| GET | `/v1/tax/profiles/{profile}` | `tax_profile.retrieve` | Return a profile, with the same includes. |
+| PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups. |
+| DELETE | `/v1/tax/profiles/{profile}` | `tax_profile.delete` | Soft-delete a profile no catalog item uses. |
+| POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `base_amount` (whole minor units of the functional currency), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount in minor units, and `data.total_tax_amount`. |
+
 ## Root routes
 
 - `GET /` renders the welcome page.

@@ -39,6 +39,7 @@ use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
 use Lahatre\Shared\Console\Commands\SyncChildLimitsCommand;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 use Lahatre\Shared\Support\ChildLimitTriggers;
+use Lahatre\Shared\Support\GenerationalCache\GenerationalCache;
 
 class SharedServiceProvider extends ServiceProvider
 {
@@ -47,6 +48,7 @@ class SharedServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/business-numbering.php', 'business-numbering');
 
         $this->app->scoped(MorphMapRegistry::class);
+        $this->app->scoped(GenerationalCache::class);
 
         $this->commands([
             HelpersListCommand::class,

@@ -17,11 +17,32 @@ final class TransactionLock
     public const string WAIT = '5s';
 
     /**
-     * Keys are taken in sorted order, so two transactions locking the same keys cannot deadlock.
+     * Takes the keys for this transaction alone. Keys are taken in sorted order,
+     * so two transactions locking the same keys cannot deadlock.
      *
      * @throws LogicException when no transaction is open: the lock would be released at once
      */
     public static function acquire(string ...$keys): void
+    {
+        self::lock('pg_advisory_xact_lock', $keys);
+    }
+
+    /**
+     * Takes the keys alongside other shared holders; it waits only for an
+     * exclusive holder, and an exclusive request waits for it.
+     *
+     * @throws LogicException when no transaction is open: the lock would be released at once
+     */
+    public static function acquireShared(string ...$keys): void
+    {
+        self::lock('pg_advisory_xact_lock_shared', $keys);
+    }
+
+    /**
+     * @param  'pg_advisory_xact_lock'|'pg_advisory_xact_lock_shared'  $function
+     * @param  array<int, string>  $keys
+     */
+    private static function lock(string $function, array $keys): void
     {
         if (DB::transactionLevel() === 0) {
             throw new LogicException('A transaction lock needs an open transaction.');
@@ -34,7 +55,7 @@ final class TransactionLock
         DB::select("SELECT set_config('lock_timeout', ?, true)", [self::WAIT]);
 
         foreach ($keys as $key) {
-            DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', [$key]);
+            DB::select("SELECT {$function}(hashtextextended(?, 0))", [$key]);
         }
 
         DB::select("SELECT set_config('lock_timeout', ?, true)", [$previousWait]);

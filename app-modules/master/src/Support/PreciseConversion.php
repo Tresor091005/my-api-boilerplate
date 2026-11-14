@@ -66,13 +66,12 @@ class PreciseConversion
             );
         }
 
-        $ratio = bcdiv(
-            (string) $from->ratio,
+        // Multiply before dividing: dividing the ratios first loses precision (6 b → 0.9999999996 b-6).
+        return bcdiv(
+            bcmul($amount, (string) $from->ratio, self::UNIT_SCALE),
             (string) $to->ratio,
             self::UNIT_SCALE
         );
-
-        return bcmul($amount, $ratio, self::UNIT_SCALE);
     }
 
     /**

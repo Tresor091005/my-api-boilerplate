@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aefbcb6ab92cc35a9a45218752043b3d",
+    "content-hash": "2421b337d206dbd7ac697f2bb58c7865",
     "packages": [
         {
             "name": "brick/math",
@@ -2662,6 +2662,38 @@
                     "src/helpers.php",
                     "src/Data/functions.php"
                 ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "lahatre/tax",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/tax",
+                "reference": "94ac55dd12c2d5fbd04833cac11053f530c78020"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Tax\\Providers\\TaxServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Tax\\": "src/",
+                    "Lahatre\\Tax\\Tests\\": "tests/",
+                    "Lahatre\\Tax\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Tax\\Database\\Seeders\\": "database/seeders/"
+                }
             },
             "license": [
                 "MIT"

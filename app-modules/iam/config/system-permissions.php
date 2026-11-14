@@ -16,6 +16,9 @@ return [
         'iam_platform_user',
         'master_address',
         'master_contact',
+        'tax_bracket',
+        'tax_dependency',
+        'tax_profile_line',
     ],
     'additional_actions' => [
         'billing_subscription' => [
@@ -38,6 +41,9 @@ return [
             'pin',
             'mention',
             'visibility_organization',
+        ],
+        'tax_profile' => [
+            'simulate',
         ],
     ],
 ];

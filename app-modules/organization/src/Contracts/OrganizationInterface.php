@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Organization\Contracts;
 
 use Carbon\CarbonImmutable;
+use Lahatre\Master\Models\Currency;
 use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Enums\ExchangeRateContext;
 use Lahatre\Organization\Models\Organization;
@@ -16,6 +17,9 @@ interface OrganizationInterface
     public function findOrganizationById(string $organizationId): Organization;
 
     public function getLibraryQuotaBytes(string $organizationId): ?int;
+
+    /** The currency every amount of the organization is kept in; it never changes. */
+    public function functionalCurrency(string $organizationId): Currency;
 
     /**
      * @return array{currency_code: string, functional_currency_code: string, amount_in_transaction_currency: string, amount_in_functional_currency: string, exchange_rate: string, exchange_rate_effective_at: CarbonImmutable|null, requested_exchange_context: string, exchange_context: string}

@@ -7,6 +7,7 @@ namespace Lahatre\Organization\Services;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Master\Contracts\MasterInterface;
+use Lahatre\Master\Models\Currency;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Enums\ExchangeRateContext;
@@ -19,6 +20,7 @@ class OrganizationService implements OrganizationInterface
     public function __construct(
         protected ExchangeRateService $exchangeRateService,
         protected MasterInterface $masterInterface,
+        protected FunctionalCurrencyResolver $functionalCurrencyResolver,
     ) {}
 
     public function initializeOrganization(OrganizationData $data): Organization
@@ -45,6 +47,11 @@ class OrganizationService implements OrganizationInterface
     public function findOrganizationById(string $organizationId): Organization
     {
         return Organization::query()->findOrFail($organizationId);
+    }
+
+    public function functionalCurrency(string $organizationId): Currency
+    {
+        return $this->functionalCurrencyResolver->forOrganization($organizationId);
     }
 
     public function getLibraryQuotaBytes(string $organizationId): ?int

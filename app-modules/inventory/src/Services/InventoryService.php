@@ -653,8 +653,8 @@ class InventoryService implements InventoryInterface
                 }
 
                 $functionalCurrencyCode = $this->organizationInterface
-                    ->findOrganizationById(currentOrganizationId())
-                    ->functional_currency_code;
+                    ->functionalCurrency(currentOrganizationId())
+                    ->code;
 
                 $averageCost = $this->resolveAdjustmentAverageCost(
                     stocks: $currentStocks,
