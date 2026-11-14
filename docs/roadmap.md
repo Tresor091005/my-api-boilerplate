@@ -12,8 +12,18 @@ Planned on 2026-10-29, in this order:
    - [x] Price: named price levels per organization, each in one enabled
      currency, and on each variant, bundle or service one price per level and
      sale unit (`catalog_price_levels`, `catalog_item_prices`).
-   - [ ] Prices entered including tax (`tax_inclusive`): decide where the net
-     amount of a tax-inclusive price is derived.
+   - Prices including tax. A price states the taxes its amount already
+     contains, among those of the item's tax profile; the item's other taxes
+     are added on top. The choice is per price, not per level, because the
+     taxes come from the profile of each item.
+     - [x] The taxes a price contains (`catalog_item_price_taxes`), stated when
+       the price is created and changed on the price.
+     - [x] The tax module derives the amount before tax from such a price,
+       line by line with the real quantity; the displayed price stays exact.
+       See [amounts that already contain taxes](modules/tax.md#amounts-that-already-contain-taxes).
+     - [x] A price is refused when its taxes cannot be taken out of it, also
+       when the item's profile, a tax or a tax profile changes later; the way
+       out is always to change the taxes the price contains first.
 3. **Sale, first slice: the sale and its configuration.**
    - Create a sale with its lines and charges. A sale has one currency and one
      price level of that currency, used by all its lines; a customer with a
@@ -23,8 +33,8 @@ Planned on 2026-10-29, in this order:
    - Services sold by time or count: check that master has those unit groups
      (hour, day, session) before services are sold.
    - Taxes of a sale: calculate its lines through `TaxInterface` and keep the
-     result of each line (`TaxResultViewData`, `schema_version` 1, already
-     fixed) as a tax snapshot when the sale is confirmed. Add document-level
+     result of each line (`TaxResultViewData`, `schema_version` 2) as a tax
+     snapshot when the sale is confirmed. Add document-level
      rounding (per invoice and rate) on top of the per-bracket rounding.
    - Taxes chosen by context, such as Benin's AIB depending on the customer: a
      `tax_rules` layer selecting the profiles of a sale before calculation.

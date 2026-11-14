@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Tax\Contracts;
 
 use Illuminate\Support\Collection;
+use Lahatre\Tax\Data\IncludedTaxAmountData;
 use Lahatre\Tax\Data\TaxableLineData;
 use Lahatre\Tax\Exceptions\TaxException;
 use Lahatre\Tax\ViewData\TaxResultViewData;
@@ -35,6 +36,20 @@ interface TaxInterface
      * @throws TaxException
      */
     public function assertProfilesAssignable(Collection $unitGroupIdsByProfile): void;
+
+    /**
+     * Checks that amounts of a record using the profile, such as its prices,
+     * may already contain taxes: the profile exists in the organization, each
+     * tax is one of its lines, the taxes can be taken out of an amount
+     * together, and each amount is not lower than the taxes it contains for
+     * one unit sold. Call it inside the transaction that writes the amounts or
+     * assigns the profile.
+     *
+     * @param  Collection<int, IncludedTaxAmountData>  $amounts
+     *
+     * @throws TaxException
+     */
+    public function assertTaxesIncludable(string $taxProfileId, Collection $amounts): void;
 
     /**
      * Calculates one line; see resolveMany().

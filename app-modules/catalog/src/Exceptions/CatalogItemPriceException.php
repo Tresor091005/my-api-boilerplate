@@ -44,6 +44,22 @@ final class CatalogItemPriceException extends AssertionException
         );
     }
 
+    public static function includedTaxesNeedTaxProfile(CatalogItem $catalogItem): self
+    {
+        return new self(
+            __('catalog::exceptions.price_included_taxes_need_tax_profile'),
+            ['catalog_item_id' => $catalogItem->id],
+        );
+    }
+
+    public static function includedTaxesNeedFunctionalCurrency(string $currencyCode, string $functionalCurrencyCode): self
+    {
+        return new self(
+            __('catalog::exceptions.price_included_taxes_need_functional_currency', ['currency' => $functionalCurrencyCode]),
+            ['currency_code' => $currencyCode, 'functional_currency_code' => $functionalCurrencyCode],
+        );
+    }
+
     /** @param list<string> $priceIds */
     public static function pricesUnavailable(array $priceIds): self
     {

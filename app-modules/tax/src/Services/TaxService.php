@@ -30,6 +30,7 @@ final readonly class TaxService
         private TaxConfigurationLock $configurationLock,
         private OrganizationInterface $organizationInterface,
         private CompiledTaxProfileCache $profileCache,
+        private IncludedTaxUsageGuard $includedTaxUsageGuard,
         private MasterInterface $masterInterface,
     ) {}
 
@@ -83,7 +84,8 @@ final readonly class TaxService
     /**
      * Replaces the definition of a tax, its own grid included; custom grids of
      * profile lines are left as they are. Profiles using the tax must remain
-     * valid.
+     * valid, and a tax that prices already contain must stay one a price can
+     * contain.
      *
      * @throws TaxException
      */
@@ -101,11 +103,14 @@ final readonly class TaxService
             $this->taxAssertion->assertDependencyTargetsExist($data, $dependencyTaxes);
             $this->assertCodeAvailable($organizationId, $data->code, $locked->id);
             $this->assertAcyclic($organizationId, $locked, $data);
-            $this->taxAssertion->assertCompatibleWithProfiles($locked, $data, $taxUnit, $this->profilesUsing($organizationId, $locked->id));
+            $profiles = $this->profilesUsing($organizationId, $locked->id);
+            $this->taxAssertion->assertCompatibleWithProfiles($locked, $data, $taxUnit, $profiles);
 
             $locked->update($this->taxAttributes($data, $taxUnit));
             $this->writeBrackets($locked, $data);
             $this->writeDependencies($locked, $data);
+            // prices that already contain the tax must still be able to contain it as it now is
+            $this->includedTaxUsageGuard->assertIncludedTaxesStillHold($organizationId, $profiles->pluck('id')->values());
             $this->profileCache->invalidateAfterCommit($organizationId);
 
             return $locked->unsetRelations();

@@ -28,18 +28,37 @@ beforeEach(function (): void {
     ]);
 });
 
-/** Pretends records measured in the given unit groups use every profile. */
-function profilesUsedByUnitGroups(array $unitGroupIds): void
+/**
+ * Pretends records measured in the given unit groups use every profile, with
+ * prices that already contain the given sets of taxes.
+ *
+ * @param  list<string>  $unitGroupIds
+ * @param  list<list<string>>  $includedTaxIdSets
+ */
+function profilesUsedByUnitGroups(array $unitGroupIds, array $includedTaxIdSets = []): void
 {
-    app()->instance(TaxProfileUsageInterface::class, new class($unitGroupIds) implements TaxProfileUsageInterface
+    app()->instance(TaxProfileUsageInterface::class, new class($unitGroupIds, $includedTaxIdSets) implements TaxProfileUsageInterface
     {
-        /** @param list<string> $unitGroupIds */
-        public function __construct(private readonly array $unitGroupIds) {}
+        /**
+         * @param  list<string>  $unitGroupIds
+         * @param  list<list<string>>  $includedTaxIdSets
+         */
+        public function __construct(private readonly array $unitGroupIds, private readonly array $includedTaxIdSets) {}
 
         public function unitGroupIdsByProfile(string $organizationId, Collection $taxProfileIds): Collection
         {
             /** @var Collection<string, Collection<int, string>> */
             return $taxProfileIds->mapWithKeys(fn (string $profileId): array => [$profileId => collect($this->unitGroupIds)]);
+        }
+
+        public function includedTaxIdSetsByProfile(string $organizationId, Collection $taxProfileIds): Collection
+        {
+            if ($this->includedTaxIdSets === []) {
+                return collect();
+            }
+
+            /** @var Collection<string, Collection<int, list<string>>> */
+            return $taxProfileIds->mapWithKeys(fn (string $profileId): array => [$profileId => collect($this->includedTaxIdSets)]);
         }
     });
 }

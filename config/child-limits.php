@@ -16,11 +16,12 @@ return [
     'billing_subscriptions'         => ['plan_version_id' => null],
 
     'catalog_categories'                    => ['parent_id' => null],
+    'catalog_item_price_taxes'              => ['catalog_item_price_id' => 20],
     'catalog_item_prices'                   => ['catalog_item_id' => 50],
     'catalog_bundle_items'                  => ['bundle_id' => 30],
     'catalog_bundle_stock_operations'       => ['bundle_id' => null],
     'catalog_option_values'                 => ['option_id' => 250],
-    'catalog_price_levels'                  => ['organization_id' => 20],
+    'catalog_price_levels'                  => ['organization_id' => 50],
     'catalog_product_categories'            => ['product_id' => 50, 'category_id' => null],
     'catalog_product_variants'              => ['product_id' => 2048],
     'catalog_service_deliverable_templates' => ['service_id' => 50],

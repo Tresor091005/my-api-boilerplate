@@ -81,6 +81,26 @@ final readonly class CatalogItemPriceAssertion
     }
 
     /**
+     * Assert that a price of the item at the level may already contain taxes.
+     *
+     * The item has a tax profile, whose taxes the price may contain, and the
+     * level is in the organization's functional currency, the only currency
+     * taxes are calculated in. A price that contains no tax needs neither.
+     *
+     * @throws CatalogItemPriceException If the item has no tax profile or the level is in another currency.
+     */
+    public function assertPriceMayIncludeTaxes(CatalogItem $catalogItem, PriceLevel $priceLevel, Currency $functionalCurrency): void
+    {
+        if ($catalogItem->tax_profile_id === null) {
+            throw CatalogItemPriceException::includedTaxesNeedTaxProfile($catalogItem);
+        }
+
+        if ($priceLevel->currency_code !== $functionalCurrency->code) {
+            throw CatalogItemPriceException::includedTaxesNeedFunctionalCurrency($priceLevel->currency_code, $functionalCurrency->code);
+        }
+    }
+
+    /**
      * Assert that an amount is a non-negative decimal the currency can hold
      * exactly, without more decimal places than it has.
      *

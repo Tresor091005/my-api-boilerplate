@@ -228,6 +228,60 @@ final class TaxException extends AssertionException
         ]);
     }
 
+    /** @param list<string> $taxIds */
+    public static function includedTaxesOutsideProfile(string $profileCode, array $taxIds): self
+    {
+        return new self(__('tax::exceptions.included_taxes_outside_profile', ['code' => $profileCode]), [
+            'tax_profile_code' => $profileCode,
+            'tax_ids'          => $taxIds,
+        ]);
+    }
+
+    public static function includedTaxAppliesToWholeAmount(string $taxCode): self
+    {
+        return new self(__('tax::exceptions.included_tax_whole_amount', ['code' => $taxCode]), ['tax_code' => $taxCode]);
+    }
+
+    public static function includedTaxFixedByBracket(string $taxCode): self
+    {
+        return new self(__('tax::exceptions.included_tax_fixed_by_bracket', ['code' => $taxCode]), ['tax_code' => $taxCode]);
+    }
+
+    public static function includedTaxHasMinimum(string $taxCode): self
+    {
+        return new self(__('tax::exceptions.included_tax_has_minimum', ['code' => $taxCode]), ['tax_code' => $taxCode]);
+    }
+
+    public static function includedTaxSubtractsDependency(string $taxCode, string $dependencyCode): self
+    {
+        return new self(__('tax::exceptions.included_tax_subtracts_dependency', ['code' => $taxCode, 'dependency' => $dependencyCode]), [
+            'tax_code'            => $taxCode,
+            'dependency_tax_code' => $dependencyCode,
+        ]);
+    }
+
+    public static function includedTaxDependsOnAddedTax(string $taxCode, string $dependencyCode): self
+    {
+        return new self(__('tax::exceptions.included_tax_depends_on_added_tax', ['code' => $taxCode, 'dependency' => $dependencyCode]), [
+            'tax_code'            => $taxCode,
+            'dependency_tax_code' => $dependencyCode,
+        ]);
+    }
+
+    /** The obstacle names the tax and why an amount can no longer contain it. */
+    public static function includedTaxesInUse(string $profileCode, self $obstacle): self
+    {
+        return new self(__('tax::exceptions.included_taxes_in_use', ['profile' => $profileCode, 'reason' => $obstacle->getMessage()]), [
+            ...$obstacle->context(),
+            'tax_profile_code' => $profileCode,
+        ]);
+    }
+
+    public static function amountBelowIncludedTaxes(string $amount): self
+    {
+        return new self(__('tax::exceptions.amount_below_included_taxes'), ['amount' => $amount]);
+    }
+
     public static function profileInUse(string $profileCode): self
     {
         return new self(__('tax::exceptions.profile_in_use', ['code' => $profileCode]), ['tax_profile_code' => $profileCode]);
@@ -254,9 +308,9 @@ final class TaxException extends AssertionException
         ]);
     }
 
-    public static function invalidBaseAmount(string $baseAmount): self
+    public static function invalidAmount(string $amount): self
     {
-        return new self(__('tax::exceptions.invalid_base_amount'), ['base_amount' => $baseAmount]);
+        return new self(__('tax::exceptions.invalid_amount'), ['amount' => $amount]);
     }
 
     public static function invalidQuantity(string $quantity): self

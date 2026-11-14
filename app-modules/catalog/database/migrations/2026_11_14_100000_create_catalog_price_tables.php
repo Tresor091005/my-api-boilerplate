@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * A price level ("retail", "wholesale") is a named list of prices in one
  * currency; an item has at most one price per level and sale unit, in minor
- * units of the level's currency.
+ * units of the level's currency. A price lists the taxes its amount already
+ * contains; without any, it is a price before tax.
  */
 return new class extends Migration
 {
@@ -46,6 +47,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->unique(['organization_id', 'id'], 'catalog_item_prices_organization_id_id_unique');
             $table->foreign(['organization_id', 'catalog_item_id'], 'catalog_item_prices_catalog_item_foreign')
                 ->references(['organization_id', 'id'])
                 ->on('catalog_items')
@@ -60,10 +62,31 @@ return new class extends Migration
         DB::statement('CREATE INDEX catalog_item_prices_price_level_index ON catalog_item_prices (organization_id, price_level_id) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX catalog_item_prices_unit_id_index ON catalog_item_prices (unit_id) WHERE deleted_at IS NULL');
         DB::statement('ALTER TABLE catalog_item_prices ADD CONSTRAINT catalog_item_prices_amount_check CHECK (amount >= 0)');
+
+        Schema::create('catalog_item_price_taxes', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('organization_id')
+                ->constrained('organization_organizations')
+                ->restrictOnDelete();
+            $table->uuid('catalog_item_price_id');
+            $table->uuid('tax_id');
+
+            $table->foreign(['organization_id', 'catalog_item_price_id'], 'catalog_item_price_taxes_price_foreign')
+                ->references(['organization_id', 'id'])
+                ->on('catalog_item_prices')
+                ->cascadeOnDelete();
+            $table->foreign(['organization_id', 'tax_id'], 'catalog_item_price_taxes_tax_foreign')
+                ->references(['organization_id', 'id'])
+                ->on('tax_taxes')
+                ->restrictOnDelete();
+            $table->unique(['organization_id', 'catalog_item_price_id', 'tax_id'], 'catalog_item_price_taxes_price_tax_unique');
+            $table->index(['organization_id', 'tax_id'], 'catalog_item_price_taxes_tax_index');
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('catalog_item_price_taxes');
         Schema::dropIfExists('catalog_item_prices');
         Schema::dropIfExists('catalog_price_levels');
     }

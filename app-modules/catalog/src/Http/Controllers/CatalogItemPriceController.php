@@ -6,8 +6,8 @@ namespace Lahatre\Catalog\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
-use Lahatre\Catalog\Data\CatalogItemPriceAmountData;
 use Lahatre\Catalog\Data\CatalogItemPriceData;
+use Lahatre\Catalog\Data\CatalogItemPriceUpdateData;
 use Lahatre\Catalog\Http\Requests\CatalogItemPriceCreateRequest;
 use Lahatre\Catalog\Http\Requests\CatalogItemPriceDeleteRequest;
 use Lahatre\Catalog\Http\Requests\CatalogItemPriceUpdateRequest;
@@ -51,7 +51,10 @@ final readonly class CatalogItemPriceController
     public function update(CatalogItemPriceUpdateRequest $request, CatalogItem $item, CatalogItemPrice $price): JsonResponse|Response
     {
         Gate::authorize('managePrices', $this->priceService->owner($item));
-        $price = $this->priceService->update($item, $price, CatalogItemPriceAmountData::fromArray($request->validated()));
+        $price = $this->priceService->update($item, $price, CatalogItemPriceUpdateData::fromArray(
+            $request->validated(),
+            missingFields: ['amount', 'included_tax_ids'],
+        ));
 
         return ApiResponse::item($price, CatalogItemPriceResource::class);
     }

@@ -31,7 +31,7 @@ it('returns no tax for a line without profile', function (): void {
 
     expect($result['taxes'])->toBe([])
         ->and($result['total_tax_amount'])->toBe('0')
-        ->and($result['schema_version'])->toBe(1);
+        ->and($result['schema_version'])->toBe(2);
 });
 
 it('applies a simple percentage', function (): void {

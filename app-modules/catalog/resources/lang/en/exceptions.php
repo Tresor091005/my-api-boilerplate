@@ -38,5 +38,7 @@ return [
     'price_units_outside_item_group'                     => 'A price unit must belong to the item unit group.',
     'price_already_defined'                              => 'The item already has a price at this level for this unit.',
     'price_amount_invalid'                               => 'A price must be a non-negative amount with no more decimal places than its currency has (:precision).',
+    'price_included_taxes_need_tax_profile'              => 'A price can only include taxes of an item that has a tax profile.',
+    'price_included_taxes_need_functional_currency'      => 'Taxes are calculated in :currency, so only a price at a level in that currency can include taxes.',
     'prices_unavailable'                                 => 'One or more selected prices are unavailable.',
 ];

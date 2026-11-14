@@ -119,11 +119,11 @@ trait InteractsWithTaxTenant
     }
 
     /** @param array<string, mixed> $overrides */
-    public function taxableLine(?string $taxProfileId, string $baseAmount, array $overrides = []): TaxableLineData
+    public function taxableLine(?string $taxProfileId, string $amount, array $overrides = []): TaxableLineData
     {
         return TaxableLineData::fromArray([
             'tax_profile_id' => $taxProfileId,
-            'base_amount'    => $baseAmount,
+            'amount'         => $amount,
             'currency_code'  => 'XOF',
             'quantity'       => '1',
             ...$overrides,

@@ -10,6 +10,7 @@ use Lahatre\Master\Models\Unit;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Shared\Support\Decimal;
 use Lahatre\Tax\Contracts\TaxInterface;
+use Lahatre\Tax\Data\IncludedTaxAmountData;
 use Lahatre\Tax\Data\TaxableLineData;
 use Lahatre\Tax\Data\TaxSimulationData;
 use Lahatre\Tax\Data\TaxSimulationLineData;
@@ -17,6 +18,8 @@ use Lahatre\Tax\Exceptions\TaxException;
 use Lahatre\Tax\Services\Engine\CompiledTax;
 use Lahatre\Tax\Services\Engine\CompiledTaxProfile;
 use Lahatre\Tax\Services\Engine\CompiledTaxProfileCache;
+use Lahatre\Tax\Services\Engine\IncludedTaxRules;
+use Lahatre\Tax\Services\Engine\IncludedTaxSolver;
 use Lahatre\Tax\Services\Engine\TaxCalculator;
 use Lahatre\Tax\Services\Engine\TaxProfileCompiler;
 use Lahatre\Tax\Services\Engine\TaxQuantityResolver;
@@ -30,6 +33,8 @@ final readonly class TaxResolutionService implements TaxInterface
         private CompiledTaxProfileCache $profileCache,
         private TaxProfileCompiler $profileCompiler,
         private TaxCalculator $calculator,
+        private IncludedTaxRules $includedTaxRules,
+        private IncludedTaxSolver $includedTaxSolver,
         private TaxQuantityResolver $quantityResolver,
         private TaxConfigurationLock $configurationLock,
         private OrganizationInterface $organizationInterface,
@@ -70,6 +75,50 @@ final readonly class TaxResolutionService implements TaxInterface
         }
     }
 
+    /**
+     * Reads the profile from the database under the shared configuration lock,
+     * like assertProfilesAssignable(): a concurrent change of the profile
+     * either waits for the amounts and then sees them, or is seen here. Each
+     * amount is then calculated for one unit sold, so what a sale would refuse
+     * is refused here.
+     */
+    public function assertTaxesIncludable(string $taxProfileId, Collection $amounts): void
+    {
+        if ($amounts->isEmpty()) {
+            return;
+        }
+
+        $organizationId = currentOrganizationId();
+        $this->configurationLock->acquireShared($organizationId);
+        $profiles = $this->profileCompiler->compile($organizationId, collect([$taxProfileId]));
+        $profile = $profiles->get($taxProfileId) ?? throw TaxException::profileNotFound($taxProfileId);
+        $profileTaxIds = array_map(fn (CompiledTax $tax): string => $tax->id, $profile->taxes);
+        $outsideProfile = $amounts
+            ->flatMap(fn (IncludedTaxAmountData $amount): array => $amount->includedTaxIds)
+            ->unique()
+            ->reject(fn (string $taxId): bool => in_array($taxId, $profileTaxIds, true))
+            ->values()
+            ->all();
+
+        if ($outsideProfile !== []) {
+            throw TaxException::includedTaxesOutsideProfile($profile->code, $outsideProfile);
+        }
+
+        $currencyCode = $this->organizationInterface->functionalCurrency($organizationId)->code;
+        $this->resolveLines(
+            $amounts->map(fn (IncludedTaxAmountData $amount): TaxableLineData => TaxableLineData::fromArray([
+                'tax_profile_id'   => $taxProfileId,
+                'amount'           => $amount->amount,
+                'included_tax_ids' => $amount->includedTaxIds,
+                'currency_code'    => $currencyCode,
+                'quantity'         => '1',
+                'unit_code'        => $amount->unitCode,
+            ])),
+            includeInactive: false,
+            profiles: $profiles,
+        );
+    }
+
     public function resolve(TaxableLineData $line): TaxResultViewData
     {
         /** @var TaxResultViewData */
@@ -95,11 +144,12 @@ final readonly class TaxResolutionService implements TaxInterface
         $currencyCode = $this->organizationInterface->functionalCurrency(currentOrganizationId())->code;
         $results = $this->resolveLines(
             $data->lines->map(fn (TaxSimulationLineData $line): TaxableLineData => TaxableLineData::fromArray([
-                'tax_profile_id' => $line->taxProfileId,
-                'base_amount'    => $line->baseAmount,
-                'currency_code'  => $currencyCode,
-                'quantity'       => $line->quantity,
-                'unit_code'      => $line->unitCode,
+                'tax_profile_id'   => $line->taxProfileId,
+                'amount'           => $line->amount,
+                'included_tax_ids' => $line->includedTaxIds,
+                'currency_code'    => $currencyCode,
+                'quantity'         => $line->quantity,
+                'unit_code'        => $line->unitCode,
             ])),
             $data->includeInactive,
         )->values();
@@ -110,6 +160,10 @@ final readonly class TaxResolutionService implements TaxInterface
                 fn (string $sum, TaxResultViewData $line): string => bcadd($sum, $line->totalTaxAmount, 0),
                 '0',
             ),
+            totalAmount: $results->reduce(
+                fn (string $sum, TaxResultViewData $line): string => bcadd($sum, $line->totalAmount, 0),
+                '0',
+            ),
         );
     }
 
@@ -117,12 +171,13 @@ final readonly class TaxResolutionService implements TaxInterface
      * @template TKey of array-key
      *
      * @param  Collection<TKey, TaxableLineData>  $lines
+     * @param  Collection<string, CompiledTaxProfile>|null  $profiles  profiles already compiled from the database, instead of the cached ones
      *
      * @throws TaxException
      *
      * @return Collection<TKey, TaxResultViewData>
      */
-    private function resolveLines(Collection $lines, bool $includeInactive): Collection
+    private function resolveLines(Collection $lines, bool $includeInactive, ?Collection $profiles = null): Collection
     {
         if ($lines->isEmpty()) {
             return collect();
@@ -132,7 +187,7 @@ final readonly class TaxResolutionService implements TaxInterface
         $functionalCurrencyCode = $this->organizationInterface->functionalCurrency($organizationId)->code;
         $lines->each(fn (TaxableLineData $line) => $this->assertLine($line, $functionalCurrencyCode));
 
-        $profiles = $this->compiledProfiles(
+        $profiles ??= $this->compiledProfiles(
             $organizationId,
             $lines
                 ->reject(fn (TaxableLineData $line): bool => $line->taxProfileId === null)
@@ -169,8 +224,8 @@ final readonly class TaxResolutionService implements TaxInterface
             throw TaxException::currencyMismatch($line->currencyCode, $functionalCurrencyCode);
         }
 
-        if (preg_match('/^\d{1,18}$/', $line->baseAmount) !== 1) {
-            throw TaxException::invalidBaseAmount($line->baseAmount);
+        if (preg_match('/^\d{1,18}$/', $line->amount) !== 1) {
+            throw TaxException::invalidAmount($line->amount);
         }
 
         if (preg_match('/^\d{1,12}(\.\d{1,10})?$/', $line->quantity) !== 1 || bccomp($line->quantity, '0', 10) <= 0) {
@@ -209,7 +264,7 @@ final readonly class TaxResolutionService implements TaxInterface
     private function resolveLine(TaxableLineData $line, Collection $profiles, Collection $units, bool $includeInactive): TaxResultViewData
     {
         if ($line->taxProfileId === null) {
-            return $this->result($line, collect());
+            return $this->result($line, $line->amount, collect());
         }
 
         $profile = $includeInactive
@@ -221,10 +276,23 @@ final readonly class TaxResolutionService implements TaxInterface
             throw TaxException::profileTaxesInactive(array_map(fn (CompiledTax $tax): string => $tax->code, $inactiveTaxes));
         }
 
-        return $this->result($line, $this->calculator->calculate(
+        $taxQuantities = $this->quantityResolver->forLine($profile, $line->quantity, $line->unitCode, $units);
+
+        if ($line->includedTaxIds === []) {
+            return $this->result($line, $line->amount, $this->calculator->calculate($profile, $line->amount, $taxQuantities));
+        }
+
+        // The amount contains taxes: find the base it stands for, then calculate
+        // every tax on that base, the taxes it does not contain coming on top.
+        $includedTaxes = $this->includedTaxRules->includedTaxes($profile, $line->includedTaxIds);
+        $solution = $this->includedTaxSolver->solve($profile, $line->amount, $includedTaxes, $taxQuantities);
+
+        return $this->result($line, $solution->baseAmount, $this->calculator->calculate(
             $profile,
-            $line->baseAmount,
-            $this->quantityResolver->forLine($profile, $line->quantity, $line->unitCode, $units),
+            $solution->baseAmount,
+            $taxQuantities,
+            array_map(fn (CompiledTax $tax): string => $tax->id, $includedTaxes),
+            $solution->roundingAdjustments,
         ));
     }
 
@@ -245,19 +313,27 @@ final readonly class TaxResolutionService implements TaxInterface
     }
 
     /** @param Collection<int, TaxLineResultViewData> $taxes */
-    private function result(TaxableLineData $line, Collection $taxes): TaxResultViewData
+    private function result(TaxableLineData $line, string $baseAmount, Collection $taxes): TaxResultViewData
     {
+        $sum = fn (Collection $taxes): string => $taxes->reduce(
+            fn (string $sum, TaxLineResultViewData $tax): string => bcadd($sum, $tax->taxAmount, 0),
+            '0',
+        );
+        [$includedTaxes, $addedTaxes] = $taxes->partition(fn (TaxLineResultViewData $tax): bool => $tax->isIncluded);
+        $addedTaxAmount = $sum($addedTaxes);
+
         return new TaxResultViewData(
             taxProfileId: $line->taxProfileId,
             currencyCode: $line->currencyCode,
-            baseAmount: $line->baseAmount,
+            amount: $line->amount,
+            baseAmount: $baseAmount,
             quantity: Decimal::normalize($line->quantity),
             unitCode: $line->unitCode,
             taxes: $taxes,
-            totalTaxAmount: $taxes->reduce(
-                fn (string $sum, TaxLineResultViewData $tax): string => bcadd($sum, $tax->taxAmount, 0),
-                '0',
-            ),
+            includedTaxAmount: $sum($includedTaxes),
+            addedTaxAmount: $addedTaxAmount,
+            totalTaxAmount: $sum($taxes),
+            totalAmount: bcadd($line->amount, $addedTaxAmount, 0),
         );
     }
 }

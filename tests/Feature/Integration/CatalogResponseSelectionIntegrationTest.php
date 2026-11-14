@@ -16,6 +16,7 @@ use Lahatre\Catalog\Http\Resources\StockLocationResource;
 use Lahatre\Catalog\Http\Resources\StockTransferResource;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
+use Lahatre\Catalog\Models\CatalogItemPriceTax;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
@@ -38,6 +39,7 @@ use Lahatre\Master\Support\UnitCache;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\ResponseSelection\Testing\AssertsBoundedQueries;
 use Lahatre\ResponseSelection\Testing\AssertsResponseFieldIsolation;
+use Lahatre\Tax\Models\Tax;
 use Lahatre\Tax\Models\TaxProfile;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -170,11 +172,15 @@ it('renders every field of the catalog lists alone as in the full selection', fu
     ])->assertNoContent();
     StockTransferLine::factory()->create();
     $priceLevel = PriceLevel::factory()->create(['organization_id' => $this->organization->id]);
+    $includedTax = Tax::factory()->create(['organization_id' => $this->organization->id]);
     CatalogItem::query()->where('organization_id', $this->organization->id)->pluck('id')->each(
-        fn (string $catalogItemId): CatalogItemPrice => CatalogItemPrice::factory()->create([
-            'catalog_item_id' => $catalogItemId,
-            'price_level_id'  => $priceLevel->id,
-            'unit_id'         => $this->unit->id,
+        fn (string $catalogItemId): CatalogItemPriceTax => CatalogItemPriceTax::factory()->create([
+            'catalog_item_price_id' => CatalogItemPrice::factory()->create([
+                'catalog_item_id' => $catalogItemId,
+                'price_level_id'  => $priceLevel->id,
+                'unit_id'         => $this->unit->id,
+            ])->id,
+            'tax_id' => $includedTax->id,
         ]),
     );
     // the line factory creates its own unit, which the unit cache does not know yet

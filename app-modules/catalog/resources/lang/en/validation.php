@@ -18,4 +18,6 @@ return [
     'bundle_stock_operation_stock_ids_strategy_prohibited' => 'Stock IDs are only accepted when the deduction strategy is manual.',
     'service_deliverable_template_unavailable'             => 'The selected deliverable template is unavailable.',
     'price_amount_precision'                               => 'The amount has more decimal places than the price level currency allows (:precision).',
+    'included_tax_unavailable'                             => 'The selected tax is unavailable.',
+    'included_tax_duplicate'                               => 'A tax may only be included once in a price.',
 ];

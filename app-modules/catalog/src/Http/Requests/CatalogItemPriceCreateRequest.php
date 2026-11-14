@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 use Lahatre\Catalog\Http\Requests\Concerns\ValidatesPriceAmount;
+use Lahatre\Catalog\Rules\ValidIncludedTaxes;
 use Lahatre\Shared\Rules\BulkExists;
 use Lahatre\Shared\Support\Decimal;
 
@@ -27,10 +28,14 @@ final class CatalogItemPriceCreateRequest extends FormRequest
                 new BulkExists('catalog_price_levels', 'id', 'price_level_id', 'uuid', true, [
                     'organization_id' => currentOrganizationId(),
                 ]),
+                new ValidIncludedTaxes(currentOrganizationId()),
             ],
             'prices.*.price_level_id' => ['required', 'uuid'],
             'prices.*.unit_code'      => ['required', 'string', 'max:100'],
-            'prices.*.amount'         => $this->amountRules(),
+            'prices.*.amount'         => ['required', ...$this->amountRules()],
+            // the taxes the amount already contains; an empty list is a price before tax
+            'prices.*.included_tax_ids'   => ['present', 'array', 'max:'.config('child-limits.catalog_item_price_taxes.catalog_item_price_id')],
+            'prices.*.included_tax_ids.*' => ['uuid'],
         ];
     }
 

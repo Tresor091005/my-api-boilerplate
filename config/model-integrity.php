@@ -151,6 +151,7 @@ return [
         'inventory_items'                       => ['inventory_items_organization_id_id_unique'],
         'catalog_stock_locations'               => ['catalog_stock_locations_organization_id_id_unique'],
         'catalog_price_levels'                  => ['catalog_price_levels_organization_id_id_unique'],
+        'catalog_item_prices'                   => ['catalog_item_prices_organization_id_id_unique'],
         'catalog_stock_transfers'               => ['catalog_stock_transfers_org_id_unique'],
         'inventory_locations'                   => ['inventory_locations_organization_id_id_unique'],
         'tax_taxes'                             => ['tax_taxes_organization_id_id_unique'],

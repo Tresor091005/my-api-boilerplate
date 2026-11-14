@@ -20,9 +20,9 @@ beforeEach(function (): void {
 });
 
 /** @param array<string, mixed> $overrides */
-function euroLine(object $test, string $taxProfileId, string $baseAmount, array $overrides = []): TaxableLineData
+function euroLine(object $test, string $taxProfileId, string $amount, array $overrides = []): TaxableLineData
 {
-    return $test->taxableLine($taxProfileId, $baseAmount, ['currency_code' => 'EUR', ...$overrides]);
+    return $test->taxableLine($taxProfileId, $amount, ['currency_code' => 'EUR', ...$overrides]);
 }
 
 it('charges a per-litre rate finer than the currency on the converted quantity', function (): void {

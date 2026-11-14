@@ -11,6 +11,7 @@ use Lahatre\Catalog\Data\CatalogItemData;
 use Lahatre\Catalog\Data\CatalogItemUpdateData;
 use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Exceptions\CatalogItemException;
+use Lahatre\Catalog\Exceptions\CatalogItemPriceException;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
@@ -22,6 +23,8 @@ use function Lahatre\Shared\Data\withoutMissing;
 
 use Lahatre\Shared\Support\SkuGenerator;
 use Lahatre\Tax\Contracts\TaxInterface;
+use Lahatre\Tax\Data\IncludedTaxAmountData;
+use Lahatre\Tax\Exceptions\TaxException;
 
 class TransactionalCatalogItemService
 {
@@ -137,16 +140,21 @@ class TransactionalCatalogItemService
     }
 
     /**
-     * Update the catalog item and its inventory representation.
+     * Update the catalog item and its inventory representation. A new tax
+     * profile must suit the prices of the item: the taxes they already contain
+     * belong to it and can still be taken out of them.
      *
      * The caller owns the surrounding transaction.
+     *
+     * @throws CatalogItemPriceException If the tax profile is removed while prices of the item contain taxes.
+     * @throws TaxException If the new tax profile cannot be assigned, or does not suit the taxes the prices contain.
      */
     public function update(
         CatalogItem $catalogItem,
         CatalogItemUpdateData $data,
     ): CatalogItem {
-        if (is_string($data->taxProfileId)) {
-            $this->taxService->assertProfileAssignable($data->taxProfileId, collect([$catalogItem->unit_group_id]));
+        if (!$data->taxProfileId instanceof MissingValue) {
+            $this->assertTaxProfileSuits($catalogItem, $data->taxProfileId);
         }
 
         $catalogItem->fill(withoutMissing([
@@ -168,6 +176,56 @@ class TransactionalCatalogItemService
         }
 
         return $catalogItem;
+    }
+
+    /**
+     * Checks the profile an item is about to take, or lose: it can be assigned
+     * to the item's unit group, and it suits the prices of the item that
+     * contain taxes. The item row is locked first, as every write of its prices
+     * locks it, so no price changes meanwhile.
+     *
+     * @throws CatalogItemPriceException
+     * @throws TaxException
+     */
+    private function assertTaxProfileSuits(CatalogItem $catalogItem, ?string $taxProfileId): void
+    {
+        $currentTaxProfileId = CatalogItem::query()
+            ->where('organization_id', $catalogItem->organization_id)
+            ->whereKey($catalogItem->id)
+            ->lockForUpdate()
+            ->value('tax_profile_id');
+
+        if ($taxProfileId !== null) {
+            $this->taxService->assertProfileAssignable($taxProfileId, collect([$catalogItem->unit_group_id]));
+        }
+
+        if ($currentTaxProfileId === $taxProfileId) {
+            return;
+        }
+
+        $pricesWithTaxes = CatalogItemPrice::query()
+            ->where('organization_id', $catalogItem->organization_id)
+            ->where('catalog_item_id', $catalogItem->id)
+            ->whereHas('includedTaxes')
+            ->with(['includedTaxes:id', 'unit:id,code'])
+            ->get();
+
+        if ($pricesWithTaxes->isEmpty()) {
+            return;
+        }
+
+        if ($taxProfileId === null) {
+            throw CatalogItemPriceException::includedTaxesNeedTaxProfile($catalogItem);
+        }
+
+        $this->taxService->assertTaxesIncludable(
+            $taxProfileId,
+            $pricesWithTaxes->map(fn (CatalogItemPrice $price): IncludedTaxAmountData => IncludedTaxAmountData::fromArray([
+                'amount'           => (string) $price->amount,
+                'included_tax_ids' => $price->includedTaxes->pluck('id')->all(),
+                'unit_code'        => $price->unit->code,
+            ]))->values(),
+        );
     }
 
     /**

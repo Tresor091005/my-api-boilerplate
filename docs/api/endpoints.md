@@ -317,7 +317,8 @@ product's `update_variant` permission. Option values are nested and scoped under
 added; going beyond answers 422 `ChildLimitException`. In the catalog: 250
 values per option, 2 048 variants per product, 3 options per variant, 250
 categories per product, 30 items per bundle, 500 lines per stock transfer,
-20 price levels per organization, 50 prices per item.
+50 price levels per organization, 50 prices per item, 20 included taxes per
+price.
 Elsewhere: 250 files and 250 labels per record, 20 addresses and 20 contacts
 per customer or location. Request arrays never accept more than these caps.
 
@@ -337,7 +338,7 @@ whose unit is outside the item's unit group (`tax_unit_incompatible`) is then
 refused with a 422 `TaxException`. `?include=tax_profile` renders the profile.
 
 Prices are named by **price levels** (`retail`, `wholesale`), defined by the
-organization (20 at most). A level has one `currency_code`, chosen on creation
+organization (50 at most). A level has one `currency_code`, chosen on creation
 among the organization's enabled currencies and never changed after; a sale in
 a currency offers only the levels of that currency. Disabling a currency keeps
 its levels and prices, unusable until the currency is enabled again. A level name is stored
@@ -353,6 +354,23 @@ Prices are read with the owner's `retrieve` (the variant's product, the bundle
 or the service) and written with its `manage_prices` capability, so who sets
 prices may differ from who describes items. `?include=prices` renders them on a variant, bundle or service.
 
+A price states the taxes its amount already contains in `included_tax_ids`:
+taxes of the item's [tax profile](../modules/tax.md#catalog-items), or an empty
+list for a price before tax. The key is required on creation, so a price
+including tax is never recorded as a price before tax by omission. The item's
+other taxes are added on top of the price when it is sold. A price can contain
+taxes only when its item has a tax profile and its level is in the
+organization's functional currency, the one taxes are calculated in; otherwise
+the answer is a 422 `CatalogItemPriceException`. The tax module then checks
+the price, and answers a 422 `TaxException` when a tax is outside the item's
+profile, when a tax [cannot be taken out of an amount](../modules/tax.md#amounts-that-already-contain-taxes),
+or when the price is lower than the fixed taxes it contains for one unit sold.
+The same checks run when the amount of such a price changes, and when its item
+takes another tax profile: a profile that does not suit the prices of the item
+is refused, and so is removing the profile while a price contains taxes. The
+way out is always to change the taxes the price contains first.
+`?include=included_taxes` renders the taxes; one deleted since is left out.
+
 Catalog responses use [response selection](response-selection.md): `?fields=`
 picks fields and `?include=` nests related resources, such as
 `?include=items.component` on a bundle or `?include=lines.item` on a stock
@@ -365,9 +383,9 @@ transfer.
 | GET | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.retrieve` | Retrieve one level. |
 | PUT/PATCH | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.update` | Rename a level; `currency_code` is prohibited. |
 | DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at and no customer is sold at; otherwise 422 `PriceLevelException`. |
-| GET | `/v1/catalog/items/{item}/prices` | owner `retrieve` | List the prices of an item, each with its `currency_code`; `include=price_level`. |
-| POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group) and `amount`. A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
-| PATCH | `/v1/catalog/items/{item}/prices/{price}` | owner `manage_prices` | Change the `amount` of one price; its level and unit never change. |
+| GET | `/v1/catalog/items/{item}/prices` | owner `retrieve` | List the prices of an item, each with its `currency_code` and `included_tax_ids`; `include=price_level,included_taxes`. |
+| POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group), `amount` and `included_tax_ids` (0 to 20 taxes, each once). A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
+| PATCH | `/v1/catalog/items/{item}/prices/{price}` | owner `manage_prices` | Change the `amount` of one price, its `included_tax_ids`, or both; an omitted field is kept and an empty list makes it a price before tax. Its level and unit never change. |
 | DELETE | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Soft-delete prices of the item listed in `ids` (1 to 50). |
 | GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
 | GET | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.list` | List stock transfers. |
@@ -565,14 +583,14 @@ cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
 | GET | `/v1/tax/taxes` | `tax_tax.list` | List taxes; filter with `kind` and `is_active`; `include=brackets,dependencies.depends_on_tax`. |
 | POST | `/v1/tax/taxes` | `tax_tax.create` | Create a tax: `code`, `name`, `kind` (`vat`, `other`), `calculation_type` (`percentage`, `fixed`), `fixed_mode` (`per_line`, `per_tax_unit`) and `tax_unit_code` for a fixed tax, `base_type`, `is_progressive`, `bracket_mode` (`whole_amount`, `marginal`) for a progressive percentage tax, `rounding_mode` (`half_up`, `up`, `down`), `is_active`, `brackets` (1 to 50) and `dependencies` (up to 20, `depends_on_tax_id` and `operator` `add` or `subtract`). |
 | GET | `/v1/tax/taxes/{tax}` | `tax_tax.retrieve` | Return a tax, with the same includes. |
-| PUT/PATCH | `/v1/tax/taxes/{tax}` | `tax_tax.update` | Replace the definition, its own grid included; custom grids of profiles stay as they are. Profiles using the tax must stay valid. |
+| PUT/PATCH | `/v1/tax/taxes/{tax}` | `tax_tax.update` | Replace the definition, its own grid included; custom grids of profiles stay as they are. Profiles using the tax must stay valid, and a tax that prices already contain must stay one a price can contain (`included_taxes_in_use`): change those prices first. |
 | DELETE | `/v1/tax/taxes/{tax}` | `tax_tax.delete` | Soft-delete a tax no profile uses and no tax depends on. |
 | GET | `/v1/tax/profiles` | `tax_profile.list` | List profiles; filter with `is_active`; `include=lines.tax,lines.brackets`. |
 | POST | `/v1/tax/profiles` | `tax_profile.create` | Create a profile: `code`, `name`, `is_active`, `lines` (1 to 20) with `tax_id` (once each), `treatment` (`standard`, `custom`, `zero`, `exempt`) and, for `custom` only, `brackets` (1 to 50): a complete grid with the same fields and rules as the tax's brackets. |
 | GET | `/v1/tax/profiles/{profile}` | `tax_profile.retrieve` | Return a profile, with the same includes. |
-| PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups. |
+| PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups, and the taxes their prices already contain must stay taxes a price can contain (`included_taxes_in_use`). |
 | DELETE | `/v1/tax/profiles/{profile}` | `tax_profile.delete` | Soft-delete a profile no catalog item uses. |
-| POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `base_amount` (whole minor units of the functional currency), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount in minor units, and `data.total_tax_amount`. |
+| POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `amount` (whole minor units of the functional currency), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. A line may list in `included_tax_ids` the taxes its amount [already contains](../modules/tax.md#amounts-that-already-contain-taxes): the amount before tax is then derived, and the other taxes come on top. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount in minor units, `data.total_tax_amount` and `data.total_amount`. |
 
 ## Root routes
 

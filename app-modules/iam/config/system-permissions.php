@@ -11,6 +11,7 @@ return [
         'billing_trial',
         'catalog_bundle_item',
         'catalog_item_price',
+        'catalog_item_price_tax',
         'catalog_option_value',
         'catalog_product_variant',
         'catalog_stock_transfer_line',

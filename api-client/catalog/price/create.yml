@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "prices": [
-          { "price_level_id": "{{priceLevelId}}", "unit_code": "kg", "amount": "1500" }
+          { "price_level_id": "{{priceLevelId}}", "unit_code": "kg", "amount": "1500", "included_tax_ids": [] }
         ]
       }
   auth: inherit

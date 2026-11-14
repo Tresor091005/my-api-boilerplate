@@ -29,6 +29,7 @@ final readonly class TaxProfileService
         private OrganizationInterface $organizationInterface,
         private CompiledTaxProfileCache $profileCache,
         private TaxProfileUsageInterface $profileUsage,
+        private IncludedTaxUsageGuard $includedTaxUsageGuard,
     ) {}
 
     public function paginate(TaxProfileFilterData $filters): CursorPaginator
@@ -79,7 +80,8 @@ final readonly class TaxProfileService
 
     /**
      * Replaces the definition of a profile. A profile assigned to records
-     * stays active and compatible with their unit groups.
+     * stays active and compatible with their unit groups, and the taxes their
+     * prices already contain must stay taxes a price can contain.
      *
      * @throws TaxException
      */
@@ -102,6 +104,8 @@ final readonly class TaxProfileService
                 'is_active' => $data->isActive,
             ]);
             $this->writeLines($locked, $data);
+            // prices that already contain taxes of the profile must still be able to contain them
+            $this->includedTaxUsageGuard->assertIncludedTaxesStillHold($organizationId, collect([$locked->id]));
             $this->profileCache->invalidateAfterCommit($organizationId);
 
             return $locked->unsetRelations();

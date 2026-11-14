@@ -15,10 +15,10 @@ use Lahatre\Master\Contracts\MasterInterface;
  */
 trait ValidatesPriceAmount
 {
-    /** @return list<string> */
+    /** @return list<string> the format of an amount; each request adds its own presence rule */
     protected function amountRules(int $maxPlaces = 8): array
     {
-        return ['required', 'decimal:0,'.$maxPlaces, 'min:0', 'max:1000000000000'];
+        return ['decimal:0,'.$maxPlaces, 'min:0', 'max:1000000000000'];
     }
 
     /**

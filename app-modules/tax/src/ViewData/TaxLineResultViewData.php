@@ -18,11 +18,15 @@ use Lahatre\Tax\Enums\TaxTreatment;
 /**
  * One tax of a result. `taxable_base_amount = input_base_amount + dependency_amount`
  * and `dependency_amount` is the signed sum of `dependencies[].tax_amount`.
+ * `tax_amount` is the sum of `brackets[].tax_amount` plus `rounding_adjustment`.
+ * `is_included` tells the line amount already contained the tax; only such a
+ * tax may carry a rounding adjustment, the minor units that make the taxes and
+ * the amount before tax add up to the line amount again.
  *
  * @phpstan-import-type TaxBracketResult from TaxBracketResultViewData
  * @phpstan-import-type TaxDependencyResult from TaxDependencyResultViewData
  *
- * @phpstan-type TaxLineResult array{tax_id: string, code: string, name: string, kind: string, treatment: string, calculation_type: string, fixed_mode: string|null, is_progressive: bool, bracket_mode: string|null, base_type: string, rounding_mode: string, input_base_amount: string, dependency_amount: string, taxable_base_amount: string, tax_quantity: string|null, tax_unit_code: string|null, brackets: list<TaxBracketResult>, dependencies: list<TaxDependencyResult>, tax_amount: string}
+ * @phpstan-type TaxLineResult array{tax_id: string, code: string, name: string, kind: string, treatment: string, calculation_type: string, fixed_mode: string|null, is_progressive: bool, bracket_mode: string|null, base_type: string, rounding_mode: string, is_included: bool, input_base_amount: string, dependency_amount: string, taxable_base_amount: string, tax_quantity: string|null, tax_unit_code: string|null, brackets: list<TaxBracketResult>, dependencies: list<TaxDependencyResult>, rounding_adjustment: string, tax_amount: string}
  *
  * @implements Arrayable<string, mixed>
  */
@@ -44,6 +48,7 @@ final readonly class TaxLineResultViewData implements Arrayable, JsonSerializabl
         public ?TaxBracketMode $bracketMode,
         public TaxBaseType $baseType,
         public TaxRoundingMode $roundingMode,
+        public bool $isIncluded,
         public string $inputBaseAmount,
         public string $dependencyAmount,
         public string $taxableBaseAmount,
@@ -51,6 +56,7 @@ final readonly class TaxLineResultViewData implements Arrayable, JsonSerializabl
         public ?string $taxUnitCode,
         public Collection $brackets,
         public Collection $dependencies,
+        public string $roundingAdjustment,
         public string $taxAmount,
     ) {}
 
@@ -69,6 +75,7 @@ final readonly class TaxLineResultViewData implements Arrayable, JsonSerializabl
             'bracket_mode'        => $this->bracketMode?->value,
             'base_type'           => $this->baseType->value,
             'rounding_mode'       => $this->roundingMode->value,
+            'is_included'         => $this->isIncluded,
             'input_base_amount'   => $this->inputBaseAmount,
             'dependency_amount'   => $this->dependencyAmount,
             'taxable_base_amount' => $this->taxableBaseAmount,
@@ -76,6 +83,7 @@ final readonly class TaxLineResultViewData implements Arrayable, JsonSerializabl
             'tax_unit_code'       => $this->taxUnitCode,
             'brackets'            => $this->brackets->map(fn (TaxBracketResultViewData $bracket): array => $bracket->toArray())->values()->all(),
             'dependencies'        => $this->dependencies->map(fn (TaxDependencyResultViewData $dependency): array => $dependency->toArray())->values()->all(),
+            'rounding_adjustment' => $this->roundingAdjustment,
             'tax_amount'          => $this->taxAmount,
         ];
     }

@@ -53,10 +53,10 @@ function enablePriceCurrencies(array $currencyCodes): void
     );
 }
 
-/** @return array{price_level_id: string, unit_code: string, amount: mixed} */
+/** @return array{price_level_id: string, unit_code: string, amount: mixed, included_tax_ids: list<string>} a price before tax */
 function pricePayload(PriceLevel $priceLevel, string $unitCode, mixed $amount): array
 {
-    return ['price_level_id' => $priceLevel->id, 'unit_code' => $unitCode, 'amount' => $amount];
+    return ['price_level_id' => $priceLevel->id, 'unit_code' => $unitCode, 'amount' => $amount, 'included_tax_ids' => []];
 }
 
 it('creates a price level with a normalized name and refuses the same name in another case', function (): void {

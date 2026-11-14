@@ -31,4 +31,20 @@ final readonly class CombinedTaxProfileUsage implements TaxProfileUsageInterface
 
         return $merged;
     }
+
+    public function includedTaxIdSetsByProfile(string $organizationId, Collection $taxProfileIds): Collection
+    {
+        $merged = collect();
+
+        foreach ($this->sources as $source) {
+            foreach ($source->includedTaxIdSetsByProfile($organizationId, $taxProfileIds) as $profileId => $taxIdSets) {
+                $merged[$profileId] = $merged->get($profileId, collect())
+                    ->merge($taxIdSets)
+                    ->unique(fn (array $taxIds): string => collect($taxIds)->sort()->implode(','))
+                    ->values();
+            }
+        }
+
+        return $merged;
+    }
 }

@@ -6,16 +6,20 @@ namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\CatalogItemPriceFactory;
 use Lahatre\Master\Models\Unit;
 use Lahatre\Shared\Traits\SharedTraits;
+use Lahatre\Tax\Models\Tax;
 
 /**
  * The price of one sale unit of an item at one price level, in minor units of
- * the organization's functional currency.
+ * the level's currency. The amount already contains its included taxes; the
+ * item's other taxes are added on top when it is sold.
  *
  * @property string $id
  * @property string $organization_id
@@ -29,6 +33,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read CatalogItem $catalogItem
  * @property-read PriceLevel $priceLevel
  * @property-read Unit $unit
+ * @property-read Collection<int, Tax> $includedTaxes
  *
  * @method static Builder<static>|CatalogItemPrice newModelQuery()
  * @method static Builder<static>|CatalogItemPrice newQuery()
@@ -87,5 +92,17 @@ class CatalogItemPrice extends Model
                 $query->whereNull('master_units.organization_id')
                     ->orWhere('master_units.organization_id', currentOrganizationId());
             });
+    }
+
+    /**
+     * The taxes the amount already contains. A tax deleted since is left out.
+     */
+    public function includedTaxes(): BelongsToMany
+    {
+        return $this->belongsToMany(Tax::class, 'catalog_item_price_taxes', 'catalog_item_price_id', 'tax_id')
+            ->using(CatalogItemPriceTax::class)
+            ->withPivot('organization_id')
+            ->wherePivot('organization_id', currentOrganizationId())
+            ->where('tax_taxes.organization_id', currentOrganizationId());
     }
 }
