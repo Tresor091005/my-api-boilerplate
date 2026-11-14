@@ -93,6 +93,10 @@ class CatalogItem extends Model implements HasInventoryItem
 
     public function unitGroup(): BelongsTo
     {
-        return $this->belongsTo(UnitGroup::class, 'unit_group_id', 'id');
+        return $this->belongsTo(UnitGroup::class, 'unit_group_id', 'id')
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_unit_groups.organization_id')
+                    ->orWhere('master_unit_groups.organization_id', currentOrganizationId());
+            });
     }
 }

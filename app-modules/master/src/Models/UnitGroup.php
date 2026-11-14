@@ -69,7 +69,11 @@ class UnitGroup extends Model
 
     public function units(): HasMany
     {
-        return $this->hasMany(Unit::class, 'group_id');
+        return $this->hasMany(Unit::class, 'group_id')
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_units.organization_id')
+                    ->orWhere('master_units.organization_id', currentOrganizationId());
+            });
     }
 
     /**
@@ -89,6 +93,10 @@ class UnitGroup extends Model
     public function baseUnit(): HasOne
     {
         return $this->hasOne(Unit::class, 'group_id')
-            ->where('ratio', 1);
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_units.organization_id')
+                    ->orWhere('master_units.organization_id', currentOrganizationId());
+            })
+            ->where('master_units.ratio', 1);
     }
 }

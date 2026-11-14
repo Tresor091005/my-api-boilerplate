@@ -100,7 +100,8 @@ class File extends Model
 
     public function folder(): BelongsTo
     {
-        return $this->belongsTo(Folder::class, 'folder_id');
+        return $this->belongsTo(Folder::class, 'folder_id')
+            ->where('library_folders.organization_id', currentOrganizationId());
     }
 
     public function attachments(): HasMany

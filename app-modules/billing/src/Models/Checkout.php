@@ -81,6 +81,7 @@ class Checkout extends Model
     /** @return BelongsTo<Subscription, $this> */
     public function subscription(): BelongsTo
     {
+        /** Callers must enforce organization authorization when using this cross-organization relation. */
         return $this->belongsTo(Subscription::class);
     }
 }

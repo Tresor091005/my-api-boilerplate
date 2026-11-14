@@ -121,7 +121,12 @@ class InventoryStock extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'base_unit_code', 'code')->withTrashed();
+        return $this->belongsTo(Unit::class, 'base_unit_code', 'code')
+            ->withTrashed()
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_units.organization_id')
+                    ->orWhere('master_units.organization_id', currentOrganizationId());
+            });
     }
 
     public function currency(): BelongsTo

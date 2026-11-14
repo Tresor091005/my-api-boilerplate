@@ -109,7 +109,9 @@ class StockTransfer extends Model
 
     public function lines(): HasMany
     {
-        return $this->hasMany(StockTransferLine::class)->orderBy('position');
+        return $this->hasMany(StockTransferLine::class)
+            ->where('catalog_stock_transfer_lines.organization_id', currentOrganizationId())
+            ->orderBy('position');
     }
 
     public function inventoryTransaction(): BelongsTo

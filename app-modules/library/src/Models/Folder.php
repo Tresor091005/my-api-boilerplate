@@ -107,6 +107,7 @@ class Folder extends Model
 
     public function files(): HasMany
     {
-        return $this->hasMany(File::class, 'folder_id');
+        return $this->hasMany(File::class, 'folder_id')
+            ->where('library_files.organization_id', currentOrganizationId());
     }
 }

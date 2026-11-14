@@ -69,6 +69,7 @@ class PlanVersion extends Model
     /** @return HasMany<Subscription, $this> */
     public function subscriptions(): HasMany
     {
+        /** Callers must enforce organization authorization when using this cross-organization relation. */
         return $this->hasMany(Subscription::class);
     }
 }

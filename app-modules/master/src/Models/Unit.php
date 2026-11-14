@@ -78,6 +78,10 @@ class Unit extends Model
 
     public function group(): BelongsTo
     {
-        return $this->belongsTo(UnitGroup::class, 'group_id');
+        return $this->belongsTo(UnitGroup::class, 'group_id')
+            ->where(function (Builder $query): void {
+                $query->whereNull('master_unit_groups.organization_id')
+                    ->orWhere('master_unit_groups.organization_id', currentOrganizationId());
+            });
     }
 }

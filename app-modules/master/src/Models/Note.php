@@ -117,7 +117,9 @@ class Note extends Model
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id')->withTrashed();
+        return $this->belongsTo(self::class, 'parent_id')
+            ->where('master_notes.organization_id', currentOrganizationId())
+            ->withTrashed();
     }
 
     /** @return HasMany<Note, $this> */

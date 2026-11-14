@@ -192,3 +192,15 @@ it('verifies that unit codes are unique across the entire system', function (): 
     $unit = Unit::where('name', 'unique-code')->where('organization_id', $this->organizationId)->first();
     expect($unit->code)->toBe('unique-code-1');
 });
+
+it('keeps the units of another organization out of a shared group', function (): void {
+    $systemGroup = UnitGroup::factory()->create(['organization_id' => null]);
+    $systemBase = Unit::factory()->create(['group_id' => $systemGroup->id, 'organization_id' => null, 'ratio' => 1]);
+    $ownUnit = Unit::factory()->create(['group_id' => $systemGroup->id, 'organization_id' => $this->organizationId, 'ratio' => 10]);
+    // Ratios are unique per organization, so another organization may add its own unit of ratio 1.
+    Unit::factory()->create(['group_id' => $systemGroup->id, 'organization_id' => Str::uuid7()->toString(), 'ratio' => 1]);
+
+    expect($systemGroup->baseUnit()->sole()->id)->toBe($systemBase->id)
+        ->and($systemGroup->units()->pluck('id')->sort()->values()->all())
+        ->toBe(collect([$systemBase->id, $ownUnit->id])->sort()->values()->all());
+});
