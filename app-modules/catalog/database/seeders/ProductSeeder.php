@@ -172,10 +172,11 @@ class ProductSeeder extends Seeder
 
             $variantsPayload = collect($variantsData)->map(
                 fn (array $variantData): array => [
-                    'sku'           => $variantData['sku'],
-                    'unit_group_id' => $massGroupId,
-                    'is_active'     => $variantData['is_active'],
-                    'options'       => collect($variantData['option_values'])
+                    'sku'            => $variantData['sku'],
+                    'unit_group_id'  => $massGroupId,
+                    'tax_profile_id' => null,
+                    'is_active'      => $variantData['is_active'],
+                    'options'        => collect($variantData['option_values'])
                         ->filter()
                         ->map(fn (OptionValue $optionValue): array => [
                             'name'  => $optionNames->get($optionValue->option_id),

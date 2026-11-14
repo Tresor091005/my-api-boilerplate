@@ -81,6 +81,17 @@ it('rejects soft-deleted category ids in request relations', function (): void {
     ], new CategoryRequest()->rules())->validate())->not->toThrow(ValidationException::class);
 });
 
+it('refuses a malformed parent id as a validation error, without querying it', function (): void {
+    $validator = validator([
+        'name'      => 'Child category',
+        'parent_id' => 'not-a-uuid',
+        'is_active' => true,
+    ], new CategoryRequest()->rules());
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->keys())->toBe(['parent_id']);
+});
+
 it('validates category payload via request rules', function (): void {
     expect(fn (): array => validator([], new CategoryRequest()->rules())->validate())
         ->toThrow(ValidationException::class);

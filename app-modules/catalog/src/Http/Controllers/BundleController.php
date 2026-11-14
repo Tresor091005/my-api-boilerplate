@@ -52,7 +52,7 @@ final readonly class BundleController
         Gate::authorize('update', $bundle);
         $data = BundleData::fromArray(
             $request->validated(),
-            missingFields: ['name', 'sku', 'is_active', 'items', 'inventory'],
+            missingFields: ['name', 'sku', 'tax_profile_id', 'is_active', 'items', 'inventory'],
         );
         $bundle = $this->bundleService->update($bundle, $data);
 

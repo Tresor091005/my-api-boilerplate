@@ -323,6 +323,18 @@ per customer or location. Request arrays never accept more than these caps.
 All catalog routes require `auth.api`. Nested scoped binding prevents a child
 from being addressed through a parent that does not own it.
 
+Variants, bundles and services carry `tax_profile_id`, the
+[tax profile](../modules/tax.md#catalog-items) of the item, or `null` when it
+is not taxed. On create the key is required and may be `null`: a bundle or a
+service sends `tax_profile_id`, and each entry of `variants` sends
+`variants.N.tax_profile_id`, when creating a product or adding variants. On
+update (variant, bundle, service) it is optional: an omitted key keeps the
+profile, `null` removes it, and an id replaces it. An id that is not a
+non-deleted profile of the organization is a validation error on that exact
+field. An inactive profile (`profile_inactive`) or an applicable per-unit tax
+whose unit is outside the item's unit group (`tax_unit_incompatible`) is then
+refused with a 422 `TaxException`. `?include=tax_profile` renders the profile.
+
 Catalog responses use [response selection](response-selection.md): `?fields=`
 picks fields and `?include=` nests related resources, such as
 `?include=items.component` on a bundle or `?include=lines.item` on a stock

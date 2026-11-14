@@ -19,6 +19,7 @@ final readonly class BundleData
     private function __construct(
         public MissingValue|string $name,
         public MissingValue|string|null $sku,
+        public MissingValue|string|null $taxProfileId,
         public MissingValue|bool $isActive,
         public MissingValue|Collection $items,
         public InventoryItemConfigurationData|InventoryItemConfigurationUpdateData|MissingValue $inventory,
@@ -33,12 +34,17 @@ final readonly class BundleData
     {
         $read = MissingValueReader::fromArray($data, $missingFields);
         $isActive = $read->get('is_active', default: false);
+        // No profile on creation means no tax; on update an absent key keeps the current profile.
+        $taxProfileId = array_key_exists('tax_profile_id', $data)
+            ? $data['tax_profile_id']
+            : ($missingFields === [] ? null : MissingValue::Instance);
         $items = $read->get('items');
         $inventory = $read->get('inventory', default: []);
 
         return new self(
             name: $read->get('name'),
             sku: $read->get('sku', default: null),
+            taxProfileId: $taxProfileId,
             isActive: $isActive instanceof MissingValue ? $isActive : (bool) $isActive,
             items: $items instanceof MissingValue
                 ? $items

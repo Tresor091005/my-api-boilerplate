@@ -70,6 +70,7 @@ it('exposes service CRUD with templates embedded as an ordered array', function 
         'name'                  => 'Annual Maintenance',
         'sku'                   => 'service-maintenance',
         'unit_group_id'         => $this->unitGroup->id,
+        'tax_profile_id'        => null,
         'is_active'             => true,
         'deliverable_templates' => [
             ['name' => 'Inspection report'],
@@ -137,6 +138,7 @@ it('requires at least one template and enforces service permissions', function (
     $this->postJson('/v1/catalog/services', [
         'name'                  => 'Incomplete service',
         'unit_group_id'         => $this->unitGroup->id,
+        'tax_profile_id'        => null,
         'deliverable_templates' => [],
     ])->assertUnprocessable()
         ->assertJsonValidationErrors('deliverable_templates');

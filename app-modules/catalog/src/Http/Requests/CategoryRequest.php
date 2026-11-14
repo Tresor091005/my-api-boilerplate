@@ -34,7 +34,7 @@ class CategoryRequest extends FormRequest
             ],
             'parent_id' => [
                 'nullable',
-                'string',
+                'uuid',
                 Rule::exists('catalog_categories', 'id')
                     ->where('organization_id', currentOrganizationId())
                     ->whereNull('deleted_at'),

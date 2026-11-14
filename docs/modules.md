@@ -44,7 +44,10 @@ Detailed module notes:
 - `customer` may consume the public polymorphic address and contact primitives
   from `master`; it does not own those shared tables.
 - `tax` depends on `master` (units, currencies) and `organization` (functional
-  currency).
+  currency). `catalog` depends on `tax`: it stores `catalog_items.tax_profile_id`,
+  checks assignments through `TaxInterface`, and tags
+  its `TaxProfileUsageInterface` implementation as a source of profile usage,
+  so profile changes are checked against the items using them. The tax module never imports catalog code.
 
 The architecture tests in `tests/Feature/Architecture` enforce the dependency
 boundaries and should be updated when a new module contract is introduced.

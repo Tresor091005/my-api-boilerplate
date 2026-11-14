@@ -54,7 +54,8 @@ Planned on 2026-10-29, in this order:
 - [x] `customer`: Identity CRUD API with organization-scoped polymorphic
   addresses and contacts.
 - [x] `tax`: Organization taxes (percentage or fixed, progressive brackets,
-  dependencies), tax profiles with standard/custom/zero/exempt treatments, and a batch calculation engine
+  dependencies), tax profiles with standard/custom/zero/exempt treatments,
+  `catalog_items.tax_profile_id`, and a batch calculation engine
   (`TaxInterface`) returning the explainable result a document will freeze.
 
 ### Partially usable
