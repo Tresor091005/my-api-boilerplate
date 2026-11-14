@@ -42,6 +42,14 @@ final class BundlePolicy extends BasePolicy
         return $this->canOnModel('update', $model);
     }
 
+    /**
+     * Add, change or remove the sale prices of the bundle.
+     */
+    public function managePrices(Authorizable $user, Bundle $model): bool
+    {
+        return $this->canOnModel('manage_prices', $model);
+    }
+
     public function assemble(Authorizable $user, Bundle $model): bool
     {
         return $this->canOnModel('assemble', $model);

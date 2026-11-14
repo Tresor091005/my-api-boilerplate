@@ -11,10 +11,15 @@ use Illuminate\Support\Str;
 use Lahatre\Catalog\Assertions\CatalogItemPriceAssertion;
 use Lahatre\Catalog\Data\CatalogItemPriceAmountData;
 use Lahatre\Catalog\Data\CatalogItemPriceData;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Exceptions\CatalogItemPriceException;
+use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Catalog\Models\PriceLevel;
+use Lahatre\Catalog\Models\Product;
+use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Models\Service;
 use Lahatre\Master\Contracts\MasterInterface;
 
 /**
@@ -28,6 +33,33 @@ final readonly class CatalogItemPriceService
         private CatalogItemPriceAssertion $priceAssertion,
         private MasterInterface $masterInterface,
     ) {}
+
+    /**
+     * The record whose permissions guard the item's prices: the product of a
+     * variant, the bundle or the service.
+     */
+    public function owner(CatalogItem $catalogItem): Product|Bundle|Service
+    {
+        $organizationId = currentOrganizationId();
+
+        return match ($catalogItem->item_type) {
+            CatalogItemType::ProductVariant => Product::query()
+                ->where('organization_id', $organizationId)
+                ->where('id', ProductVariant::query()
+                    ->where('organization_id', $organizationId)
+                    ->whereKey($catalogItem->id)
+                    ->select('product_id'))
+                ->firstOrFail(),
+            CatalogItemType::Bundle => Bundle::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($catalogItem->id)
+                ->firstOrFail(),
+            CatalogItemType::Service => Service::query()
+                ->where('organization_id', $organizationId)
+                ->whereKey($catalogItem->id)
+                ->firstOrFail(),
+        };
+    }
 
     /** @return EloquentCollection<int, CatalogItemPrice> */
     public function list(CatalogItem $catalogItem): EloquentCollection

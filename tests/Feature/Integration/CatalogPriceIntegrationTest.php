@@ -18,8 +18,8 @@ uses(DatabaseTransactions::class, InteractsWithTaxTenant::class);
 const PRICE_PERMISSIONS = [
     'catalog_price_level.list', 'catalog_price_level.retrieve', 'catalog_price_level.create',
     'catalog_price_level.update', 'catalog_price_level.delete',
-    'catalog_item_price.list', 'catalog_item_price.create', 'catalog_item_price.update', 'catalog_item_price.delete',
-    'catalog_product.retrieve', 'catalog_service.create', 'catalog_service.delete',
+    'catalog_product.retrieve', 'catalog_product.manage_prices',
+    'catalog_service.create', 'catalog_service.delete', 'catalog_service.manage_prices',
 ];
 
 beforeEach(function (): void {
@@ -298,13 +298,25 @@ it('removes the prices of a deleted item', function (): void {
     $this->deleteJson("/v1/catalog/price-levels/{$this->retail->id}")->assertNoContent();
 });
 
-it('requires the price permissions, separate from the item ones', function (): void {
-    $this->authenticateTaxMember(['catalog_item_price.list']);
+it('reads prices with the owner retrieve permission and writes them with manage_prices only', function (): void {
+    $this->authenticateTaxMember(['catalog_product.retrieve', 'catalog_product.update']);
 
     $this->getJson("/v1/catalog/items/{$this->variant->id}/prices")->assertOk();
     $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
         'prices' => [pricePayload($this->retail, 'kg', 100)],
     ])->assertForbidden();
+});
+
+it('lets a price manager write prices without changing the item', function (): void {
+    $this->authenticateTaxMember(['catalog_product.manage_prices']);
+
+    $this->getJson("/v1/catalog/items/{$this->variant->id}/prices")->assertForbidden();
+    $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+        'prices' => [pricePayload($this->retail, 'kg', 100)],
+    ])->assertNoContent();
+    $priceId = CatalogItemPrice::query()->where('catalog_item_id', $this->variant->id)->value('id');
+    $this->patchJson("/v1/catalog/items/{$this->variant->id}/prices/{$priceId}", ['amount' => 120])->assertNoContent();
+    $this->deleteJson("/v1/catalog/items/{$this->variant->id}/prices", ['ids' => [$priceId]])->assertNoContent();
 });
 
 it('denies the prices of an item of another organization', function (): void {
@@ -313,5 +325,5 @@ it('denies the prices of an item of another organization', function (): void {
         'unit_group_id'   => app(MasterInterface::class)->unit('kg')->group_id,
     ]);
 
-    $this->getJson("/v1/catalog/items/{$foreignVariant->id}/prices")->assertForbidden();
+    $this->getJson("/v1/catalog/items/{$foreignVariant->id}/prices")->assertNotFound();
 });

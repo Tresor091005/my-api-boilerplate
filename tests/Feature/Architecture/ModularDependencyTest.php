@@ -99,7 +99,7 @@ it('enforces modular architecture and prohibits cross-dependencies', function ()
         'library'      => ['shared', 'organization', 'billing'],
         'iam'          => ['shared', 'master', 'organization', 'billing'],
         'catalog'      => ['shared', 'master', 'organization', 'inventory', 'library', 'billing', 'tax'],
-        'customer'     => ['shared', 'master', 'library'],
+        'customer'     => ['shared', 'master', 'library', 'catalog'],
         'tax'          => ['shared', 'master', 'organization'],
     ];
 

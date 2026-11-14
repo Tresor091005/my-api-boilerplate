@@ -43,6 +43,10 @@ Detailed module notes:
   Business modules never receive physical storage keys.
 - `customer` may consume the public polymorphic address and contact primitives
   from `master`; it does not own those shared tables.
+- `customer` depends on `catalog` for the price level a customer is sold at
+  (`customer_customers.price_level_id`). It tags its
+  `PriceLevelUsageInterface` implementation so a level in use is not deleted;
+  catalog never imports customer code.
 - `tax` depends on `master` (units, currencies) and `organization` (functional
   currency). `catalog` depends on `tax`: it stores `catalog_items.tax_profile_id`,
   checks assignments through `TaxInterface`, and tags

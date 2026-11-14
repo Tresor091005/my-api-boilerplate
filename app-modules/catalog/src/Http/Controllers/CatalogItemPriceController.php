@@ -20,7 +20,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The prices of a variant, bundle or service, addressed by its catalog item id
- * (the same id as the variant, bundle or service).
+ * (the same id as the variant, bundle or service). Reading needs `retrieve` on
+ * the owner (the variant's product, the bundle or the service), writing needs
+ * its `managePrices` ability.
  */
 final readonly class CatalogItemPriceController
 {
@@ -30,14 +32,14 @@ final readonly class CatalogItemPriceController
 
     public function index(CatalogItem $item): JsonResponse|Response
     {
-        Gate::authorize('list', [CatalogItemPrice::class, $item]);
+        Gate::authorize('retrieve', $this->priceService->owner($item));
 
         return ApiResponse::list($this->priceService->list($item), CatalogItemPriceResource::class);
     }
 
     public function store(CatalogItemPriceCreateRequest $request, CatalogItem $item): JsonResponse|Response
     {
-        Gate::authorize('create', [CatalogItemPrice::class, $item]);
+        Gate::authorize('managePrices', $this->priceService->owner($item));
         $prices = $this->priceService->create(
             $item,
             collect($request->validated('prices'))->map(CatalogItemPriceData::fromArray(...)),
@@ -48,7 +50,7 @@ final readonly class CatalogItemPriceController
 
     public function update(CatalogItemPriceUpdateRequest $request, CatalogItem $item, CatalogItemPrice $price): JsonResponse|Response
     {
-        Gate::authorize('update', $price);
+        Gate::authorize('managePrices', $this->priceService->owner($item));
         $price = $this->priceService->update($item, $price, CatalogItemPriceAmountData::fromArray($request->validated()));
 
         return ApiResponse::item($price, CatalogItemPriceResource::class);
@@ -56,7 +58,7 @@ final readonly class CatalogItemPriceController
 
     public function destroy(CatalogItemPriceDeleteRequest $request, CatalogItem $item): \Illuminate\Http\Response
     {
-        Gate::authorize('delete', [CatalogItemPrice::class, $item]);
+        Gate::authorize('managePrices', $this->priceService->owner($item));
         $this->priceService->delete($item, $request->validated('ids'));
 
         return ApiResponse::noContent();

@@ -33,7 +33,7 @@ return [
     'file_service_inactive'                              => 'Files cannot be attached to an inactive service.',
     'price_level_name_taken'                             => 'A price level with this name already exists in this currency.',
     'price_level_currency_not_enabled'                   => 'A price level currency must be one the organization has enabled.',
-    'price_level_in_use'                                 => 'Cannot delete a price level that items are still priced at.',
+    'price_level_in_use'                                 => 'Cannot delete a price level that items are priced at or customers buy at.',
     'price_levels_unavailable'                           => 'One or more selected price levels are unavailable.',
     'price_units_outside_item_group'                     => 'A price unit must belong to the item unit group.',
     'price_already_defined'                              => 'The item already has a price at this level for this unit.',

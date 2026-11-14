@@ -8,8 +8,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Customer\Database\Factories\CustomerFactory;
 use Lahatre\Customer\Enums\CustomerType;
 use Lahatre\Library\Contracts\HasFileSlots;
@@ -28,6 +30,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $name
  * @property string|null $identification_number
  * @property bool $is_active
+ * @property string|null $price_level_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -39,6 +42,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property-read int|null $file_attachments_count
  * @property-read Collection<int, FileAttachment> $profilePictureFileAttachments
  * @property-read int|null $profile_picture_file_attachments_count
+ * @property-read PriceLevel|null $priceLevel
  *
  * @method static CustomerFactory factory($count = null, $state = [])
  * @method static Builder<static>|Customer newModelQuery()
@@ -75,6 +79,7 @@ class Customer extends Model implements HasFileSlots
         'name',
         'identification_number',
         'is_active',
+        'price_level_id',
     ];
 
     protected $casts = [
@@ -84,6 +89,7 @@ class Customer extends Model implements HasFileSlots
         'name'                  => 'string',
         'identification_number' => 'string',
         'is_active'             => 'boolean',
+        'price_level_id'        => 'string',
         'created_at'            => 'immutable_datetime',
         'updated_at'            => 'immutable_datetime',
         'deleted_at'            => 'immutable_datetime',
@@ -104,5 +110,15 @@ class Customer extends Model implements HasFileSlots
     public function profilePictureFileAttachments(): MorphMany
     {
         return $this->fileAttachmentsForSlot('profile_picture');
+    }
+
+    /**
+     * The only price level this customer is sold at; null when the sale chooses
+     * the level. A level a customer uses cannot be deleted.
+     */
+    public function priceLevel(): BelongsTo
+    {
+        return $this->belongsTo(PriceLevel::class, 'price_level_id', 'id')
+            ->where('catalog_price_levels.organization_id', currentOrganizationId());
     }
 }

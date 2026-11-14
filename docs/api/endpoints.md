@@ -339,7 +339,8 @@ refused with a 422 `TaxException`. `?include=tax_profile` renders the profile.
 Prices are named by **price levels** (`retail`, `wholesale`), defined by the
 organization (20 at most). A level has one `currency_code`, chosen on creation
 among the organization's enabled currencies and never changed after; a sale in
-a currency offers only the levels of that currency. A level name is stored
+a currency offers only the levels of that currency. Disabling a currency keeps
+its levels and prices, unusable until the currency is enabled again. A level name is stored
 trimmed, single-spaced and in lowercase, and is unique among the levels of the
 same currency, so `retail` may exist in XOF and in EUR. A variant, bundle or
 service then has at most one price per level and sale unit (50 prices at most),
@@ -348,8 +349,9 @@ An amount is a decimal string of the level's currency, with no more decimal
 places than that currency has (`1500` in XOF, `12.50` in EUR); quantities sold
 are whole numbers of the sale unit, so a line amount is exact. There is no
 conversion between units: a unit without a price cannot be sold at that level.
-Prices have their own permissions (`catalog_item_price.*`), apart from the
-item's. `?include=prices` renders them on a variant, bundle or service.
+Prices are read with the owner's `retrieve` (the variant's product, the bundle
+or the service) and written with its `manage_prices` capability, so who sets
+prices may differ from who describes items. `?include=prices` renders them on a variant, bundle or service.
 
 Catalog responses use [response selection](response-selection.md): `?fields=`
 picks fields and `?include=` nests related resources, such as
@@ -362,11 +364,11 @@ transfer.
 | POST | `/v1/catalog/price-levels` | `catalog_price_level.create` | Create a level with `name` and `currency_code`; a currency the organization has not enabled is refused with a 422 `PriceLevelException`. |
 | GET | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.retrieve` | Retrieve one level. |
 | PUT/PATCH | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.update` | Rename a level; `currency_code` is prohibited. |
-| DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at; otherwise 422 `PriceLevelException`. |
-| GET | `/v1/catalog/items/{item}/prices` | `catalog_item_price.list` | List the prices of an item, each with its `currency_code`; `include=price_level`. |
-| POST | `/v1/catalog/items/{item}/prices` | `catalog_item_price.create` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group) and `amount`. A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
-| PATCH | `/v1/catalog/items/{item}/prices/{price}` | `catalog_item_price.update` | Change the `amount` of one price; its level and unit never change. |
-| DELETE | `/v1/catalog/items/{item}/prices` | `catalog_item_price.delete` | Soft-delete prices of the item listed in `ids` (1 to 50). |
+| DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at and no customer is sold at; otherwise 422 `PriceLevelException`. |
+| GET | `/v1/catalog/items/{item}/prices` | owner `retrieve` | List the prices of an item, each with its `currency_code`; `include=price_level`. |
+| POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group) and `amount`. A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
+| PATCH | `/v1/catalog/items/{item}/prices/{price}` | owner `manage_prices` | Change the `amount` of one price; its level and unit never change. |
+| DELETE | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Soft-delete prices of the item listed in `ids` (1 to 50). |
 | GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
 | GET | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.list` | List stock transfers. |
 | POST | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.create` | Create a draft stock transfer. |
@@ -404,6 +406,12 @@ its `content_url`, each selectable: `?include=main_files(name,content_url)`.
 
 Customer profile pictures also link existing Library images. The file remains
 in Library when its customer is deleted.
+
+A customer may have a `price_level_id`, a non-deleted
+[price level](#catalog) of the organization, or `null`. It is the only level the
+customer is sold at, so also the currency of its sales; with `null` the sale
+chooses the level. A level a customer uses cannot be deleted.
+`?include=price_level` renders it.
 
 | Method | URI | Purpose |
 | --- | --- | --- |

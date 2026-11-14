@@ -10,6 +10,7 @@ return [
         'billing_checkout',
         'billing_trial',
         'catalog_bundle_item',
+        'catalog_item_price',
         'catalog_option_value',
         'catalog_product_variant',
         'catalog_stock_transfer_line',
@@ -27,11 +28,16 @@ return [
         'catalog_bundle' => [
             'assemble',
             'manage_composition',
+            'manage_prices',
         ],
         'catalog_product' => [
             'create_variant',
             'update_variant',
             'delete_variant',
+            'manage_prices',
+        ],
+        'catalog_service' => [
+            'manage_prices',
         ],
         'catalog_stock_transfer' => [
             'complete',

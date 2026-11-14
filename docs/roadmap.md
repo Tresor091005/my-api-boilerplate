@@ -12,17 +12,16 @@ Planned on 2026-10-29, in this order:
    - [x] Price: named price levels per organization, each in one enabled
      currency, and on each variant, bundle or service one price per level and
      sale unit (`catalog_price_levels`, `catalog_item_prices`).
-   - [ ] Decide what disabling a currency does to its price levels. For now
-     they stay, with their prices, and a sale cannot use them because its
-     currency must be enabled. Alternative: refuse disabling a currency still
-     used by a level, which needs a usage contract like the tax profile one.
    - [ ] Prices entered including tax (`tax_inclusive`): decide where the net
      amount of a tax-inclusive price is derived.
 3. **Sale, first slice: the sale and its configuration.**
-   - Create a sale with its lines and charges. A sale has one currency and
-     offers the price levels of that currency. A line copies the price (level
-     name, unit, amount) and tax when the sale is made, so later price changes
-     leave past sales intact.
+   - Create a sale with its lines and charges. A sale has one currency and one
+     price level of that currency, used by all its lines; a customer with a
+     price level is sold only at that level. A line copies the
+     price (level name, unit, amount) and tax when the sale is made, so later
+     price changes leave past sales intact. There are no discounts yet.
+   - Services sold by time or count: check that master has those unit groups
+     (hour, day, session) before services are sold.
    - Taxes of a sale: calculate its lines through `TaxInterface` and keep the
      result of each line (`TaxResultViewData`, `schema_version` 1, already
      fixed) as a tax snapshot when the sale is confirmed. Add document-level

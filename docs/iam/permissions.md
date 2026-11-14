@@ -119,6 +119,9 @@ only extensions or technical records of another resource. The current skipped
 models are:
 
 - `catalog_bundle_item`, managed through `catalog_bundle.manage_composition`;
+- `catalog_item_price`, read through the item's `retrieve` and written through
+  `manage_prices` on `catalog_product` (for its variants), `catalog_bundle` or
+  `catalog_service`, so who sets prices may differ from who describes items;
 - `catalog_option_value`, managed through the parent option's permissions;
 - `catalog_product_variant`, managed through `catalog_product.create_variant`,
   `catalog_product.update_variant`, and `catalog_product.delete_variant`;

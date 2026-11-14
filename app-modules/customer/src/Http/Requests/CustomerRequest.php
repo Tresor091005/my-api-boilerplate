@@ -6,6 +6,7 @@ namespace Lahatre\Customer\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
 use Lahatre\Customer\Enums\CustomerType;
@@ -15,13 +16,21 @@ class CustomerRequest extends FormRequest
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        $isUpdate = $this->route('customer') !== null;
+        // on update an omitted field is kept, so only create requires them
+        $presence = $this->route('customer') !== null ? [] : ['required'];
 
         return [
-            'type'                  => [$isUpdate ? 'sometimes' : 'required', new Enum(CustomerType::class)],
-            'name'                  => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:100'],
+            'type'                  => [...$presence, new Enum(CustomerType::class)],
+            'name'                  => [...$presence, 'string', 'max:100'],
             'identification_number' => ['nullable', 'string', 'max:100'],
-            'is_active'             => ['boolean'],
+            'is_active'             => [...$presence, 'boolean'],
+            'price_level_id'        => [
+                'nullable',
+                'uuid',
+                Rule::exists('catalog_price_levels', 'id')
+                    ->where('organization_id', currentOrganizationId())
+                    ->whereNull('deleted_at'),
+            ],
         ];
     }
 

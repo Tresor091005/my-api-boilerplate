@@ -52,7 +52,7 @@ final readonly class CustomerController
     {
         Gate::authorize('update', $customer);
         $data = CustomerData::fromArray($request->validated(), [
-            'type', 'name', 'identification_number', 'is_active',
+            'type', 'name', 'identification_number', 'is_active', 'price_level_id',
         ]);
         $response = $this->customerService->update($customer, $data);
 

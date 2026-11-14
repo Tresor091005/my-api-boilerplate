@@ -43,6 +43,14 @@ final class ServicePolicy extends BasePolicy
     }
 
     /**
+     * Add, change or remove the sale prices of the service.
+     */
+    public function managePrices(Authorizable $user, Service $model): bool
+    {
+        return $this->canOnModel('manage_prices', $model);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(Authorizable $user, Service $model): bool

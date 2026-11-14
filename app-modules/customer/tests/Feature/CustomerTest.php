@@ -137,6 +137,33 @@ it('requires an identification number for company customers', function (): void 
     expect(fn () => $request->validateResolved())->toThrow(ValidationException::class);
 });
 
+it('requires is_active on create but keeps it when an update omits it', function (): void {
+    $create = CustomerRequest::create('/', 'POST', [
+        'type' => 'individual',
+        'name' => 'No Status',
+    ])->setContainer(app())->setRedirector(app('redirect'));
+
+    try {
+        $create->validateResolved();
+        $this->fail('The create request accepted a customer without is_active.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('is_active');
+    }
+
+    $customer = $this->service->create(CustomerData::fromArray([
+        'type'      => 'individual',
+        'name'      => 'Active Customer',
+        'is_active' => true,
+    ]));
+    $updated = $this->service->update($customer, CustomerData::fromArray(
+        ['name' => 'Renamed Customer'],
+        missingFields: ['type', 'identification_number', 'is_active', 'price_level_id'],
+    ));
+
+    expect($updated->is_active)->toBeTrue()
+        ->and($updated->name)->toBe('Renamed Customer');
+});
+
 it('accepts secondary addresses and contacts when a primary already exists', function (): void {
     $customer = $this->service->create(CustomerData::fromArray([
         'type'      => 'individual',

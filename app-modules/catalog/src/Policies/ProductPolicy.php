@@ -42,6 +42,14 @@ class ProductPolicy extends BasePolicy
         return $this->canOnModel('update', $model);
     }
 
+    /**
+     * Add, change or remove the sale prices of the product's variants.
+     */
+    public function managePrices(Authorizable $user, Product $model): bool
+    {
+        return $this->canOnModel('manage_prices', $model);
+    }
+
     public function createVariant(Authorizable $user, Product $model): bool
     {
         return $this->canOnModel('create_variant', $model);

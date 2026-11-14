@@ -12,8 +12,8 @@ use Lahatre\Customer\Data\CustomerData;
 use Lahatre\Customer\Data\CustomerFilterData;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Library\Contracts\LibraryInterface;
-use Lahatre\Shared\Data\MissingValue;
 
+use function Lahatre\Shared\Data\required;
 use function Lahatre\Shared\Data\withoutMissing;
 
 class CustomerService
@@ -42,9 +42,8 @@ class CustomerService
             'type'                  => $data->type,
             'name'                  => $data->name,
             'identification_number' => $data->identificationNumber,
-            'is_active'             => $data->isActive instanceof MissingValue
-                ? true
-                : $data->isActive,
+            'price_level_id'        => $data->priceLevelId,
+            'is_active'             => required($data->isActive),
         ]);
 
         return DB::transaction(function () use ($customer): Customer {
@@ -65,6 +64,7 @@ class CustomerService
                 'name'                  => $data->name,
                 'identification_number' => $data->identificationNumber,
                 'is_active'             => $data->isActive,
+                'price_level_id'        => $data->priceLevelId,
             ]));
             $lockedCustomer->save();
 

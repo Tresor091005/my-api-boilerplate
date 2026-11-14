@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Customer\Http\Resources\CustomerResource;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Iam\Models\MemberRole;
@@ -58,7 +59,10 @@ beforeEach(function (): void {
  */
 function customerSelectionCustomer(): Customer
 {
-    $customer = Customer::factory()->create(['organization_id' => currentOrganizationId()]);
+    $customer = Customer::factory()->create([
+        'organization_id' => currentOrganizationId(),
+        'price_level_id'  => PriceLevel::factory()->create(['organization_id' => currentOrganizationId()])->id,
+    ]);
     $owner = ['organization_id' => currentOrganizationId()];
     Address::factory()->create([...$owner, 'addressable_type' => $customer->getMorphClass(), 'addressable_id' => $customer->id]);
     Contact::factory()->create([...$owner, 'contactable_type' => $customer->getMorphClass(), 'contactable_id' => $customer->id]);

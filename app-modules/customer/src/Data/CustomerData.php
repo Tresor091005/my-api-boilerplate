@@ -14,6 +14,7 @@ final readonly class CustomerData
         public MissingValue|string $name,
         public MissingValue|string|null $identificationNumber,
         public MissingValue|bool $isActive,
+        public MissingValue|string|null $priceLevelId,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -26,6 +27,7 @@ final readonly class CustomerData
             name: $read->get('name'),
             identificationNumber: $read->get('identification_number', default: null),
             isActive: $read->get('is_active'),
+            priceLevelId: $read->get('price_level_id', default: null),
         );
     }
 }
