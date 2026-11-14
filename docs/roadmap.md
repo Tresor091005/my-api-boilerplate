@@ -9,13 +9,20 @@ Planned on 2026-10-29, in this order:
 2. **Price and tax on catalog items.**
    - [x] Tax: the `tax` module, and a tax profile or none on each item
      (`catalog_items.tax_profile_id`). See [Tax module](modules/tax.md).
-   - [ ] Price: a default sale price on what is sold (variant, bundle,
-     service), in the organization currency. Decide whether prices are entered
-     before or including tax, and so where the net amount of a tax-inclusive
-     price is derived.
+   - [x] Price: named price levels per organization, each in one enabled
+     currency, and on each variant, bundle or service one price per level and
+     sale unit (`catalog_price_levels`, `catalog_item_prices`).
+   - [ ] Decide what disabling a currency does to its price levels. For now
+     they stay, with their prices, and a sale cannot use them because its
+     currency must be enabled. Alternative: refuse disabling a currency still
+     used by a level, which needs a usage contract like the tax profile one.
+   - [ ] Prices entered including tax (`tax_inclusive`): decide where the net
+     amount of a tax-inclusive price is derived.
 3. **Sale, first slice: the sale and its configuration.**
-   - Create a sale with its lines and charges. A line copies the item price and
-     tax when the sale is made, so later price changes leave past sales intact.
+   - Create a sale with its lines and charges. A sale has one currency and
+     offers the price levels of that currency. A line copies the price (level
+     name, unit, amount) and tax when the sale is made, so later price changes
+     leave past sales intact.
    - Taxes of a sale: calculate its lines through `TaxInterface` and keep the
      result of each line (`TaxResultViewData`, `schema_version` 1, already
      fixed) as a tax snapshot when the sale is confirmed. Add document-level
@@ -76,8 +83,12 @@ Planned on 2026-10-29, in this order:
 
 ### Not yet industrialized as an autonomous business component
 
-- [ ] `price`: The model and relations exist, but there is no generic service
-  or API for assigning prices to any model.
+- [~] `price`: Catalog items have sale prices per price level and sale unit;
+  there is no generic price component for other models (purchase prices,
+  customer prices).
+  - TODO: purchase prices are not a kind of `catalog_item_prices`. They belong
+    to procurement, per supplier and item (supplier reference, minimum
+    quantity, lead time, the supplier's currency), designed with `supplier`.
 - [ ] `supplier`
 - [ ] `procurement`
 - [ ] `order`
@@ -86,9 +97,9 @@ Planned on 2026-10-29, in this order:
 
 ## Deferred: pricing
 
-Pricing remains handled on the fly for now. The next steps add a default sale
-price and tax on catalog items; a reusable pricing component (price lists,
-customer prices, purchasing) will be designed only once the concrete sales and
+Catalog items have named sale prices per level and sale unit, chosen by the
+seller. A reusable pricing component (price lists by customer or period,
+quantity breaks, purchasing) will be designed only once the concrete sales and
 purchasing requirements are clear.
 
 ## TODO: tax follow-ups

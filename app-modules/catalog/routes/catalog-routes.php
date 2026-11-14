@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\Route;
 use Lahatre\Catalog\Http\Controllers\BundleController;
 use Lahatre\Catalog\Http\Controllers\BundleItemController;
 use Lahatre\Catalog\Http\Controllers\BundleStockOperationController;
+use Lahatre\Catalog\Http\Controllers\CatalogItemPriceController;
 use Lahatre\Catalog\Http\Controllers\CategoryController;
 use Lahatre\Catalog\Http\Controllers\OptionController;
 use Lahatre\Catalog\Http\Controllers\OptionValueController;
+use Lahatre\Catalog\Http\Controllers\PriceLevelController;
 use Lahatre\Catalog\Http\Controllers\ProductController;
 use Lahatre\Catalog\Http\Controllers\ProductFileController;
 use Lahatre\Catalog\Http\Controllers\ProductVariantController;
@@ -48,6 +50,7 @@ Route::group([
             'bundles'         => BundleController::class,
             'categories'      => CategoryController::class,
             'options'         => OptionController::class,
+            'price-levels'    => PriceLevelController::class,
             'products'        => ProductController::class,
             'services'        => ServiceController::class,
             'stock-locations' => StockLocationController::class,
@@ -75,6 +78,16 @@ Route::group([
         Route::post('bundles/{bundle}/stock-operations/{stockOperation}/complete', [BundleStockOperationController::class, 'complete'])
             ->scopeBindings()
             ->name('bundles.stock-operations.complete');
+
+        Route::get('items/{item}/prices', [CatalogItemPriceController::class, 'index'])
+            ->name('items.prices.index');
+        Route::post('items/{item}/prices', [CatalogItemPriceController::class, 'store'])
+            ->name('items.prices.store');
+        Route::patch('items/{item}/prices/{price}', [CatalogItemPriceController::class, 'update'])
+            ->scopeBindings()
+            ->name('items.prices.update');
+        Route::delete('items/{item}/prices', [CatalogItemPriceController::class, 'destroy'])
+            ->name('items.prices.destroy');
 
         Route::post('stock-transfers/{stockTransfer}/complete', [StockTransferController::class, 'complete'])
             ->name('stock-transfers.complete');

@@ -1,0 +1,31 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/catalog/price-levels?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Wholesale",
+        "currency_code": "XOF"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const id = res.body?.data?.id;
+        if (res.status >= 200 && res.status < 300 && typeof id === "string") {
+          bru.setEnvVar("priceLevelId", id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

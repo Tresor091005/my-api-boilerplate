@@ -11,6 +11,7 @@ use Lahatre\Catalog\Database\Seeders\BundleSeeder;
 use Lahatre\Catalog\Database\Seeders\CategorySeeder;
 use Lahatre\Catalog\Database\Seeders\InventoryDemoSeeder;
 use Lahatre\Catalog\Database\Seeders\OptionSeeder;
+use Lahatre\Catalog\Database\Seeders\PriceSeeder;
 use Lahatre\Catalog\Database\Seeders\ProductSeeder;
 use Lahatre\Catalog\Database\Seeders\StockLocationSeeder;
 use Lahatre\Customer\Database\Seeders\CustomerSeeder;
@@ -71,6 +72,7 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             ProductSeeder::class,
             BundleSeeder::class,
+            PriceSeeder::class,
             StockLocationSeeder::class,
             InventoryDemoSeeder::class,
             CustomerSeeder::class,

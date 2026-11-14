@@ -6,8 +6,10 @@ namespace Lahatre\Catalog\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\CatalogItemFactory;
 use Lahatre\Catalog\Enums\CatalogItemType;
@@ -33,6 +35,7 @@ use Lahatre\Tax\Models\TaxProfile;
  * @property-read UnitGroup $unitGroup
  * @property-read TaxProfile|null $taxProfile
  * @property-read InventoryItem|null $inventoryItem
+ * @property-read Collection<int, CatalogItemPrice> $prices
  *
  * @method static Builder<static>|CatalogItem newModelQuery()
  * @method static Builder<static>|CatalogItem newQuery()
@@ -110,5 +113,11 @@ class CatalogItem extends Model implements HasInventoryItem
     {
         return $this->belongsTo(TaxProfile::class, 'tax_profile_id', 'id')
             ->where('tax_profiles.organization_id', currentOrganizationId());
+    }
+
+    public function prices(): HasMany
+    {
+        return $this->hasMany(CatalogItemPrice::class, 'catalog_item_id', 'id')
+            ->where('catalog_item_prices.organization_id', currentOrganizationId());
     }
 }

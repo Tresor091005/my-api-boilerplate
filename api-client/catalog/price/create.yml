@@ -1,0 +1,32 @@
+info:
+  name: create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/catalog/items/{{variantId}}/prices?response=resource&include=price_level"
+  body:
+    type: json
+    data: |-
+      {
+        "prices": [
+          { "price_level_id": "{{priceLevelId}}", "unit_code": "kg", "amount": "1500" }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const id = res.body?.data?.[0]?.id;
+        if (res.status >= 200 && res.status < 300 && typeof id === "string") {
+          bru.setEnvVar("priceId", id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

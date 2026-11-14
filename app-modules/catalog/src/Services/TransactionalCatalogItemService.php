@@ -13,6 +13,7 @@ use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Exceptions\CatalogItemException;
 use Lahatre\Catalog\Models\BundleItem;
 use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Data\InventoryItemConfigurationData;
 use Lahatre\Shared\Data\MissingValue;
@@ -170,7 +171,7 @@ class TransactionalCatalogItemService
     }
 
     /**
-     * Delete a catalog item and its inventory representation.
+     * Delete a catalog item, its prices and its inventory representation.
      *
      * The caller must delete records referencing the catalog item first.
      * The caller owns the surrounding transaction.
@@ -189,6 +190,10 @@ class TransactionalCatalogItemService
         if ($catalogItem->item_type->isStockable()) {
             $this->inventoryService->deleteItem($catalogItem);
         }
+        CatalogItemPrice::query()
+            ->where('organization_id', $catalogItem->organization_id)
+            ->where('catalog_item_id', $catalogItem->id)
+            ->delete();
         $catalogItem->delete();
     }
 }

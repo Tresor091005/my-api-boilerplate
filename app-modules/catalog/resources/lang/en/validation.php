@@ -17,4 +17,5 @@ return [
     'bundle_stock_operation_stock_ids_prohibited'          => 'Stock IDs are not accepted for this operation direction.',
     'bundle_stock_operation_stock_ids_strategy_prohibited' => 'Stock IDs are only accepted when the deduction strategy is manual.',
     'service_deliverable_template_unavailable'             => 'The selected deliverable template is unavailable.',
+    'price_amount_precision'                               => 'The amount has more decimal places than the price level currency allows (:precision).',
 ];

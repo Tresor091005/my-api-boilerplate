@@ -15,9 +15,11 @@ use Lahatre\Catalog\Http\Resources\ServiceResource;
 use Lahatre\Catalog\Http\Resources\StockLocationResource;
 use Lahatre\Catalog\Http\Resources\StockTransferResource;
 use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Catalog\Models\Category;
 use Lahatre\Catalog\Models\Option;
 use Lahatre\Catalog\Models\OptionValue;
+use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\Service;
@@ -167,6 +169,14 @@ it('renders every field of the catalog lists alone as in the full selection', fu
         'address'   => ['line' => '1 Main Street', 'city' => 'Cotonou', 'country' => 'Benin'],
     ])->assertNoContent();
     StockTransferLine::factory()->create();
+    $priceLevel = PriceLevel::factory()->create(['organization_id' => $this->organization->id]);
+    CatalogItem::query()->where('organization_id', $this->organization->id)->pluck('id')->each(
+        fn (string $catalogItemId): CatalogItemPrice => CatalogItemPrice::factory()->create([
+            'catalog_item_id' => $catalogItemId,
+            'price_level_id'  => $priceLevel->id,
+            'unit_id'         => $this->unit->id,
+        ]),
+    );
     // the line factory creates its own unit, which the unit cache does not know yet
     app(UnitCache::class)->rewarmUnits();
 

@@ -16,6 +16,7 @@ it('classifies every route with multiple implicit bindings', function (): void {
         'lahatre.catalog.options.values.update'             => 'value',
         'lahatre.catalog.options.values.destroy'            => 'value',
         'lahatre.catalog.bundles.items.update'              => 'item',
+        'lahatre.catalog.items.prices.update'               => 'price',
         'lahatre.catalog.bundles.stock-operations.show'     => 'stockOperation',
         'lahatre.catalog.bundles.stock-operations.complete' => 'stockOperation',
         'lahatre.customer.customers.addresses.update'       => 'address',

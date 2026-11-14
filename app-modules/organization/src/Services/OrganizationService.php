@@ -54,6 +54,19 @@ class OrganizationService implements OrganizationInterface
         return $this->functionalCurrencyResolver->forOrganization($organizationId);
     }
 
+    public function isCurrencyEnabled(string $organizationId, string $currencyCode): bool
+    {
+        if ($this->functionalCurrency($organizationId)->code === $currencyCode) {
+            return true;
+        }
+
+        $enabledCurrencies = OrganizationSetting::query()
+            ->where('organization_id', $organizationId)
+            ->value('enable_currencies');
+
+        return is_array($enabledCurrencies) && in_array($currencyCode, $enabledCurrencies, true);
+    }
+
     public function getLibraryQuotaBytes(string $organizationId): ?int
     {
         $settings = OrganizationSetting::query()

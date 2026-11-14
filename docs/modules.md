@@ -48,6 +48,8 @@ Detailed module notes:
   checks assignments through `TaxInterface`, and tags
   its `TaxProfileUsageInterface` implementation as a source of profile usage,
   so profile changes are checked against the items using them. The tax module never imports catalog code.
+- `catalog` depends on `organization` to check that a price level's currency
+  is enabled.
 
 The architecture tests in `tests/Feature/Architecture` enforce the dependency
 boundaries and should be updated when a new module contract is introduced.

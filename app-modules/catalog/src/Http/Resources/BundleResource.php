@@ -25,6 +25,7 @@ class BundleResource extends ApiResource
             ->include('items', BundleItemResource::class);
         self::unitGroupInclude($resource);
         self::taxProfileInclude($resource);
+        self::pricesInclude($resource);
         self::inventoryInclude($resource);
     }
 }

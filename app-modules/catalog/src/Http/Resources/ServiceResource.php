@@ -27,5 +27,6 @@ class ServiceResource extends ApiResource
             ->include('gallery_files', ServiceFileAttachmentResource::class, relation: 'galleryFileAttachments');
         self::unitGroupInclude($resource);
         self::taxProfileInclude($resource);
+        self::pricesInclude($resource);
     }
 }

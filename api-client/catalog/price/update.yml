@@ -1,0 +1,21 @@
+info:
+  name: update amount
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/v1/catalog/items/{{variantId}}/prices/{{priceId}}?response=resource"
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "1750"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

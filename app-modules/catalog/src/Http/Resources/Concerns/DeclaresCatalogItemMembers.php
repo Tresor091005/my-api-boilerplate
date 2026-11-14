@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Http\Resources\Concerns;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Lahatre\Catalog\Http\Resources\CatalogItemPriceResource;
 use Lahatre\Inventory\Http\Resources\InventoryItemResource;
 use Lahatre\Master\Http\Resources\UnitGroupResource;
 use Lahatre\ResponseSelection\ResourceDefinition;
@@ -41,6 +43,17 @@ trait DeclaresCatalogItemMembers
             TaxProfileResource::class,
             fn (Model $item): ?Model => $item->getRelation('catalogItem')?->getRelation('taxProfile'),
             relations: ['catalogItem.taxProfile'],
+        );
+    }
+
+    protected static function pricesInclude(ResourceDefinition $resource): void
+    {
+        $resource->virtualInclude(
+            'prices',
+            CatalogItemPriceResource::class,
+            fn (Model $item): Collection => $item->getRelation('catalogItem')?->getRelation('prices') ?? new Collection,
+            asList: true,
+            relations: ['catalogItem.prices'],
         );
     }
 

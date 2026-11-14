@@ -316,7 +316,8 @@ product's `update_variant` permission. Option values are nested and scoped under
 `config/child-limits.php` caps the children of a record, however they are
 added; going beyond answers 422 `ChildLimitException`. In the catalog: 250
 values per option, 2 048 variants per product, 3 options per variant, 250
-categories per product, 30 items per bundle, 500 lines per stock transfer.
+categories per product, 30 items per bundle, 500 lines per stock transfer,
+20 price levels per organization, 50 prices per item.
 Elsewhere: 250 files and 250 labels per record, 20 addresses and 20 contacts
 per customer or location. Request arrays never accept more than these caps.
 
@@ -335,6 +336,21 @@ field. An inactive profile (`profile_inactive`) or an applicable per-unit tax
 whose unit is outside the item's unit group (`tax_unit_incompatible`) is then
 refused with a 422 `TaxException`. `?include=tax_profile` renders the profile.
 
+Prices are named by **price levels** (`retail`, `wholesale`), defined by the
+organization (20 at most). A level has one `currency_code`, chosen on creation
+among the organization's enabled currencies and never changed after; a sale in
+a currency offers only the levels of that currency. A level name is stored
+trimmed, single-spaced and in lowercase, and is unique among the levels of the
+same currency, so `retail` may exist in XOF and in EUR. A variant, bundle or
+service then has at most one price per level and sale unit (50 prices at most),
+addressed by its catalog item id, the same id as the variant, bundle or service.
+An amount is a decimal string of the level's currency, with no more decimal
+places than that currency has (`1500` in XOF, `12.50` in EUR); quantities sold
+are whole numbers of the sale unit, so a line amount is exact. There is no
+conversion between units: a unit without a price cannot be sold at that level.
+Prices have their own permissions (`catalog_item_price.*`), apart from the
+item's. `?include=prices` renders them on a variant, bundle or service.
+
 Catalog responses use [response selection](response-selection.md): `?fields=`
 picks fields and `?include=` nests related resources, such as
 `?include=items.component` on a bundle or `?include=lines.item` on a stock
@@ -342,6 +358,15 @@ transfer.
 
 | Method | URI | Access | Purpose |
 | --- | --- | --- | --- |
+| GET | `/v1/catalog/price-levels` | `catalog_price_level.list` | List price levels; filter by `currency_code` and `name` prefix. |
+| POST | `/v1/catalog/price-levels` | `catalog_price_level.create` | Create a level with `name` and `currency_code`; a currency the organization has not enabled is refused with a 422 `PriceLevelException`. |
+| GET | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.retrieve` | Retrieve one level. |
+| PUT/PATCH | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.update` | Rename a level; `currency_code` is prohibited. |
+| DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at; otherwise 422 `PriceLevelException`. |
+| GET | `/v1/catalog/items/{item}/prices` | `catalog_item_price.list` | List the prices of an item, each with its `currency_code`; `include=price_level`. |
+| POST | `/v1/catalog/items/{item}/prices` | `catalog_item_price.create` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group) and `amount`. A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
+| PATCH | `/v1/catalog/items/{item}/prices/{price}` | `catalog_item_price.update` | Change the `amount` of one price; its level and unit never change. |
+| DELETE | `/v1/catalog/items/{item}/prices` | `catalog_item_price.delete` | Soft-delete prices of the item listed in `ids` (1 to 50). |
 | GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
 | GET | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.list` | List stock transfers. |
 | POST | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.create` | Create a draft stock transfer. |
