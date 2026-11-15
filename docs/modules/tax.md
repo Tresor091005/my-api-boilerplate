@@ -276,6 +276,9 @@ organization:
   already contain taxes, such as prices, each given with its taxes and sale
   unit (`IncludedTaxAmountData`). Call it inside the transaction writing the
   amounts or assigning the profile.
+- `assertProfileAssignableWithIncludedTaxes($taxProfileId, $unitGroupIds, $amounts)`:
+  both checks with one read of the profile, for a record whose amounts
+  already contain taxes and which is given a profile.
 - `resolve(TaxableLineData $line)` and `resolveMany($lines)`: calculate lines
   with a fixed number of queries whatever their count. The result collection
   is keyed like the input.

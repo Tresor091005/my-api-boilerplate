@@ -46,51 +46,83 @@ final readonly class TaxResolutionService implements TaxInterface
         $this->assertProfilesAssignable(collect([$taxProfileId => $unitGroupIds]));
     }
 
-    /**
-     * Takes the shared configuration lock in the caller's transaction and reads
-     * the profiles from the database, bypassing the cache: a concurrent
-     * deactivation either waits for the assignment and then sees it, or has
-     * committed and is seen here, even before its cache invalidation runs.
-     */
     public function assertProfilesAssignable(Collection $unitGroupIdsByProfile): void
     {
         if ($unitGroupIdsByProfile->isEmpty()) {
             return;
         }
 
-        $organizationId = currentOrganizationId();
-        $this->configurationLock->acquireShared($organizationId);
-        $profiles = $this->profileCompiler->compile($organizationId, $unitGroupIdsByProfile->keys());
+        $profiles = $this->profilesUnderLock($unitGroupIdsByProfile->keys());
 
         foreach ($unitGroupIdsByProfile as $taxProfileId => $unitGroupIds) {
-            $profile = $this->activeProfile($profiles, (string) $taxProfileId);
-
-            foreach ($profile->applicableTaxesPerTaxUnit() as $tax) {
-                foreach ($unitGroupIds->unique() as $unitGroupId) {
-                    if ($tax->taxUnitGroupId !== $unitGroupId) {
-                        throw TaxException::taxUnitIncompatible($tax->code, $unitGroupId);
-                    }
-                }
-            }
+            $this->assertUnitGroupsFit($this->activeProfile($profiles, (string) $taxProfileId), $unitGroupIds);
         }
     }
 
-    /**
-     * Reads the profile from the database under the shared configuration lock,
-     * like assertProfilesAssignable(): a concurrent change of the profile
-     * either waits for the amounts and then sees them, or is seen here. Each
-     * amount is then calculated for one unit sold, so what a sale would refuse
-     * is refused here.
-     */
     public function assertTaxesIncludable(string $taxProfileId, Collection $amounts): void
     {
         if ($amounts->isEmpty()) {
             return;
         }
 
+        $this->assertAmountsMayContainTaxes($taxProfileId, $amounts, $this->profilesUnderLock(collect([$taxProfileId])));
+    }
+
+    public function assertProfileAssignableWithIncludedTaxes(string $taxProfileId, Collection $unitGroupIds, Collection $amounts): void
+    {
+        $profiles = $this->profilesUnderLock(collect([$taxProfileId]));
+        $this->assertUnitGroupsFit($this->activeProfile($profiles, $taxProfileId), $unitGroupIds);
+
+        if ($amounts->isNotEmpty()) {
+            $this->assertAmountsMayContainTaxes($taxProfileId, $amounts, $profiles);
+        }
+    }
+
+    /**
+     * Takes the shared configuration lock in the caller's transaction and reads
+     * the profiles from the database, bypassing the cache: a concurrent change
+     * of a profile either waits for the caller's write and then sees it, or has
+     * committed and is seen here, even before its cache invalidation runs.
+     *
+     * @param  Collection<int, string>  $profileIds
+     * @return Collection<string, CompiledTaxProfile>
+     */
+    private function profilesUnderLock(Collection $profileIds): Collection
+    {
         $organizationId = currentOrganizationId();
         $this->configurationLock->acquireShared($organizationId);
-        $profiles = $this->profileCompiler->compile($organizationId, collect([$taxProfileId]));
+
+        return $this->profileCompiler->compile($organizationId, $profileIds);
+    }
+
+    /**
+     * @param  Collection<int, string>  $unitGroupIds
+     *
+     * @throws TaxException If a per-unit tax of the profile uses a unit of another group.
+     */
+    private function assertUnitGroupsFit(CompiledTaxProfile $profile, Collection $unitGroupIds): void
+    {
+        foreach ($profile->applicableTaxesPerTaxUnit() as $tax) {
+            foreach ($unitGroupIds->unique() as $unitGroupId) {
+                if ($tax->taxUnitGroupId !== $unitGroupId) {
+                    throw TaxException::taxUnitIncompatible($tax->code, $unitGroupId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Each amount is calculated for one unit sold, so what a sale would refuse
+     * is refused here.
+     *
+     * @param  Collection<int, IncludedTaxAmountData>  $amounts
+     * @param  Collection<string, CompiledTaxProfile>  $profiles  read under the configuration lock
+     *
+     * @throws TaxException
+     */
+    private function assertAmountsMayContainTaxes(string $taxProfileId, Collection $amounts, Collection $profiles): void
+    {
+        $organizationId = currentOrganizationId();
         $profile = $profiles->get($taxProfileId) ?? throw TaxException::profileNotFound($taxProfileId);
         $profileTaxIds = array_map(fn (CompiledTax $tax): string => $tax->id, $profile->taxes);
         $outsideProfile = $amounts

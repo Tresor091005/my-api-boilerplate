@@ -46,6 +46,14 @@ interface InventoryInterface
     public function deleteItem(HasInventoryItem $model): void;
 
     /**
+     * Deletes the inventory items of the given models, all or none, with a
+     * fixed number of queries whatever their count.
+     *
+     * @param  array<int, HasInventoryItem>|Collection<int, HasInventoryItem>  $models
+     */
+    public function deleteManyItems(array|Collection $models): void;
+
+    /**
      * @param array{
      *     idempotency_key: string,
      *     reference_type: string,

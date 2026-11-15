@@ -107,6 +107,14 @@ class InventoryService implements InventoryInterface
     }
 
     /**
+     * @param  array<int, HasInventoryItem>|Collection<int, HasInventoryItem>  $models
+     */
+    public function deleteManyItems(array|Collection $models): void
+    {
+        $this->inventoryItemService->deleteMany($models);
+    }
+
+    /**
      * @param  array<int|string, mixed>  $with
      */
     public function recordTransaction(array $data, array $with = ['movements'], ?array $errorKeyMap = null): InventoryTransaction

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Inventory\Services\Item;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,7 @@ use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\InventoryItemException;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
+use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Shared\Support\OrganizationScopeResolver;
 
@@ -146,14 +148,44 @@ class ManageInventoryItemService
 
     public function delete(HasInventoryItem $model): void
     {
-        DB::transaction(function () use ($model): void {
-            $item = $this->resolve($model);
+        $this->deleteMany([$model]);
+    }
 
-            if ($item->stocks()->where('remaining', '>', 0)->exists()) {
-                throw InventoryItemException::cannotDeleteWithActiveStock($item->id);
+    /**
+     * Deletes the inventory items of the given models, all or none, with a
+     * fixed number of queries whatever their count.
+     *
+     * @param  array<int, HasInventoryItem>|Collection<int, HasInventoryItem>  $models
+     *
+     * @throws InventoryItemException If one of the items still holds stock.
+     */
+    public function deleteMany(array|Collection $models): void
+    {
+        $models = collect($models);
+
+        if ($models->isEmpty()) {
+            return;
+        }
+
+        DB::transaction(function () use ($models): void {
+            $organizationId = currentOrganizationId();
+            $itemIds = $this->resolveMany($models)->pluck('id');
+
+            $itemIdWithStock = InventoryStock::query()
+                ->where('organization_id', $organizationId)
+                ->whereIn('item_id', $itemIds)
+                ->where('remaining', '>', 0)
+                ->orderBy('item_id')
+                ->value('item_id');
+
+            if ($itemIdWithStock !== null) {
+                throw InventoryItemException::cannotDeleteWithActiveStock((string) $itemIdWithStock);
             }
 
-            $item->delete();
+            InventoryItem::query()
+                ->where('organization_id', $organizationId)
+                ->whereIn('id', $itemIds)
+                ->delete();
         });
     }
 
@@ -171,6 +203,50 @@ class ManageInventoryItemService
             ->firstOrFail();
 
         return $item;
+    }
+
+    /**
+     * Locks the inventory items of the given models, after one check of their
+     * organization scope for all of them.
+     *
+     * @param  Collection<int, HasInventoryItem>  $models
+     *
+     * @throws ModelNotFoundException If a model has no inventory item.
+     *
+     * @return Collection<int, InventoryItem>
+     */
+    protected function resolveMany(Collection $models): Collection
+    {
+        $organizationId = currentOrganizationId();
+        $resolution = $this->organizationScopeResolver->resolveMany($models);
+
+        if (is_string($resolution)) {
+            throw $this->scopeException($resolution);
+        }
+
+        $items = collect();
+
+        foreach ($resolution->groupBy(fn (HasInventoryItem $model): string => $model->getMorphClass()) as $morphClass => $typedModels) {
+            $externalIds = $typedModels
+                ->map(fn (HasInventoryItem $model): string => (string) $model->getKey())
+                ->unique()
+                ->values();
+            $typedItems = InventoryItem::query()
+                ->where('organization_id', $organizationId)
+                ->where('itemable_type', $morphClass)
+                ->whereIn('itemable_id', $externalIds)
+                ->lockForUpdate()
+                ->get();
+            $missingIds = $externalIds->diff($typedItems->pluck('itemable_id'))->values()->all();
+
+            if ($missingIds !== []) {
+                throw new ModelNotFoundException()->setModel(InventoryItem::class, $missingIds);
+            }
+
+            $items = $items->merge($typedItems);
+        }
+
+        return $items;
     }
 
     /**
@@ -264,15 +340,16 @@ class ManageInventoryItemService
         $resolution = $this->organizationScopeResolver->resolve($model);
 
         if (is_string($resolution)) {
-            throw match ($resolution) {
-                OrganizationScopeResolver::NoModelKey,
-                OrganizationScopeResolver::NoOrganizationContext,
-                OrganizationScopeResolver::NoOrganizationId     => OrganizationScopeException::resolutionFailed(),
-                OrganizationScopeResolver::OrganizationMismatch => OrganizationScopeException::mismatch(),
-                default                                         => OrganizationScopeException::resolutionFailed(),
-            };
+            throw $this->scopeException($resolution);
         }
 
         return $resolution;
+    }
+
+    private function scopeException(string $resolution): OrganizationScopeException
+    {
+        return $resolution === OrganizationScopeResolver::OrganizationMismatch
+            ? OrganizationScopeException::mismatch()
+            : OrganizationScopeException::resolutionFailed();
     }
 }

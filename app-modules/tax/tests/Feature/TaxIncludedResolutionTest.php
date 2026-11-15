@@ -3,9 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Tax\Contracts\TaxInterface;
+use Lahatre\Tax\Data\IncludedTaxAmountData;
 use Lahatre\Tax\Exceptions\TaxException;
+use Lahatre\Tax\Models\Tax;
+use Lahatre\Tax\Models\TaxProfile;
 use Lahatre\Tax\Tests\Concerns\InteractsWithTaxTenant;
 
 uses(DatabaseTransactions::class, InteractsWithTaxTenant::class);
@@ -262,4 +267,65 @@ it('resolves amounts with and without contained taxes together, with as many que
     };
 
     expect($countQueries(40))->toBe($countQueries(4));
+});
+
+/** A profile with the value-added tax and a tax per kilogram, for records measured by mass. */
+function profileWithTaxPerKilogram(Tax $vat): TaxProfile
+{
+    $perKilogram = test()->createTax([
+        'code'             => 'PER-KG',
+        'calculation_type' => 'fixed',
+        'fixed_mode'       => 'per_tax_unit',
+        'tax_unit_code'    => 'kg',
+        'brackets'         => [['base_min' => '0', 'base_max' => null, 'value' => '100']],
+    ]);
+
+    return test()->createProfile([
+        ['tax_id' => $vat->id, 'treatment' => 'standard'],
+        ['tax_id' => $perKilogram->id, 'treatment' => 'standard'],
+    ], ['code' => 'BY-MASS']);
+}
+
+/**
+ * @param  list<string>  $includedTaxIds
+ * @return Collection<int, IncludedTaxAmountData>
+ */
+function amountContaining(array $includedTaxIds): Collection
+{
+    return collect([IncludedTaxAmountData::fromArray(['amount' => '11800', 'included_tax_ids' => $includedTaxIds, 'unit_code' => 'kg'])]);
+}
+
+it('checks an assignment and the taxes amounts contain with one read of the profile', function (): void {
+    $profile = profileWithTaxPerKilogram($this->vat);
+    $massGroupId = app(MasterInterface::class)->unit('kg')->group_id;
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    DB::transaction(fn () => $this->engine->assertProfileAssignableWithIncludedTaxes($profile->id, collect([$massGroupId]), amountContaining([$this->vat->id])));
+    DB::disableQueryLog();
+
+    $profileReads = collect(DB::getQueryLog())
+        ->filter(fn (array $query): bool => str_starts_with($query['query'], 'select * from "tax_profiles"'))
+        ->count();
+
+    expect($profileReads)->toBe(1);
+});
+
+it('refuses in one call what the assignment check and the included taxes check each refuse', function (): void {
+    $profile = profileWithTaxPerKilogram($this->vat);
+    $massGroupId = app(MasterInterface::class)->unit('kg')->group_id;
+    $volumeGroupId = app(MasterInterface::class)->unit('l')->group_id;
+    $outsideTax = $this->createPercentageTax('3', ['code' => 'OUTSIDE']);
+    $check = fn (string $unitGroupId, Collection $amounts) => DB::transaction(
+        fn () => $this->engine->assertProfileAssignableWithIncludedTaxes($profile->id, collect([$unitGroupId]), $amounts),
+    );
+
+    expect(fn () => $check($volumeGroupId, amountContaining([$this->vat->id])))
+        ->toThrow(TaxException::class, __('tax::exceptions.tax_unit_incompatible', ['code' => 'PER-KG']))
+        ->and(fn () => $check($massGroupId, amountContaining([$outsideTax->id])))
+        ->toThrow(TaxException::class, __('tax::exceptions.included_taxes_outside_profile', ['code' => 'BY-MASS']));
+
+    // without amounts, only the assignment is checked
+    $check($massGroupId, collect());
+    expect(fn () => $check($volumeGroupId, collect()))->toThrow(TaxException::class);
 });

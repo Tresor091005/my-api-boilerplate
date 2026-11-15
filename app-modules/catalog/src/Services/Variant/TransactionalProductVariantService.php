@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Services\Variant;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\Catalog\Data\CatalogItemData;
 use Lahatre\Catalog\Data\ProductVariantData;
+use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -106,17 +108,53 @@ class TransactionalProductVariantService
 
     public function delete(ProductVariant $variant): void
     {
+        $this->deleteMany($variant->product_id, new EloquentCollection([$variant]));
+    }
+
+    /**
+     * Delete variants of one product of the current organization with their
+     * option values, catalog items, prices and inventory items, all or none,
+     * with a fixed number of queries whatever their count.
+     *
+     * The caller owns the surrounding transaction.
+     *
+     * @param  EloquentCollection<int, ProductVariant>  $variants  variants of that product
+     *
+     * @throws ModelNotFoundException If a variant has no catalog item.
+     */
+    public function deleteMany(string $productId, EloquentCollection $variants): void
+    {
+        if ($variants->isEmpty()) {
+            return;
+        }
+
+        $organizationId = currentOrganizationId();
+        $variantIds = $variants->pluck('id')->unique()->values();
+
         VariantOptionValue::query()
-            ->where('organization_id', $variant->organization_id)
-            ->where('product_id', $variant->product_id)
-            ->where('variant_id', $variant->id)
+            ->where('organization_id', $organizationId)
+            ->where('product_id', $productId)
+            ->whereIn('variant_id', $variantIds)
             ->delete();
 
-        /** @var CatalogItem $catalogItem */
-        $catalogItem = $variant->catalogItem()->firstOrFail();
+        // a variant and its catalog item share their id
+        $catalogItems = CatalogItem::query()
+            ->where('organization_id', $organizationId)
+            ->where('item_type', CatalogItemType::ProductVariant->value)
+            ->whereIn('id', $variantIds)
+            ->get();
+        $missingIds = $variantIds->diff($catalogItems->pluck('id'))->values()->all();
 
-        $variant->delete();
-        $this->transactionalCatalogItemService->delete($catalogItem);
+        if ($missingIds !== []) {
+            throw new ModelNotFoundException()->setModel(CatalogItem::class, $missingIds);
+        }
+
+        ProductVariant::query()
+            ->where('organization_id', $organizationId)
+            ->where('product_id', $productId)
+            ->whereIn('id', $variantIds)
+            ->delete();
+        $this->transactionalCatalogItemService->deleteMany($catalogItems);
     }
 
     /**

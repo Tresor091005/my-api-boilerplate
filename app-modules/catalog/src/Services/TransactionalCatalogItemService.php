@@ -182,7 +182,8 @@ class TransactionalCatalogItemService
      * Checks the profile an item is about to take, or lose: it can be assigned
      * to the item's unit group, and it suits the prices of the item that
      * contain taxes. The item row is locked first, as every write of its prices
-     * locks it, so no price changes meanwhile.
+     * locks it, so no price changes meanwhile. The tax module reads the profile
+     * once for both checks.
      *
      * @throws CatalogItemPriceException
      * @throws TaxException
@@ -195,31 +196,27 @@ class TransactionalCatalogItemService
             ->lockForUpdate()
             ->value('tax_profile_id');
 
-        if ($taxProfileId !== null) {
-            $this->taxService->assertProfileAssignable($taxProfileId, collect([$catalogItem->unit_group_id]));
-        }
-
-        if ($currentTaxProfileId === $taxProfileId) {
-            return;
-        }
-
-        $pricesWithTaxes = CatalogItemPrice::query()
-            ->where('organization_id', $catalogItem->organization_id)
-            ->where('catalog_item_id', $catalogItem->id)
-            ->whereHas('includedTaxes')
-            ->with(['includedTaxes:id', 'unit:id,code'])
-            ->get();
-
-        if ($pricesWithTaxes->isEmpty()) {
-            return;
-        }
+        // an unchanged profile keeps suiting the prices: they were checked when written
+        $pricesWithTaxes = $currentTaxProfileId === $taxProfileId
+            ? new EloquentCollection
+            : CatalogItemPrice::query()
+                ->where('organization_id', $catalogItem->organization_id)
+                ->where('catalog_item_id', $catalogItem->id)
+                ->whereHas('includedTaxes')
+                ->with(['includedTaxes:id', 'unit:id,code'])
+                ->get();
 
         if ($taxProfileId === null) {
-            throw CatalogItemPriceException::includedTaxesNeedTaxProfile($catalogItem);
+            if ($pricesWithTaxes->isNotEmpty()) {
+                throw CatalogItemPriceException::includedTaxesNeedTaxProfile($catalogItem);
+            }
+
+            return;
         }
 
-        $this->taxService->assertTaxesIncludable(
+        $this->taxService->assertProfileAssignableWithIncludedTaxes(
             $taxProfileId,
+            collect([$catalogItem->unit_group_id]),
             $pricesWithTaxes->map(fn (CatalogItemPrice $price): IncludedTaxAmountData => IncludedTaxAmountData::fromArray([
                 'amount'           => (string) $price->amount,
                 'included_tax_ids' => $price->includedTaxes->pluck('id')->all(),
@@ -233,25 +230,54 @@ class TransactionalCatalogItemService
      *
      * The caller must delete records referencing the catalog item first.
      * The caller owns the surrounding transaction.
+     *
+     * @throws CatalogItemException If a bundle uses the item.
      */
     public function delete(CatalogItem $catalogItem): void
     {
-        $usedByBundle = BundleItem::query()
-            ->where('organization_id', $catalogItem->organization_id)
-            ->where('item_id', $catalogItem->id)
-            ->exists();
+        $this->deleteMany(new EloquentCollection([$catalogItem]));
+    }
 
-        if ($usedByBundle) {
-            throw CatalogItemException::usedByBundle($catalogItem);
+    /**
+     * Delete catalog items of the current organization, their prices and
+     * their inventory representations, all or none, with a fixed number of
+     * queries whatever their count.
+     *
+     * The caller must delete records referencing the catalog items first.
+     * The caller owns the surrounding transaction.
+     *
+     * @param  EloquentCollection<int, CatalogItem>  $catalogItems
+     *
+     * @throws CatalogItemException If a bundle uses one of the items.
+     */
+    public function deleteMany(EloquentCollection $catalogItems): void
+    {
+        if ($catalogItems->isEmpty()) {
+            return;
         }
 
-        if ($catalogItem->item_type->isStockable()) {
-            $this->inventoryService->deleteItem($catalogItem);
+        $organizationId = currentOrganizationId();
+        $catalogItemIds = $catalogItems->pluck('id')->values();
+        $usedCatalogItemId = BundleItem::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('item_id', $catalogItemIds)
+            ->orderBy('item_id')
+            ->value('item_id');
+
+        if ($usedCatalogItemId !== null) {
+            throw CatalogItemException::usedByBundle($catalogItems->firstOrFail('id', $usedCatalogItemId));
         }
+
+        $this->inventoryService->deleteManyItems(
+            $catalogItems->filter(fn (CatalogItem $catalogItem): bool => $catalogItem->item_type->isStockable())->values()->all(),
+        );
         CatalogItemPrice::query()
-            ->where('organization_id', $catalogItem->organization_id)
-            ->where('catalog_item_id', $catalogItem->id)
+            ->where('organization_id', $organizationId)
+            ->whereIn('catalog_item_id', $catalogItemIds)
             ->delete();
-        $catalogItem->delete();
+        CatalogItem::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('id', $catalogItemIds)
+            ->delete();
     }
 }

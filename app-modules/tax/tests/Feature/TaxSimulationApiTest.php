@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Tax\Models\TaxProfile;
 use Lahatre\Tax\Tests\Concerns\InteractsWithTaxTenant;
 
@@ -105,9 +106,25 @@ it('validates the lines to simulate', function (array $payload, string $errorPat
     'zero quantity'              => [['quantity' => '0'], 'lines.0.quantity'],
     'missing profile'            => [['tax_profile_id' => null], 'lines.0.tax_profile_id'],
     'unknown sale unit'          => [['unit_code' => 'parsec'], 'lines.0.unit_code'],
+    'sale unit that is not text' => [['unit_code' => 12], 'lines.0.unit_code'],
     'contained taxes not a list' => [['included_tax_ids' => 'VAT'], 'lines.0.included_tax_ids'],
     'malformed contained tax'    => [['included_tax_ids' => ['VAT']], 'lines.0.included_tax_ids.0'],
 ]);
+
+it('reports each unknown sale unit on its own line with one lookup for all lines', function (): void {
+    $profile = $this->createProfile([['tax_id' => $this->vat->id, 'treatment' => 'standard']]);
+    $line = fn (?string $unitCode): array => ['tax_profile_id' => $profile->id, 'amount' => '10000', 'quantity' => '1', 'unit_code' => $unitCode];
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $response = $this->postJson('/v1/tax/simulations', ['lines' => [$line('kg'), $line('parsec'), $line(null), $line('furlong'), $line('g')]]);
+    DB::disableQueryLog();
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['lines.1.unit_code', 'lines.3.unit_code'])
+        ->assertJsonMissingValidationErrors(['lines.0.unit_code', 'lines.2.unit_code', 'lines.4.unit_code']);
+    expect(collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], '"master_units"'))->count())->toBe(1);
+});
 
 it('simulates an amount that already contains a tax, the other taxes coming on top', function (): void {
     $levy = $this->createPercentageTax('5', ['code' => 'LEVY']);

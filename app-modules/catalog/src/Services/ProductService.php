@@ -131,9 +131,7 @@ class ProductService
                 ->firstOrFail();
             /** @var Collection<int, ProductVariant> $variants */
             $variants = $product->variants()->get();
-            foreach ($variants as $variant) {
-                $this->transactionalProductVariantService->delete($variant);
-            }
+            $this->transactionalProductVariantService->deleteMany($product->id, $variants);
 
             $this->attachmentService->detachAll($product);
             $product->delete();

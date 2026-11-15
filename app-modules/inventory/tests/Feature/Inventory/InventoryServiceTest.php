@@ -277,6 +277,50 @@ it('deleteItem and deleteLocation perform a soft delete and preserve stock histo
         ->and(InventoryStock::query()->find($stock->id)?->location_id)->toBe($location->id);
 });
 
+it('deleteManyItems soft deletes every item with as many queries for many models as for a few', function (): void {
+    $countQueries = function (int $modelCount): int {
+        $materials = collect(range(1, $modelCount))->map(fn () => $this->createTestMaterial());
+        $itemIds = $this->service->createManyItems($materials)->pluck('id');
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->service->deleteManyItems($materials);
+        DB::disableQueryLog();
+
+        expect(InventoryItem::query()->whereKey($itemIds)->count())->toBe(0)
+            ->and(InventoryItem::withTrashed()->whereKey($itemIds)->count())->toBe($modelCount);
+
+        return count(DB::getQueryLog());
+    };
+
+    expect($countQueries(12))->toBe($countQueries(2));
+});
+
+it('deleteManyItems deletes nothing when one of the items still holds stock', function (): void {
+    $free = $this->createTestMaterial();
+    $stocked = $this->createTestMaterial();
+    [$freeItem, $stockedItem] = $this->service->createManyItems([$free, $stocked])->all();
+    $location = $this->service->createLocation($this->createTestWarehouse());
+    InventoryStock::factory()->for($stockedItem, 'item')->for($location, 'location')->create(['remaining' => 1]);
+
+    expect(fn () => $this->service->deleteManyItems([$free, $stocked]))
+        ->toThrow(InventoryItemException::class, __('inventory::exceptions.item_cannot_delete_with_active_stock'))
+        ->and(InventoryItem::query()->whereKey([$freeItem->id, $stockedItem->id])->count())->toBe(2);
+});
+
+it('deleteManyItems deletes nothing when one of the models belongs to another organization', function (): void {
+    $own = $this->createTestMaterial();
+    $ownItem = $this->service->createItem($own);
+    setPermissionsTeamId($this->otherOrganizationId);
+    $foreign = $this->createTestMaterial(['organization_id' => $this->otherOrganizationId]);
+    $this->service->createItem($foreign);
+    setPermissionsTeamId($this->organizationId);
+
+    expect(fn () => $this->service->deleteManyItems([$own, $foreign]))
+        ->toThrow(OrganizationScopeException::class)
+        ->and(InventoryItem::query()->whereKey($ownItem->id)->exists())->toBeTrue();
+});
+
 it('prevents deleting an inventory location while active stock remains', function (): void {
     $item = $this->service->createItem($this->createTestMaterial());
     $locationModel = $this->createTestWarehouse();

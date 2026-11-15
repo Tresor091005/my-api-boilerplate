@@ -52,6 +52,19 @@ interface TaxInterface
     public function assertTaxesIncludable(string $taxProfileId, Collection $amounts): void;
 
     /**
+     * Both checks above with one read of the profile: use it when a record
+     * whose amounts already contain taxes is given a profile, instead of
+     * calling assertProfileAssignable() and then assertTaxesIncludable().
+     * Without amounts, only the first check applies.
+     *
+     * @param  Collection<int, string>  $unitGroupIds
+     * @param  Collection<int, IncludedTaxAmountData>  $amounts
+     *
+     * @throws TaxException
+     */
+    public function assertProfileAssignableWithIncludedTaxes(string $taxProfileId, Collection $unitGroupIds, Collection $amounts): void;
+
+    /**
      * Calculates one line; see resolveMany().
      *
      * @throws TaxException

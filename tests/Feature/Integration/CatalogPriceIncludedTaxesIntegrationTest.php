@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Catalog\Models\CatalogItemPriceTax;
@@ -366,6 +367,26 @@ it('refuses to move an item to a tax profile its prices do not fit, until those 
     $this->patchJson("{$this->pricesUrl}/{$price->id}", ['included_tax_ids' => []])->assertNoContent();
     $this->patchJson($variantUrl, ['tax_profile_id' => $withoutVat->id])->assertNoContent();
     $this->patchJson($variantUrl, ['tax_profile_id' => null])->assertNoContent();
+});
+
+it('reads the new tax profile once when an item whose prices contain taxes changes profile', function (): void {
+    // a variant is updated together with its inventory item
+    app(InventoryInterface::class)->createItem(CatalogItem::query()->findOrFail($this->variant->id));
+    priceIncluding($this->variant, $this->retail, [$this->vat->id]);
+    $withVat = $this->createProfile([['tax_id' => $this->vat->id, 'treatment' => 'standard']], ['code' => 'VAT-ONLY']);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $this->patchJson("/v1/catalog/products/{$this->product->id}/variants/{$this->variant->id}", ['tax_profile_id' => $withVat->id])
+        ->assertNoContent();
+    DB::disableQueryLog();
+
+    $profileReads = collect(DB::getQueryLog())
+        ->filter(fn (array $query): bool => str_starts_with($query['query'], 'select * from "tax_profiles"'))
+        ->count();
+
+    expect($profileReads)->toBe(1)
+        ->and($this->variant->catalogItem()->value('tax_profile_id'))->toBe($withVat->id);
 });
 
 it('refuses a tax change that prices containing the tax could not follow, until those prices are changed', function (): void {
