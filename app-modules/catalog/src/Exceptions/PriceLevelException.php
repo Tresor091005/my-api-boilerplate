@@ -33,6 +33,14 @@ final class PriceLevelException extends AssertionException
         );
     }
 
+    public static function builtinCannotBeDeleted(PriceLevel $priceLevel): self
+    {
+        return new self(
+            __('catalog::exceptions.price_level_builtin_cannot_be_deleted'),
+            ['price_level_id' => $priceLevel->id],
+        );
+    }
+
     private function __construct(string $message, array $context = [])
     {
         parent::__construct($message, $context);

@@ -18,6 +18,8 @@ use Lahatre\Organization\Contracts\OrganizationInterface;
 
 use function Lahatre\Shared\Data\required;
 
+use Lahatre\Shared\Support\TransactionLock;
+
 /**
  * The price levels an organization sells at, each in one currency the
  * organization has enabled. Names are kept normalized (trimmed, single-spaced,
@@ -26,6 +28,8 @@ use function Lahatre\Shared\Data\required;
  */
 final readonly class PriceLevelService
 {
+    public const string BUILTIN_NAME = 'standard';
+
     public function __construct(
         private PriceLevelAssertion $priceLevelAssertion,
         private OrganizationInterface $organizationInterface,
@@ -96,7 +100,7 @@ final readonly class PriceLevelService
     /**
      * Deletes a level no item is priced at; the lock keeps prices from being added to it meanwhile.
      *
-     * @throws PriceLevelException If an item still has a price at this level.
+     * @throws PriceLevelException If the level is the built-in one, or an item still has a price at this level.
      */
     public function delete(PriceLevel $priceLevel): void
     {
@@ -105,6 +109,27 @@ final readonly class PriceLevelService
             $this->priceLevelAssertion->assertCanBeDeleted($lockedLevel);
             $lockedLevel->delete();
         });
+    }
+
+    /**
+     * The built-in level of the organization: the level a price goes to when
+     * none is named. It is created on that first need, in the functional
+     * currency; a level already named `standard` in that currency is adopted
+     * instead. Unlike the other writes here, it runs in its caller's
+     * transaction: the lock makes two simultaneous first prices end with one
+     * level, and the partial unique index is the last guard.
+     */
+    public function builtinPriceLevelId(string $organizationId): string
+    {
+        $id = $this->findBuiltin($organizationId);
+
+        if ($id !== null) {
+            return $id;
+        }
+
+        TransactionLock::acquire("catalog.builtin-price-level:{$organizationId}");
+
+        return $this->findBuiltin($organizationId) ?? $this->adoptOrCreateBuiltin($organizationId);
     }
 
     private function lock(PriceLevel $priceLevel): PriceLevel
@@ -119,5 +144,34 @@ final readonly class PriceLevelService
     private function nameTakenOr(QueryException $exception, string $name, string $currencyCode): QueryException|PriceLevelException
     {
         return $exception->getCode() === '23505' ? PriceLevelException::nameTaken($name, $currencyCode) : $exception;
+    }
+
+    private function adoptOrCreateBuiltin(string $organizationId): string
+    {
+        $currencyCode = $this->organizationInterface->functionalCurrency($organizationId)->code;
+
+        $priceLevel = PriceLevel::query()
+            ->where('organization_id', $organizationId)
+            ->where('currency_code', $currencyCode)
+            ->where('name', self::BUILTIN_NAME)
+            ->first() ?? new PriceLevel([
+                'organization_id' => $organizationId,
+                'name'            => self::BUILTIN_NAME,
+                'currency_code'   => $currencyCode,
+            ]);
+        $priceLevel->is_builtin = true;
+        $priceLevel->save();
+
+        return $priceLevel->id;
+    }
+
+    private function findBuiltin(string $organizationId): ?string
+    {
+        $id = PriceLevel::query()
+            ->where('organization_id', $organizationId)
+            ->where('is_builtin', true)
+            ->value('id');
+
+        return is_string($id) ? $id : null;
     }
 }

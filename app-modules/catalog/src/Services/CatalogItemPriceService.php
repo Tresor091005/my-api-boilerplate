@@ -42,6 +42,7 @@ final readonly class CatalogItemPriceService
 {
     public function __construct(
         private CatalogItemPriceAssertion $priceAssertion,
+        private PriceLevelService $priceLevelService,
         private MasterInterface $masterInterface,
         private OrganizationInterface $organizationInterface,
         private TaxInterface $taxInterface,
@@ -86,7 +87,8 @@ final readonly class CatalogItemPriceService
     }
 
     /**
-     * Adds prices to an item, all or none. The item row is locked so two
+     * Adds prices to an item, all or none. A price without a level goes to the
+     * built-in level, created on this first need. The item row is locked so two
      * requests cannot price the same level and unit, and the levels are
      * share-locked so none can be deleted meanwhile.
      *
@@ -104,6 +106,7 @@ final readonly class CatalogItemPriceService
 
         return DB::transaction(function () use ($catalogItem, $prices, $organizationId, $units): EloquentCollection {
             $lockedItem = $this->lockItem($catalogItem, $organizationId);
+            $prices = $this->withBuiltinPriceLevel($prices, $organizationId);
             $priceLevelIds = $prices->pluck('priceLevelId')->unique()->values();
             $priceLevels = PriceLevel::query()
                 ->where('organization_id', $organizationId)
@@ -352,6 +355,21 @@ final readonly class CatalogItemPriceService
             'organization_id' => $organizationId,
             ...$includedTax,
         ])->values()->all());
+    }
+
+    /**
+     * @param  Collection<int, CatalogItemPriceData>  $prices
+     * @return Collection<int, CatalogItemPriceData>
+     */
+    private function withBuiltinPriceLevel(Collection $prices, string $organizationId): Collection
+    {
+        if ($prices->every(fn (CatalogItemPriceData $price): bool => $price->priceLevelId !== null)) {
+            return $prices;
+        }
+
+        $builtinPriceLevelId = $this->priceLevelService->builtinPriceLevelId($organizationId);
+
+        return $prices->map(fn (CatalogItemPriceData $price): CatalogItemPriceData => $price->priceLevelId === null ? $price->atPriceLevel($builtinPriceLevelId) : $price);
     }
 
     private function lockItem(CatalogItem $catalogItem, string $organizationId): CatalogItem

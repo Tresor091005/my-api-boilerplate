@@ -16,15 +16,20 @@ final readonly class PriceLevelAssertion
     ) {}
 
     /**
-     * Assert that no item is still priced at the level and no other module's
-     * record, such as a customer, sells at it.
+     * Assert that the level is not the built-in one, that no item is still
+     * priced at it and that no other module's record, such as a customer,
+     * sells at it.
      *
      * The caller holds a lock on the level, so no price can be added to it meanwhile.
      *
-     * @throws PriceLevelException If an item has a price at this level or a record uses it.
+     * @throws PriceLevelException If the level is the built-in one, an item has a price at it or a record uses it.
      */
     public function assertCanBeDeleted(PriceLevel $priceLevel): void
     {
+        if ($priceLevel->is_builtin) {
+            throw PriceLevelException::builtinCannotBeDeleted($priceLevel);
+        }
+
         $isUsed = CatalogItemPrice::query()
             ->where('organization_id', $priceLevel->organization_id)
             ->where('price_level_id', $priceLevel->id)

@@ -13,11 +13,13 @@ use Lahatre\Shared\Traits\SharedTraits;
 
 /**
  * A named list of prices ("retail", "wholesale") in one currency, fixed at creation.
+ * One level per organization is built in: it can be renamed, never deleted.
  *
  * @property string $id
  * @property string $organization_id
  * @property string $name
  * @property string $currency_code
+ * @property bool $is_builtin
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -50,6 +52,7 @@ class PriceLevel extends Model
         'organization_id' => 'string',
         'name'            => 'string',
         'currency_code'   => 'string',
+        'is_builtin'      => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',
         'deleted_at'      => 'immutable_datetime',

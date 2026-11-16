@@ -15,6 +15,7 @@ class PriceLevelResource extends ApiResource
             ->field('id')
             ->field('name')
             ->field('currency_code')
+            ->field('is_builtin')
             ->field('created_at')
             ->field('updated_at');
     }

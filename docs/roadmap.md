@@ -11,7 +11,10 @@ Planned on 2026-10-29, in this order:
      (`catalog_items.tax_profile_id`). See [Tax module](modules/tax.md).
    - [x] Price: named price levels per organization, each in one enabled
      currency, and on each variant, bundle or service one price per level and
-     sale unit (`catalog_price_levels`, `catalog_item_prices`).
+     sale unit (`catalog_price_levels`, `catalog_item_prices`). Every
+     organization that prices an item without naming a level gets one built-in
+     level (`standard`, in the functional currency), created by that first
+     price and never deleted.
    - Prices including tax. A price states the taxes its amount already
      contains, among those of the item's tax profile; the item's other taxes
      are added on top. The choice is per price, not per level, because the

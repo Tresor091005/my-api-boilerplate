@@ -341,7 +341,12 @@ Prices are named by **price levels** (`retail`, `wholesale`), defined by the
 organization (50 at most). A level has one `currency_code`, chosen on creation
 among the organization's enabled currencies and never changed after; a sale in
 a currency offers only the levels of that currency. Disabling a currency keeps
-its levels and prices, unusable until the currency is enabled again. A level name is stored
+its levels and prices, unusable until the currency is enabled again. A price
+added without `price_level_id` goes to the organization's **built-in** level
+(`is_builtin`), for a business that sells at one price. It is created by the
+first such price, named `standard`, in the functional currency; an existing
+`standard` level in that currency becomes the built-in one instead. It can be renamed, never deleted,
+and `is_builtin` is rendered but never accepted from a request. A level name is stored
 trimmed, single-spaced and in lowercase, and is unique among the levels of the
 same currency, so `retail` may exist in XOF and in EUR. A variant, bundle or
 service then has at most one price per level and sale unit (50 prices at most),
@@ -381,10 +386,10 @@ transfer.
 | GET | `/v1/catalog/price-levels` | `catalog_price_level.list` | List price levels; filter by `currency_code` and `name` prefix. |
 | POST | `/v1/catalog/price-levels` | `catalog_price_level.create` | Create a level with `name` and `currency_code`; a currency the organization has not enabled is refused with a 422 `PriceLevelException`. |
 | GET | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.retrieve` | Retrieve one level. |
-| PUT/PATCH | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.update` | Rename a level; `currency_code` is prohibited. |
-| DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at and no customer is sold at; otherwise 422 `PriceLevelException`. |
+| PUT/PATCH | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.update` | Rename a level, the built-in one included; `currency_code` is prohibited. |
+| DELETE | `/v1/catalog/price-levels/{priceLevel}` | `catalog_price_level.delete` | Soft-delete a level no item is priced at and no customer is sold at; otherwise 422 `PriceLevelException`. The built-in level is always refused: rename it instead. |
 | GET | `/v1/catalog/items/{item}/prices` | owner `retrieve` | List the prices of an item, each with its `currency_code` and `included_tax_ids`; `include=price_level,included_taxes`. |
-| POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id`, `unit_code` (a unit of the item's unit group), `amount` and `included_tax_ids` (0 to 20 taxes, each once). A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
+| POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id` (left out or `null`: the built-in level), `unit_code` (a unit of the item's unit group), `amount` and `included_tax_ids` (0 to 20 taxes, each once). A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
 | PATCH | `/v1/catalog/items/{item}/prices/{price}` | owner `manage_prices` | Change the `amount` of one price, its `included_tax_ids`, or both; an omitted field is kept and an empty list makes it a price before tax. Its level and unit never change. |
 | DELETE | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Soft-delete prices of the item listed in `ids` (1 to 50). |
 | GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |

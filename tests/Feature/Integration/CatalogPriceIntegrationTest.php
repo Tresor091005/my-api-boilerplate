@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\DB;
+use Lahatre\Catalog\Exceptions\PriceLevelException;
 use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
+use Lahatre\Catalog\Services\PriceLevelService;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Organization\Models\Organization;
 use Lahatre\Organization\Models\OrganizationSetting;
@@ -112,6 +117,178 @@ it('lists the price levels of the organization only', function (): void {
 
     $this->getJson('/v1/catalog/price-levels')->assertOk()->assertJsonCount(2, 'data');
     $this->getJson('/v1/catalog/price-levels?currency_code=eur')->assertOk()->assertJsonCount(0, 'data');
+});
+
+/** @return Builder<PriceLevel> */
+function builtinPriceLevels(?string $organizationId = null): Builder
+{
+    return PriceLevel::query()->where('organization_id', $organizationId ?? currentOrganizationId())->where('is_builtin', true);
+}
+
+function builtinPriceLevelId(?string $organizationId = null): string
+{
+    return DB::transaction(fn (): string => app(PriceLevelService::class)->builtinPriceLevelId($organizationId ?? currentOrganizationId()));
+}
+
+/** @return array{unit_code: string, amount: mixed, included_tax_ids: list<string>} */
+function pricePayloadWithoutLevel(string $unitCode, mixed $amount): array
+{
+    return ['unit_code' => $unitCode, 'amount' => $amount, 'included_tax_ids' => []];
+}
+
+describe('built-in price level', function (): void {
+    it('is not created by reading the levels', function (): void {
+        $this->getJson('/v1/catalog/price-levels')->assertOk()->assertJsonCount(2, 'data');
+
+        expect(builtinPriceLevels()->exists())->toBeFalse();
+    });
+
+    it('is created by the first price given without a level, in the functional currency', function (): void {
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices?response=resource&include=price_level", [
+            'prices' => [pricePayloadWithoutLevel('kg', 1500), pricePayloadWithoutLevel('g', 2)],
+        ])->assertCreated()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.price_level.name', 'standard')
+            ->assertJsonPath('data.1.price_level.name', 'standard');
+
+        $builtin = builtinPriceLevels()->sole();
+        expect($builtin->currency_code)->toBe('XOF')
+            ->and(CatalogItemPrice::query()->where('catalog_item_id', $this->variant->id)->pluck('price_level_id')->unique()->all())->toBe([$builtin->id]);
+
+        $this->getJson('/v1/catalog/price-levels?name=standard')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.is_builtin', true);
+        $this->getJson("/v1/catalog/price-levels/{$this->retail->id}")->assertOk()->assertJsonPath('data.is_builtin', false);
+    });
+
+    it('is reused by the next price given without a level', function (): void {
+        $first = builtinPriceLevelId();
+
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+            'prices' => [pricePayloadWithoutLevel('kg', 1500)],
+        ])->assertNoContent();
+
+        expect(builtinPriceLevels()->pluck('id')->all())->toBe([$first])
+            ->and(CatalogItemPrice::query()->where('catalog_item_id', $this->variant->id)->value('price_level_id'))->toBe($first);
+    });
+
+    it('refuses a price without a level and one naming the built-in level for the same unit', function (): void {
+        $builtinId = builtinPriceLevelId();
+
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+            'prices' => [pricePayloadWithoutLevel('kg', 1500), ['price_level_id' => $builtinId, ...pricePayloadWithoutLevel('kg', 1400)]],
+        ])->assertUnprocessable()
+            ->assertJsonPath('errors.type', 'CatalogItemPriceException')
+            ->assertJsonPath('errors.context.prices', [['price_level_id' => $builtinId, 'unit_code' => 'kg']]);
+    });
+
+    it('checks the amount of a price without a level against the functional currency', function (): void {
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+            'prices' => [pricePayloadWithoutLevel('kg', '1500.5')],
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['prices.0.amount']);
+
+        expect(builtinPriceLevels()->exists())->toBeFalse();
+    });
+
+    it('costs one cheap check once it exists, with no lock', function (): void {
+        builtinPriceLevelId();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        builtinPriceLevelId();
+        $queries = array_column(DB::getQueryLog(), 'query');
+        DB::disableQueryLog();
+
+        expect($queries)->toHaveCount(1)->and($queries[0])->toContain('catalog_price_levels');
+    });
+
+    it('adopts an existing level named standard in the functional currency', function (): void {
+        $existing = PriceLevel::factory()->create(['organization_id' => $this->organization->id, 'name' => 'standard']);
+
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+            'prices' => [pricePayloadWithoutLevel('kg', 1500)],
+        ])->assertNoContent();
+
+        expect(PriceLevel::query()->where('organization_id', $this->organization->id)->where('name', 'standard')->count())->toBe(1)
+            ->and(builtinPriceLevels()->pluck('id')->all())->toBe([$existing->id]);
+    });
+
+    it('does not adopt a level named standard in another currency', function (): void {
+        enablePriceCurrencies(['XOF', 'EUR']);
+        $euro = PriceLevel::factory()->create(['organization_id' => $this->organization->id, 'name' => 'standard', 'currency_code' => 'EUR']);
+
+        builtinPriceLevelId();
+
+        expect(builtinPriceLevels()->value('id'))->not->toBe($euro->id)
+            ->and(builtinPriceLevels()->value('currency_code'))->toBe('XOF')
+            ->and($euro->refresh()->is_builtin)->toBeFalse();
+    });
+
+    it('can be renamed and is then still the built-in level', function (): void {
+        $builtinId = builtinPriceLevelId();
+
+        $this->patchJson("/v1/catalog/price-levels/{$builtinId}?response=resource", ['name' => 'Public'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'public')
+            ->assertJsonPath('data.is_builtin', true);
+
+        $this->postJson("/v1/catalog/items/{$this->variant->id}/prices", [
+            'prices' => [pricePayloadWithoutLevel('kg', 1500)],
+        ])->assertNoContent();
+
+        expect(PriceLevel::query()->where('organization_id', $this->organization->id)->where('name', 'standard')->exists())->toBeFalse()
+            ->and(builtinPriceLevels()->pluck('id')->all())->toBe([$builtinId]);
+    });
+
+    it('cannot be deleted, and says that prices without a level go to it and it can be renamed', function (): void {
+        $builtinId = builtinPriceLevelId();
+
+        $this->deleteJson("/v1/catalog/price-levels/{$builtinId}")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', __('catalog::exceptions.price_level_builtin_cannot_be_deleted'))
+            ->assertJsonPath('errors.type', class_basename(PriceLevelException::class));
+
+        expect(PriceLevel::query()->find($builtinId))->not->toBeNull()
+            ->and(__('catalog::exceptions.price_level_builtin_cannot_be_deleted'))->toContain('without a level', 'Rename it');
+    });
+
+    it('gives each organization its own', function (): void {
+        $otherOrganization = Organization::factory()->create();
+
+        builtinPriceLevelId();
+        builtinPriceLevelId($otherOrganization->id);
+
+        expect(builtinPriceLevels($this->organization->id)->count())->toBe(1)
+            ->and(builtinPriceLevels($otherOrganization->id)->count())->toBe(1);
+    });
+
+    it('is never writable through the API', function (): void {
+        $created = $this->postJson('/v1/catalog/price-levels?response=resource', ['name' => 'Gros', 'currency_code' => 'XOF', 'is_builtin' => true])
+            ->assertCreated()
+            ->assertJsonPath('data.is_builtin', false)
+            ->json('data.id');
+
+        $this->patchJson("/v1/catalog/price-levels/{$created}?response=resource", ['name' => 'Gros 2', 'is_builtin' => true])
+            ->assertOk()
+            ->assertJsonPath('data.is_builtin', false);
+
+        $builtinId = builtinPriceLevelId();
+
+        $this->patchJson("/v1/catalog/price-levels/{$builtinId}?response=resource", ['name' => 'Public', 'is_builtin' => false])
+            ->assertOk()
+            ->assertJsonPath('data.is_builtin', true);
+    });
+
+    it('lets the database refuse a second built-in level of an organization', function (): void {
+        builtinPriceLevelId();
+
+        expect(fn () => DB::transaction(fn () => PriceLevel::factory()->create([
+            'organization_id' => $this->organization->id,
+            'is_builtin'      => true,
+        ])))->toThrow(QueryException::class);
+    });
 });
 
 it('deletes an unused price level but refuses one items are priced at', function (): void {

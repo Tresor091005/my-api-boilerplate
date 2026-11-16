@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 use Lahatre\Catalog\Http\Requests\Concerns\ValidatesPriceAmount;
 use Lahatre\Catalog\Rules\ValidIncludedTaxes;
+use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Shared\Rules\BulkExists;
 use Lahatre\Shared\Support\Decimal;
 
@@ -30,7 +31,7 @@ final class CatalogItemPriceCreateRequest extends FormRequest
                 ]),
                 new ValidIncludedTaxes(currentOrganizationId()),
             ],
-            'prices.*.price_level_id' => ['required', 'uuid'],
+            'prices.*.price_level_id' => ['nullable', 'uuid'],
             'prices.*.unit_code'      => ['required', 'string', 'max:100'],
             'prices.*.amount'         => ['required', ...$this->amountRules()],
             // the taxes the amount already contains; an empty list is a price before tax
@@ -49,10 +50,14 @@ final class CatalogItemPriceCreateRequest extends FormRequest
                 }
 
                 $prices = collect($this->input('prices'));
-                $precisions = $this->precisionsByLevel($prices->pluck('price_level_id'));
+                $precisions = $this->precisionsByLevel($prices->pluck('price_level_id')->filter());
+                // a price without a level goes to the built-in level, in the functional currency
+                $builtinPrecision = $prices->contains(fn (array $price): bool => ($price['price_level_id'] ?? null) === null)
+                    ? app(OrganizationInterface::class)->functionalCurrency(currentOrganizationId())->precision
+                    : null;
 
                 foreach ($prices as $index => $price) {
-                    $precision = $precisions->get($price['price_level_id']);
+                    $precision = isset($price['price_level_id']) ? $precisions->get($price['price_level_id']) : $builtinPrecision;
 
                     if ($precision !== null && Decimal::places((string) $price['amount']) > $precision) {
                         $validator->errors()->add(
