@@ -65,6 +65,9 @@ return [
     ],
     'master_units' => ['group_id' => 100],
 
+    'sale_lines'       => ['sale_id' => 250],
+    'sale_transitions' => ['sale_id' => null],
+
     'tax_brackets' => [
         'tax_id'              => ['max' => 50, 'where' => 'tax_profile_line_id IS NULL'],
         'tax_profile_line_id' => 50,

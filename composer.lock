@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2421b337d206dbd7ac697f2bb58c7865",
+    "content-hash": "2c8022c6aecb295fdcf4cf5ac4eac0c9",
     "packages": [
         {
             "name": "brick/math",
@@ -2630,6 +2630,38 @@
                 "MIT"
             ],
             "description": "Client-selected fields and includes for Laravel API Resources, loaded without N+1 queries.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "lahatre/sale",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/sale",
+                "reference": "75a096e071b557671714c2c2cf14a12ca9efa2a0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Lahatre\\Sale\\Providers\\SaleServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Lahatre\\Sale\\": "src/",
+                    "Lahatre\\Sale\\Tests\\": "tests/",
+                    "Lahatre\\Sale\\Database\\Factories\\": "database/factories/",
+                    "Lahatre\\Sale\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
             "transport-options": {
                 "symlink": true,
                 "relative": true
