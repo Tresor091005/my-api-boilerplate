@@ -109,7 +109,7 @@ it('exposes the complete bundle CRUD and nested item mutations', function (): vo
         ->assertJsonFragment(['unit_code' => $this->displayUnit->code]);
 
     $bundleId = (string) $created->json('data.id');
-    expect(CatalogItem::query()->findOrFail($bundleId)->is_stockable)->toBeTrue();
+    expect(CatalogItem::query()->findOrFail($bundleId)->inventoryItem()->exists())->toBeTrue();
     $createdItem = BundleItem::query()->where('bundle_id', $bundleId)->where('item_id', $this->variants[0]->id)->firstOrFail();
     expect($createdItem->quantity)->toBe(20)
         ->and($createdItem->display_unit_code)->toBe($this->displayUnit->code);

@@ -31,24 +31,17 @@ class CatalogItemFactory extends Factory
             'item_type'       => CatalogItemType::ProductVariant,
             'sku'             => fake()->unique()->bothify('SKU-####-????'),
             'unit_group_id'   => UnitGroup::factory(),
-            'is_stockable'    => true,
             'is_active'       => true,
         ];
     }
 
     public function bundle(): static
     {
-        return $this->state([
-            'item_type'    => CatalogItemType::Bundle,
-            'is_stockable' => CatalogItemType::Bundle->isStockable(),
-        ]);
+        return $this->state(['item_type' => CatalogItemType::Bundle]);
     }
 
     public function service(): static
     {
-        return $this->state([
-            'item_type'    => CatalogItemType::Service,
-            'is_stockable' => CatalogItemType::Service->isStockable(),
-        ]);
+        return $this->state(['item_type' => CatalogItemType::Service]);
     }
 }

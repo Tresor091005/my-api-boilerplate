@@ -66,7 +66,7 @@ it('manages a bundle and its CatalogItem as one aggregate', function (): void {
     $catalogItem = CatalogItem::query()->findOrFail($bundle->id);
 
     expect($catalogItem->item_type)->toBe(CatalogItemType::Bundle)
-        ->and($catalogItem->is_stockable)->toBeTrue()
+        ->and($catalogItem->inventoryItem()->exists())->toBeTrue()
         ->and($catalogItem->is_active)->toBeTrue()
         ->and($catalogItem->sku)->not->toBeEmpty()
         ->and($bundle->handle)->toBe('starter-pack')

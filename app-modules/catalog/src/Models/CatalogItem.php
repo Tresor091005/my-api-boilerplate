@@ -27,7 +27,6 @@ use Lahatre\Tax\Models\TaxProfile;
  * @property string $sku
  * @property string $unit_group_id
  * @property string|null $tax_profile_id
- * @property bool $is_stockable
  * @property bool $is_active
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -72,7 +71,6 @@ class CatalogItem extends Model implements HasInventoryItem
         'sku',
         'unit_group_id',
         'tax_profile_id',
-        'is_stockable',
         'is_active',
     ];
 
@@ -83,7 +81,6 @@ class CatalogItem extends Model implements HasInventoryItem
         'sku'             => 'string',
         'unit_group_id'   => 'string',
         'tax_profile_id'  => 'string',
-        'is_stockable'    => 'boolean',
         'is_active'       => 'boolean',
         'created_at'      => 'immutable_datetime',
         'updated_at'      => 'immutable_datetime',

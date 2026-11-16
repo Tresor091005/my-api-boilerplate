@@ -60,7 +60,6 @@ class TransactionalCatalogItemService
             'sku'             => $sku ?? SkuGenerator::generate($skuSource),
             'unit_group_id'   => $unitGroupId,
             'tax_profile_id'  => $taxProfileId,
-            'is_stockable'    => $type->isStockable(),
             'is_active'       => $isActive,
         ])->save();
 
@@ -96,7 +95,6 @@ class TransactionalCatalogItemService
                 'sku'             => $itemData->sku ?? SkuGenerator::generate($productName),
                 'unit_group_id'   => $itemData->unitGroupId,
                 'tax_profile_id'  => $itemData->taxProfileId,
-                'is_stockable'    => CatalogItemType::ProductVariant->isStockable(),
                 'is_active'       => $itemData->isActive,
                 'created_at'      => $now,
                 'updated_at'      => $now,

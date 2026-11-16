@@ -88,7 +88,7 @@ it('exposes service CRUD with templates embedded as an ordered array', function 
     $firstTemplateId = (string) $created->json('data.deliverable_templates.0.id');
     $secondTemplateId = (string) $created->json('data.deliverable_templates.1.id');
 
-    expect(CatalogItem::query()->findOrFail($serviceId)->is_stockable)->toBeFalse();
+    expect(CatalogItem::query()->findOrFail($serviceId)->inventoryItem()->exists())->toBeFalse();
 
     $this->getJson('/v1/catalog/services')
         ->assertOk()

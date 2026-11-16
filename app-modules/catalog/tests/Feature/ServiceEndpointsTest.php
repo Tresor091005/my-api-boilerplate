@@ -39,7 +39,7 @@ it('manages a service and its ordered deliverable templates as one aggregate', f
     $templates = $service->deliverableTemplates()->get();
 
     expect($catalogItem->item_type)->toBe(CatalogItemType::Service)
-        ->and($catalogItem->is_stockable)->toBeFalse()
+        ->and($catalogItem->inventoryItem()->exists())->toBeFalse()
         ->and($service->handle)->toBe('on-site-installation')
         ->and($templates->pluck('position')->all())->toBe([1, 2]);
 
