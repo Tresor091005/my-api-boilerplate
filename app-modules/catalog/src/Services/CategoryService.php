@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\CategoryAssertion;
 use Lahatre\Catalog\Data\CategoryData;
@@ -56,6 +57,10 @@ class CategoryService
 
     public function retrieve(Category $category): Category
     {
+        if ($category->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Category::class, [$category->getKey()]);
+        }
+
         return $category;
     }
 

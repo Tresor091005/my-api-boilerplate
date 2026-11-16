@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionAssertion;
 use Lahatre\Catalog\Data\OptionData;
@@ -46,6 +47,10 @@ class OptionService
 
     public function retrieve(Option $option): Option
     {
+        if ($option->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Option::class, [$option->getKey()]);
+        }
+
         return $option;
     }
 

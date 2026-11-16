@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Catalog\Services;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Assertions\OptionValueAssertion;
 use Lahatre\Catalog\Data\OptionValueData;
@@ -38,6 +39,10 @@ class OptionValueService
 
     public function retrieve(Option $option, OptionValue $optionValue): OptionValue
     {
+        if ($option->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Option::class, [$option->getKey()]);
+        }
+
         $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
 
         return $optionValue;

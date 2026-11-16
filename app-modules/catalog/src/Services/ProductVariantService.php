@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -41,6 +42,10 @@ class ProductVariantService
 
     public function retrieve(Product $product, ProductVariant $variant): ProductVariant
     {
+        if ($product->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Product::class, [$product->getKey()]);
+        }
+
         $this->productVariantAssertion->assertBelongsToProduct($product, $variant);
 
         return $variant;

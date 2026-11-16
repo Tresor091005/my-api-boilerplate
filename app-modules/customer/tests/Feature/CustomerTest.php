@@ -210,3 +210,11 @@ it('accepts a free-form country name', function (): void {
 
     expect($validator->fails())->toBeFalse();
 });
+
+it('retrieves a customer of the current organization and refuses another one', function (): void {
+    $customer = Customer::factory()->create(['organization_id' => $this->organizationId]);
+    $otherCustomer = Customer::factory()->create(['organization_id' => $this->otherOrganizationId]);
+
+    expect($this->service->retrieve($customer)->is($customer))->toBeTrue();
+    expect(fn () => $this->service->retrieve($otherCustomer))->toThrow(ModelNotFoundException::class);
+});

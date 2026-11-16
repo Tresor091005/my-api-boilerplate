@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -43,6 +44,10 @@ final readonly class PriceLevelService
 
     public function retrieve(PriceLevel $priceLevel): PriceLevel
     {
+        if ($priceLevel->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(PriceLevel::class, [$priceLevel->getKey()]);
+        }
+
         return $priceLevel;
     }
 

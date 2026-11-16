@@ -31,6 +31,10 @@ class CustomerService
 
     public function retrieve(Customer $customer): Customer
     {
+        if ($customer->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Customer::class, [$customer->getKey()]);
+        }
+
         return $customer;
     }
 

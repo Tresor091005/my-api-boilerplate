@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Services;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Catalog\Data\ProductData;
 use Lahatre\Catalog\Data\ProductFilterData;
@@ -68,6 +69,10 @@ class ProductService
 
     public function retrieve(Product $product): Product
     {
+        if ($product->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(Product::class, [$product->getKey()]);
+        }
+
         return $product;
     }
 

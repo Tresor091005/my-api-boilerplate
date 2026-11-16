@@ -6,6 +6,7 @@ namespace Lahatre\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\StockLocationData;
@@ -41,6 +42,10 @@ final readonly class StockLocationService
 
     public function retrieve(StockLocation $stockLocation): StockLocation
     {
+        if ($stockLocation->organization_id !== currentOrganizationId()) {
+            throw (new ModelNotFoundException)->setModel(StockLocation::class, [$stockLocation->getKey()]);
+        }
+
         return $stockLocation;
     }
 
