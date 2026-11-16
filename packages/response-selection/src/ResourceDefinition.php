@@ -7,11 +7,14 @@ namespace Lahatre\ResponseSelection;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
 use Lahatre\ResponseSelection\Exceptions\ResponseSelectionException;
 use Lahatre\ResponseSelection\Selection\SelectionNode;
+use Lahatre\ResponseSelection\Selection\SelectionParser;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -28,7 +31,7 @@ final class ResourceDefinition
     private array $fields = [];
 
     /**
-     * @var array<string, array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null}>
+     * @var array<string, array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null, view: string|null}>
      */
     private array $includes = [];
 
@@ -59,6 +62,20 @@ final class ResourceDefinition
      * @var array<int, string>
      */
     private array $declaredTwice = [];
+
+    /**
+     * Views by name: their text, then their selection once frozen.
+     *
+     * @var array<string, array{fields: string, include: string, selection: SelectionNode|null}>
+     */
+    private array $views = [];
+
+    /**
+     * View names declared twice, reported by freeze().
+     *
+     * @var array<int, string>
+     */
+    private array $viewsDeclaredTwice = [];
 
     private bool $frozen = false;
 
@@ -129,7 +146,13 @@ final class ResourceDefinition
             throw ResponseSelectionException::memberDeclaredTwice($resourceClass, $this->declaredTwice[0]);
         }
 
+        if ($this->viewsDeclaredTwice !== []) {
+            throw ResponseSelectionException::viewDeclaredTwice($resourceClass, $this->viewsDeclaredTwice[0]);
+        }
+
         $this->resolveLimits($resourceClass);
+        $this->checkIncludeViews($resourceClass);
+        $this->parseViews($resourceClass);
         $this->buildOrder = $this->sortFields($resourceClass);
         $this->requestOnly = $this->conditionShapes($resourceClass);
         $this->owner = $resourceClass;
@@ -221,12 +244,13 @@ final class ResourceDefinition
      * @param  string|null  $relation  model relation to load; by default the camelCase of $name
      * @param  int|null  $limit  most children rendered per parent for a list; by default the configured default, at most the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
+     * @param  string|null  $view  a view of the child Resource: the child always renders it, and clients select the include bare
      */
-    public function include(string $name, string|ResourceResolver $resource, ?string $relation = null, ?int $limit = null, ?Closure $when = null): self
+    public function include(string $name, string|ResourceResolver $resource, ?string $relation = null, ?int $limit = null, ?Closure $when = null, ?string $view = null): self
     {
         [$resourceClass, $resolver] = $this->splitResource($resource);
 
-        return $this->addInclude($name, $resourceClass, $resolver, $relation ?? Str::camel($name), null, false, [], [], [], $limit, $when);
+        return $this->addInclude($name, $resourceClass, $resolver, $relation ?? Str::camel($name), null, false, [], [], [], $limit, $when, $view);
     }
 
     /**
@@ -242,12 +266,40 @@ final class ResourceDefinition
      * @param  array<int, string>  $fields  parent fields the loader needs
      * @param  int|null  $limit  most children rendered per parent for a list; by default the configured default, at most the configured maximum
      * @param  (Closure(Request): bool)|(Closure(Model, Request): bool)|null  $when  rendered only when true
+     * @param  string|null  $view  a view of the child Resource: the child always renders it, and clients select the include bare
      */
-    public function virtualInclude(string $name, string|ResourceResolver $resource, string|Closure $loader, bool $asList = false, array $columns = [], array $relations = [], array $fields = [], ?int $limit = null, ?Closure $when = null): self
+    public function virtualInclude(string $name, string|ResourceResolver $resource, string|Closure $loader, bool $asList = false, array $columns = [], array $relations = [], array $fields = [], ?int $limit = null, ?Closure $when = null, ?string $view = null): self
     {
         [$resourceClass, $resolver] = $this->splitResource($resource);
 
-        return $this->addInclude($name, $resourceClass, $resolver, null, $loader, $asList, $columns, $relations, $fields, $limit, $when);
+        return $this->addInclude($name, $resourceClass, $resolver, null, $loader, $asList, $columns, $relations, $fields, $limit, $when, $view);
+    }
+
+    /**
+     * Declares a named view: a selection written by the backend in the client grammar of `fields`
+     * and `include`. Every level lists its fields, so a field added later never enters it.
+     *
+     * @param  string  $name  snake_case, unique per Resource
+     * @param  string  $fields  fields of this Resource, never empty
+     * @param  string  $include  include entries, each with its field list; an include fixed by a view is written bare
+     */
+    public function view(string $name, string $fields, string $include = ''): self
+    {
+        $this->assertMutable();
+
+        if (!$this->isIdentifier($name)) {
+            throw ResponseSelectionException::invalidViewName($name);
+        }
+
+        if (isset($this->views[$name])) {
+            $this->viewsDeclaredTwice[] = $name;
+
+            return $this;
+        }
+
+        $this->views[$name] = ['fields' => $fields, 'include' => $include, 'selection' => null];
+
+        return $this;
     }
 
     /**
@@ -272,10 +324,14 @@ final class ResourceDefinition
      * @param  array<int, string>  $relations
      * @param  array<int, string>  $fields
      */
-    private function addInclude(string $name, ?string $resource, string|ResourceResolver|null $resolver, ?string $relation, string|Closure|null $loader, bool $asList, array $columns, array $relations, array $fields, ?int $limit, ?Closure $when): self
+    private function addInclude(string $name, ?string $resource, string|ResourceResolver|null $resolver, ?string $relation, string|Closure|null $loader, bool $asList, array $columns, array $relations, array $fields, ?int $limit, ?Closure $when, ?string $view): self
     {
         $this->assertMutable();
         $this->assertIdentifier($name);
+
+        if ($view !== null && !$this->isIdentifier($view)) {
+            throw ResponseSelectionException::invalidViewName($view);
+        }
 
         if ($this->declares($name)) {
             $this->declaredTwice[] = $name;
@@ -304,10 +360,68 @@ final class ResourceDefinition
             'fields'    => array_values(array_unique($fields)),
             'limit'     => $limit,
             'when'      => $when,
+            'view'      => $view,
         ];
         $this->remember($name);
 
         return $this;
+    }
+
+    /**
+     * An include fixed by a view needs one fixed child Resource to read that view from.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    private function checkIncludeViews(string $resourceClass): void
+    {
+        foreach ($this->includes as $name => $include) {
+            if ($include['view'] !== null && $include['resource'] === null) {
+                throw ResponseSelectionException::includeViewWithResolver($resourceClass, $name);
+            }
+        }
+    }
+
+    /**
+     * Parses each view and checks what this Resource knows: syntax, limits and the names of its
+     * first level. The levels below need the children's definitions and are checked by SelectionViews.
+     *
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    private function parseViews(string $resourceClass): void
+    {
+        foreach ($this->views as $view => $text) {
+            try {
+                $selection = (new SelectionParser)->parse($text['fields'], $text['include'])->root();
+            } catch (ValidationException $exception) {
+                throw ResponseSelectionException::viewInvalid($resourceClass, $view, (string) Arr::first(Arr::flatten($exception->errors())));
+            }
+
+            if ($selection->fields() === null) {
+                throw ResponseSelectionException::viewWithoutFields($resourceClass, $view);
+            }
+
+            foreach ($selection->fields() as $field) {
+                if ($field !== 'id' && !isset($this->fields[$field])) {
+                    throw ResponseSelectionException::viewUnknownField($resourceClass, $view, $field);
+                }
+            }
+
+            foreach ($selection->children() as $name => $child) {
+                if (!isset($this->includes[$name])) {
+                    throw ResponseSelectionException::viewUnknownInclude($resourceClass, $view, $name);
+                }
+
+                if ($this->includes[$name]['view'] !== null) {
+                    if ($child->fields() !== null || $child->children() !== []) {
+                        throw ResponseSelectionException::viewFixedIncludeNotBare($resourceClass, $view, $name);
+                    }
+                } elseif ($child->fields() === null) {
+                    throw ResponseSelectionException::viewIncludeWithoutFields($resourceClass, $view, $name);
+                }
+            }
+
+            $this->views[$view]['selection'] = $selection;
+        }
     }
 
     /**
@@ -351,9 +465,14 @@ final class ResourceDefinition
      */
     private function assertIdentifier(string $name): void
     {
-        if (!preg_match('/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z/', $name)) {
+        if (!$this->isIdentifier($name)) {
             throw ResponseSelectionException::invalidName($name);
         }
+    }
+
+    private function isIdentifier(string $name): bool
+    {
+        return preg_match('/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z/', $name) === 1;
     }
 
     /**
@@ -728,7 +847,7 @@ final class ResourceDefinition
     }
 
     /**
-     * @return array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null}|null
+     * @return array{resource: class-string<ApiResource>|null, resolver: ResourceResolver|class-string<ResourceResolver>|null, relation: string|null, loader: class-string<VirtualIncludeLoader>|Closure|null, asList: bool, columns: array<int, string>, relations: array<int, string>, fields: array<int, string>, limit: int|null, when: Closure|null, view: string|null}|null
      */
     public function includeDefinition(string $name): ?array
     {
@@ -749,6 +868,38 @@ final class ResourceDefinition
     public function includeForRelation(string $relation): ?string
     {
         return $this->includeByRelation[$relation] ?? null;
+    }
+
+    /**
+     * The view of the child Resource an include always renders, or null when clients select freely.
+     */
+    public function includeView(string $name): ?string
+    {
+        return $this->includes[$name]['view'] ?? null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function viewNames(): array
+    {
+        return array_keys($this->views);
+    }
+
+    public function hasView(string $name): bool
+    {
+        return isset($this->views[$name]);
+    }
+
+    /**
+     * A view as parsed and checked at freeze, before its includes fixed by a view are expanded; null
+     * for an unknown view or before freeze. Use SelectionViews::tree() to render it.
+     *
+     * @internal
+     */
+    public function viewSelection(string $name): ?SelectionNode
+    {
+        return $this->views[$name]['selection'] ?? null;
     }
 
     public function isVirtualInclude(string $name): bool

@@ -314,6 +314,104 @@ final class ResponseSelectionException extends LogicException
         );
     }
 
+    public static function invalidViewName(string $name): self
+    {
+        return self::make(
+            __('response-selection::selection.invalid_view_name', ['name' => $name]),
+            ['name' => $name],
+        );
+    }
+
+    public static function viewDeclaredTwice(string $resource, string $view): self
+    {
+        return self::make(
+            __('response-selection::selection.view_declared_twice', ['resource' => $resource, 'view' => $view]),
+            ['resource' => $resource, 'view' => $view],
+        );
+    }
+
+    public static function viewInvalid(string $resource, string $view, string $reason): self
+    {
+        return self::make(
+            __('response-selection::selection.view_invalid', ['resource' => $resource, 'view' => $view, 'reason' => $reason]),
+            ['resource' => $resource, 'view' => $view, 'reason' => $reason],
+        );
+    }
+
+    public static function viewWithoutFields(string $resource, string $view): self
+    {
+        return self::make(
+            __('response-selection::selection.view_without_fields', ['resource' => $resource, 'view' => $view]),
+            ['resource' => $resource, 'view' => $view],
+        );
+    }
+
+    public static function viewUnknownField(string $resource, string $view, string $path): self
+    {
+        return self::make(
+            __('response-selection::selection.view_unknown_field', ['resource' => $resource, 'view' => $view, 'path' => $path]),
+            ['resource' => $resource, 'view' => $view, 'path' => $path],
+        );
+    }
+
+    public static function viewUnknownInclude(string $resource, string $view, string $path): self
+    {
+        return self::make(
+            __('response-selection::selection.view_unknown_include', ['resource' => $resource, 'view' => $view, 'path' => $path]),
+            ['resource' => $resource, 'view' => $view, 'path' => $path],
+        );
+    }
+
+    public static function viewIncludeWithoutFields(string $resource, string $view, string $path): self
+    {
+        return self::make(
+            __('response-selection::selection.view_include_without_fields', ['resource' => $resource, 'view' => $view, 'path' => $path]),
+            ['resource' => $resource, 'view' => $view, 'path' => $path],
+        );
+    }
+
+    public static function viewFixedIncludeNotBare(string $resource, string $view, string $path): self
+    {
+        return self::make(
+            __('response-selection::selection.view_fixed_include_not_bare', ['resource' => $resource, 'view' => $view, 'path' => $path]),
+            ['resource' => $resource, 'view' => $view, 'path' => $path],
+        );
+    }
+
+    public static function viewNotDeclared(string $resource, string $view): self
+    {
+        return self::make(
+            __('response-selection::selection.view_not_declared', ['resource' => $resource, 'view' => $view]),
+            ['resource' => $resource, 'view' => $view],
+        );
+    }
+
+    /** @param array<int, string> $cycle */
+    public static function viewCycle(array $cycle): self
+    {
+        return self::make(
+            __('response-selection::selection.view_cycle', ['cycle' => implode(' → ', $cycle)]),
+            ['cycle' => $cycle],
+        );
+    }
+
+    public static function includeViewWithResolver(string $resource, string $include): self
+    {
+        return self::make(
+            __('response-selection::selection.include_view_with_resolver', ['resource' => $resource, 'include' => $include]),
+            ['resource' => $resource, 'include' => $include],
+        );
+    }
+
+    /** @param array<int, string> $resources */
+    public static function fixedIncludeMismatch(string $include, array $resources): self
+    {
+        return self::make(
+            __('response-selection::selection.fixed_include_mismatch', ['include' => $include, 'resources' => implode(', ', $resources)]),
+            ['include' => $include, 'resources' => $resources],
+        );
+    }
+
     /** @param array<string, mixed> $context */
     private static function make(string $message, array $context = []): self
     {

@@ -13,7 +13,10 @@ abstract class BasePolicy
     protected function can(string $permission): bool
     {
         try {
-            return authContext()->memberRole()->hasPermissionTo($permission);
+            // under a read context, the write being prepared is checked in place of this read
+            $replacement = app(ReadContexts::class)->replacementFor($permission);
+
+            return authContext()->memberRole()->hasPermissionTo($replacement ?? $permission);
         } catch (PermissionDoesNotExist) {
             return false;
         }

@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\Declaration\ResponseDeclarationAnalyzer;
 use Lahatre\ResponseSelection\Selection\SelectionParser;
+use Lahatre\ResponseSelection\Selection\SelectionViews;
 use Throwable;
 
 /**
@@ -57,6 +58,11 @@ trait AssertsResponseFieldIsolation
         }
 
         foreach (['' => [$resourceClass], ...$tree] as $includePath => $classes) {
+            // an include fixed by a view is one block: requested bare, its fields not isolated
+            if ($classes === []) {
+                continue;
+            }
+
             $node = $includePath === '' ? 'the root' : "include [{$includePath}]";
             $expected = $this->isolationRows($full[$includePath], $includePath);
 
@@ -102,7 +108,8 @@ trait AssertsResponseFieldIsolation
     }
 
     /**
-     * Every include path up to $depth, with the Resources it can show.
+     * Every include path up to $depth, with the Resources it can show. An include fixed by a view
+     * shows none here and nothing below it is listed: the client cannot select inside it.
      *
      * @param  array<int, class-string<ApiResource>>  $classes
      * @return array<string, array<int, class-string<ApiResource>>>
@@ -127,6 +134,13 @@ trait AssertsResponseFieldIsolation
 
         foreach ($includes as $name => $children) {
             $path = $prefix === '' ? $name : "{$prefix}.{$name}";
+
+            if (SelectionViews::fixedView($classes, $name) !== null) {
+                $tree[$path] = [];
+
+                continue;
+            }
+
             $tree[$path] = $children;
             $tree += $this->isolationIncludeTree($children, $depth - 1, $path);
         }

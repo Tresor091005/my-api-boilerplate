@@ -46,7 +46,11 @@ final class ExampleSchema
         Route::middleware(ResolveResponseSelection::class)->prefix(self::PREFIX)->group(function (): void {
             Route::get('transfers', [ExampleTransferController::class, 'index']);
             Route::get('transfers/{transfer}', [ExampleTransferController::class, 'show']);
+            Route::get('summary-transfers', [ExampleTransferController::class, 'summaries']);
+            Route::get('summary-transfers/{transfer}', [ExampleTransferController::class, 'summary']);
             Route::get('undeclared-column-transfers', [ExampleTransferController::class, 'undeclaredColumn']);
+            Route::get('depots', [ExampleTransferController::class, 'depots']);
+            Route::post('depots', [ExampleTransferController::class, 'storeDepot']);
             Route::get('querying-closure-transfers', [ExampleTransferController::class, 'queryingClosure']);
         });
     }

@@ -113,6 +113,14 @@ paths:
   access `EnsurePlatformAccess` confirmed in `AuthContext`, so it stays
   query-free. Add granular platform abilities beside that Gate, not in routes
   or controllers.
+- For a request whose `for` the response selection package accepted,
+  `BasePolicy::can()` checks the write permission named by `for` in place of
+  the read permission a line of `config/read-contexts.php` replaces on that
+  route. Only `list` and `retrieve` permissions of `GET` routes are replaced,
+  the response is fixed to the line's view, and tenant checks stay. A line is
+  added or changed only by decision, with an HTTP test, and
+  `tests/Feature/Architecture/ReadContextsTest.php` pins the table. When this
+  changes, update `docs/iam/permissions.md` and this rule together.
 
 ## Resources
 
@@ -127,6 +135,9 @@ paths:
   permissions grow with the code), with a test proving the whole list fits.
   Test a Resource's output through HTTP or the package's
   `RendersApiResources` helper, not by building it directly.
+- An include of another module's Resource may name a view of it (`view:`), so
+  the parent shows the child's simplified shape and clients select the include
+  bare.
 - A plain `JsonResource` renders only an output that is not a model (such as
   `AuthResource` and `InventoryLotResource`). It transforms output only: the
   controller or service loads what it shows, and it guards relations with

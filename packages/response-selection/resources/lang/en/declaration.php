@@ -18,4 +18,6 @@ return [
     'include_without_child_resource' => ':path: include declares no child Resource.',
     'invalid_condition'              => ':resource: `when:` of [:member] must be a Closure(Request $request): bool, evaluated once before loading, or a Closure($model, Request $request): bool, evaluated per model.',
     'class_not_concrete'             => ':path: :class must be a concrete :contract implementation.',
+    'view_not_built'                 => ':path: view [:view] could not be built: :reason',
+    'fixed_include_not_resolved'     => ':path: include [:include] could not be checked: :reason',
 ];

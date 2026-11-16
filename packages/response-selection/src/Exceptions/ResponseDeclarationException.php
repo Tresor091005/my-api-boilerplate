@@ -129,6 +129,32 @@ final class ResponseDeclarationException extends LogicException
         );
     }
 
+    public static function viewNotBuilt(string $path, string $view, Throwable $previous): self
+    {
+        return self::make(
+            __('response-selection::declaration.view_not_built', [
+                'path'   => $path,
+                'view'   => $view,
+                'reason' => $previous->getMessage(),
+            ]),
+            ['path' => $path, 'view' => $view, 'reason' => $previous->getMessage()],
+            $previous,
+        );
+    }
+
+    public static function fixedIncludeNotResolved(string $path, string $include, Throwable $previous): self
+    {
+        return self::make(
+            __('response-selection::declaration.fixed_include_not_resolved', [
+                'path'    => $path,
+                'include' => $include,
+                'reason'  => $previous->getMessage(),
+            ]),
+            ['path' => $path, 'include' => $include, 'reason' => $previous->getMessage()],
+            $previous,
+        );
+    }
+
     public static function includeWithoutChildResource(string $path): self
     {
         return self::make(

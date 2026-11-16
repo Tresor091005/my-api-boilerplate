@@ -25,7 +25,7 @@ class CustomerResource extends ApiResource
             ->field('updated_at')
             ->include('addresses', AddressResource::class)
             ->include('contacts', ContactResource::class)
-            ->include('price_level', PriceLevelResource::class)
+            ->include('price_level', PriceLevelResource::class, view: 'reference')
             ->include('profile_picture_files', CustomerFileAttachmentResource::class, relation: 'profilePictureFileAttachments');
     }
 }

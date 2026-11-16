@@ -10,6 +10,7 @@ use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\Exceptions\ResponseDeclarationException;
 use Lahatre\ResponseSelection\FieldComputer;
 use Lahatre\ResponseSelection\ResourceResolver;
+use Lahatre\ResponseSelection\Selection\SelectionViews;
 use Lahatre\ResponseSelection\VirtualIncludeLoader;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -265,6 +266,10 @@ final class ResponseDeclarationAnalyzer
         }
     }
 
+    /**
+     * Checks a Resource and every child it may render: definitions, the classes they name, and
+     * every view down to its last level.
+     */
     public function validateResource(string $resourceClass): void
     {
         $visited = [];
@@ -330,6 +335,51 @@ final class ResponseDeclarationAnalyzer
             foreach ($children as $child) {
                 $this->visit($child, $childPath, $visited);
             }
+
+            $this->checkFixedIncludes($definition->includeView($name), $children, $childPath);
+        }
+
+        foreach ($definition->viewNames() as $view) {
+            $this->checkView($resourceClass, $view, $path);
+        }
+    }
+
+    /**
+     * Checks the view an include renders, and that the Resources of a polymorphic level declare
+     * each of their includes fixed alike.
+     *
+     * @param  array<int, class-string<ApiResource>>  $children
+     */
+    private function checkFixedIncludes(?string $view, array $children, string $path): void
+    {
+        if ($view !== null) {
+            $this->checkView($children[0], $view, $path);
+        }
+
+        if (count($children) < 2) {
+            return;
+        }
+
+        $names = array_unique(array_merge(...array_map(fn (string $child): array => $child::definition()->includeNames(), $children)));
+
+        foreach ($names as $name) {
+            try {
+                SelectionViews::fixedView($children, $name);
+            } catch (Throwable $exception) {
+                throw ResponseDeclarationException::fixedIncludeNotResolved($path, $name, $exception);
+            }
+        }
+    }
+
+    /**
+     * @param  class-string<ApiResource>  $resourceClass
+     */
+    private function checkView(string $resourceClass, string $view, string $path): void
+    {
+        try {
+            (new SelectionViews)->tree($resourceClass, $view);
+        } catch (Throwable $exception) {
+            throw ResponseDeclarationException::viewNotBuilt($path, $view, $exception);
         }
     }
 

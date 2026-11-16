@@ -23,6 +23,7 @@ use Illuminate\Foundation\Console\ViewMakeCommand;
 use Illuminate\Routing\Console\ControllerMakeCommand;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Lahatre\ResponseSelection\ViewResolver;
 use Lahatre\Shared\Console\Commands\HelpersListCommand;
 use Lahatre\Shared\Console\Commands\Make\MakeClass;
 use Lahatre\Shared\Console\Commands\Make\MakeController;
@@ -37,6 +38,7 @@ use Lahatre\Shared\Console\Commands\Make\MakeView;
 use Lahatre\Shared\Console\Commands\MorphMapCacheCommand;
 use Lahatre\Shared\Console\Commands\MorphMapClearCommand;
 use Lahatre\Shared\Console\Commands\SyncChildLimitsCommand;
+use Lahatre\Shared\Policies\ReadContexts;
 use Lahatre\Shared\Registries\MorphMapRegistry;
 use Lahatre\Shared\Support\ChildLimitTriggers;
 use Lahatre\Shared\Support\GenerationalCache\GenerationalCache;
@@ -49,6 +51,8 @@ class SharedServiceProvider extends ServiceProvider
 
         $this->app->scoped(MorphMapRegistry::class);
         $this->app->scoped(GenerationalCache::class);
+        $this->app->singleton(ReadContexts::class);
+        $this->app->bind(ViewResolver::class, ReadContexts::class);
 
         $this->commands([
             HelpersListCommand::class,

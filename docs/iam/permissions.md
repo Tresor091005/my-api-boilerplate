@@ -202,3 +202,27 @@ role, including Administrator, grants it.
 - **Authorization:** the `operate-platform` Gate is the only decision point and
   stays query-free. Platform users can perform every platform action for now;
   granular abilities can be added beside the Gate later.
+
+## 8. Read contexts
+
+A read context lets a client read what a write needs without the wide read
+permission. The client sends `?for=<write permission>` on the read route, for
+example `GET /v1/catalog/price-levels?for=customer_customer.create`.
+
+- **Checked:** the write permission named by `for`, in place of the read
+  permission the line replaces. The organization check is unchanged. With
+  `for`, the normal read permission is not used.
+- **Response:** the fixed view of the line; `fields` and `include` are refused.
+
+| Context | Route | View | Permission replaced | Fields shown |
+| --- | --- | --- | --- | --- |
+| `customer_customer.create` | `GET /v1/catalog/price-levels` | `reference` | `catalog_price_level.list` | `id`, `name`, `currency_code` |
+| `customer_customer.create` | `GET /v1/catalog/price-levels/{id}` | `reference` | `catalog_price_level.retrieve` | `id`, `name`, `currency_code` |
+| `customer_customer.update` | same as `customer_customer.create` | `reference` | same | same |
+
+So `customer_customer.create` and `customer_customer.update` also let their
+holder read the price levels as `id`, `name`, `currency_code`.
+
+A line is added by decision, in `config/read-contexts.php`, with an HTTP test.
+`tests/Feature/Architecture/ReadContextsTest.php` pins the table. See
+[response selection](../api/response-selection.md#views-and-read-contexts).

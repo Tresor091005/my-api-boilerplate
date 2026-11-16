@@ -29,6 +29,8 @@ final class ResponseContext
 
     private ?ResponseDeclaration $declaration = null;
 
+    private ?string $purpose = null;
+
     /**
      * Computed values, `when:` results and virtual children, one record per model.
      *
@@ -56,9 +58,10 @@ final class ResponseContext
         $this->forgetBuilt();
     }
 
-    public function start(ResponseMode $mode, SelectionTree $selection, ResponseDeclaration $declaration): void
+    public function start(ResponseMode $mode, SelectionTree $selection, ResponseDeclaration $declaration, ?string $purpose = null): void
     {
         $this->active = true;
+        $this->purpose = $purpose;
         $this->mode = $mode;
         $this->selection = $selection;
         $this->declaration = $declaration;
@@ -71,6 +74,7 @@ final class ResponseContext
         $this->mode = ResponseMode::Resource;
         $this->selection = SelectionTree::rootFields();
         $this->declaration = null;
+        $this->purpose = null;
         $this->forgetBuilt();
     }
 
@@ -164,6 +168,14 @@ final class ResponseContext
     public function selection(): SelectionTree
     {
         return $this->selection;
+    }
+
+    /**
+     * The purpose the client gave in `for` and the application accepted, null when none.
+     */
+    public function purpose(): ?string
+    {
+        return $this->purpose;
     }
 
     /**

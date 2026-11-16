@@ -96,6 +96,22 @@ controller builds the JSON (`response()->json()` or a `JsonResource`'s
   confirmation messages and challenges;
 - the inventory lots per location and stock summary, which are computed rows.
 
+## Views and read contexts
+
+A client that prepares a write can read what it needs without the wide read
+permission, through a view. The package explains the mechanism: see
+[Views](../../packages/response-selection/README.md#views) and
+[Serving a view for a purpose](../../packages/response-selection/README.md#serving-a-view-for-a-purpose).
+What a permission opens is in [permissions](../iam/permissions.md#8-read-contexts).
+
+- `Lahatre\Shared\Policies\ReadContexts` is bound to `ViewResolver` in
+  `SharedServiceProvider`.
+- `config/read-contexts.php` is the only table of read contexts.
+- `BasePolicy::can()` checks the write permission named by `for` in place of
+  the read permission the line replaces.
+- The `price_level` include of the customer renders the `reference` view of
+  `PriceLevelResource`, so clients select it bare (`include=price_level`).
+
 ## Tests
 
 - `packages/response-selection/tests`: the package suite, on Orchestra
@@ -109,3 +125,7 @@ controller builds the JSON (`response()->json()` or a `JsonResource`'s
 - `tests/Feature/Integration/<Module>ResponseSelectionIntegrationTest.php`:
   each module's lists under `assertBoundedQueries()` and
   `assertFieldsRenderInIsolation()`.
+- `tests/Feature/Integration/ReadContextIntegrationTest.php`: the read
+  contexts over HTTP (permissions, fixed view, customer include).
+- `tests/Feature/Architecture/ReadContextsTest.php`: pins the table of
+  `config/read-contexts.php`.

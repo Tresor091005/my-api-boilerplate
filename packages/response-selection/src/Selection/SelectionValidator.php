@@ -9,7 +9,8 @@ use Lahatre\ResponseSelection\ApiResource;
 
 /**
  * Rejects a requested field or include that the Resource does not declare, before the controller runs.
- * When an include can render several Resources, a name is accepted if any of them declares it.
+ * When an include can render several Resources, a name is accepted if any of them declares it. An
+ * include fixed by a view is selected bare; SelectionViews then expands it.
  */
 final class SelectionValidator
 {
@@ -61,6 +62,17 @@ final class SelectionValidator
                 throw ValidationException::withMessages([
                     'include' => [__('response-selection::validation.unknown_include', ['path' => $child->path])],
                 ]);
+            }
+
+            // an include fixed by a view renders that view: the client only turns it on
+            if (SelectionViews::fixedView($resourceClasses, $name) !== null) {
+                if ($child->fields() !== null || $child->children() !== []) {
+                    throw ValidationException::withMessages([
+                        'include' => [__('response-selection::validation.include_is_fixed', ['path' => $child->path])],
+                    ]);
+                }
+
+                continue;
             }
 
             $this->visit($child, array_values(array_unique($children)));

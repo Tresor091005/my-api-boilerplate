@@ -14,6 +14,7 @@ use Lahatre\ResponseSelection\Enums\ResponseShape;
 use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\Selection\SelectionParser;
 use Lahatre\ResponseSelection\Selection\SelectionValidator;
+use Lahatre\ResponseSelection\Selection\SelectionViews;
 
 /**
  * Test helper that renders a model through its Resource without an HTTP request, to check what a
@@ -23,7 +24,7 @@ trait RendersApiResources
 {
     /**
      * Renders $model as ApiResponse::item() does for a request with these `fields` and `include`,
-     * and returns its `data`. An unknown name fails as it would with a 422.
+     * and returns its `data`. An unknown name, or a list under an include fixed by a view, fails as it would with a 422.
      *
      * @param  class-string<ApiResource>  $resourceClass
      * @return array<string, mixed>
@@ -32,6 +33,7 @@ trait RendersApiResources
     {
         $tree = (new SelectionParser)->parse($fields, $include);
         app(SelectionValidator::class)->validate($tree->root(), $resourceClass);
+        $tree = app(SelectionViews::class)->expand($tree, $resourceClass);
 
         $context = app(ResponseContext::class);
         $context->start(ResponseMode::Resource, $tree, new ResponseDeclaration($resourceClass, ResponseShape::Item, [200]));

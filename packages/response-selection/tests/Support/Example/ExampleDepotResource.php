@@ -17,6 +17,8 @@ final class ExampleDepotResource extends ApiResource
             ->field('name')
             ->field('code')
             ->field('badge', columns: ['code', 'name'], computedBy: fn (Model $depot): string => "[{$depot->getAttribute('code')}] {$depot->getAttribute('name')}", default: false)
-            ->virtualInclude('open_transfers', ExampleTransferResource::class, ExampleOpenTransfers::class, asList: true);
+            ->virtualInclude('open_transfers', ExampleTransferResource::class, ExampleOpenTransfers::class, asList: true)
+            ->view('reference', fields: 'id,name,badge')
+            ->view('overview', fields: 'name', include: 'open_transfers(reference,status)');
     }
 }

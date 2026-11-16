@@ -14,10 +14,11 @@ use Lahatre\ResponseSelection\Rendering\ResponseContext;
 use Lahatre\ResponseSelection\Selection\SelectionParser;
 use Lahatre\ResponseSelection\Selection\SelectionTree;
 use Lahatre\ResponseSelection\Selection\SelectionValidator;
+use Lahatre\ResponseSelection\Selection\SelectionViews;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware that reads and checks the `response`, `fields` and `include` query parameters before the
+ * Middleware that reads and checks the `response`, `fields`, `include` and `for` query parameters before the
  * controller runs. Routes that do not answer with ApiResponse pass through untouched.
  */
 class ResolveResponseSelection
@@ -27,6 +28,7 @@ class ResolveResponseSelection
         protected ResponseDeclarationRegistry $declarations,
         protected SelectionParser $parser,
         protected SelectionValidator $validator,
+        protected SelectionViews $views = new SelectionViews,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -40,8 +42,11 @@ class ResolveResponseSelection
 
         $mode = $this->resolveMode($request, $declaration->isNoContentOnly());
 
+        $resolver = $this->viewResolver();
+        $purpose = null;
+
         if ($mode === ResponseMode::None) {
-            foreach (['fields', 'include'] as $parameter) {
+            foreach ($resolver === null ? ['fields', 'include'] : ['fields', 'include', 'for'] as $parameter) {
                 if ($request->query->has($parameter)) {
                     throw ValidationException::withMessages([
                         $parameter => [__('response-selection::validation.selection_without_resource', ['parameter' => $parameter])],
@@ -50,21 +55,70 @@ class ResolveResponseSelection
             }
 
             $tree = SelectionTree::rootFields();
+        } elseif ($resolver !== null && $declaration->resourceClass !== null && $request->query->has('for')) {
+            [$purpose, $view] = $this->acceptedPurpose($request, $resolver);
+            $tree = $this->views->tree($declaration->resourceClass, $view);
         } else {
             $tree = $this->parser->parse($request->query('fields'), $request->query('include'));
 
             if ($declaration->resourceClass !== null) {
                 $this->validator->validate($tree->root(), $declaration->resourceClass);
+                $tree = $this->views->expand($tree, $declaration->resourceClass);
             }
         }
 
-        $this->context->start($mode, $tree, $declaration);
+        $this->context->start($mode, $tree, $declaration, $purpose);
 
         try {
             return $next($request);
         } finally {
             $this->context->reset();
         }
+    }
+
+    /**
+     * The ViewResolver of the application, only looked up when one is bound.
+     */
+    protected function viewResolver(): ?ViewResolver
+    {
+        return app()->bound(ViewResolver::class) ? app(ViewResolver::class) : null;
+    }
+
+    /**
+     * Checks `for` and the parameters that cannot go with it.
+     *
+     *
+     * @throws ValidationException
+     *
+     * @return array{0: string, 1: string} the purpose and its view
+     */
+    protected function acceptedPurpose(Request $request, ViewResolver $resolver): array
+    {
+        $purpose = $request->query->all()['for'] ?? null;
+
+        if (!is_string($purpose) || preg_match('/^[A-Za-z0-9_.-]{1,100}$/D', $purpose) !== 1) {
+            throw ValidationException::withMessages(['for' => [__('response-selection::validation.for_invalid')]]);
+        }
+
+        $view = $resolver->viewFor($purpose, $request);
+
+        if ($view === null) {
+            throw ValidationException::withMessages(['for' => [__('response-selection::validation.for_unknown', ['purpose' => $purpose])]]);
+        }
+
+        $messages = [];
+
+        foreach (['fields', 'include'] as $parameter) {
+            if ($request->query->has($parameter)) {
+                $messages[$parameter] = [__('response-selection::validation.selection_with_for', ['parameter' => $parameter])];
+            }
+        }
+
+        if ($messages !== []) {
+            throw ValidationException::withMessages($messages);
+        }
+
+        return [$purpose, $view];
     }
 
     protected function resolveMode(Request $request, bool $noContentOnly): ResponseMode

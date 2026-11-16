@@ -96,6 +96,15 @@ final class ApiResponse
     }
 
     /**
+     * The purpose of the current request when its `for` was accepted, so the shape is fixed to a
+     * view. Null outside a request and when no purpose was given.
+     */
+    public static function purpose(): ?string
+    {
+        return app(ResponseContext::class)->purpose();
+    }
+
+    /**
      * Responds with an empty 204, for an action declared as possibly answering with no content.
      */
     public static function noContent(): Response

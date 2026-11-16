@@ -16,6 +16,7 @@ class PriceLevelResource extends ApiResource
             ->field('name')
             ->field('currency_code')
             ->field('created_at')
-            ->field('updated_at');
+            ->field('updated_at')
+            ->view('reference', fields: 'id,name,currency_code');
     }
 }

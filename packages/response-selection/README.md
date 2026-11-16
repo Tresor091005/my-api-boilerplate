@@ -79,6 +79,7 @@ Selection parameters are read from the query string only, never from the body:
 response  := "none" | "resource"
 fields    := key ("," key)*
 include   := entry ("," entry)*
+for       := [A-Za-z0-9_.-]{1,100}
 entry     := path [ "(" key ("," key)* ")" ]
 path      := name ("." name)*
 key, name := [A-Za-z_][A-Za-z0-9_]*
@@ -102,6 +103,15 @@ key, name := [A-Za-z_][A-Za-z0-9_]*
   include may render declares it. It applies to the children whose Resource
   declares it and is ignored on the others: with `include=subject(options)`,
   variants render `options`, bundles do not.
+- Some includes have a fixed shape: the API always renders the same fields
+  for them (a view). Select such an include bare (`include=customer`); a
+  field list or a deeper path under it (`customer(name)`,
+  `customer.addresses`) is refused with `include_is_fixed`.
+
+- Some APIs also accept `for`, the purpose of the request (`for=order.create`).
+  The API then answers with one fixed shape for that purpose, and `fields`
+  and `include` can no longer be sent with it. An API that does not use `for`
+  ignores it. See "The `for` parameter" below.
 
 Some requests:
 
@@ -123,6 +133,20 @@ POST  /orders
 
 `none` answers `204 No Content`. A write returns its resource only with
 `?response=resource`, optionally with `fields` and `include`.
+
+### The `for` parameter
+
+`for` tells the API what the response is for: `GET /customers?for=order.create`
+asks for the customers as an order form needs them. When the API accepts the
+purpose, the response is one fixed shape chosen by the API for it (a view), the
+same whatever the client would have selected. It works in mode `resource`, so
+on a write it goes with `?response=resource`.
+
+- `for` is a string of 1 to 100 letters, digits, `_`, `.` or `-`.
+- `fields` and `include` cannot be sent with `for`: each one sent is refused
+  with `selection_with_for`, keyed by that parameter.
+- `for` only changes the shape. Whether the request is allowed is decided by
+  the API, as for any other request.
 
 ### Body shapes
 
@@ -156,7 +180,7 @@ include, when the API offers one, tells whether the list was cut.
 ### Errors
 
 A rejected selection answers `422` with Laravel's validation format, keyed by
-`fields`, `include` or `response`, before the action runs, whatever the HTTP
+`fields`, `include`, `response` or `for`, before the action runs, whatever the HTTP
 method. Messages come from `response-selection::validation.*`:
 
 | Key | Raised when |
@@ -169,9 +193,13 @@ method. Messages come from `response-selection::validation.*`:
 | `depth_exceeded`, `too_many_paths`, `too_many_fields` | A limit is exceeded |
 | `invalid_mode` | `response` is not `none` or `resource` |
 | `mode_not_allowed` | The mode is not allowed for this method or action |
-| `selection_without_resource` | `fields` or `include` is sent in mode `none` |
+| `selection_without_resource` | `fields`, `include` or `for` is sent in mode `none` |
 | `unknown_field` | A key is not a field of the Resource (keyed `fields` at the root, `include` below; the message gives the dotted path) |
 | `unknown_include` | An include path segment is not an include of the Resource (keyed `include`, with the dotted path) |
+| `for_invalid` | `for` is not a string of 1 to 100 letters, digits, `_`, `.` or `-` (keyed `for`) |
+| `for_unknown` | The API does not accept this purpose on this endpoint (keyed `for`) |
+| `selection_with_for` | `fields` or `include` is sent together with `for` (keyed by each one sent) |
+| `include_is_fixed` | A field list or a deeper path is given under an include with a fixed shape (keyed `include`, with the dotted path) |
 
 `id` is always accepted. Names are checked against the declarations only: a
 member its `when:` refuses is still a known name, and is then left out of the
@@ -234,11 +262,13 @@ field(string $name, ?array $columns = null, ?array $relations = null,
     array $fields = [], string|Closure|null $computedBy = null,
     bool $default = true, ?Closure $when = null)
 include(string $name, string|ResourceResolver $resource,
-    ?string $relation = null, ?int $limit = null, ?Closure $when = null)
+    ?string $relation = null, ?int $limit = null, ?Closure $when = null,
+    ?string $view = null)
 virtualInclude(string $name, string|ResourceResolver $resource,
     string|Closure $loader, bool $asList = false, array $columns = [],
     array $relations = [], array $fields = [], ?int $limit = null,
-    ?Closure $when = null)
+    ?Closure $when = null, ?string $view = null)
+view(string $name, string $fields, string $include = '')
 ```
 
 - `field()`: a JSON key with what **it** reads: `columns` of the model's
@@ -281,6 +311,82 @@ An `ApiResource` renders only through `ApiResponse` or a parent include.
 Rendered any other way (`new OrderResource($order)`, inside a plain
 `JsonResource`), it throws: a Resource rendered outside `ApiResponse` stays a
 `JsonResource`.
+
+#### Views
+
+A view is a named selection the backend writes, in the client grammar of
+`fields` and `include`:
+
+```php
+// CustomerResource
+$resource->view('reference', fields: 'id,name');
+
+// OrderResource
+$resource
+    ->include('customer', CustomerResource::class, view: 'reference')
+    ->view('summary', fields: 'id,reference,total',
+        include: 'customer,lines(sku,quantity),lines.product(name)');
+```
+
+- A view is a white list at every level: `fields` is not empty, every include
+  entry has its own field list, and a path prefix needs its own list too
+  (`lines.product(name)` alone is refused). A field added to the Resource
+  later never enters a view by itself.
+- View names are snake_case and unique per Resource, `parent::define()`
+  included. They do not clash with field or include names.
+- `view:` on `include()` or `virtualInclude()` fixes the child: it always
+  renders that view of its Resource, and clients select the include bare.
+  Inside a view, such an include is written bare too and takes its own view.
+  The child Resource's own routes are not affected.
+- `view:` needs one fixed child Resource: with a `ResourceResolver` it throws.
+  Where several Resources render one level, an include fixed by a view in one
+  must be fixed by the same view of the same Resource in every other one that
+  declares it.
+- The configured limits apply to the text of each view, not to the selection
+  it expands to.
+
+A mistake in a view is a programming error, never a `422`. Freezing checks the
+syntax, the limits and the names of the view's first level. The levels below
+need the children's definitions: the declaration analyzer checks them for
+every Resource it reaches (cache build, field isolation helper), and so does
+the first request using the view. `SelectionViews::tree($resourceClass,
+$view)` gives the selection of one view, its fixed includes expanded.
+
+#### Serving a view for a purpose
+
+Binding a `ViewResolver` turns the `for` parameter on. Without one, the package
+ignores `for`, so an application can keep using that name as a filter.
+
+```php
+use Illuminate\Http\Request;
+use Lahatre\ResponseSelection\ViewResolver;
+
+final class OrderFormViews implements ViewResolver
+{
+    public function viewFor(string $purpose, Request $request): ?string
+    {
+        return match ($purpose) {
+            'order.create' => 'reference', // the view of the Resource the action renders
+            default        => null,        // not accepted: 422 for_unknown
+        };
+    }
+}
+
+// a service provider
+$this->app->bind(ViewResolver::class, OrderFormViews::class);
+```
+
+On an action that renders a Resource, when the request has `for`, the
+middleware checks its value, asks the resolver, refuses `fields` and `include`
+sent with it, then fixes the whole response to `SelectionViews::tree()` of the
+action's Resource and that view. A view the Resource does not declare is a
+programming error, not a `422`.
+
+The package never checks a permission: it only fixes the shape. The resolver
+and the code around it decide whether the purpose is allowed. Inside the action
+or anything it calls, `ApiResponse::purpose()` gives the accepted value, and
+is `null` when the request has no `for` and once the request is over. It
+tells that the shape is fixed to a view.
 
 #### Counts, sums and other aggregates
 
@@ -481,7 +587,9 @@ A `ResponseSelectionException` is thrown, instead of a silent render, for:
 - a relation path continuing after a `MorphTo` (use a `FieldComputer` with
   `loadMorph()`);
 - a declared name that is not a relation, or a resolver returning a class
-  absent from its `resources()`.
+  absent from its `resources()`;
+- a view declared wrong (see [Views](#views)), or a `view:` its child
+  Resource does not declare.
 
 `ResponseSelectionException` and `ResponseDeclarationException` extend
 `LogicException`: they report a programming error, so they surface as server
@@ -497,8 +605,9 @@ action without `ApiResponse` call, or the Resource, the shape, the statuses and
 whether the action may answer empty. A broken rule of
 [Writing an action](#writing-an-action) throws a `ResponseDeclarationException`.
 For each Resource and each child it may render, it also checks that the
-definition freezes and that every class it names exists and implements its
-contract.
+definition freezes, that every class it names exists and implements its
+contract, and that every view, and every view an include fixes, builds down to
+its last level.
 
 `ResponseDeclarationRegistry` maps each `Controller@method` to its declaration.
 `php artisan response-declarations:cache` analyzes every route and writes
@@ -531,21 +640,23 @@ required. Field values are not typed.
   (`AssertsResponseFieldIsolation`): every field requested alone, at every
   include up to depth 2, renders the same value as in the full response, so a
   column or relation only a sibling field declares fails. Seed rows at every
-  include.
+  include. An include fixed by a view is one block: it is requested bare, its
+  fields are not isolated and nothing below it is visited.
 
 To check what a Resource shows without an HTTP request,
 `renderApiResource($model, XResource::class, $fields, $include)`
 (`RendersApiResources`) renders a model as `ApiResponse::item()` would and
-returns its `data`. A Resource cannot be built directly (`new XResource()`):
+returns its `data`, with the same checks and view expansion as the
+middleware. A Resource cannot be built directly (`new XResource()`):
 it renders only through `ApiResponse`.
 
 ### Package layout
 
 The root of `src/` holds what an application uses: `ApiResource`,
-`ApiResponse`, `ResourceDefinition`, the builder contracts (`FieldComputer`,
+`ApiResponse`, `ResourceDefinition`, `ViewResolver`, the builder contracts (`FieldComputer`,
 `VirtualIncludeLoader`, `ResourceResolver`, `BuiltValues`) and the
 `ResolveResponseSelection` middleware. The internals sit in `Selection/`
-(reading and checking `fields` and `include`), `Declaration/` (what each action
+(reading and checking `fields` and `include`, expanding views), `Declaration/` (what each action
 renders), `Rendering/` (loading, computing, per-request state), `Console/`,
 `Scramble/` and `Testing/`.
 

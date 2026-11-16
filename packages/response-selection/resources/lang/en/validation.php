@@ -16,6 +16,10 @@ return [
     'invalid_mode'                 => 'The response parameter must be one of: :allowed.',
     'mode_not_allowed'             => 'The response mode ":mode" is not allowed on this endpoint.',
     'selection_without_resource'   => 'The :parameter parameter cannot be used when the response mode is none.',
+    'for_invalid'                  => 'The for parameter must be a string of 1 to 100 letters, digits, underscores, dots or hyphens.',
+    'for_unknown'                  => 'The purpose ":purpose" is not accepted here.',
+    'selection_with_for'           => 'The :parameter parameter cannot be used together with for.',
     'unknown_field'                => 'The field ":path" does not exist.',
     'unknown_include'              => 'The include ":path" does not exist.',
+    'include_is_fixed'             => 'The include ":path" has a fixed shape: select it without a field list or a deeper path.',
 ];
