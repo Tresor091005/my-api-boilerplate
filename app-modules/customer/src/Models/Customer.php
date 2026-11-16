@@ -31,6 +31,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string|null $identification_number
  * @property bool $is_active
  * @property string|null $price_level_id
+ * @property CarbonImmutable|null $payment_due_date
+ * @property bool $is_walk_in
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -80,6 +82,7 @@ class Customer extends Model implements HasFileSlots
         'identification_number',
         'is_active',
         'price_level_id',
+        'payment_due_date',
     ];
 
     protected $casts = [
@@ -90,6 +93,8 @@ class Customer extends Model implements HasFileSlots
         'identification_number' => 'string',
         'is_active'             => 'boolean',
         'price_level_id'        => 'string',
+        'payment_due_date'      => 'immutable_date',
+        'is_walk_in'            => 'boolean',
         'created_at'            => 'immutable_datetime',
         'updated_at'            => 'immutable_datetime',
         'deleted_at'            => 'immutable_datetime',

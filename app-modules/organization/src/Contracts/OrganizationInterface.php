@@ -21,6 +21,9 @@ interface OrganizationInterface
     /** The currency every amount of the organization is kept in; it never changes. */
     public function functionalCurrency(string $organizationId): Currency;
 
+    /** The current day in the organization's timezone, at midnight of that timezone. */
+    public function today(string $organizationId): CarbonImmutable;
+
     /** Whether the organization works in this currency; the functional currency always is. */
     public function isCurrencyEnabled(string $organizationId, string $currencyCode): bool;
 

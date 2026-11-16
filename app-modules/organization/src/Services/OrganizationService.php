@@ -54,6 +54,15 @@ class OrganizationService implements OrganizationInterface
         return $this->functionalCurrencyResolver->forOrganization($organizationId);
     }
 
+    public function today(string $organizationId): CarbonImmutable
+    {
+        $timezone = OrganizationSetting::query()
+            ->where('organization_id', $organizationId)
+            ->value('timezone');
+
+        return CarbonImmutable::now(is_string($timezone) ? $timezone : (string) config('app.timezone'))->startOfDay();
+    }
+
     public function isCurrencyEnabled(string $organizationId, string $currencyCode): bool
     {
         if ($this->functionalCurrency($organizationId)->code === $currencyCode) {

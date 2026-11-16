@@ -7,7 +7,11 @@ It currently provides:
 
 - `initializeOrganization(OrganizationData $data)` for creating an organization
   with its owner, immutable functional currency, timezone, and initial enabled currency;
-- `findOrganizationById(string $organizationId)` for individual organization lookup.
+- `findOrganizationById(string $organizationId)` for individual organization lookup;
+- `today(string $organizationId)` for the current day in the organization's
+  timezone, at midnight of that timezone (the application's timezone when the
+  organization has no settings row). The customer and sale modules read it
+  for payment due dates.
 
 The public `Organization` model also supports IAM's read-only
 `OrganizationMember::organization()` relationship. IAM eager loads this relation

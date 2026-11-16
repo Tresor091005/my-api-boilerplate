@@ -430,10 +430,17 @@ its `content_url`, each selectable: `?include=main_files(name,content_url)`.
 Customer profile pictures also link existing Library images. The file remains
 in Library when its customer is deleted.
 
+A customer has a `payment_due_date` (`Y-m-d`, from today on, or `null`): the
+date a [credit sale](../modules/sale.md#sale-conditions) falls back on when it
+has none of its own, sent on create and update (left out on update, it stays).
+A past date is refused; "today" is read in the organization's timezone. `is_walk_in` is read-only: the one customer of
+counter sales, created the first time the organization needs it; it cannot be
+deleted.
+
 A customer may have a `price_level_id`, a non-deleted
 [price level](#catalog) of the organization, or `null`. It is the only level the
-customer is sold at, so also the currency of its sales; with `null` the sale
-chooses the level. A level a customer uses cannot be deleted.
+customer is sold at, so also the currency of its sales; with `null` the seller
+chooses the level on each sale. A level a customer uses cannot be deleted.
 `?include=price_level` renders it.
 
 | Method | URI | Purpose |

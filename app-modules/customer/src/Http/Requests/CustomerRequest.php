@@ -10,6 +10,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
 use Lahatre\Customer\Enums\CustomerType;
+use Lahatre\Organization\Contracts\OrganizationInterface;
+use Lahatre\Shared\Rules\YmdDate;
 
 class CustomerRequest extends FormRequest
 {
@@ -24,7 +26,13 @@ class CustomerRequest extends FormRequest
             'name'                  => [...$presence, 'string', 'max:100'],
             'identification_number' => ['nullable', 'string', 'max:100'],
             'is_active'             => [...$presence, 'boolean'],
-            'price_level_id'        => [
+            'payment_due_date'      => [
+                'bail',
+                'nullable',
+                new YmdDate,
+                'after_or_equal:'.app(OrganizationInterface::class)->today(currentOrganizationId())->toDateString(),
+            ],
+            'price_level_id' => [
                 'nullable',
                 'uuid',
                 Rule::exists('catalog_price_levels', 'id')

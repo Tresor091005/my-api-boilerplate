@@ -154,6 +154,7 @@ return [
         'catalog_item_prices'                   => ['catalog_item_prices_organization_id_id_unique'],
         'catalog_stock_transfers'               => ['catalog_stock_transfers_org_id_unique'],
         'inventory_locations'                   => ['inventory_locations_organization_id_id_unique'],
+        'customer_customers'                    => ['customer_customers_organization_id_id_unique'],
         'tax_taxes'                             => ['tax_taxes_organization_id_id_unique'],
         'tax_profiles'                          => ['tax_profiles_organization_id_id_unique'],
         'inventory_stocks'                      => [

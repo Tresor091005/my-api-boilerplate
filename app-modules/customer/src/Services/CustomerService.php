@@ -8,15 +8,20 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Customer\Contracts\CustomerInterface;
 use Lahatre\Customer\Data\CustomerData;
 use Lahatre\Customer\Data\CustomerFilterData;
+use Lahatre\Customer\Enums\CustomerType;
+use Lahatre\Customer\Exceptions\CustomerException;
 use Lahatre\Customer\Models\Customer;
 use Lahatre\Library\Contracts\LibraryInterface;
 
 use function Lahatre\Shared\Data\required;
 use function Lahatre\Shared\Data\withoutMissing;
 
-class CustomerService
+use Lahatre\Shared\Support\TransactionLock;
+
+class CustomerService implements CustomerInterface
 {
     public function __construct(private readonly LibraryInterface $attachmentService) {}
 
@@ -43,6 +48,7 @@ class CustomerService
             'name'                  => $data->name,
             'identification_number' => $data->identificationNumber,
             'price_level_id'        => $data->priceLevelId,
+            'payment_due_date'      => $data->paymentDueDate,
             'is_active'             => required($data->isActive),
         ]);
 
@@ -65,6 +71,7 @@ class CustomerService
                 'identification_number' => $data->identificationNumber,
                 'is_active'             => $data->isActive,
                 'price_level_id'        => $data->priceLevelId,
+                'payment_due_date'      => $data->paymentDueDate,
             ]));
             $lockedCustomer->save();
 
@@ -78,11 +85,29 @@ class CustomerService
 
         DB::transaction(function () use ($customer, $organizationId): void {
             $lockedCustomer = $this->lockCustomer($customer, $organizationId);
+
+            if ($lockedCustomer->is_walk_in) {
+                throw CustomerException::walkInCannotBeDeleted($lockedCustomer->id);
+            }
+
             $lockedCustomer->addresses()->delete();
             $lockedCustomer->contacts()->delete();
             $this->attachmentService->detachAll($lockedCustomer);
             $lockedCustomer->delete();
         });
+    }
+
+    public function walkInCustomer(string $organizationId): Customer
+    {
+        $customer = $this->findWalkIn($organizationId);
+
+        if ($customer !== null) {
+            return $customer;
+        }
+
+        TransactionLock::acquire("customer.walk-in:{$organizationId}");
+
+        return $this->findWalkIn($organizationId) ?? $this->createWalkIn($organizationId);
     }
 
     private function lockCustomer(Customer $customer, string $organizationId): Customer
@@ -116,5 +141,28 @@ class CustomerService
         return $query
             ->orderBy($filters->sortBy, $filters->sortOrder)
             ->orderBy('id', $filters->sortOrder);
+    }
+
+    private function findWalkIn(string $organizationId): ?Customer
+    {
+        return Customer::query()
+            ->where('organization_id', $organizationId)
+            ->where('is_walk_in', true)
+            ->first();
+    }
+
+    private function createWalkIn(string $organizationId): Customer
+    {
+        $customer = new Customer;
+        $customer->fill([
+            'organization_id' => $organizationId,
+            'type'            => CustomerType::Individual,
+            'name'            => __('customer::messages.walk_in_customer_name'),
+            'is_active'       => true,
+        ]);
+        $customer->is_walk_in = true;
+        $customer->save();
+
+        return $customer;
     }
 }
