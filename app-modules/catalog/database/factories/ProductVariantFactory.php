@@ -34,6 +34,8 @@ class ProductVariantFactory extends Factory
             'id'              => (string) Str::uuid7(),
             'organization_id' => $organizationId,
             'product_id'      => Product::factory(['organization_id' => $organizationId]),
+            // factory variants have no option values; a random signature stands in for the empty one so several can share a product
+            'option_signature' => hash('sha256', (string) Str::uuid7()),
         ];
     }
 }

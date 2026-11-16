@@ -11,6 +11,8 @@ return [
     'option_value_not_attached_to_option'                => 'The option value does not belong to the selected option.',
     'product_variant_is_last'                            => 'Cannot delete the last variant of a product.',
     'product_variant_not_attached_to_product'            => 'The product variant does not belong to the selected product.',
+    'product_variant_option_combination_taken'           => 'Another variant of this product already has these options; each variant needs its own combination.',
+    'product_variant_options_unavailable'                => 'An option was deleted while the variant was saved. Send the variant again.',
     'label_in_use'                                       => 'Cannot delete a label that is currently in use by products: :products.',
     'bundle_system_unit_group_missing'                   => 'The system bundle unit group is unavailable.',
     'bundle_items_unavailable'                           => 'One or more selected bundle items are unavailable.',

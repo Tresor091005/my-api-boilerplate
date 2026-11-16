@@ -18,8 +18,8 @@ class ProductVariantResource extends ApiResource
     {
         $resource
             ->field('id')
-            // the product name followed by the variant's option values
-            ->field('name', columns: ['product_id'], relations: ['product', 'optionValues.option'])
+            // "Shirt (Red, L)": the product name followed by the variant's option values, in its order
+            ->field('name', columns: ['product_id'], relations: ['product', 'optionValues'])
             ->field('product_id');
         self::catalogItemFields($resource);
         $resource

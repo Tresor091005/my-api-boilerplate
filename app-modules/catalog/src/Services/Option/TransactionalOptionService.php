@@ -14,6 +14,10 @@ use Lahatre\Catalog\Models\OptionValue;
 class TransactionalOptionService
 {
     /**
+     * The option values asked for, created when missing, keyed by
+     * `valueKey()`. They are share-locked, so none can be deleted before the
+     * caller's transaction ends; one deleted meanwhile is absent.
+     *
      * @param  Collection<int, array{name: string, value: string}>  $optionsData
      * @return Collection<string, OptionValue>
      */
@@ -84,8 +88,15 @@ class TransactionalOptionService
             ->with('option')
             ->where('organization_id', $organizationId)
             ->whereIn('option_id', $options->pluck('id'))
+            ->sharedLock()
             ->get()
-            ->keyBy(fn (OptionValue $optionValue): string => $optionValue->option->name.'-'.$optionValue->value);
+            ->keyBy(fn (OptionValue $optionValue): string => self::valueKey($optionValue->option->name, $optionValue->value));
+    }
+
+    /** The key of an option value in the result of `resolveOrCreateValues()`. */
+    public static function valueKey(string $optionName, string $value): string
+    {
+        return json_encode([$optionName, $value], JSON_THROW_ON_ERROR);
     }
 
     /**

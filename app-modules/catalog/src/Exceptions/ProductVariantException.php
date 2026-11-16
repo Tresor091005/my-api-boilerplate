@@ -32,6 +32,30 @@ final class ProductVariantException extends AssertionException
         );
     }
 
+    /** @param list<array<int, array{name: string, value: string}>> $combinations */
+    public static function optionCombinationTaken(Product $product, array $combinations): self
+    {
+        return new self(
+            __('catalog::exceptions.product_variant_option_combination_taken'),
+            [
+                'product_id' => $product->id,
+                'options'    => $combinations,
+            ]
+        );
+    }
+
+    /** @param list<array{name: string, value: string}> $options */
+    public static function optionsUnavailable(Product $product, array $options): self
+    {
+        return new self(
+            __('catalog::exceptions.product_variant_options_unavailable'),
+            [
+                'product_id' => $product->id,
+                'options'    => $options,
+            ]
+        );
+    }
+
     private function __construct(string $message, array $context = [])
     {
         parent::__construct($message, $context);

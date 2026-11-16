@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Assertions;
 
+use Illuminate\Support\Collection;
 use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
@@ -41,5 +42,29 @@ class ProductVariantAssertion
         if (!$otherVariantsExist) {
             throw ProductVariantException::isLast($variant);
         }
+    }
+
+    /**
+     * Assert that each combination of option values is used by one variant of
+     * the product only, among the given ones and the product's other live
+     * variants.
+     *
+     * @param  Collection<int, array{signature: string, options: array<int, array{name: string, value: string}>}>  $combinations
+     * @param  Collection<int, string>  $takenSignatures  signatures of the product's other live variants among the given ones
+     *
+     * @throws ProductVariantException If two given variants share a combination or one is already taken.
+     */
+    public function assertOptionCombinationsAvailable(Product $product, Collection $combinations, Collection $takenSignatures): void
+    {
+        $repeated = $combinations->pluck('signature')->duplicates()->merge($takenSignatures)->unique();
+
+        if ($repeated->isEmpty()) {
+            return;
+        }
+
+        throw ProductVariantException::optionCombinationTaken(
+            $product,
+            $combinations->whereIn('signature', $repeated)->unique('signature')->pluck('options')->values()->all(),
+        );
     }
 }

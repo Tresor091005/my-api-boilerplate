@@ -313,6 +313,13 @@ organization can see why and pay.
 product's `update_variant` permission. Option values are nested and scoped under
 `options/{option}/values`.
 
+A variant keeps its `options` in the order they are sent, on creation and when
+they are replaced; its name follows that order. No two live variants of a
+product may share a combination of option values, whatever their order, and a
+product has at most one variant without options: a repeated combination, in
+the request or already used, answers 422 `ProductVariantException` with the
+repeated `options` in its context. A deleted variant frees its combination.
+
 `config/child-limits.php` caps the children of a record, however they are
 added; going beyond answers 422 `ChildLimitException`. In the catalog: 250
 values per option, 2 048 variants per product, 3 options per variant, 250

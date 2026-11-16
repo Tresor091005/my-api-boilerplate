@@ -89,11 +89,17 @@ class OptionService
 
     public function delete(Option $option): void
     {
-        $this->optionAssertion->assertCanDelete($option);
-
         DB::transaction(function () use ($option): void {
-            $option->values()->delete();
-            $option->delete();
+            // locked so no variant can take the option or one of its values between the check and the deletion
+            $lockedOption = Option::query()
+                ->where('organization_id', $option->organization_id)
+                ->whereKey($option->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $lockedOption->values()->lockForUpdate()->get(['id']);
+            $this->optionAssertion->assertCanDelete($lockedOption);
+            $lockedOption->values()->delete();
+            $lockedOption->delete();
         });
     }
 }

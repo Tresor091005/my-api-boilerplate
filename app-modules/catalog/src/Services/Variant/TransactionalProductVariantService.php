@@ -6,12 +6,16 @@ namespace Lahatre\Catalog\Services\Variant;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Lahatre\Catalog\Assertions\ProductVariantAssertion;
 use Lahatre\Catalog\Data\CatalogItemData;
 use Lahatre\Catalog\Data\ProductVariantData;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Exceptions\ProductVariantException;
 use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\OptionValue;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\VariantOptionValue;
@@ -22,11 +26,18 @@ class TransactionalProductVariantService
 {
     public function __construct(
         protected TransactionalCatalogItemService $transactionalCatalogItemService,
-        protected TransactionalOptionService $transactionalOptionService
+        protected TransactionalOptionService $transactionalOptionService,
+        protected ProductVariantAssertion $productVariantAssertion,
     ) {}
 
     /**
+     * Creates variants of a product, each with its option values in the order
+     * they were sent. The caller owns the surrounding transaction.
+     *
      * @param  Collection<int, ProductVariantData>  $variantsData
+     *
+     * @throws ProductVariantException If two variants of the product would share their combination of option values.
+     *
      * @return EloquentCollection<int, ProductVariant>
      */
     public function createMany(Product $product, Collection $variantsData): EloquentCollection
@@ -34,6 +45,15 @@ class TransactionalProductVariantService
         if ($variantsData->isEmpty()) {
             return new EloquentCollection;
         }
+
+        $variantsData = $variantsData->values();
+        $optionValues = $this->resolveOptionValues($product, $variantsData->map(fn (ProductVariantData $variantData): array => $variantData->options));
+        $combinations = $this->combinations($variantsData->map(fn (ProductVariantData $variantData): array => $variantData->options), $optionValues);
+        $this->productVariantAssertion->assertOptionCombinationsAvailable(
+            $product,
+            $combinations,
+            $this->takenSignatures($product, $combinations->pluck('signature')),
+        );
 
         $catalogItems = $this->transactionalCatalogItemService->createManyProductVariants(
             $product->organization_id,
@@ -44,26 +64,25 @@ class TransactionalProductVariantService
         );
 
         $variantRows = collect();
-        $variantOptions = collect();
-        $variantDataWithCatalogItems = $variantsData->values()->zip($catalogItems->values());
+        $variantOptionValues = collect();
+        $variantDataWithCatalogItems = $variantsData->zip($catalogItems->values());
 
-        foreach ($variantDataWithCatalogItems as $pair) {
-            /** @var ProductVariantData $variantData */
-            $variantData = $pair[0];
+        foreach ($variantDataWithCatalogItems as $index => $pair) {
             /** @var CatalogItem $catalogItem */
             $catalogItem = $pair[1];
 
             $variantRows->push([
-                'id'              => $catalogItem->id,
-                'organization_id' => $product->organization_id,
-                'product_id'      => $product->id,
-                'created_at'      => $catalogItem->created_at,
-                'updated_at'      => $catalogItem->updated_at,
+                'id'               => $catalogItem->id,
+                'organization_id'  => $product->organization_id,
+                'product_id'       => $product->id,
+                'option_signature' => $combinations[$index]['signature'],
+                'created_at'       => $catalogItem->created_at,
+                'updated_at'       => $catalogItem->updated_at,
             ]);
-            $variantOptions->put($catalogItem->id, $variantData->options);
+            $variantOptionValues->put($catalogItem->id, $optionValues[$index]);
         }
 
-        ProductVariant::insert($variantRows->all());
+        $this->guardSignatures($product, $combinations, fn (): bool => ProductVariant::insert($variantRows->all()));
 
         /** @var EloquentCollection<int, ProductVariant> $variants */
         $variants = ProductVariant::query()
@@ -71,7 +90,7 @@ class TransactionalProductVariantService
             ->whereIn('id', $variantRows->pluck('id')->all())
             ->get();
 
-        $this->attachOptions($product, $variantOptions);
+        $this->attachOptionValues($product, $variantOptionValues);
 
         $variantsById = $variants->keyBy('id');
         foreach ($variantDataWithCatalogItems as $pair) {
@@ -91,19 +110,36 @@ class TransactionalProductVariantService
     }
 
     /**
+     * Replaces the option values of a variant, kept in the order they were
+     * sent. The caller owns the surrounding transaction.
+     *
      * @param  array<int, array{name: string, value: string}>  $optionsData
+     *
+     * @throws ProductVariantException If another variant of the product already has this combination of option values.
      */
     public function replaceOptions(Product $product, ProductVariant $variant, array $optionsData): void
     {
+        $optionValues = $this->resolveOptionValues($product, collect([$optionsData]));
+        $combinations = $this->combinations(collect([$optionsData]), $optionValues);
+        $this->productVariantAssertion->assertOptionCombinationsAvailable(
+            $product,
+            $combinations,
+            $this->takenSignatures($product, $combinations->pluck('signature'), $variant->id),
+        );
+
         VariantOptionValue::query()
             ->where('organization_id', $product->organization_id)
             ->where('product_id', $product->id)
             ->where('variant_id', $variant->id)
             ->delete();
 
-        $this->attachOptions($product, collect([
-            $variant->id => $optionsData,
-        ]));
+        $this->guardSignatures($product, $combinations, fn (): int => ProductVariant::query()
+            ->where('organization_id', $product->organization_id)
+            ->whereKey($variant->id)
+            ->update(['option_signature' => $combinations[0]['signature']]));
+        $variant->option_signature = $combinations[0]['signature'];
+
+        $this->attachOptionValues($product, collect([$variant->id => $optionValues[0]]));
     }
 
     public function delete(ProductVariant $variant): void
@@ -158,41 +194,105 @@ class TransactionalProductVariantService
     }
 
     /**
-     * @param  Collection<string, array<int, array{name: string, value: string}>>  $variantOptions
+     * The option values of each variant, in the order they were sent; an
+     * option value is created when missing.
+     *
+     * @param  Collection<int, array<int, array{name: string, value: string}>>  $variantsOptions
+     *
+     * @throws ProductVariantException If an option value was deleted meanwhile.
+     *
+     * @return Collection<int, Collection<int, OptionValue>>
      */
-    protected function attachOptions(Product $product, Collection $variantOptions): void
+    protected function resolveOptionValues(Product $product, Collection $variantsOptions): Collection
     {
-        $allOptions = $variantOptions->flatMap(fn (array $options): array => $options);
+        $optionValuesMap = $this->transactionalOptionService->resolveOrCreateValues($variantsOptions->flatten(1));
+        $find = fn (array $optionData): ?OptionValue => $optionValuesMap->get(
+            TransactionalOptionService::valueKey($optionData['name'], $optionData['value']),
+        );
+        $missing = $variantsOptions->flatten(1)->reject(fn (array $optionData): bool => $find($optionData) !== null);
 
-        if ($allOptions->isEmpty()) {
-            return;
+        if ($missing->isNotEmpty()) {
+            throw ProductVariantException::optionsUnavailable($product, $missing->unique()->values()->all());
         }
 
-        $optionValuesMap = $this->transactionalOptionService->resolveOrCreateValues($allOptions);
+        return $variantsOptions->map(fn (array $options): Collection => collect($options)
+            ->map(fn (array $optionData): OptionValue => $optionValuesMap->get(TransactionalOptionService::valueKey($optionData['name'], $optionData['value'])))
+            ->values());
+    }
 
-        $pivotRows = [];
-        foreach ($variantOptions as $variantId => $optionsData) {
-            foreach ($optionsData as $optionData) {
-                $mapKey = $optionData['name'].'-'.$optionData['value'];
-                $optionValue = $optionValuesMap->get($mapKey);
+    /**
+     * @param  Collection<int, array<int, array{name: string, value: string}>>  $variantsOptions
+     * @param  Collection<int, Collection<int, OptionValue>>  $optionValues
+     * @return Collection<int, array{signature: string, options: array<int, array{name: string, value: string}>}>
+     */
+    protected function combinations(Collection $variantsOptions, Collection $optionValues): Collection
+    {
+        return $variantsOptions->map(fn (array $options, int $index): array => [
+            'signature' => ProductVariant::optionSignature($optionValues[$index]->pluck('id')),
+            'options'   => $options,
+        ]);
+    }
 
-                if (!$optionValue) {
-                    continue;
-                }
+    /**
+     * @param  Collection<int, string>  $signatures
+     * @return Collection<int, string>
+     */
+    protected function takenSignatures(Product $product, Collection $signatures, ?string $exceptVariantId = null): Collection
+    {
+        return ProductVariant::query()
+            ->where('organization_id', $product->organization_id)
+            ->where('product_id', $product->id)
+            ->whereIn('option_signature', $signatures->unique()->values())
+            ->when($exceptVariantId, fn ($query, string $id) => $query->whereKeyNot($id))
+            ->pluck('option_signature');
+    }
 
-                $pivotRows[] = [
-                    'id'              => (string) Str::uuid7(),
-                    'organization_id' => $product->organization_id,
-                    'product_id'      => $product->id,
-                    'variant_id'      => $variantId,
-                    'option_id'       => $optionValue->option_id,
-                    'option_value_id' => $optionValue->id,
-                ];
+    /**
+     * Runs a write a simultaneous variant may race; the partial unique index
+     * is the last guard and its refusal reads as the business failure.
+     *
+     * @template TResult
+     *
+     * @param  Collection<int, array{signature: string, options: array<int, array{name: string, value: string}>}>  $combinations
+     * @param  callable(): TResult  $write
+     *
+     * @throws ProductVariantException If another variant of the product took a combination meanwhile.
+     *
+     * @return TResult
+     */
+    protected function guardSignatures(Product $product, Collection $combinations, callable $write): mixed
+    {
+        try {
+            return $write();
+        } catch (QueryException $exception) {
+            if ($exception->getCode() === '23505' && str_contains($exception->getMessage(), 'catalog_product_variants_option_signature_unique')) {
+                throw ProductVariantException::optionCombinationTaken($product, $combinations->pluck('options')->values()->all());
             }
-        }
 
-        if ($pivotRows !== []) {
-            VariantOptionValue::insert($pivotRows);
+            throw $exception;
+        }
+    }
+
+    /**
+     * @param  Collection<string, Collection<int, OptionValue>>  $variantOptionValues  keyed by variant id
+     */
+    protected function attachOptionValues(Product $product, Collection $variantOptionValues): void
+    {
+        $pivotRows = $variantOptionValues->flatMap(fn (Collection $optionValues, string $variantId): array => $optionValues
+            ->values()
+            ->map(fn (OptionValue $optionValue, int $index): array => [
+                'id'              => (string) Str::uuid7(),
+                'organization_id' => $product->organization_id,
+                'product_id'      => $product->id,
+                'variant_id'      => $variantId,
+                'option_id'       => $optionValue->option_id,
+                'option_value_id' => $optionValue->id,
+                'position'        => $index + 1,
+            ])
+            ->all());
+
+        if ($pivotRows->isNotEmpty()) {
+            VariantOptionValue::insert($pivotRows->all());
         }
     }
 }

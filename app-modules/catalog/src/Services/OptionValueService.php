@@ -72,8 +72,15 @@ class OptionValueService
     {
         $this->optionValueAssertion->assertBelongsToOption($option, $optionValue);
 
-        $this->optionValueAssertion->assertCanDelete($optionValue);
-
-        DB::transaction(fn (): ?bool => $optionValue->delete());
+        DB::transaction(function () use ($optionValue): void {
+            // locked so no variant can take the value between the check and the deletion
+            $lockedValue = OptionValue::query()
+                ->where('organization_id', $optionValue->organization_id)
+                ->whereKey($optionValue->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $this->optionValueAssertion->assertCanDelete($lockedValue);
+            $lockedValue->delete();
+        });
     }
 }

@@ -31,4 +31,15 @@ class VariantOptionValueFactory extends Factory
             'option_value_id' => OptionValue::factory(['organization_id' => $organizationId]),
         ];
     }
+
+    /** A link without a position comes after the variant's other option values. */
+    public function configure(): static
+    {
+        return $this->afterMaking(function (VariantOptionValue $link): void {
+            $link->position ??= (int) VariantOptionValue::query()
+                ->where('organization_id', $link->organization_id)
+                ->where('variant_id', $link->variant_id)
+                ->max('position') + 1;
+        });
+    }
 }

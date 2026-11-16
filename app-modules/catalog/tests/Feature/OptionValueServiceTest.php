@@ -165,7 +165,7 @@ it('caps an option at its maximum number of values, whichever way they get there
         ->and(fn (): Option => app(OptionService::class)->update($option, OptionData::fromArray(['values' => ['extra-2']], missingFields: ['name'])))
         ->toThrow(QueryException::class, $limitReached)
         ->and(fn (): Collection => $resolveValue('extra-2'))->toThrow(QueryException::class, $limitReached)
-        ->and($resolveValue('v2')->has('Size-v2'))->toBeTrue()
+        ->and($resolveValue('v2')->has(TransactionalOptionService::valueKey('Size', 'v2')))->toBeTrue()
         ->and(fn (): bool => DB::transaction(fn (): bool => DB::table('catalog_option_values')->insert($valueRow($option, 'raw'))))
         ->toThrow(QueryException::class, $limitReached)
         ->and(fn (): bool => DB::transaction(fn (): bool => $spare->update(['option_id' => $option->id])))
@@ -176,5 +176,5 @@ it('caps an option at its maximum number of values, whichever way they get there
     $addValues(['extra-2']);
 
     expect($option->values()->count())->toBe($max)
-        ->and(fn (): bool => DB::transaction(fn (): bool => (bool) $removed->restore()))->toThrow(QueryException::class, $limitReached);
+        ->and(fn (): bool => DB::transaction(fn (): bool => (bool) $removed->refresh()->restore()))->toThrow(QueryException::class, $limitReached);
 });

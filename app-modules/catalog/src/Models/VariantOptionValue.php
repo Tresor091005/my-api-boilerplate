@@ -17,6 +17,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $variant_id
  * @property string $option_value_id
  * @property string $option_id
+ * @property int $position
  * @property-read Option $option
  * @property-read OptionValue $optionValue
  * @property-read Product $product
@@ -49,6 +50,7 @@ class VariantOptionValue extends Pivot
         'variant_id',
         'option_value_id',
         'option_id',
+        'position',
     ];
 
     protected $casts = [
@@ -58,6 +60,7 @@ class VariantOptionValue extends Pivot
         'variant_id'      => 'string',
         'option_id'       => 'string',
         'option_value_id' => 'string',
+        'position'        => 'integer',
     ];
 
     public function product(): BelongsTo

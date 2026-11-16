@@ -22,6 +22,7 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $id
  * @property string $organization_id
  * @property string $product_id
+ * @property string $option_signature
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -69,20 +70,21 @@ class ProductVariant extends Model
     ];
 
     protected $casts = [
-        'id'              => 'string',
-        'organization_id' => 'string',
-        'product_id'      => 'string',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
-        'deleted_at'      => 'immutable_datetime',
+        'id'               => 'string',
+        'organization_id'  => 'string',
+        'product_id'       => 'string',
+        'option_signature' => 'string',
+        'created_at'       => 'immutable_datetime',
+        'updated_at'       => 'immutable_datetime',
+        'deleted_at'       => 'immutable_datetime',
     ];
 
     protected function optionsLabel(): Attribute
     {
         return Attribute::make(
             get: fn (): string => $this->optionValues
-                ->map(fn (OptionValue $optionValue): string => "[{$optionValue->option->name}: {$optionValue->value}]")
-                ->implode(' ')
+                ->pluck('value')
+                ->implode(', ')
         );
     }
 
@@ -93,7 +95,7 @@ class ProductVariant extends Model
                 $label = $this->options_label;
 
                 return $label !== ''
-                    ? "{$this->product->name} {$label}"
+                    ? "{$this->product->name} ({$label})"
                     : $this->product->name;
             }
         );
@@ -120,8 +122,23 @@ class ProductVariant extends Model
             'variant_id',
             'option_value_id'
         )->using(VariantOptionValue::class)
-            ->withPivot('organization_id')
+            ->withPivot('organization_id', 'position')
             ->wherePivot('organization_id', currentOrganizationId())
-            ->where('catalog_option_values.organization_id', currentOrganizationId());
+            ->where('catalog_option_values.organization_id', currentOrganizationId())
+            ->orderByPivot('position');
+    }
+
+    /**
+     * The signature of a combination of option values, whatever their order:
+     * no two live variants of a product share one.
+     *
+     * @param  iterable<int, string>  $optionValueIds
+     */
+    public static function optionSignature(iterable $optionValueIds): string
+    {
+        $ids = [...$optionValueIds];
+        sort($ids, SORT_STRING);
+
+        return hash('sha256', implode(',', $ids));
     }
 }
