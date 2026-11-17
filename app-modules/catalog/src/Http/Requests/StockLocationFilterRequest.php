@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Lahatre\Catalog\Enums\StockLocationKind;
 
 final class StockLocationFilterRequest extends FormRequest
 {
@@ -21,6 +22,7 @@ final class StockLocationFilterRequest extends FormRequest
             'handle'     => ['nullable', 'string', 'max:100'],
             'name'       => ['nullable', 'string', 'max:100'],
             'is_active'  => ['nullable', 'boolean'],
+            'kind'       => ['nullable', Rule::enum(StockLocationKind::class)],
         ];
     }
 }

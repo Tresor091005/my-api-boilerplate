@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Data;
 
+use Lahatre\Catalog\Enums\StockLocationKind;
+
 final readonly class StockLocationFilterData
 {
     private function __construct(
@@ -14,6 +16,7 @@ final readonly class StockLocationFilterData
         public ?string $handle,
         public ?string $name,
         public ?bool $isActive,
+        public ?StockLocationKind $kind,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -29,6 +32,7 @@ final readonly class StockLocationFilterData
             isActive: array_key_exists('is_active', $data) && $data['is_active'] !== null
                 ? (bool) $data['is_active']
                 : null,
+            kind: isset($data['kind']) ? StockLocationKind::from((string) $data['kind']) : null,
         );
     }
 }

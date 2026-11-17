@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Lahatre\Catalog\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Lahatre\Catalog\Contracts\CatalogInterface;
 use Lahatre\Catalog\Data\SellableItemQueryData;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
@@ -17,14 +19,56 @@ use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Catalog\Models\Product;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Catalog\Models\Service;
+use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Catalog\Models\VariantOptionValue;
 use Lahatre\Catalog\ViewData\SellableItemViewData;
+use Lahatre\Inventory\Contracts\InventoryInterface;
+use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
+use Lahatre\Shared\Support\HandleGenerator;
+use Lahatre\Shared\Support\TransactionLock;
 
 final readonly class CatalogService implements CatalogInterface
 {
-    public function __construct(private MasterInterface $masterInterface) {}
+    public function __construct(
+        private MasterInterface $masterInterface,
+        private InventoryInterface $inventoryInterface,
+    ) {}
+
+    public function customerHoldLocation(string $organizationId, string $warehouseId): StockLocation
+    {
+        /** @var StockLocation $warehouse */
+        $warehouse = StockLocation::query()
+            ->where('organization_id', $organizationId)
+            ->where('kind', StockLocationKind::Warehouse)
+            ->whereKey($warehouseId)
+            ->whereHas('inventoryLocation', fn (Builder $location): Builder => $location->where('is_active', true))
+            ->firstOrFail();
+
+        TransactionLock::acquire("catalog.customer-hold:{$warehouse->id}");
+
+        $hold = StockLocation::query()
+            ->where('organization_id', $organizationId)
+            ->where('held_for_location_id', $warehouse->id)
+            ->first();
+        if ($hold instanceof StockLocation) {
+            return $hold;
+        }
+
+        $hold = new StockLocation;
+        $hold->fill([
+            'organization_id'      => $organizationId,
+            'name'                 => __('catalog::messages.customer_hold_location_name', ['location' => $warehouse->name]),
+            'kind'                 => StockLocationKind::CustomerHold,
+            'held_for_location_id' => $warehouse->id,
+        ]);
+        $hold->handle = HandleGenerator::generate("{$warehouse->handle}-hold", $hold->getTable(), extra: ['organization_id' => $organizationId]);
+        $hold->save();
+        $this->inventoryInterface->createLocation($hold, InventoryLocationConfigurationData::fromArray(['is_active' => true]));
+
+        return $hold;
+    }
 
     /**
      * One query per lookup however many requests, so the count does not grow.

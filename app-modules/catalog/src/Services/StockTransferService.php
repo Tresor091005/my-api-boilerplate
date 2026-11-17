@@ -14,6 +14,7 @@ use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\StockTransferData;
 use Lahatre\Catalog\Data\StockTransferFilterData;
 use Lahatre\Catalog\Enums\CatalogItemType;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Catalog\Enums\StockTransferStatus;
 use Lahatre\Catalog\Exceptions\StockTransferException;
 use Lahatre\Catalog\Models\CatalogItem;
@@ -197,6 +198,7 @@ final readonly class StockTransferService
     private function resolveActiveLocation(string $id): InventoryLocation
     {
         $location = StockLocation::query()->where('organization_id', currentOrganizationId())->whereKey($id)
+            ->where('kind', StockLocationKind::Warehouse)
             ->with('inventoryLocation')->lockForUpdate()->first();
         if (!$location instanceof StockLocation || !$location->inventoryLocation instanceof InventoryLocation) {
             throw (new ModelNotFoundException)->setModel(StockLocation::class, [$id]);

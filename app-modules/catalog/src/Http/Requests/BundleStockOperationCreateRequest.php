@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Lahatre\Catalog\Enums\BundleStockOperationType;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Shared\Rules\YmdDate;
 
 final class BundleStockOperationCreateRequest extends FormRequest
@@ -25,6 +26,7 @@ final class BundleStockOperationCreateRequest extends FormRequest
                 'uuid',
                 Rule::exists('catalog_stock_locations', 'id')
                     ->where('organization_id', currentOrganizationId())
+                    ->where('kind', StockLocationKind::Warehouse->value)
                     ->whereNull('deleted_at'),
             ],
             'expiration_date' => [

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Lahatre\Billing\Services\EntitlementService;
 use Lahatre\Catalog\Data\StockLocationData;
 use Lahatre\Catalog\Data\StockLocationFilterData;
+use Lahatre\Catalog\Enums\StockLocationKind;
+use Lahatre\Catalog\Exceptions\StockLocationException;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Inventory\Data\InventoryLocationConfigurationData;
@@ -76,8 +78,10 @@ final readonly class StockLocationService
         return $stockLocation;
     }
 
+    /** @throws StockLocationException If the location is a customer hold. */
     public function update(StockLocation $stockLocation, StockLocationData $data): StockLocation
     {
+        $this->assertWarehouse($stockLocation);
         $stockLocation->fill(withoutMissing(['name' => $data->name]));
 
         DB::transaction(function () use ($stockLocation, $data): void {
@@ -101,13 +105,37 @@ final readonly class StockLocationService
         return $stockLocation;
     }
 
+    /**
+     * Deletes the warehouse with its customer hold location; either one still holding stock refuses.
+     *
+     * @throws StockLocationException If the location is a customer hold.
+     */
     public function delete(StockLocation $stockLocation): void
     {
+        $this->assertWarehouse($stockLocation);
+
         DB::transaction(function () use ($stockLocation): void {
+            $hold = StockLocation::query()
+                ->where('organization_id', $stockLocation->organization_id)
+                ->where('held_for_location_id', $stockLocation->id)
+                ->first();
+            if ($hold instanceof StockLocation) {
+                $this->inventoryInterface->deleteLocation($hold);
+                $hold->delete();
+            }
+
             $stockLocation->address()->delete();
             $this->inventoryInterface->deleteLocation($stockLocation);
             $stockLocation->delete();
         });
+    }
+
+    /** @throws StockLocationException */
+    private function assertWarehouse(StockLocation $stockLocation): void
+    {
+        if ($stockLocation->kind === StockLocationKind::CustomerHold) {
+            throw StockLocationException::managedBySystem($stockLocation->id);
+        }
     }
 
     /** @return Builder<StockLocation> */
@@ -117,6 +145,7 @@ final readonly class StockLocationService
             ->where('organization_id', currentOrganizationId())
             ->when($filters->handle, fn (Builder $query, string $handle): Builder => $query->where('handle', 'like', "{$handle}%"))
             ->when($filters->name, fn (Builder $query, string $name): Builder => $query->where('name', 'like', "{$name}%"))
+            ->when($filters->kind, fn (Builder $query, StockLocationKind $kind): Builder => $query->where('kind', $kind))
             ->when(
                 $filters->isActive !== null,
                 fn (Builder $query): Builder => $query->whereHas(

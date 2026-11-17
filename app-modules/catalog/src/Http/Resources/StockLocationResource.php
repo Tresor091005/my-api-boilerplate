@@ -17,6 +17,8 @@ class StockLocationResource extends ApiResource
             ->field('id')
             ->field('handle')
             ->field('name')
+            ->field('kind')
+            ->field('held_for_location_id')
             ->field('is_active', relations: ['inventoryLocation'], computedBy: fn (Model $location): ?bool => $location->getRelation('inventoryLocation')?->getAttribute('is_active'))
             ->field('created_at')
             ->field('updated_at')

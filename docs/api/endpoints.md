@@ -399,7 +399,7 @@ transfer.
 | POST | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Add `prices` (1 to 50), all or none, each with `price_level_id` (left out or `null`: the built-in level), `unit_code` (a unit of the item's unit group), `amount` and `included_tax_ids` (0 to 20 taxes, each once). A level and unit already priced is refused with a 422 `CatalogItemPriceException`. |
 | PATCH | `/v1/catalog/items/{item}/prices/{price}` | owner `manage_prices` | Change the `amount` of one price, its `included_tax_ids`, or both; an omitted field is kept and an empty list makes it a price before tax. Its level and unit never change. |
 | DELETE | `/v1/catalog/items/{item}/prices` | owner `manage_prices` | Soft-delete prices of the item listed in `ids` (1 to 50). |
-| GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations. |
+| GET | `/v1/catalog/stock-locations` | `catalog_stock_location.list` | List stock locations, each with its `kind` (`warehouse`, or `customer_hold` with `held_for_location_id`); filter by `kind`. A customer hold location is created by the system for a bill-and-hold sale; changing, deleting or transferring from it is refused. |
 | GET | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.list` | List stock transfers. |
 | POST | `/v1/catalog/stock-transfers` | `catalog_stock_transfer.create` | Create a draft stock transfer. |
 | GET | `/v1/catalog/stock-transfers/{stockTransfer}` | `catalog_stock_transfer.retrieve` | Retrieve one stock transfer. |

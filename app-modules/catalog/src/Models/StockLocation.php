@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Lahatre\Catalog\Database\Factories\StockLocationFactory;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Inventory\Contracts\HasInventoryLocation;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Traits\InteractsWithInventoryLocation;
@@ -24,6 +25,8 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property string $organization_id
  * @property string $handle
  * @property string $name
+ * @property StockLocationKind $kind
+ * @property string|null $held_for_location_id
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -51,6 +54,10 @@ use Lahatre\Shared\Traits\SharedTraits;
  */
 class StockLocation extends Model implements HasInventoryLocation
 {
+    protected $attributes = [
+        'kind' => 'warehouse',
+    ];
+
     /** @use HasFactory<StockLocationFactory> */
     use HasFactory;
 
@@ -65,16 +72,20 @@ class StockLocation extends Model implements HasInventoryLocation
         'organization_id',
         'handle',
         'name',
+        'kind',
+        'held_for_location_id',
     ];
 
     protected $casts = [
-        'id'              => 'string',
-        'organization_id' => 'string',
-        'handle'          => 'string',
-        'name'            => 'string',
-        'created_at'      => 'immutable_datetime',
-        'updated_at'      => 'immutable_datetime',
-        'deleted_at'      => 'immutable_datetime',
+        'id'                   => 'string',
+        'organization_id'      => 'string',
+        'handle'               => 'string',
+        'name'                 => 'string',
+        'kind'                 => StockLocationKind::class,
+        'held_for_location_id' => 'string',
+        'created_at'           => 'immutable_datetime',
+        'updated_at'           => 'immutable_datetime',
+        'deleted_at'           => 'immutable_datetime',
     ];
 
     public function address(): MorphOne

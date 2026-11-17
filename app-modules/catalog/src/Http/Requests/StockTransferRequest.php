@@ -7,6 +7,7 @@ namespace Lahatre\Catalog\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 
 final class StockTransferRequest extends FormRequest
@@ -19,12 +20,14 @@ final class StockTransferRequest extends FormRequest
                 'required', 'uuid',
                 Rule::exists('catalog_stock_locations', 'id')
                     ->where('organization_id', currentOrganizationId())
+                    ->where('kind', StockLocationKind::Warehouse->value)
                     ->whereNull('deleted_at'),
             ],
             'destination_location_id' => [
                 'required', 'uuid', 'different:source_location_id',
                 Rule::exists('catalog_stock_locations', 'id')
                     ->where('organization_id', currentOrganizationId())
+                    ->where('kind', StockLocationKind::Warehouse->value)
                     ->whereNull('deleted_at'),
             ],
             'lines'                   => ['required', 'array', 'min:1', 'max:100'],

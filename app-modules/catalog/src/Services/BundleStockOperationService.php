@@ -17,6 +17,7 @@ use Lahatre\Catalog\Data\BundleStockOperationData;
 use Lahatre\Catalog\Data\BundleStockOperationFilterData;
 use Lahatre\Catalog\Enums\BundleStockOperationStatus;
 use Lahatre\Catalog\Enums\BundleStockOperationType;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Catalog\Exceptions\BundleException;
 use Lahatre\Catalog\Models\Bundle;
 use Lahatre\Catalog\Models\BundleItem;
@@ -421,6 +422,7 @@ final readonly class BundleStockOperationService
         $stockLocation = StockLocation::query()
             ->where('organization_id', currentOrganizationId())
             ->whereKey($stockLocationId)
+            ->where('kind', StockLocationKind::Warehouse)
             ->lockForUpdate()
             ->firstOrFail();
 

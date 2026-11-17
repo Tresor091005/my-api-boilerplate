@@ -9,6 +9,7 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Lahatre\Billing\Contracts\ProvidesFeatures;
 use Lahatre\Billing\Registries\FeatureDefinition;
+use Lahatre\Catalog\Enums\StockLocationKind;
 use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Catalog\Models\StockTransfer;
 
@@ -27,6 +28,7 @@ final class CatalogFeatures implements ProvidesFeatures
     {
         return StockLocation::query()
             ->where('organization_id', $organizationId)
+            ->where('kind', StockLocationKind::Warehouse)
             ->whereHas('inventoryLocation', fn (Builder $location): Builder => $location->where('is_active', true))
             ->count();
     }
