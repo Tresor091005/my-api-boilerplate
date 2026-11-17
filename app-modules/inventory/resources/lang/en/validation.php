@@ -39,4 +39,5 @@ return [
     'quantity_must_resolve_to_whole_base_units'         => 'Quantity :quantity :unit_code converts to :quantity_base :base_unit_code. Stock quantities must be whole base units.',
     'quantity_exceeds_maximum_base_units'               => 'Quantity :quantity_base :base_unit_code exceeds the maximum of :maximum base units.',
     'transfer_imbalance'                                => 'Transfer quantities are unbalanced for item :item_id. Total in: :total_in :base_unit_code, total out: :total_out :base_unit_code.',
+    'deduction_order_needs_one_item'                    => 'Sorting lots as they are deducted needs exactly one item_id.',
 ];

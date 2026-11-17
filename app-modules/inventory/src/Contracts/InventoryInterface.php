@@ -11,6 +11,7 @@ use Lahatre\Inventory\Enums\TransactionType;
 use Lahatre\Inventory\Models\InventoryItem;
 use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryTransaction;
+use Lahatre\Inventory\ViewData\StockAvailabilityViewData;
 
 interface InventoryInterface
 {
@@ -94,4 +95,13 @@ interface InventoryInterface
      * @param  array<string, string>|null  $errorKeyMap
      */
     public function previewReversal(string $originalTransactionId, ?array $metadata = null, ?array $errorKeyMap = null): void;
+
+    /**
+     * The open lots of the items at the locations, with whether each item is tracked and each
+     * location active, in three queries whatever their count. Reads without locking.
+     *
+     * @param  Collection<int, HasInventoryItem>  $items
+     * @param  Collection<int, HasInventoryLocation>  $locations
+     */
+    public function stockAvailability(Collection $items, Collection $locations): StockAvailabilityViewData;
 }

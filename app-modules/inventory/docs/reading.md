@@ -6,16 +6,14 @@
 
 - `getItemStock($item)`: total remaining quantity for an item, broken down by location;
 - `getLocationStock($location)`: remaining quantity for every item in a location;
-- `getItemLocationLots($item, $location, $filters)`: active lots, ordered by FIFO, FEFO, or the requested strategy;
 - `listSummary($filters)`: paginated item/location quantity summary;
 - `listExpiring($filters)`: paginated lots expiring within a number of days.
 
 ```php
 $stock = $queries->getItemStock($inventoryItem);
-$lots = $queries->getItemLocationLots($inventoryItem, $inventoryLocation, $filters);
 ```
 
-Lot reads include the stock ID, remaining and original quantity, base-unit cost, cost remainder, currency, expiration, creation date, and metadata. This makes them suitable for a manual picking screen or a stock detail page.
+Lot reads include the stock ID, remaining and original quantity, base-unit cost, cost remainder, currency, expiration, creation date, and metadata. `GET /stocks` with one `item_id`, a `location_id` and `sort_by=deduction` lists the open lots in the order an outgoing movement takes them (the `strategy` asked, else the item's, else FEFO for an item that expires and FIFO otherwise): what a manual picking screen needs to fill `stock_ids`.
 
 ## Quantity and value summary
 
@@ -38,14 +36,13 @@ Movement filters support date ranges, `IN`/`OUT` type, business reference, trans
 
 ## HTTP endpoints
 
-All package routes use the `/v1/inventory` prefix. Stocks, movements and transactions answer through [response selection](../../../docs/api/response-selection.md) (`?fields=`, `?include=`); the lots and summary reads return computed rows:
+All package routes use the `/v1/inventory` prefix. Stocks, movements and transactions answer through [response selection](../../../docs/api/response-selection.md) (`?fields=`, `?include=`); the summary read returns computed rows. The two stock reads give the state of the stock: lots, and totals per item and location:
 
 | Method | Endpoint | Read |
 |---|---|---|
-| GET | `/items/{item}/locations/{location}/lots` | Active lots for an item/location |
 | GET | `/movements` | Movement history, optionally filtered by item, location, transaction or stock lot |
 | GET | `/stocks/summary` | Global item/location summary |
-| GET | `/stocks?expiring_within_days=7` | Expiring active lots |
+| GET | `/stocks` | Lots; `has_remaining`, `expiring_within_days`, and `sort_by=deduction` for one item |
 | GET | `/transactions` | List transactions |
 | GET | `/transactions/{transaction}` | Retrieve one transaction |
 

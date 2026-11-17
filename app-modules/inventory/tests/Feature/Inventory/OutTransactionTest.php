@@ -390,5 +390,5 @@ it('throws InsufficientStockException with accurate available quantity in the ex
             'quantity'    => 20,
             'unit_code'   => $this->unit->code,
         ]],
-    ]))->toThrow(InsufficientStockException::class, 'Available: 15');
+    ]))->toThrow(InsufficientStockException::class, "Requested: 20 {$this->unit->code}, Available: 15 {$this->unit->code}.");
 });

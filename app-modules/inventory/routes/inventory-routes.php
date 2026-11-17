@@ -13,8 +13,6 @@ Route::group([
     'middleware' => 'api',
 ], function (): void {
     Route::group(['middleware' => 'auth.api'], function (): void {
-        Route::get('items/{item}/locations/{location}/lots', [InventoryStockController::class, 'indexLocationLots'])->name('items.locations.lots.index');
-
         Route::get('stocks', [InventoryStockController::class, 'index'])->name('stocks.index');
         Route::get('stocks/summary', [InventoryStockController::class, 'indexSummary'])->name('stocks.summary.index');
         // TODO: add low stock filters when inventory thresholds are modeled.

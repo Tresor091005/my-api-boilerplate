@@ -524,9 +524,8 @@ and rate updates the updated record (`200`).
 
 | Method | URI | Purpose |
 | --- | --- | --- |
-| GET | `/v1/inventory/items/{item}/locations/{location}/lots` | Read lots for an item/location pair. |
 | GET | `/v1/inventory/movements` | Read movements, optionally filtered by item, location, type, date, business reference, transaction (`transaction_id`), or stock lot (`stock_id`). |
-| GET | `/v1/inventory/stocks` | Read stock lots; `expiring_within_days` keeps the expiring ones. |
+| GET | `/v1/inventory/stocks` | Read stock lots, filtered by `item_id` and `location_id` (lists); `has_remaining` keeps the open or the empty ones, `expiring_within_days` the expiring ones. `sort_by=deduction`, with exactly one `item_id`, lists the open lots in the order an outgoing movement takes them: the `strategy` given (`fifo`, `fefo`, `manual`), else the item's, else FEFO for an item that expires and FIFO otherwise. |
 | GET | `/v1/inventory/stocks/summary` | Read one quantity/value row per item/location pair in the functional currency. |
 | PATCH | `/v1/inventory/stocks/{stock}` | Update stock metadata only. |
 | GET | `/v1/inventory/transactions` | List transactions. |
@@ -540,8 +539,9 @@ paths such as `?include=movements.stock`. An included `movements` list renders
 at most 100 movements per stock or transaction; `GET /v1/inventory/movements`
 with `transaction_id` or `stock_id` pages through all of them. The stock
 metadata update answers `204` by default, or the stock with
-`?response=resource`. The lots and summary reads return computed rows outside
-response selection.
+`?response=resource`. The summary read returns computed rows outside response
+selection. The two stock reads give the state of the stock: the lots, and the
+totals per item and location.
 
 Inventory transaction recording, preview, reversal, item registration, and
 location registration are currently service-level operations rather than

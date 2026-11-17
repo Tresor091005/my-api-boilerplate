@@ -7,10 +7,8 @@ namespace Lahatre\Inventory\Services;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
-use Lahatre\Inventory\Data\InventoryLotFilterData;
 use Lahatre\Inventory\Data\InventoryMovementFilterData;
 use Lahatre\Inventory\Data\InventoryStockFilterData;
 use Lahatre\Inventory\Data\InventoryStockSummaryFilterData;
@@ -18,7 +16,6 @@ use Lahatre\Inventory\Data\InventoryTransactionFilterData;
 use Lahatre\Inventory\Enums\DeductionStrategy;
 use Lahatre\Inventory\Exceptions\OrganizationScopeException;
 use Lahatre\Inventory\Models\InventoryItem;
-use Lahatre\Inventory\Models\InventoryLocation;
 use Lahatre\Inventory\Models\InventoryMovement;
 use Lahatre\Inventory\Models\InventoryStock;
 use Lahatre\Inventory\Models\InventoryTransaction;
@@ -29,41 +26,6 @@ class InventoryQueryService
     public function __construct(
         protected MasterInterface $masterInterface
     ) {}
-
-    public function getItemLocationLots(
-        InventoryItem $item,
-        InventoryLocation $location,
-        InventoryLotFilterData $filters
-    ): array {
-        $item = $this->resolveItem($item);
-        $location = $this->resolveLocation($location);
-
-        $strategy = $filters->strategy
-            ?? $item->deduction_strategy
-            ?? ($item->is_expirable ? DeductionStrategy::Fefo : DeductionStrategy::Fifo);
-
-        $query = InventoryStock::query()
-            ->where('item_id', $item->id)
-            ->where('location_id', $location->id)
-            ->where('organization_id', currentOrganizationId())
-            ->where('remaining', '>', 0);
-
-        if ($filters->expiringBefore instanceof CarbonImmutable) {
-            $query->where('expiration_date', '<=', $filters->expiringBefore->toDateString());
-        }
-
-        /** @var Collection<int, InventoryStock> $lots */
-        $lots = $this->applyLotOrdering($query, $strategy)->get();
-
-        return [
-            'item_id'            => $item->id,
-            'location_id'        => $location->id,
-            'deduction_strategy' => $strategy->value,
-            'total_remaining'    => (int) $lots->sum('remaining'),
-            'base_unit_code'     => $item->base_unit_code,
-            'lots'               => $lots->values(),
-        ];
-    }
 
     public function paginateSummary(InventoryStockSummaryFilterData $filters): CursorPaginator
     {
@@ -83,20 +45,54 @@ class InventoryQueryService
             $query->whereIn('location_id', $filters->locationId);
         }
 
+        if ($filters->hasRemaining === true || $filters->sortBy === 'deduction') {
+            $query->where('remaining', '>', 0);
+        } elseif ($filters->hasRemaining === false) {
+            $query->where('remaining', 0);
+        }
+
         if ($filters->expiringBefore instanceof CarbonImmutable) {
             $query->where('remaining', '>', 0)
                 ->whereNotNull('expiration_date')
                 ->where('expiration_date', '<=', $filters->expiringBefore->toDateString())
                 ->whereHas('item', fn (Builder $itemQuery): Builder => $itemQuery->where('is_expirable', true))
-                ->whereHas('location')
-                ->orderBy('expiration_date')
-                ->orderBy('created_at')
-                ->orderBy('id');
+                ->whereHas('location');
+        }
+
+        if ($filters->sortBy === 'deduction') {
+            $this->orderAsDeducted($query, $filters);
+        } elseif ($filters->expiringBefore instanceof CarbonImmutable) {
+            $query->orderBy('expiration_date')->orderBy('created_at')->orderBy('id');
         } else {
             $query->orderBy('id');
         }
 
         return $query->cursorPaginate($filters->perPage, ['*'], 'cursor', $filters->cursor);
+    }
+
+    /**
+     * The order an outgoing movement takes the lots of one item in: the strategy asked, else the
+     * item's, else FEFO for an item that expires and FIFO otherwise. The lots of an item that
+     * expires all carry a date, and FEFO on an item that does not is FIFO, so the order needs no
+     * empty dates and stays cursor-paginable.
+     *
+     * @param  Builder<InventoryStock>  $query
+     */
+    private function orderAsDeducted(Builder $query, InventoryStockFilterData $filters): void
+    {
+        $item = InventoryItem::query()
+            ->where('organization_id', currentOrganizationId())
+            ->whereKey($filters->itemId[0] ?? null)
+            ->first(['id', 'deduction_strategy', 'is_expirable']);
+        $strategy = $filters->strategy
+            ?? $item->deduction_strategy
+            ?? ($item?->is_expirable === true ? DeductionStrategy::Fefo : DeductionStrategy::Fifo);
+
+        if ($strategy === DeductionStrategy::Fefo && $item?->is_expirable === true) {
+            $query->orderBy('expiration_date');
+        }
+
+        $query->orderBy('created_at')->orderBy('id');
     }
 
     private function summaryQuery(InventoryStockSummaryFilterData $filters): QueryBuilder
@@ -190,17 +186,6 @@ class InventoryQueryService
         return $query;
     }
 
-    protected function applyLotOrdering(Builder $query, DeductionStrategy $strategy): Builder
-    {
-        return match ($strategy) {
-            DeductionStrategy::Fifo => $query->orderBy('created_at')->orderBy('id'),
-            DeductionStrategy::Fefo => $query->orderByRaw('expiration_date ASC NULLS LAST')
-                ->orderBy('created_at')
-                ->orderBy('id'),
-            DeductionStrategy::Manual => $query->orderBy('created_at')->orderBy('id'),
-        };
-    }
-
     protected function applyMovementFilters(Builder $query, InventoryMovementFilterData $filters): void
     {
         if ($filters->itemId) {
@@ -242,36 +227,6 @@ class InventoryQueryService
                 }
             });
         }
-    }
-
-    protected function resolveItem(InventoryItem $item): InventoryItem
-    {
-        $organizationId = currentOrganizationId();
-        $ownedItem = InventoryItem::query()
-            ->where('organization_id', $organizationId)
-            ->whereKey($item->getKey())
-            ->first();
-
-        if ($ownedItem === null) {
-            throw OrganizationScopeException::mismatch();
-        }
-
-        return $ownedItem;
-    }
-
-    protected function resolveLocation(InventoryLocation $location): InventoryLocation
-    {
-        $organizationId = currentOrganizationId();
-        $ownedLocation = InventoryLocation::query()
-            ->where('organization_id', $organizationId)
-            ->whereKey($location->getKey())
-            ->first();
-
-        if ($ownedLocation === null) {
-            throw OrganizationScopeException::mismatch();
-        }
-
-        return $ownedLocation;
     }
 
     protected function resolveTransaction(InventoryTransaction $transaction): InventoryTransaction

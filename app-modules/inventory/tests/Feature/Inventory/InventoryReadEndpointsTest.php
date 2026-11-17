@@ -6,6 +6,7 @@ use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Lahatre\Iam\Http\Middleware\ResolveAuthContext;
 use Lahatre\Iam\Http\Middleware\SetTeamPermissionsId;
 use Lahatre\Iam\Models\MemberRole;
@@ -88,7 +89,7 @@ beforeEach(function (): void {
     ]);
 });
 
-it('returns active lots for an item and location', function (): void {
+it('lists the open lots of an item in a location in the order they are deducted', function (): void {
     $item = InventoryItem::factory()->create([
         'base_unit_code'     => $this->unit->code,
         'deduction_strategy' => DeductionStrategy::Fefo,
@@ -124,24 +125,42 @@ it('returns active lots for an item and location', function (): void {
         'remaining'      => 40,
     ]);
 
-    $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots")
-        ->assertOk()
-        ->assertJsonPath('data.item_id', $item->id)
-        ->assertJsonPath('data.location_id', $locationA->id)
-        ->assertJsonPath('data.deduction_strategy', DeductionStrategy::Fefo->value)
-        ->assertJsonPath('data.total_remaining', 200)
-        ->assertJsonPath('data.base_unit_code', $this->unit->code)
-        ->assertJsonPath('data.lots.0.id', $lot2->id)
-        ->assertJsonPath('data.lots.0.base_unit_code', $this->unit->code)
-        ->assertJsonPath('data.lots.0.unit_cost', '25.00')
-        ->assertJsonPath('data.lots.1.id', $lot1->id);
+    $lots = fn (string $query = ''): TestResponse => $this->getJson("/v1/inventory/stocks?item_id[]={$item->id}&location_id[]={$locationA->id}&sort_by=deduction{$query}");
 
-    $this->getJson("/v1/inventory/items/{$item->id}/locations/{$locationA->id}/lots?strategy=fifo")
+    $lots()
         ->assertOk()
-        ->assertJsonPath('data.deduction_strategy', DeductionStrategy::Fifo->value)
-        ->assertJsonPath('data.lots.0.id', $lot1->id)
-        ->assertJsonPath('data.lots.1.id', $lot2->id);
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.id', $lot2->id)
+        ->assertJsonPath('data.0.base_unit_code', $this->unit->code)
+        ->assertJsonPath('data.0.unit_cost', '25.00')
+        ->assertJsonPath('data.1.id', $lot1->id);
+
+    $lots('&strategy=fifo')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $lot1->id)
+        ->assertJsonPath('data.1.id', $lot2->id);
 });
+
+it('lists only the lots with stock left, or only the empty ones', function (): void {
+    $item = InventoryItem::factory()->create(['base_unit_code' => $this->unit->code]);
+    $location = InventoryLocation::factory()->create();
+    $open = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create(['base_unit_code' => $this->unit->code, 'currency_code' => $this->currency->code, 'quantity' => 5, 'remaining' => 5]);
+    $empty = InventoryStock::factory()->for($item, 'item')->for($location, 'location')->create(['base_unit_code' => $this->unit->code, 'currency_code' => $this->currency->code, 'quantity' => 5, 'remaining' => 0]);
+
+    $this->getJson("/v1/inventory/stocks?item_id[]={$item->id}&has_remaining=1")->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $open->id);
+    $this->getJson("/v1/inventory/stocks?item_id[]={$item->id}&has_remaining=0")->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $empty->id);
+    $this->getJson("/v1/inventory/stocks?item_id[]={$item->id}&sort_by=deduction")->assertOk()->assertJsonCount(1, 'data');
+});
+
+it('sorts lots as deducted only for one item, and takes a strategy only then', function (string $query, string $errorKey): void {
+    $this->getJson("/v1/inventory/stocks?{$query}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([$errorKey]);
+})->with([
+    'no item'        => ['sort_by=deduction', 'item_id'],
+    'two items'      => ['sort_by=deduction&item_id[]='.Str::uuid7().'&item_id[]='.Str::uuid7(), 'item_id'],
+    'strategy alone' => ['strategy=fifo', 'strategy'],
+]);
 
 it('returns stock summary and expiring lots with pagination metadata', function (): void {
     $itemA = InventoryItem::factory()->create([

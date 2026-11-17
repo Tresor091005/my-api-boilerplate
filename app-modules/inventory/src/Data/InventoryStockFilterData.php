@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lahatre\Inventory\Data;
 
 use Carbon\CarbonImmutable;
+use Lahatre\Inventory\Enums\DeductionStrategy;
 
 final readonly class InventoryStockFilterData
 {
@@ -18,6 +19,9 @@ final readonly class InventoryStockFilterData
         public ?array $itemId,
         public ?array $locationId,
         public ?CarbonImmutable $expiringBefore,
+        public ?bool $hasRemaining,
+        public string $sortBy,
+        public ?DeductionStrategy $strategy,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -33,6 +37,9 @@ final readonly class InventoryStockFilterData
                 : (isset($data['expiring_within_days'])
                     ? CarbonImmutable::today()->addDays((int) $data['expiring_within_days'])
                     : null),
+            hasRemaining: isset($data['has_remaining']) ? filter_var($data['has_remaining'], FILTER_VALIDATE_BOOLEAN) : null,
+            sortBy: $data['sort_by'] ?? 'id',
+            strategy: isset($data['strategy']) ? DeductionStrategy::from((string) $data['strategy']) : null,
         );
     }
 }

@@ -23,13 +23,8 @@ it('classifies every route with multiple implicit bindings', function (): void {
         'lahatre.customer.customers.contacts.update'        => 'contact',
     ];
 
-    /**
-     * These parameters are independently resolved and their relationship is
-     * verified by InventoryQueryService instead of an Eloquent child binding.
-     */
-    $expectedIndependentRoutes = [
-        'lahatre.inventory.items.locations.lots.index',
-    ];
+    /** Parameters resolved on their own, their relationship checked by a service instead of a child binding. */
+    $expectedIndependentRoutes = [];
 
     $multiBindingRoutes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($route): bool => count($route->parameterNames()) > 1)

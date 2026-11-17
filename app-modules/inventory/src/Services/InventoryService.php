@@ -6,6 +6,7 @@ namespace Lahatre\Inventory\Services;
 
 use Carbon\CarbonImmutable;
 use Closure;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -37,10 +38,13 @@ use Lahatre\Inventory\Models\InventoryTransaction;
 use Lahatre\Inventory\Services\Item\ManageInventoryItemService;
 use Lahatre\Inventory\Services\Location\ManageInventoryLocationService;
 use Lahatre\Inventory\Validation\TransactionValidator;
+use Lahatre\Inventory\ViewData\StockAvailabilityViewData;
+use Lahatre\Inventory\ViewData\StockLotViewData;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Organization\Enums\ExchangeRateContext;
 use Lahatre\Organization\Exceptions\OrganizationException;
+use Lahatre\Shared\Support\Decimal;
 
 class InventoryService implements InventoryInterface
 {
@@ -94,6 +98,60 @@ class InventoryService implements InventoryInterface
     public function updateItem(HasInventoryItem $model, array $data): InventoryItem
     {
         return $this->inventoryItemService->update($model, $data);
+    }
+
+    public function stockAvailability(Collection $items, Collection $locations): StockAvailabilityViewData
+    {
+        $organizationId = currentOrganizationId();
+        $inventoryItems = $this->owned(InventoryItem::query(), 'itemable_type', 'itemable_id', $items, $organizationId)
+            ->get(['id', 'itemable_id', 'stock_tracking_enabled']);
+        $inventoryLocations = $this->owned(InventoryLocation::query(), 'external_type', 'external_id', $locations, $organizationId)
+            ->get(['id', 'external_id', 'is_active']);
+        $itemOwners = $inventoryItems->pluck('itemable_id', 'id');
+        $locationOwners = $inventoryLocations->pluck('external_id', 'id');
+
+        $lots = $itemOwners->isEmpty() || $locationOwners->isEmpty() ? collect() : InventoryStock::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('item_id', $itemOwners->keys())
+            ->whereIn('location_id', $locationOwners->keys())
+            ->where('remaining', '>', 0)
+            ->get(['id', 'item_id', 'location_id', 'remaining', 'expiration_date'])
+            ->mapWithKeys(fn (InventoryStock $stock): array => [$stock->id => new StockLotViewData(
+                stockId: $stock->id,
+                itemId: (string) $itemOwners->get($stock->item_id),
+                locationId: (string) $locationOwners->get($stock->location_id),
+                remaining: (int) $stock->remaining,
+                expirationDate: $stock->expiration_date,
+            )]);
+
+        return new StockAvailabilityViewData(
+            trackedItems: $inventoryItems->mapWithKeys(fn (InventoryItem $item): array => [(string) $item->itemable_id => $item->stock_tracking_enabled]),
+            activeLocations: $inventoryLocations->mapWithKeys(fn (InventoryLocation $location): array => [(string) $location->external_id => $location->is_active]),
+            lots: $lots,
+        );
+    }
+
+    /**
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  Collection<int, HasInventoryItem>|Collection<int, HasInventoryLocation>  $owners
+     * @return Builder<TModel>
+     */
+    private function owned(Builder $query, string $typeColumn, string $idColumn, Collection $owners, string $organizationId): Builder
+    {
+        $query->where('organization_id', $organizationId);
+
+        if ($owners->isEmpty()) {
+            return $query->whereRaw('false');
+        }
+
+        return $query->where(function (Builder $query) use ($owners, $typeColumn, $idColumn): void {
+            $owners->groupBy(fn (HasInventoryItem|HasInventoryLocation $owner): string => $owner->getMorphClass())
+                ->each(fn (Collection $group, string $type): Builder => $query->orWhere(fn (Builder $query): Builder => $query
+                    ->where($typeColumn, $type)
+                    ->whereIn($idColumn, $group->map(fn (HasInventoryItem|HasInventoryLocation $owner): string => (string) $owner->getKey())->unique()->values())));
+        });
     }
 
     public function deleteLocation(HasInventoryLocation $model): void
@@ -912,12 +970,8 @@ class InventoryService implements InventoryInterface
             throw new InsufficientStockException(
                 $movement->itemId,
                 $movement->locationId,
-                $this->masterInterface->convertUnit(
-                    $quantityToDeduct,
-                    $item->base_unit_code,
-                    $movement->unitCode
-                ),
-                $this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $movement->unitCode),
+                Decimal::normalize($this->masterInterface->convertUnit($quantityToDeduct, $item->base_unit_code, $movement->unitCode)),
+                Decimal::normalize($this->masterInterface->convertUnit($totalAvailable, $item->base_unit_code, $movement->unitCode)),
                 $movement->unitCode
             );
         }
