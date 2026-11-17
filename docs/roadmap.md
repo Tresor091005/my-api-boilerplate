@@ -161,6 +161,35 @@ seller. A reusable pricing component (price lists by customer or period,
 quantity breaks, purchasing) will be designed only once the concrete sales and
 purchasing requirements are clear.
 
+## TODO: fulfillment follow-ups
+
+Settled on 2026-11-17, before reading the first fulfillment slice:
+
+- [ ] Who did what on a fulfillment: `completed_by`, `cancelled_by` and an
+  optional cancellation `reason`, for now. Later, `sale_transitions` moves to
+  a sale history/activity that fulfillments write to as well (then the
+  audit); this data migrates with it.
+- [ ] Refuse `lines` at the confirmation of a `progress_billing` sale (422):
+  today it is silently ignored.
+- [ ] No check duplicated from inventory: its refusals (an inventory item or
+  location made inactive, …) come back as they are, and it is up to
+  inventory to speak well. Review whether the validator's own stock and
+  warehouse checks are the same mistake; if so keep only the translation of
+  inventory's stock shortage.
+- [ ] Keep each sale's goods apart in a customer hold location. A transfer
+  creates new lots at its destination, so at confirmation each `sale_hold`
+  records the hold lots its transfer created (`stock_ids`). Delivering from
+  the hold passes those lots to inventory itself (a `stock_ids` sent is
+  refused), so the goods, cost and expiry are exactly that sale's; a
+  cancelled sale gives back exactly those lots; `held_quantity` is what
+  remains in them.
+- [ ] Say in the sale module that cancelling a fulfillment erases an operation
+  recorded by mistake (the customer never received the goods, such as a
+  completion with the wrong stock), while a return is a delivery done right
+  whose goods came back. With returns: a fulfillment that had a return can no
+  longer be cancelled.
+- Numbering gaps in `FL-` (a deleted draft keeps its number) are fine.
+
 ## TODO: tax follow-ups
 
 - [ ] Optional country packs (importable taxes and profiles) and a tax-regime
