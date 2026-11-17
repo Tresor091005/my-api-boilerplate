@@ -112,12 +112,7 @@ final readonly class PriceLevelService
     }
 
     /**
-     * The built-in level of the organization: the level a price goes to when
-     * none is named. It is created on that first need, in the functional
-     * currency; a level already named `standard` in that currency is adopted
-     * instead. Unlike the other writes here, it runs in its caller's
-     * transaction: the lock makes two simultaneous first prices end with one
-     * level, and the partial unique index is the last guard.
+     * Runs in the caller's transaction: the lock keeps two simultaneous first prices from creating two levels.
      */
     public function builtinPriceLevelId(string $organizationId): string
     {

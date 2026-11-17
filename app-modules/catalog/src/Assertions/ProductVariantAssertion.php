@@ -45,10 +45,6 @@ class ProductVariantAssertion
     }
 
     /**
-     * Assert that each combination of option values is used by one variant of
-     * the product only, among the given ones and the product's other live
-     * variants.
-     *
      * @param  Collection<int, array{signature: string, options: array<int, array{name: string, value: string}>}>  $combinations
      * @param  Collection<int, string>  $takenSignatures  signatures of the product's other live variants among the given ones
      *

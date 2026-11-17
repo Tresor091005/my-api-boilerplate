@@ -53,7 +53,6 @@ use Lahatre\Tax\Models\TaxProfile;
  * @method static Builder<static>|CatalogItem whereUnitGroupId($value)
  * @method static Builder<static>|CatalogItem whereTaxProfileId($value)
  * @method static Builder<static>|CatalogItem whereUpdatedAt($value)
- * @method static Builder<static>|CatalogItem whereIsStockable($value)
  *
  * @mixin \Eloquent
  */

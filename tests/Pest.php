@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Illuminate\Support\Testing\Fakes\QueueFake;
 use Illuminate\Testing\TestResponse;
 use Lahatre\Billing\Enums\PlanVersionStatus;
@@ -12,8 +13,11 @@ use Lahatre\Billing\Models\PlanVersionFeature;
 use Lahatre\Billing\Models\Subscription;
 use Lahatre\Billing\Registries\FeatureRegistry;
 use Lahatre\Catalog\Models\CatalogItem;
+use Lahatre\Catalog\Models\CatalogItemPrice;
+use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Catalog\Models\ProductVariant;
 use Lahatre\Iam\Jobs\SendLoginCode;
+use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Currency;
 use Lahatre\Shared\Support\ModelFinder;
 use Pest\TestSuite;
@@ -125,6 +129,38 @@ function createCatalogProductVariant(
         ...$variantAttributes,
         'organization_id' => $organizationId,
     ]);
+}
+
+/**
+ * Fills a missing level with the default and a missing amount with the catalog price ("0" if none).
+ *
+ * @param  list<array<string, mixed>>  $lines
+ * @return list<array<string, mixed>>
+ */
+function pricedSaleLines(array $lines, string $defaultPriceLevelId): array
+{
+    $master = app(MasterInterface::class);
+
+    return array_map(function (mixed $line) use ($defaultPriceLevelId, $master): mixed {
+        if (!is_array($line)) {
+            return $line;
+        }
+
+        $line['price_level_id'] ??= $defaultPriceLevelId;
+
+        if (!array_key_exists('unit_amount', $line)) {
+            $level = Str::isUuid((string) $line['price_level_id']) ? PriceLevel::withTrashed()->find($line['price_level_id']) : null;
+            $unit = $master->units(collect([(string) ($line['unit_code'] ?? '')]))->first();
+            $amount = $level === null || $unit === null ? null : CatalogItemPrice::query()
+                ->where('price_level_id', $level->id)
+                ->where('catalog_item_id', is_string($line['catalog_item_id'] ?? null) && Str::isUuid($line['catalog_item_id']) ? $line['catalog_item_id'] : null)
+                ->where('unit_id', $unit->id)
+                ->value('amount');
+            $line['unit_amount'] = $amount === null ? '0' : $master->fromMinor((string) $amount, $level->currency_code);
+        }
+
+        return $line;
+    }, $lines);
 }
 
 /** Authenticate through the real email challenge endpoints with delivery faked. */

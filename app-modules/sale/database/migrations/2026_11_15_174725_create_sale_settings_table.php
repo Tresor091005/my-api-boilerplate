@@ -7,10 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The sale settings of an organization: one row at most, created by its first
- * write. Without it a sale is written in the `counter` mode.
- */
+/** One row at most per organization; without it sales use the `counter` mode. */
 return new class extends Migration
 {
     public function up(): void
@@ -25,7 +22,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::statement("ALTER TABLE sale_settings ADD CONSTRAINT sale_settings_default_mode_check CHECK (default_mode IN ('counter', 'order_invoiced_now', 'order_invoiced_on_delivery'))");
+        DB::statement("ALTER TABLE sale_settings ADD CONSTRAINT sale_settings_default_mode_check CHECK (default_mode IN ('counter', 'bill_and_hold', 'progress_billing'))");
     }
 
     public function down(): void

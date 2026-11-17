@@ -12,8 +12,6 @@ use Lahatre\Sale\Models\SaleTransition;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
- * The creation of a draft, by nobody in particular.
- *
  * @extends Factory<SaleTransition>
  */
 class SaleTransitionFactory extends Factory

@@ -6,9 +6,6 @@ namespace Lahatre\Catalog\Data;
 
 use Lahatre\Catalog\ViewData\SellableItemViewData;
 
-/**
- * One (item, unit, price level) a sale asks the catalog about.
- */
 final readonly class SellableItemQueryData
 {
     private function __construct(
@@ -27,7 +24,6 @@ final readonly class SellableItemQueryData
         );
     }
 
-    /** The key of the answer to this request. */
     public function key(): string
     {
         return SellableItemViewData::key($this->catalogItemId, $this->unitCode, $this->priceLevelId);

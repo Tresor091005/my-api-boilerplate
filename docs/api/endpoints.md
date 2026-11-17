@@ -440,9 +440,11 @@ in Library when its customer is deleted.
 A customer has a `payment_due_date` (`Y-m-d`, from today on, or `null`): the
 date a [credit sale](../modules/sale.md#sale-conditions) falls back on when it
 has none of its own, sent on create and update (left out on update, it stays).
+Moving it moves those sales with it. Setting it to `null` is refused (422) while credit sales follow it (waiting for approval, approved, active or cancelling, with no date of their own): keep a date and move it instead.
 A past date is refused; "today" is read in the organization's timezone. `is_walk_in` is read-only: the one customer of
 counter sales, created the first time the organization needs it; it cannot be
 deleted.
+Deleting a customer with sales under way (waiting for approval, approved, active or cancelling) is refused (422): finish or abandon those sales, or deactivate the customer.
 
 A customer may have a `price_level_id`, a non-deleted
 [price level](#catalog) of the organization, or `null`. It is the only level the
@@ -610,6 +612,37 @@ cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
 | PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups, and the taxes their prices already contain must stay taxes a price can contain (`included_taxes_in_use`). |
 | DELETE | `/v1/tax/profiles/{profile}` | `tax_profile.delete` | Soft-delete a profile no catalog item uses. |
 | POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `amount` (whole minor units of the functional currency), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. A line may list in `included_tax_ids` the taxes its amount [already contains](../modules/tax.md#amounts-that-already-contain-taxes): the amount before tax is then derived, and the other taxes come on top. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount in minor units, `data.total_tax_amount` and `data.total_amount`. |
+
+## Sale
+
+All sale routes require `auth.api` and belong to the current organization;
+another organization's record answers 403. Like the other modules, a write
+answers `204` unless `?response=resource` is sent, which returns the record
+(`201` on creation). Business refusals are 422 `SaleException` responses whose message gives the
+way out. See
+the [sale module](../modules/sale.md) for the rules. Lists are cursor-paginated
+(`per_page` up to 100, `cursor`, `sort_order`). A sale renders with
+`include=lines,customer,transitions`, and a line with `include=lines.price_level`; amounts
+are decimal strings of its currency. At most 250 lines per sale.
+
+| Method | URI | Permission | Purpose |
+| --- | --- | --- | --- |
+| GET | `/v1/sale/settings` | `sale_setting.retrieve` | Return the organization's `default_mode` (`counter` when it never set one) and the three `modes` with their `invoicing` and `delivery`. Always `200` with a body. |
+| PUT | `/v1/sale/settings` | `sale_setting.update` | Set `default_mode` (`counter`, `bill_and_hold`, `progress_billing`; required), creating the settings on the first write. Sales already written keep their mode. Answers like the read. |
+| GET | `/v1/sale/sales` | `sale_sale.list` | List sales; filter by `status` (one or a list), `customer_id`, `number` prefix, and `from_date` / `to_date` (`Y-m-d` days of creation, both included, in the organization's timezone); `sort_by` `created_at` or `number`. |
+| GET | `/v1/sale/sales/{sale}` | `sale_sale.retrieve` | Return one sale. |
+| POST | `/v1/sale/sales` | `sale_sale.create` | Create a draft, numbered, at version 1. Body: `customer_id` (omitted: the walk-in customer), `mode` (omitted: the organization's default mode), `required_payment_percent` (0 to 100; omitted or `null`: 100; below 100 is a credit, refused for the walk-in customer), `payment_due_date` (`Y-m-d`, today or later in the organization's timezone) and `lines` (1 to 250, each `catalog_item_id`, `unit_code`, a whole `quantity`, the `price_level_id` the seller chose and the `unit_amount` read at it, each item and unit once; an item priced at the customer's own level is sold at it, and an amount that is no longer the catalog's is refused). `invoicing` and `delivery` follow from the mode and cannot be sent. |
+| PUT | `/v1/sale/sales/{sale}` | `sale_sale.update` | Replace a draft whole, with the `version` read. Recalculates every line; the version grows by one. |
+| POST | `/v1/sale/sales/{sale}/validate` | `sale_sale.update` | Validate a draft with the `version` read: `approved`, or `waiting_approval` when it needs an approval the caller may not give (`approve` permission). A credit needs one (`credit_granted`) and a due date: the sale's, else the customer's; refused when none applies. Nothing is copied onto the sale: `payment_due_date` is only the date typed, and the read-only `due_date` is the date that applies now (null when paid at once). |
+| POST | `/v1/sale/sales/{sale}/reopen` | `sale_sale.update` | Take a sale waiting for approval, rejected or approved back to `draft`; the approval is lost. |
+| POST | `/v1/sale/sales/{sale}/abandon` | `sale_sale.update` | Drop a sale before confirmation; optional `reason`. |
+| POST | `/v1/sale/sales/{sale}/approve` | `sale_sale.approve` | Approve a sale waiting for approval. |
+| POST | `/v1/sale/sales/{sale}/reject` | `sale_sale.approve` | Reject a sale waiting for approval; `reason` required. |
+| POST | `/v1/sale/sales/{sale}/confirm` | `sale_sale.confirm` | Confirm an approved sale; refused on any other status, a draft included: validating and confirming are two separate actions, and a front end may chain them. Calculates again at the approved prices. When a catalog price moved since the approval, it refuses unless `keep_approved_prices` is `true`; it refuses when a tax changed an amount. The sale becomes `active`. No invoice, no stock movement. |
+| POST | `/v1/sale/sales/{sale}/cancel` | `sale_sale.cancel` | Cancel an active sale at once; optional `reason`. |
+| POST | `/v1/sale/sales/{sale}/resume` | `sale_sale.cancel` | Take a sale being cancelled (`cancelling`) back to `active`; optional `reason`. What was already undone stays undone. |
+
+Lines and transitions have no permission of their own. A sale is never deleted.
 
 ## Root routes
 

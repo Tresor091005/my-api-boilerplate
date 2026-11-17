@@ -9,12 +9,7 @@ use JsonSerializable;
 use Lahatre\Catalog\Enums\CatalogItemType;
 
 /**
- * An item in one unit at one price level, as a sale reads it. `unit_id` and
- * `unit_name` are null when the unit code is unknown or not a unit of the
- * item's unit group; `price_level_name` and `currency_code` are null when the
- * level does not exist or is deleted; `unit_amount` (minor units of the level's
- * currency) is null when the item has no price at the level for that unit.
- * `included_tax_ids` are the taxes that price already contains.
+ * `unit_amount` is in minor units and null when the item has no price at that level for that unit.
  *
  * @phpstan-type SellableItem array{catalog_item_id: string, item_type: string, name: string, sku: string, is_active: bool, unit_group_id: string, tax_profile_id: string|null, unit_code: string, unit_id: string|null, unit_name: string|null, price_level_id: string, price_level_name: string|null, currency_code: string|null, unit_amount: int|null, included_tax_ids: list<string>}
  *
@@ -41,7 +36,6 @@ final readonly class SellableItemViewData implements Arrayable, JsonSerializable
         public array $includedTaxIds,
     ) {}
 
-    /** The key of an (item, unit, price level) in the result of `sellableItems()`. */
     public static function key(string $catalogItemId, string $unitCode, string $priceLevelId): string
     {
         return "{$catalogItemId}:{$unitCode}:{$priceLevelId}";

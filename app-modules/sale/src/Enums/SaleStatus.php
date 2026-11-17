@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Lahatre\Sale\Enums;
 
-/**
- * Where a sale stands; see the statuses of the sale module documentation.
- */
 enum SaleStatus: string
 {
     case Draft = 'draft';

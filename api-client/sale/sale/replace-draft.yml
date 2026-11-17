@@ -1,0 +1,46 @@
+info:
+  name: replace draft
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/v1/sale/sales/{{saleId}}?response=resource&include=lines"
+  body:
+    type: json
+    data: |-
+        {
+          "customer_id": "{{customerId}}",
+          "mode": "progress_billing",
+          "required_payment_percent": 50,
+          "payment_due_date": "2027-02-28",
+          "lines": [
+            {
+              "catalog_item_id": "{{variantId}}",
+              "unit_code": "kg",
+              "quantity": 5,
+              "price_level_id": "{{priceLevelId}}",
+              "unit_amount": "{{priceAmount}}"
+            }
+          ],
+          "version": "{{saleVersion}}"
+        }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const sale = res.body?.data;
+        if (res.status >= 200 && res.status < 300 && sale && typeof sale.id === "string") {
+          bru.setEnvVar("saleId", sale.id);
+          if (Number.isInteger(sale.version)) {
+            bru.setEnvVar("saleVersion", String(sale.version));
+          }
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

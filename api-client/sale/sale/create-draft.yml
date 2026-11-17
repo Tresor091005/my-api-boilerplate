@@ -1,0 +1,45 @@
+info:
+  name: create draft
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/sale/sales?response=resource&include=lines"
+  body:
+    type: json
+    data: |-
+        {
+          "customer_id": "{{customerId}}",
+          "mode": "bill_and_hold",
+          "required_payment_percent": 30,
+          "payment_due_date": "2027-01-31",
+          "lines": [
+            {
+              "catalog_item_id": "{{variantId}}",
+              "unit_code": "kg",
+              "quantity": 3,
+              "price_level_id": "{{priceLevelId}}",
+              "unit_amount": "{{priceAmount}}"
+            }
+          ]
+        }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const sale = res.body?.data;
+        if (res.status >= 200 && res.status < 300 && sale && typeof sale.id === "string") {
+          bru.setEnvVar("saleId", sale.id);
+          if (Number.isInteger(sale.version)) {
+            bru.setEnvVar("saleVersion", String(sale.version));
+          }
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

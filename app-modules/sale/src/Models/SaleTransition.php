@@ -13,9 +13,6 @@ use Lahatre\Sale\Enums\SaleStatus;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
- * One gesture on a sale: the event, the status before and after, the member
- * who acted (null once removed, or outside a request) and the reason given.
- *
  * @property string $id
  * @property string $organization_id
  * @property string $sale_id

@@ -7,12 +7,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * A sale, its lines and the history of its gestures. A sale is never deleted;
- * its amounts are minor units of its currency. The lines copy what they must
- * still show when the catalog changes, among them the price level each was
- * sold at, and keep the tax calculation as it was.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -31,7 +25,6 @@ return new class extends Migration
             $table->string('mode', 30);
             $table->unsignedSmallInteger('required_payment_percent');
             $table->date('payment_due_date')->nullable();
-            $table->date('applied_payment_due_date')->nullable();
             $table->jsonb('approval_reasons')->nullable();
             $table->bigInteger('lines_base_total')->default(0);
             $table->bigInteger('lines_tax_total')->default(0);
@@ -55,7 +48,7 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_status_check CHECK (status IN ('draft', 'waiting_approval', 'rejected', 'approved', 'active', 'completed', 'cancelling', 'cancelled', 'abandoned'))");
-        DB::statement("ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_mode_check CHECK (mode IN ('counter', 'order_invoiced_now', 'order_invoiced_on_delivery'))");
+        DB::statement("ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_mode_check CHECK (mode IN ('counter', 'bill_and_hold', 'progress_billing'))");
         DB::statement('ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_version_check CHECK (version >= 1)');
         DB::statement('ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_required_payment_percent_check CHECK (required_payment_percent BETWEEN 0 AND 100)');
         DB::statement('ALTER TABLE sale_sales ADD CONSTRAINT sale_sales_amounts_check CHECK (lines_base_total >= 0 AND lines_tax_total >= 0 AND lines_total >= 0 AND total >= 0)');
@@ -70,7 +63,6 @@ return new class extends Migration
             $table->uuid('catalog_item_id');
             // in the ratio-1 base unit of the item's unit group
             $table->bigInteger('quantity');
-            // the unit the line is sold and priced in
             $table->string('display_unit_code', 100);
             $table->string('item_type', 30);
             $table->text('item_name');

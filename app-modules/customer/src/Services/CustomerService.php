@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Lahatre\Customer\Contracts\CustomerUsageInterface;
 use Lahatre\Customer\Contracts\CustomerInterface;
 use Lahatre\Customer\Data\CustomerData;
 use Lahatre\Customer\Data\CustomerFilterData;
@@ -23,7 +24,10 @@ use Lahatre\Shared\Support\TransactionLock;
 
 class CustomerService implements CustomerInterface
 {
-    public function __construct(private readonly LibraryInterface $attachmentService) {}
+    public function __construct(
+        private readonly LibraryInterface $attachmentService,
+        private readonly CustomerUsageInterface $customerUsage,
+    ) {}
 
     /** @return CursorPaginator<int, Customer> */
     public function paginate(CustomerFilterData $filters): CursorPaginator
@@ -59,12 +63,24 @@ class CustomerService implements CustomerInterface
         });
     }
 
+    /**
+     * Updates the customer under its row lock.
+     *
+     * @throws CustomerException If the due date is emptied while credit sales follow it.
+     */
     public function update(Customer $customer, CustomerData $data): Customer
     {
         $organizationId = currentOrganizationId();
 
         return DB::transaction(function () use ($customer, $data, $organizationId): Customer {
             $lockedCustomer = $this->lockCustomer($customer, $organizationId);
+
+            if ($data->paymentDueDate === null
+                && $lockedCustomer->payment_due_date !== null
+                && $this->customerUsage->followsDueDate($organizationId, $lockedCustomer->id)) {
+                throw CustomerException::dueDateIsFollowed($lockedCustomer->id);
+            }
+
             $lockedCustomer->fill(withoutMissing([
                 'type'                  => $data->type,
                 'name'                  => $data->name,
@@ -88,6 +104,10 @@ class CustomerService implements CustomerInterface
 
             if ($lockedCustomer->is_walk_in) {
                 throw CustomerException::walkInCannotBeDeleted($lockedCustomer->id);
+            }
+
+            if ($this->customerUsage->isInUse($organizationId, $lockedCustomer->id)) {
+                throw CustomerException::inUse($lockedCustomer->id);
             }
 
             $lockedCustomer->addresses()->delete();

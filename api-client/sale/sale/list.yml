@@ -1,0 +1,15 @@
+info:
+  name: list
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/sale/sales?status[]=draft&status[]=waiting_approval&from_date=2026-11-01&to_date=2026-11-30&sort_by=created_at&sort_order=desc"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -12,8 +12,6 @@ use Lahatre\Sale\Models\Sale;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
- * A draft without lines, in the counter mode, paid at once.
- *
  * @extends Factory<Sale>
  */
 class SaleFactory extends Factory

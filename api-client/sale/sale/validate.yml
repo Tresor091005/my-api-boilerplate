@@ -1,0 +1,33 @@
+info:
+  name: validate
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/sale/sales/{{saleId}}/validate?response=resource"
+  body:
+    type: json
+    data: |-
+        {
+          "version": "{{saleVersion}}"
+        }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const sale = res.body?.data;
+        if (res.status >= 200 && res.status < 300 && sale && typeof sale.id === "string") {
+          bru.setEnvVar("saleId", sale.id);
+          if (Number.isInteger(sale.version)) {
+            bru.setEnvVar("saleVersion", String(sale.version));
+          }
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

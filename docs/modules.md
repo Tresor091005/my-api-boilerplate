@@ -15,6 +15,7 @@ tests. The root `App` namespace contains framework-level wiring only.
 | `customer` | Customer identity and organization-scoped polymorphic addresses and contacts | `/v1/customer/*` | Customer module documentation and feature tests. |
 | `billing` | Code-declared features, platform plans and versions, organization subscriptions paid through checkouts | `/v1/billing/*`, `billing:features:check` and `billing:checkout:confirm` | [Billing module](modules/billing.md). |
 | `tax` | Organization taxes, brackets, dependencies, tax profiles, and the calculation engine (`TaxInterface`) | `/v1/tax/*` | [Tax module](modules/tax.md). |
+| `sale` | Sales with their priced and taxed lines, three fixed sale modes with the organization's default mode, credit with a payment due date, and the gestures from draft to confirmation on the shared state machine | `/v1/sale/*` | [Sale module](modules/sale.md). |
 | `shared` | Cross-module exceptions, traits, generators, state machines, morph-map registry, pagination, handles, and model discovery | Artisan commands and internal contracts | Cross-cutting behavior documented in [Shared module](modules/shared.md) and [application runtime](architecture/application-runtime.md). |
 
 Detailed module notes:
@@ -23,6 +24,7 @@ Detailed module notes:
 - [IAM](modules/iam.md)
 - [Master](modules/master.md)
 - [Organization](modules/organization.md)
+- [Sale](modules/sale.md)
 - [Shared](modules/shared.md)
 - [Tax](modules/tax.md)
 
@@ -56,6 +58,12 @@ Detailed module notes:
   so profile changes are checked against the items using them. The tax module never imports catalog code.
 - `catalog` depends on `organization` to check that a price level's currency
   is enabled.
+- `sale` depends on `shared`, `master`, `organization`, `catalog`, `customer`
+  and `tax`, through their public contracts: `CatalogInterface::sellableItems()` (each line at its own level),
+  `CustomerInterface::walkInCustomer($organizationId)`, `OrganizationInterface` (functional
+  currency, `today()`) and `TaxInterface::resolveMany()`. None of them imports sale code.
+  `customer` also holds the `payment_due_date` and `is_walk_in` columns the
+  sale reads.
 
 The architecture tests in `tests/Feature/Architecture` enforce the dependency
 boundaries and should be updated when a new module contract is introduced.

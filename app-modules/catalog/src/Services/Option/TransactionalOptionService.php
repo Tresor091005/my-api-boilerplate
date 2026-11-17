@@ -14,9 +14,7 @@ use Lahatre\Catalog\Models\OptionValue;
 class TransactionalOptionService
 {
     /**
-     * The option values asked for, created when missing, keyed by
-     * `valueKey()`. They are share-locked, so none can be deleted before the
-     * caller's transaction ends; one deleted meanwhile is absent.
+     * Share-locks the values so none is deleted before the caller's transaction ends.
      *
      * @param  Collection<int, array{name: string, value: string}>  $optionsData
      * @return Collection<string, OptionValue>

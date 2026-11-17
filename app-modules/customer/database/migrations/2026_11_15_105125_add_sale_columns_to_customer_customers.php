@@ -7,11 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * What sales need from a customer: the date they pay their credit sales by, the
- * one customer of counter sales, and a key other tables reference a customer of
- * their own organization through, as a sale does.
- */
+/** The composite unique key lets a sale reference a customer of its own organization. */
 return new class extends Migration
 {
     public function up(): void

@@ -22,17 +22,12 @@ use Lahatre\Catalog\ViewData\SellableItemViewData;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\Master\Models\Unit;
 
-/**
- * The catalog's public API for other modules.
- */
 final readonly class CatalogService implements CatalogInterface
 {
     public function __construct(private MasterInterface $masterInterface) {}
 
     /**
-     * Every lookup is one query over all the requested items (the units come
-     * from the cached master data), so the number of queries does not grow
-     * with the number of requests.
+     * One query per lookup however many requests, so the count does not grow.
      *
      * @param  Collection<int, SellableItemQueryData>  $requests
      * @return Collection<string, SellableItemViewData>
@@ -85,8 +80,6 @@ final readonly class CatalogService implements CatalogInterface
     }
 
     /**
-     * The requested levels that exist and are not deleted, keyed by id.
-     *
      * @param  Collection<int, SellableItemQueryData>  $requests
      * @return Collection<string, PriceLevel>
      */
@@ -106,10 +99,7 @@ final readonly class CatalogService implements CatalogInterface
     }
 
     /**
-     * The price of each requested (item, unit, level) that can have one: the
-     * item exists, the unit is of its unit group and the level exists. Only
-     * those triples are read, matched as row values, so no other price of the
-     * items comes back. Keyed by "{item id}:{unit id}:{level id}".
+     * Reads only the requested (item, unit, level) triples, keyed "{item id}:{unit id}:{level id}".
      *
      * @param  Collection<int, SellableItemQueryData>  $requests
      * @param  Collection<string, CatalogItem>  $items
@@ -148,9 +138,6 @@ final readonly class CatalogService implements CatalogInterface
     }
 
     /**
-     * The name of each item: its own for a bundle or a service, the product's
-     * followed by the option values for a variant.
-     *
      * @param  Collection<string, CatalogItem>  $items
      * @return Collection<string, string> names keyed by item id
      */
@@ -183,8 +170,7 @@ final readonly class CatalogService implements CatalogInterface
     }
 
     /**
-     * "Shirt (Red, L)": the option values in the order they were given to the
-     * variant.
+     * Names look like "Shirt (Red, L)", option values in variant order.
      *
      * @param  Collection<int, string>  $variantIds
      * @return Collection<string, string>

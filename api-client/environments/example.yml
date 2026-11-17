@@ -44,3 +44,13 @@ variables:
     value: ""
   - name: unitGroupId
     value: ""
+  - name: priceLevelId
+    value: ""
+  - name: priceAmount
+    value: "1500"
+  - name: customerId
+    value: ""
+  - name: saleId
+    value: ""
+  - name: saleVersion
+    value: ""

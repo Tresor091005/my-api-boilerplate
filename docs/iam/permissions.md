@@ -133,6 +133,8 @@ models are:
   started through `billing_subscription.pay`;
 - `tax_bracket` and `tax_dependency`, written with their tax through
   `tax_tax.create` and `tax_tax.update`;
+- `sale_line` and `sale_transition`, reached through their sale
+  (`sale_sale.*`);
 - `tax_profile_line`, written with its profile through `tax_profile.create`
   and `tax_profile.update`; a custom grid is `tax_bracket` rows of the line,
   written the same way.
@@ -143,8 +145,18 @@ The tax module uses the five generated permissions of `tax_tax` (taxes) and
 profiles or taxes also needs `tax_profile.update`. See the
 [tax module](../modules/tax.md#permissions).
 
-The Catalog bundle and product capabilities, and `billing_subscription.pay`,
-are declared as additional actions on their parent model in
+The sale module uses the generated permissions of `sale_sale` (sales), plus
+the actions `sale_sale.approve` (approve and reject), `sale_sale.confirm` and
+`sale_sale.cancel`. Its settings (`sale_setting`) open only
+`sale_setting.retrieve` and `sale_setting.update`. Writing a
+draft and validating, reopening or abandoning a sale need
+`sale_sale.update`. A sale is never deleted, so `sale_sale.delete` opens
+nothing. `sale_line` and `sale_transition` are skipped: lines and transitions
+have no permission of their own and are reached through their sale. See the
+[sale module](../modules/sale.md#permissions).
+
+The Catalog bundle and product capabilities, `billing_subscription.pay` and the
+sale actions are declared as additional actions on their parent model in
 `iam.system_permissions.additional_actions`.
 
 Note policies may intentionally bypass standard CRUD permissions for

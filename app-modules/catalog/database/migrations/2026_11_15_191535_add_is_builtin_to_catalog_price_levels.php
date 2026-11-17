@@ -7,9 +7,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The built-in price level: the one level an organization always has, so a sale always has a level to choose.
- */
 return new class extends Migration
 {
     public function up(): void

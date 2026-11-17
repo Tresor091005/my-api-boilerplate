@@ -14,9 +14,7 @@ use Lahatre\Sale\Database\Factories\SaleLineFactory;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
- * One item in one unit of a sale, with the copies it must still show when the
- * catalog changes and its tax calculation as it was. Amounts are minor units
- * of the sale's currency. `display_unit_code` is the code of the sale unit.
+ * Amounts are minor units of the sale's currency.
  *
  * @property string $id
  * @property string $organization_id

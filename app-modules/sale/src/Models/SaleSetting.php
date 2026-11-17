@@ -12,9 +12,6 @@ use Lahatre\Sale\Enums\SaleMode;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
- * The sale settings of an organization, one row at most: the mode a sale is
- * written in when it names none.
- *
  * @property string $id
  * @property string $organization_id
  * @property SaleMode $default_mode

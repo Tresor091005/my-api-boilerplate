@@ -14,8 +14,6 @@ use Lahatre\Sale\Models\SaleLine;
 use Lahatre\Shared\Database\Factories\Concerns\ResolvesOrganizationId;
 
 /**
- * A line of one kg at 1000, without tax.
- *
  * @extends Factory<SaleLine>
  */
 class SaleLineFactory extends Factory

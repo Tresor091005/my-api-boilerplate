@@ -96,8 +96,6 @@ function sellableItemsFor(string $organizationId, array $requests): Collection
 }
 
 /**
- * Every request at one level, keyed "{item id}:{unit code}" for short reads.
- *
  * @param  list<array{0: string, 1: string}>  $pairs  item id and unit code
  * @return Collection<string, SellableItemViewData>
  */
@@ -107,7 +105,6 @@ function sellableItemsAt(PriceLevel $level, array $pairs): Collection
         ->keyBy(fn (SellableItemViewData $item): string => "{$item->catalogItemId}:{$item->unitCode}");
 }
 
-/** Links a variant to an option value, the way the catalog stores it. */
 function giveVariantOption(ProductVariant $variant, Option $option, string $value): void
 {
     $optionValue = OptionValue::factory()->create(['organization_id' => $variant->organization_id, 'option_id' => $option->id, 'value' => $value]);

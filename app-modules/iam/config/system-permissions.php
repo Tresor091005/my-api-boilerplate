@@ -18,6 +18,8 @@ return [
         'iam_platform_user',
         'master_address',
         'master_contact',
+        'sale_line',
+        'sale_transition',
         'tax_bracket',
         'tax_dependency',
         'tax_profile_line',
@@ -48,6 +50,11 @@ return [
             'pin',
             'mention',
             'visibility_organization',
+        ],
+        'sale_sale' => [
+            'approve',
+            'confirm',
+            'cancel',
         ],
         'tax_profile' => [
             'simulate',

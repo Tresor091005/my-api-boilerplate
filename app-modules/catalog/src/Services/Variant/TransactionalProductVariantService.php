@@ -248,8 +248,7 @@ class TransactionalProductVariantService
     }
 
     /**
-     * Runs a write a simultaneous variant may race; the partial unique index
-     * is the last guard and its refusal reads as the business failure.
+     * Runs a write that may race; the unique index refusal becomes the business failure.
      *
      * @template TResult
      *

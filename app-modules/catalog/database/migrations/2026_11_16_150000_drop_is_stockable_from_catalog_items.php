@@ -7,10 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Whether an item is stockable follows from its type (CatalogItemType::isStockable());
- * the column only copied it and nothing read it.
- */
+/** Stockable follows from the item type, so the column was a redundant copy. */
 return new class extends Migration
 {
     public function up(): void

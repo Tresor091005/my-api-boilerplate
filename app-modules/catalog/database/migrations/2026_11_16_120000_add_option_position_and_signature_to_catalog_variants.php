@@ -7,12 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The order of a variant's option values, as they were sent, and the signature
- * of its combination: no two live variants of a product share one. Existing
- * rows take the order they were inserted in; the migration fails if two live
- * variants of a product already share their combination.
- */
+/** Fails if two live variants of a product already share their option combination. */
 return new class extends Migration
 {
     public function up(): void

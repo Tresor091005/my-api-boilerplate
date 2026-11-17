@@ -16,9 +16,6 @@ use Lahatre\Sale\Enums\SaleStatus;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
- * What a customer buys, at which prices and in which mode. Never
- * deleted; amounts are minor units of `currency_code`.
- *
  * @property string $id
  * @property string $organization_id
  * @property string $number
@@ -30,7 +27,6 @@ use Lahatre\Shared\Traits\SharedTraits;
  * @property SaleMode $mode
  * @property int $required_payment_percent
  * @property CarbonImmutable|null $payment_due_date
- * @property CarbonImmutable|null $applied_payment_due_date
  * @property list<string>|null $approval_reasons
  * @property int $lines_base_total
  * @property int $lines_tax_total
@@ -68,7 +64,6 @@ class Sale extends Model
         'mode',
         'required_payment_percent',
         'payment_due_date',
-        'applied_payment_due_date',
         'approval_reasons',
         'lines_base_total',
         'lines_tax_total',
@@ -90,7 +85,6 @@ class Sale extends Model
         'mode'                     => SaleMode::class,
         'required_payment_percent' => 'integer',
         'payment_due_date'         => 'immutable_date',
-        'applied_payment_due_date' => 'immutable_date',
         'approval_reasons'         => 'array',
         'lines_base_total'         => 'integer',
         'lines_tax_total'          => 'integer',
@@ -125,5 +119,17 @@ class Sale extends Model
         return $this->belongsTo(Customer::class)
             ->withTrashed()
             ->where('customer_customers.organization_id', currentOrganizationId());
+    }
+
+    /**
+     * The due date that applies now, never stored: the sale's own, else the customer's.
+     */
+    public function dueDate(?CarbonImmutable $customerDueDate): ?CarbonImmutable
+    {
+        if ($this->required_payment_percent >= self::FULL_PAYMENT_PERCENT) {
+            return null;
+        }
+
+        return $this->payment_due_date ?? $customerDueDate;
     }
 }

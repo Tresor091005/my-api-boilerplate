@@ -23,6 +23,7 @@ use Lahatre\Iam\Models\User;
 use Lahatre\Iam\Services\OrganizationOnboardingService;
 use Lahatre\Organization\Data\OrganizationData;
 use Lahatre\Organization\Models\Organization;
+use Lahatre\Sale\Database\Seeders\SaleSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -76,6 +77,7 @@ class DatabaseSeeder extends Seeder
             StockLocationSeeder::class,
             InventoryDemoSeeder::class,
             CustomerSeeder::class,
+            SaleSeeder::class,
         ]);
 
         foreach (SysRole::cases() as $sysRole) {

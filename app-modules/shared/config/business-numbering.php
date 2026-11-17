@@ -12,4 +12,13 @@ return [
             'grouping' => null,
         ],
     ],
+    'sale' => [
+        'format'   => 'S-{YEAR}-{SEQ}',
+        'reset'    => 'yearly',
+        'sequence' => [
+            'start'    => 1,
+            'pad'      => 6,
+            'grouping' => null,
+        ],
+    ],
 ];

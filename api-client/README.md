@@ -2,8 +2,8 @@
 
 Open this directory as an OpenCollection YAML collection in Bruno.
 
-The collection contains 69 manual requests for Auth, IAM, Catalog, Master and
-Organization. It has response scripts for storing IDs and tokens, but no runtime
+The collection contains 89 manual requests for Auth, IAM, Catalog, Master,
+Organization and Sale. It has response scripts for storing IDs and tokens, but no runtime
 test assertions. It does not yet cover every ERP endpoint or provide an unattended,
 repeatable test suite.
 
