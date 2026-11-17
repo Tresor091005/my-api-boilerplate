@@ -5,15 +5,22 @@ declare(strict_types=1);
 namespace Lahatre\Sale\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\CatalogItem;
 use Lahatre\Catalog\Models\CatalogItemPrice;
 use Lahatre\Catalog\Models\PriceLevel;
+use Lahatre\Catalog\Models\StockLocation;
 use Lahatre\Customer\Models\Customer;
+use Lahatre\Inventory\Contracts\HasInventoryItem;
+use Lahatre\Inventory\Contracts\HasInventoryLocation;
+use Lahatre\Inventory\Contracts\InventoryInterface;
 use Lahatre\Master\Contracts\MasterInterface;
+use Lahatre\Sale\Data\FulfillmentLineData;
 use Lahatre\Sale\Data\SaleData;
 use Lahatre\Sale\Enums\SaleMode;
 use Lahatre\Sale\Models\Sale;
+use Lahatre\Sale\Models\SaleLine;
 use Lahatre\Sale\Services\SaleService;
 use Lahatre\Sale\Services\SaleWorkflowService;
 
@@ -77,6 +84,25 @@ final class SaleSeeder extends Seeder
             ->all();
     }
 
+    /**
+     * The lines whose stock is tracked and present in the warehouse, so that they can be set aside.
+     *
+     * @param  list<array{catalog_item_id: string, unit_code: string, quantity: int, price_level_id: string, unit_amount: string}>  $lines
+     * @return list<array{catalog_item_id: string, unit_code: string, quantity: int, price_level_id: string, unit_amount: string}>
+     */
+    private function linesInStock(StockLocation $warehouse, array $lines): array
+    {
+        $master = app(MasterInterface::class);
+        /** @var Collection<int, HasInventoryItem> $items */
+        $items = CatalogItem::query()->whereIn('id', array_column($lines, 'catalog_item_id'))->get();
+        /** @var Collection<int, HasInventoryLocation> $locations */
+        $locations = collect([$warehouse]);
+        $availability = app(InventoryInterface::class)->stockAvailability($items, $locations);
+
+        return array_values(array_filter($lines, fn (array $line): bool => $availability->isTracked($line['catalog_item_id'])
+            && $availability->available($line['catalog_item_id'], $warehouse->id) >= (int) $master->convertUnitToBase((string) $line['quantity'], $line['unit_code'])['amount']));
+    }
+
     /** @param list<array{catalog_item_id: string, unit_code: string, quantity: int, price_level_id: string, unit_amount: string}> $lines */
     private function seedSales(PriceLevel $retail, Customer $customer, array $lines): void
     {
@@ -104,10 +130,23 @@ final class SaleSeeder extends Seeder
         $approved = $draft(saleLines: [$lines[1], $lines[2]]);
         $workflow->validate($approved, $approved->version, true);
 
-        // active: an order invoiced now, validated then confirmed
-        $active = $draft(['mode' => SaleMode::BillAndHold->value], [$lines[0], $lines[2]]);
-        $active = $workflow->validate($active, $active->version, true);
-        $workflow->confirm($active);
+        // active: an order invoiced now and set aside in the main warehouse, validated then confirmed
+        $main = StockLocation::query()
+            ->where('organization_id', $customer->organization_id)
+            ->where('name', 'Main Warehouse')
+            ->first();
+        $heldLines = $main instanceof StockLocation ? $this->linesInStock($main, $lines) : [];
+        if ($main instanceof StockLocation && $heldLines !== []) {
+            $active = $draft(['mode' => SaleMode::BillAndHold->value], $heldLines);
+            $active = $workflow->validate($active, $active->version, true);
+            $workflow->confirm($active, false, FulfillmentLineData::collect(
+                SaleLine::query()->where('sale_id', $active->id)->orderBy('position')->get()
+                    ->map(fn (SaleLine $line): array => [
+                        'sale_line_id' => $line->id,
+                        'sources'      => [['stock_location_id' => $main->id, 'quantity' => 2]],
+                    ])->all(),
+            ));
+        }
 
         // abandoned: dropped before confirmation
         $abandoned = $draft(saleLines: [$lines[2]]);

@@ -1,0 +1,24 @@
+info:
+  name: delete-draft
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/v1/sale/sales/{{saleId}}/fulfillments/{{fulfillmentId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const fulfillment = res.body?.data;
+        if (res.status >= 200 && res.status < 300 && fulfillment && typeof fulfillment.id === "string") {
+          bru.setEnvVar("fulfillmentId", fulfillment.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

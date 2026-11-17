@@ -625,7 +625,10 @@ the [sale module](../modules/sale.md) for the rules. Lists are cursor-paginated
 (`per_page` up to 100, `cursor`, `sort_order`). A sale renders with
 `include=lines,customer,transitions`, and a line with `include=lines.price_level`; amounts
 are decimal strings of its currency. A line's kept tax calculation, `tax_result`, renders
-with its amounts as decimals too. At most 250 lines per sale.
+with its amounts as decimals too. At most 250 lines per sale. A sale also
+includes `fulfillments` and `holds`; a line shows its `delivered_quantity` and
+`left_to_deliver`, a hold its `held_quantity`.
+A fulfillment reached through another organization's sale answers 404.
 
 | Method | URI | Permission | Purpose |
 | --- | --- | --- | --- |
@@ -640,9 +643,16 @@ with its amounts as decimals too. At most 250 lines per sale.
 | POST | `/v1/sale/sales/{sale}/abandon` | `sale_sale.update` | Drop a sale before confirmation; optional `reason`. |
 | POST | `/v1/sale/sales/{sale}/approve` | `sale_sale.approve` | Approve a sale waiting for approval. |
 | POST | `/v1/sale/sales/{sale}/reject` | `sale_sale.approve` | Reject a sale waiting for approval; `reason` required. |
-| POST | `/v1/sale/sales/{sale}/confirm` | `sale_sale.confirm` | Confirm an approved sale; refused on any other status, a draft included: validating and confirming are two separate actions, and a front end may chain them. Calculates again at the approved prices. When a catalog price moved since the approval, it refuses unless `keep_approved_prices` is `true`; it refuses when a tax changed an amount. The sale becomes `active`. No invoice, no stock movement. |
-| POST | `/v1/sale/sales/{sale}/cancel` | `sale_sale.cancel` | Cancel an active sale at once; optional `reason`. |
+| POST | `/v1/sale/sales/{sale}/confirm` | `sale_sale.confirm` | Confirm an approved sale; refused on any other status, a draft included: validating and confirming are two separate actions, and a front end may chain them. Calculates again at the approved prices. When a catalog price moved since the approval, it refuses unless `keep_approved_prices` is `true`; it refuses when a tax changed an amount. `lines` gives where each line leaves from (`sale_line_id`, then `sources`: `stock_location_id`, a whole `quantity` in the unit sold in, optional `stock_ids` in the order to take them): a `counter` sale takes everything out in a completed fulfillment, a `bill_and_hold` sale sets everything aside in the warehouses' customer hold locations, a `progress_billing` sale ignores it. The sale becomes `active`. No invoice. |
+| POST | `/v1/sale/sales/{sale}/cancel` | `sale_sale.cancel` | Put an active sale in `cancelling`; optional `reason`. It becomes `cancelled` at once when nothing it delivered is still out, otherwise once its completed fulfillments are cancelled; what it set aside then goes back to the warehouses. |
 | POST | `/v1/sale/sales/{sale}/resume` | `sale_sale.cancel` | Take a sale being cancelled (`cancelling`) back to `active`; optional `reason`. What was already undone stays undone. |
+| GET | `/v1/sale/sales/{sale}/fulfillments` | `sale_sale.retrieve`, `sale_fulfillment.list` | List the fulfillments of a sale; filter by `status`; `sort_by` `created_at` or `number`; `include=lines,lines.stock_location`. |
+| GET | `/v1/sale/sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve`, `sale_fulfillment.retrieve` | Return one fulfillment of the sale. |
+| POST | `/v1/sale/sales/{sale}/fulfillments` | `sale_sale.retrieve`, `sale_fulfillment.create` | Create a draft fulfillment of an active sale from `lines` (1 to 250, same shape as at confirmation): from the warehouses for a `progress_billing` sale, from what was set aside for a `bill_and_hold` sale. Touches no stock. |
+| PUT | `/v1/sale/sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve`, `sale_fulfillment.update` | Replace the lines of a draft whole. |
+| DELETE | `/v1/sale/sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve`, `sale_fulfillment.delete` | Delete a draft. |
+| POST | `/v1/sale/sales/{sale}/fulfillments/{fulfillment}/complete` | `sale_sale.retrieve`, `sale_fulfillment.complete` | Check the draft again and take its goods out of stock in one inventory transaction; each line keeps its `total_cost`. |
+| POST | `/v1/sale/sales/{sale}/fulfillments/{fulfillment}/cancel` | `sale_sale.retrieve`, `sale_fulfillment.cancel` | Give the goods of a completed fulfillment back to the lots they left; on a sale being cancelled, may make it `cancelled`. |
 
 Lines and transitions have no permission of their own. A sale is never deleted.
 

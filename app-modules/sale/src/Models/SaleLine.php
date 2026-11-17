@@ -8,9 +8,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Lahatre\Catalog\Enums\CatalogItemType;
 use Lahatre\Catalog\Models\PriceLevel;
 use Lahatre\Sale\Database\Factories\SaleLineFactory;
+use Lahatre\Sale\Enums\FulfillmentStatus;
 use Lahatre\Shared\Traits\SharedTraits;
 
 /**
@@ -106,6 +108,21 @@ class SaleLine extends Model
     {
         return $this->belongsTo(Sale::class)
             ->where('sale_sales.organization_id', currentOrganizationId());
+    }
+
+    /** @return HasMany<FulfillmentLine, $this> the lines of completed fulfillments */
+    public function deliveredLines(): HasMany
+    {
+        return $this->hasMany(FulfillmentLine::class)
+            ->where('sale_fulfillment_lines.organization_id', currentOrganizationId())
+            ->whereHas('fulfillment', fn (Builder $fulfillment): Builder => $fulfillment->where('status', FulfillmentStatus::Completed));
+    }
+
+    /** @return HasMany<SaleHold, $this> */
+    public function holds(): HasMany
+    {
+        return $this->hasMany(SaleHold::class)
+            ->where('sale_holds.organization_id', currentOrganizationId());
     }
 
     /** The price level the line was sold at, even deleted since. */

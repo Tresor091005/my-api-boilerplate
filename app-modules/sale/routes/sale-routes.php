@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Lahatre\Sale\Http\Controllers\FulfillmentController;
 use Lahatre\Sale\Http\Controllers\SaleController;
 use Lahatre\Sale\Http\Controllers\SaleSettingController;
 
@@ -25,5 +26,12 @@ Route::group([
         Route::post('sales/{sale}/confirm', [SaleController::class, 'confirm'])->name('sales.confirm');
         Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
         Route::post('sales/{sale}/resume', [SaleController::class, 'resume'])->name('sales.resume');
+        Route::scopeBindings()->group(function (): void {
+            // a draft is replaced whole
+            Route::apiResource('sales.fulfillments', FulfillmentController::class)->except(['update']);
+            Route::put('sales/{sale}/fulfillments/{fulfillment}', [FulfillmentController::class, 'update'])->name('sales.fulfillments.update');
+            Route::post('sales/{sale}/fulfillments/{fulfillment}/complete', [FulfillmentController::class, 'complete'])->name('sales.fulfillments.complete');
+            Route::post('sales/{sale}/fulfillments/{fulfillment}/cancel', [FulfillmentController::class, 'cancel'])->name('sales.fulfillments.cancel');
+        });
     });
 });

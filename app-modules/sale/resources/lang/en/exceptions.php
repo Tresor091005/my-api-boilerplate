@@ -30,5 +30,10 @@ return [
     'prices_changed_since_approval'           => 'The catalog price of these items changed since the sale :number was approved: :items. Confirm with keep_approved_prices to sell at the approved prices, or reopen the sale to take the new ones.',
     'price_change'                            => ':line: :approved approved, :current now',
     'price_change_with_level'                 => ':line: :approved approved, :current now at :level, the customer\'s level',
+    'stock_insufficient'                      => 'Not enough stock: :items. Take from another warehouse or other lots, or bring the stock in first.',
+    'stock_shortage'                          => ':item at :location: :asked :unit asked, :available :unit available',
+    'sale_not_fulfillable'                    => 'The sale :number is :status: only an active sale is delivered.',
+    'fulfillment_not_draft'                   => 'The fulfillment :number is :status: only a draft is changed, completed or deleted.',
+    'fulfillment_not_completed'               => 'The fulfillment :number is :status: only a completed fulfillment is cancelled.',
     'confirmation_blocked'                    => ':reason The sale :number is approved and locked: to change it, reopen it first, then validate it again.',
 ];

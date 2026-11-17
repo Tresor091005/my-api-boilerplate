@@ -65,8 +65,11 @@ return [
     ],
     'master_units' => ['group_id' => 100],
 
-    'sale_lines'       => ['sale_id' => 250],
-    'sale_transitions' => ['sale_id' => null],
+    'sale_fulfillment_lines' => ['fulfillment_id' => 1000, 'sale_line_id' => null],
+    'sale_fulfillments'      => ['sale_id' => null],
+    'sale_holds'             => ['sale_id' => null, 'sale_line_id' => 20],
+    'sale_lines'             => ['sale_id' => 250],
+    'sale_transitions'       => ['sale_id' => null],
 
     'tax_brackets' => [
         'tax_id'              => ['max' => 50, 'where' => 'tax_profile_line_id IS NULL'],

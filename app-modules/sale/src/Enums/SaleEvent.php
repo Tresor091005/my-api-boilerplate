@@ -15,4 +15,5 @@ enum SaleEvent: string
     case Abandon = 'abandon';
     case Cancel = 'cancel';
     case Resume = 'resume';
+    case CompleteCancellation = 'complete_cancellation';
 }

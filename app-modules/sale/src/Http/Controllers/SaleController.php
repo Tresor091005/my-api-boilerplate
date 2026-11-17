@@ -7,6 +7,7 @@ namespace Lahatre\Sale\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 use Lahatre\ResponseSelection\ApiResponse;
+use Lahatre\Sale\Data\FulfillmentLineData;
 use Lahatre\Sale\Data\SaleData;
 use Lahatre\Sale\Data\SaleFilterData;
 use Lahatre\Sale\Http\Requests\SaleConfirmRequest;
@@ -104,7 +105,11 @@ final readonly class SaleController
     public function confirm(SaleConfirmRequest $request, Sale $sale): JsonResponse|Response
     {
         Gate::authorize('confirm', $sale);
-        $sale = $this->saleWorkflowService->confirm($sale, (bool) $request->validated('keep_approved_prices', false));
+        $sale = $this->saleWorkflowService->confirm(
+            $sale,
+            (bool) $request->validated('keep_approved_prices', false),
+            FulfillmentLineData::collect($request->validated('lines', [])),
+        );
 
         return ApiResponse::item($sale, SaleResource::class);
     }

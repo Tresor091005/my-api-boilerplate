@@ -133,8 +133,8 @@ models are:
   started through `billing_subscription.pay`;
 - `tax_bracket` and `tax_dependency`, written with their tax through
   `tax_tax.create` and `tax_tax.update`;
-- `sale_line` and `sale_transition`, reached through their sale
-  (`sale_sale.*`);
+- `sale_line`, `sale_transition` and `sale_hold`, reached through their sale
+  (`sale_sale.*`), and `sale_fulfillment_line`, through its fulfillment;
 - `tax_profile_line`, written with its profile through `tax_profile.create`
   and `tax_profile.update`; a custom grid is `tax_bracket` rows of the line,
   written the same way.
@@ -151,7 +151,9 @@ the actions `sale_sale.approve` (approve and reject), `sale_sale.confirm` and
 `sale_setting.retrieve` and `sale_setting.update`. Writing a
 draft and validating, reopening or abandoning a sale need
 `sale_sale.update`. A sale is never deleted, so `sale_sale.delete` opens
-nothing. `sale_line` and `sale_transition` are skipped: lines and transitions
+nothing. Fulfillments use the generated permissions of `sale_fulfillment`, plus
+`sale_fulfillment.complete` and `sale_fulfillment.cancel`, and reading their sale
+needs `sale_sale.retrieve`. `sale_line` and `sale_transition` are skipped: lines and transitions
 have no permission of their own and are reached through their sale. See the
 [sale module](../modules/sale.md#permissions).
 

@@ -54,3 +54,9 @@ variables:
     value: ""
   - name: saleVersion
     value: ""
+  - name: saleLineId
+    value: ""
+  - name: stockLocationId
+    value: ""
+  - name: fulfillmentId
+    value: ""

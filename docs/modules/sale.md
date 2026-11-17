@@ -2,12 +2,13 @@
 
 A sale records what a customer buys, at which prices and under which
 conditions. It is the pivot of the engine drawn in `dossier-A3.pdf`: delivery,
-invoices and payments all start from it. This first slice builds the sale up
-to its confirmation; a confirmed sale creates no invoice and takes no stock
-out yet. The data model is drawn in `sale.pdf` and `Sale-boilerplate.png`.
+invoices and payments all start from it. The sale is built up to its
+confirmation, then fulfilled: its goods leave the stock, in the three modes.
+It creates no invoice yet. The data model is drawn in `sale.pdf` and
+`Sale-boilerplate.png`.
 
 The module lives in `app-modules/sale` and depends on shared, master,
-organization, catalog, customer and tax. Routes are listed in
+organization, catalog, customer, tax and inventory. Routes are listed in
 [the endpoint reference](../api/endpoints.md#sale).
 
 ## Gestures and actors
@@ -135,10 +136,13 @@ collects the deposit is the one who confirms.
   it back to `active` while the cancellation is not finished; whatever was
   already undone stays undone, since a partial correction does not cancel a
   sale. Only the system makes it `cancelled`, once what was invoiced, delivered and paid
-  is given back, and sets `cancelled_at`.
+  is given back, and sets `cancelled_at`. Today only fulfillments exist: the
+  sale is `cancelled` as soon as nothing it delivered is still out, at the
+  `cancel` itself or when its last completed fulfillment is cancelled (see
+  [Fulfillment](#fulfillment)). The transition is recorded with the event
+  `complete_cancellation`, which a refusal never lists among the gestures.
 - Only the system sets `completed`: everything sold is delivered, invoiced and
-  paid. Neither `completed` nor `cancelled` is reached in this slice: the
-  system part comes with invoices, deliveries and payments. A return or a credit note will bring the sale back to
+  paid. It is not reached yet: it comes with invoices and payments. A return or a credit note will bring the sale back to
   `active` until the exchange or the refund is done; it is then `completed`
   again by itself.
 - Paid and delivered are not statuses. Two indicators on the sale will say
@@ -220,7 +224,107 @@ changed tax bracket the line does not reach, does not count. A tax that changes
 an amount refuses, even with `keep_approved_prices`. It names the lines that
 differ by their SKU and unit code. If nothing differs, the sale stays as it was
 approved, copies included: it only sets `confirmed_at` and becomes `active`.
-The version does not grow. It creates no invoice and takes no stock out.
+The version does not grow. It creates no invoice.
+
+Then the goods: a counter sale delivers everything and a bill-and-hold sale
+sets everything aside, from the sources the call gives (see
+[Fulfillment](#fulfillment)). A progress-billing sale ignores them. All of it
+happens in the confirmation's transaction: if the stock is lacking, nothing is
+confirmed and nothing moves.
+
+## Fulfillment
+
+A fulfillment is the goods of a sale that leave together (`sale_fulfillments`,
+numbered `FL-{YEAR}-{SEQ}`, with its `sale_fulfillment_lines`). It is `draft`,
+then `completed` when its goods leave the stock, then `cancelled` when they come
+back. Only a draft is changed or deleted; a completed fulfillment is never
+edited, it is cancelled.
+
+### Sources
+
+Wherever goods leave, the request says where from, line by line:
+
+```json
+"lines": [
+  {
+    "sale_line_id": "…",
+    "sources": [
+      { "stock_location_id": "…", "quantity": 6 },
+      { "stock_location_id": "…", "quantity": 4, "stock_ids": ["…", "…"] }
+    ]
+  }
+]
+```
+
+- `stock_location_id` is a warehouse, always named: there is no default
+  warehouse. A line may take from several warehouses, each once.
+- `quantity` is a whole number in the unit the line was sold in.
+- `stock_ids` is optional: the lots to take, in that order. Left out, inventory
+  takes the lots by the item's strategy (FIFO, or FEFO for an item that
+  expires). A lot must be of that item in that location.
+- A line whose item has no tracked stock needs no warehouse and moves no
+  stock; a lot is refused on it.
+- Each line once per request, at most 250 lines and 20 sources per line.
+
+The checks run under the sale's lock, with a fixed number of queries, before
+anything moves: whether each line is the sale's, whether the sources add up as
+they must, whether each warehouse is an active warehouse of the organization
+and each lot is there, and whether the stock is enough. A request problem is a
+422 on its own field (`lines.0.sources.1.stock_ids.0`); missing stock is a
+`SaleException` naming the line, the warehouse, and what was asked and what is
+there, in the unit sold in. Inventory checks the stock again under its own lock
+when it records the movement, and its refusals come back the same way.
+
+### By mode
+
+| Mode | At confirmation | Afterwards |
+| --- | --- | --- |
+| `counter` | `lines` is required: each tracked line is listed and its sources add up to the whole line. A fulfillment is created `completed` and the stock leaves. An untracked line left out is delivered whole, with no warehouse. | Nothing, unless a fulfillment is cancelled: then what came back may leave again through a new fulfillment. |
+| `bill_and_hold` | `lines` is required the same way, for tracked lines only (an untracked line is refused: nothing of it is set aside). The goods move from each warehouse to its customer hold location; `sale_holds` keeps what was set aside, per line and warehouse. | Fulfillments name the warehouse the goods were set aside in, and take from its hold location, never more than is still held there for the line. |
+| `progress_billing` | `lines` is ignored; nothing moves. | Fulfillments take from the warehouses, never more than is left to deliver on each line. |
+
+What is left to deliver on a line is its quantity less what completed
+fulfillments delivered; drafts do not count. A line renders what was delivered
+(`delivered_quantity`) and what is left (`left_to_deliver`), in the unit sold
+in. A hold renders what is still set aside for its line in its warehouse
+(`held_quantity`): `GET sales/{sale}?include=lines,holds` is the follow-up of
+a sale delivered later.
+
+### Customer hold locations
+
+Goods sold and left with us (`bill_and_hold`) are moved, at confirmation, to a
+location beside their warehouse: its customer hold location
+(`catalog_stock_locations.kind` = `customer_hold`, `held_for_location_id` = the
+warehouse). The catalog creates it the first time a sale needs it
+(`CatalogInterface::customerHoldLocation`), named after the warehouse ("Main
+Warehouse (held for customers)"). Other sales, transfers and bundle assembly
+never see it, so what is set aside is out of their reach without any further
+check. It is visible to users (stock locations list it, with `kind`), but nobody
+changes, deletes, transfers from or assembles in it, and it does not count
+against the plan's stock locations. Deleting the warehouse deletes it, and is
+refused while it still holds stock.
+
+### Gestures
+
+- Creating or replacing a draft checks its sources as above; it touches no
+  stock. The sale must be `active`.
+- Completing checks the draft again, with the stock as it is now, then takes
+  the goods out in one inventory transaction (the fulfillment's id is its
+  idempotency key, so completing twice never moves stock twice). Each line
+  keeps what its goods cost when they left (`total_cost`).
+- Cancelling a completed fulfillment reverses its inventory transaction: the
+  goods go back to the lots they left, at the same cost; for a bill-and-hold
+  sale, back to the hold location. It is allowed on a sale being cancelled.
+- Deleting removes a draft.
+
+### Cancelling a sale
+
+`cancel` makes the sale `cancelling`. While anything it delivered is still out,
+it stays so: no fulfillment is created or completed, and cancelling its
+completed fulfillments brings the goods back. Once nothing is out, the system
+gives back to each warehouse what is still set aside (one inventory transfer;
+`sale_holds.released_quantity`), deletes the drafts and makes the sale
+`cancelled`. A sale with nothing delivered is `cancelled` at once.
 
 ## What a sale holds
 
@@ -278,6 +382,31 @@ sale is confirmed, except by the recalculation of the confirmation itself.
 There is no VAT column and no discount. A line amount, and each of its
 calculated amounts, may not exceed 18 digits, nor may a total exceed what a
 `bigint` holds.
+
+### `sale_fulfillments`, `sale_fulfillment_lines`
+
+| Column | Meaning |
+| --- | --- |
+| `number` | `FL-{YEAR}-{SEQ}`, unique in the organization. |
+| `status` | `draft`, `completed` or `cancelled`. |
+| `inventory_transaction_id`, `reversal_transaction_id` | The inventory transaction that took the goods out, and the one that gave them back; empty when nothing tracked moved. |
+| `completed_at`, `cancelled_at` | When the goods left, and when they came back. |
+
+A line holds the sale line, the warehouse (`stock_location_id`, empty for an
+item whose stock is not tracked), the quantity in the ratio-1 base unit like
+the sale line, the lots asked for (`stock_ids`) and, once completed, what the
+goods cost (`total_cost`, minor units of the functional currency). One line
+per sale line and warehouse; at most 1 000 per fulfillment. It renders its
+quantity in the unit sold in, with `unit_code`.
+
+### `sale_holds`
+
+What a bill-and-hold sale set aside at confirmation, one row per line and
+warehouse: the quantity (base unit), the inventory transfer that moved it, and,
+once the sale is cancelled, the quantity given back (`released_quantity`) and
+the transfer that did it. What is still held for a line in a warehouse is the
+quantity, less what was delivered from that warehouse, less what was given
+back.
 
 ### `sale_transitions`
 
@@ -397,11 +526,20 @@ its relations in that answer.
 | Confirm | `POST sales/{sale}/confirm` | `sale_sale.confirm` |
 | Cancel | `POST sales/{sale}/cancel` | `sale_sale.cancel` |
 | Resume | `POST sales/{sale}/resume` | `sale_sale.cancel` |
+| List the fulfillments | `GET sales/{sale}/fulfillments` | `sale_sale.retrieve` and `sale_fulfillment.list` |
+| Read a fulfillment | `GET sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve` and `sale_fulfillment.retrieve` |
+| Create a draft fulfillment | `POST sales/{sale}/fulfillments` | `sale_sale.retrieve` and `sale_fulfillment.create` |
+| Replace a draft fulfillment | `PUT sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve` and `sale_fulfillment.update` |
+| Delete a draft fulfillment | `DELETE sales/{sale}/fulfillments/{fulfillment}` | `sale_sale.retrieve` and `sale_fulfillment.delete` |
+| Complete a fulfillment | `POST sales/{sale}/fulfillments/{fulfillment}/complete` | `sale_sale.retrieve` and `sale_fulfillment.complete` |
+| Cancel a fulfillment | `POST sales/{sale}/fulfillments/{fulfillment}/cancel` | `sale_sale.retrieve` and `sale_fulfillment.cancel` |
 | Read the settings | `GET settings` | `sale_setting.retrieve` |
 | Set the default mode | `PUT settings` | `sale_setting.update` |
 
 - `validate` takes `version` (required). `confirm` may take
-  `keep_approved_prices` (a boolean, `false` when left out). `reject`
+  `keep_approved_prices` (a boolean, `false` when left out) and takes `lines`,
+  the [sources](#sources) of the goods, for a counter or bill-and-hold sale. A
+  fulfillment is created and replaced with `lines` (1 to 250). `reject`
   takes `reason` (required, up to 500 characters); `abandon`, `cancel` and
   `resume` may take one.
 - Validating also needs the `approve` permission to go straight to
@@ -419,8 +557,11 @@ its relations in that answer.
   `{"data": {"default_mode": "…", "modes": [...]}}`, where `modes` lists the
   three modes with their `code`, `invoicing` and `delivery`. A sale already
   written keeps its mode.
-- A sale renders with the includes `lines`, `customer` and `transitions`; a
-  line with the include `price_level` (`include=lines.price_level`).
+- A sale renders with the includes `lines`, `customer`, `transitions`,
+  `fulfillments` and `holds`; a line with the include `price_level`
+  (`include=lines.price_level`), a fulfillment with `lines`, and a fulfillment
+  line with `stock_location`. A line shows its `delivered_quantity` and
+  `left_to_deliver`, a hold its `held_quantity`.
   It shows `mode`, `invoicing` and `delivery` (the last two
   derived from the mode), `required_payment_percent`, `payment_due_date`,
   `due_date` (read only: the date that applies now, the sale's own else its
@@ -430,7 +571,10 @@ its relations in that answer.
   the kept calculation, renders with its amounts as decimals too
   (`TaxInterface::presentResult()`); it stays in minor units in the database.
 - Lines and transitions have no permission of their own: they are reached
-  through their sale.
+  through their sale. So are holds, and fulfillment lines through their
+  fulfillment.
+- A fulfillment is reached through its sale: one of another organization's
+  sale answers 404, the sale itself 403.
 
 ## Permissions
 
@@ -441,8 +585,10 @@ and `update`, plus the additional actions `approve`, `confirm` and `cancel` (`re
 `update` covers writing the draft and the gestures that move it back and forth
 (validate, reopen, abandon); `approve` covers approving and
 rejecting. A sale is never deleted: `sale_sale.delete` is generated but opens
-nothing. `sale_line` and `sale_transition` are skipped by permission
-discovery. See [IAM permissions](../iam/permissions.md).
+nothing. `sale_fulfillment` has the five generated permissions, plus `complete`
+and `cancel`; `delete` only ever removes a draft. `sale_line`,
+`sale_transition`, `sale_fulfillment_line` and `sale_hold` are skipped by
+permission discovery. See [IAM permissions](../iam/permissions.md).
 
 ## Refusals
 
@@ -474,6 +620,11 @@ and must be reopened to be changed.
 | Emptying the customer's due date while credit sales follow it (waiting for approval, approved, active or cancelling, with no date of their own). | Keep a date on the customer and move it instead of emptying it; confirmed sales cannot be changed. |
 | Confirming an approved credit whose due date that applies has passed. | The message adds that the sale is locked: reopen it, type a due date from today on, validate again. |
 | At confirmation, a catalog price moved since the approval, at the line's level or at the customer's new level (names SKU, unit, level, approved and current price). | Confirm with `keep_approved_prices: true` to sell at the approved prices, or reopen the sale to take the new ones. |
+| A source refused: a line not of the sale or listed twice, a warehouse missing, unknown, inactive or listed twice for a line, a lot not of that item in that location, sources not adding up to the whole line at confirmation, more than is left to deliver or still held. | A 422 on the field of the request, which says what fits. |
+| Not enough stock in a warehouse, or in the lots named (names SKU, unit, warehouse, asked and available). | Take from another warehouse or other lots, or bring the stock in first. |
+| Delivering a sale that is not `active`. | Only an active sale is delivered. |
+| Changing, completing or deleting a fulfillment that is not a draft; cancelling one that is not completed. | Cancel a completed fulfillment instead of changing it. |
+| Changing, deleting or transferring from a customer hold location (catalog). | Only the system writes it; change its warehouse instead. |
 | Amounts changed since the calculation, by a tax (names SKU and unit code). | Reopen the sale, read it again, validate it, then confirm. |
 
 The tax engine may also refuse with a `TaxException` when the taxes of a line
@@ -489,9 +640,9 @@ cannot be calculated; see the [tax module](tax.md).
   `tax_rules` layer selecting the profiles of a sale before calculation. Until
   then each line takes the profile of its item and keeps the profile used.
 - Invoices, with document-level rounding (per invoice and rate) on top of the
-  per-bracket rounding; then payments and their allocation; then fulfillment
-  taking stock out, which needs both to check the paid share; then credit
-  notes, returns, refunds and adjustments.
+  per-bracket rounding; then payments and their allocation, which let a
+  fulfillment check the paid share before goods leave; then credit notes,
+  returns (revocations), refunds and adjustments.
 - A payment belongs to the customer who paid, not to a sale or an invoice.
   Allocations apply it to invoices: one payment may settle several invoices,
   one invoice may be settled by several payments, and what is left
@@ -499,11 +650,20 @@ cannot be calculated; see the [tax module](tax.md).
   amount of a payment are derived from the allocations, never kept as a
   balance of their own. Allocations exceed neither what the payment has
   available nor what the invoice still owes.
-- A delivery is prepared as a draft, which touches no stock and needs no
-  payment, then completed or cancelled. Completing it checks the paid share
-  and the quantities left to deliver again inside its transaction, and
-  completing it twice never moves stock twice. Goods coming back go through a
-  return, never through an edit of a completed delivery.
+- Completing a fulfillment does not check the paid share yet: the goods of a
+  credit leave as soon as it is completed. The check joins the completion once
+  payments exist.
+- Charges (delivery, transport) come from fulfillments, and returns start from
+  a completed fulfillment (`Revocation` in `dossier-A3.pdf`).
+- Who says what left: today the one who confirms a counter or bill-and-hold sale
+  names the warehouses and lots. With a seller, a cashier and a storekeeper, the
+  cashier does not know what the storekeeper chose to take out; closer to
+  reality, the person who does the gesture says what actually happened.
+- The item's `fulfillment_policy` of `dossier-A3.pdf`: today whether goods move
+  stock follows from the inventory item's `stock_tracking_enabled`.
+- Inventory locks, updates and records each movement's lots on its own, so a
+  fulfillment's queries grow with its lines inside inventory, while the sale's
+  own stay fixed.
 - Corrections stay distinct: a credit note corrects an invoice, a return
   takes back delivered quantities, a refund is money actually given back,
   and reversing a payment voids a mistaken one without claiming a refund.
@@ -514,7 +674,6 @@ cannot be calculated; see the [tax module](tax.md).
   limit, a credit to the customer is granted without approval; going over
   the limit, or past the due date, is what needs an approval. Today every
   credit needs one.
-- The default stock location of an immediate delivery.
 - A confirmed sale of an inactive customer is still delivered, invoiced and
   paid, and credit notes, returns and refunds stay possible. Stopping the
   deliveries of a customer who does not pay is a separate, deliberate hold (a
@@ -523,10 +682,6 @@ cannot be calculated; see the [tax module](tax.md).
   approval) is recognized only by its message: `errors.type` is
   `SaleException` for every refusal and the context is hidden in production.
   A stable error code per refusal is to be decided.
-- In `bill_and_hold` the goods are sold but still in stock: they must be
-  reserved at confirmation so they are not sold to someone else.
-- An immediate delivery without stock refuses the confirmation. The ways out:
-  a deferred delivery, a corrected stock, or dropping the line or the sale.
 - Giving up what remains to deliver closes a sale early; it then becomes
   `completed` by itself. A mark on the sale says a remainder was given up, and
   each line keeps the quantity given up; it is not a status. In the modes

@@ -59,6 +59,7 @@ class SaleServiceProvider extends ServiceProvider
             ->addTransition(SaleEvent::Cancel, SaleStatus::Cancelling)
             ->from(SaleStatus::Cancelling)
             ->addTransition(SaleEvent::Resume, SaleStatus::Active)
+            ->addTransition(SaleEvent::CompleteCancellation, SaleStatus::Cancelled)
             ->freeze();
     }
 }

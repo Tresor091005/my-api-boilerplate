@@ -1,0 +1,37 @@
+info:
+  name: create-draft
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/sale/sales/{{saleId}}/fulfillments?response=resource&include=lines"
+  body:
+    type: json
+    data: |-
+        {
+          "lines": [
+            {
+              "sale_line_id": "{{saleLineId}}",
+              "sources": [
+                { "stock_location_id": "{{stockLocationId}}", "quantity": 1 }
+              ]
+            }
+          ]
+        }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const fulfillment = res.body?.data;
+        if (res.status >= 200 && res.status < 300 && fulfillment && typeof fulfillment.id === "string") {
+          bru.setEnvVar("fulfillmentId", fulfillment.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

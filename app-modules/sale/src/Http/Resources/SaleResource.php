@@ -45,7 +45,9 @@ class SaleResource extends ApiResource
             // a sale holds at most 250 lines, all rendered
             ->include('lines', SaleLineResource::class, limit: 250)
             ->include('customer', CustomerResource::class)
-            ->include('transitions', SaleTransitionResource::class);
+            ->include('transitions', SaleTransitionResource::class)
+            ->include('fulfillments', FulfillmentResource::class)
+            ->include('holds', SaleHoldResource::class);
     }
 
     private static function mode(Model $sale): ?SaleMode

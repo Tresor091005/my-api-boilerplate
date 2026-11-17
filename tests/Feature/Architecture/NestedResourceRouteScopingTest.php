@@ -21,6 +21,11 @@ it('classifies every route with multiple implicit bindings', function (): void {
         'lahatre.catalog.bundles.stock-operations.complete' => 'stockOperation',
         'lahatre.customer.customers.addresses.update'       => 'address',
         'lahatre.customer.customers.contacts.update'        => 'contact',
+        'lahatre.sale.sales.fulfillments.show'              => 'fulfillment',
+        'lahatre.sale.sales.fulfillments.update'            => 'fulfillment',
+        'lahatre.sale.sales.fulfillments.destroy'           => 'fulfillment',
+        'lahatre.sale.sales.fulfillments.complete'          => 'fulfillment',
+        'lahatre.sale.sales.fulfillments.cancel'            => 'fulfillment',
     ];
 
     /** Parameters resolved on their own, their relationship checked by a service instead of a child binding. */

@@ -10,7 +10,15 @@ http:
     type: json
     data: |-
         {
-          "keep_approved_prices": false
+          "keep_approved_prices": false,
+          "lines": [
+            {
+              "sale_line_id": "{{saleLineId}}",
+              "sources": [
+                { "stock_location_id": "{{stockLocationId}}", "quantity": 1 }
+              ]
+            }
+          ]
         }
   auth: inherit
 

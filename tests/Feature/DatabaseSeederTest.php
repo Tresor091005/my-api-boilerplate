@@ -27,9 +27,12 @@ it('seeds a coherent and idempotent development dataset', function (): void {
     $this->assertDatabaseCount('catalog_bundles', 4);
     $this->assertDatabaseCount('catalog_items', 13);
     $this->assertDatabaseCount('inventory_items', 13);
-    $this->assertDatabaseCount('catalog_stock_locations', 2);
-    $this->assertDatabaseCount('inventory_locations', 2);
+    // the two warehouses, and the hold location of the one the bill-and-hold sale set goods aside in
+    $this->assertDatabaseCount('catalog_stock_locations', 3);
+    $this->assertDatabaseCount('inventory_locations', 3);
     $this->assertDatabaseCount('customer_customers', 4);
     $this->assertDatabaseHas('customer_customers', ['is_walk_in' => true]);
-    $this->assertDatabaseCount('inventory_transactions', 1);
+    $this->assertDatabaseCount('inventory_transactions', 2);
+    $this->assertDatabaseHas('sale_sales', ['mode' => 'bill_and_hold', 'status' => 'active']);
+    $this->assertDatabaseCount('sale_holds', 1);
 });

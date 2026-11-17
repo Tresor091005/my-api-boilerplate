@@ -18,6 +18,8 @@ return [
         'iam_platform_user',
         'master_address',
         'master_contact',
+        'sale_fulfillment_line',
+        'sale_hold',
         'sale_line',
         'sale_transition',
         'tax_bracket',
@@ -50,6 +52,10 @@ return [
             'pin',
             'mention',
             'visibility_organization',
+        ],
+        'sale_fulfillment' => [
+            'complete',
+            'cancel',
         ],
         'sale_sale' => [
             'approve',

@@ -38,9 +38,8 @@ Planned on 2026-10-29, in this order:
      Confirmation calculates the sale again at its approved prices, asks the
      cashier before keeping them when the catalog moved since, refuses a tax
      that changes an amount, and makes the sale `active`. It creates no
-     invoice and takes no stock out yet.
-     Cancelling puts an active sale in `cancelling`; the system makes it
-     `cancelled` once the later slices give back what was done.
+     invoice. Cancelling puts an active sale in `cancelling`; the system makes
+     it `cancelled` once what was done is given back.
    - [x] Documentation, API client entries and demo data.
    - A sale has one currency. Each line names the price level and the amount
      the seller chose: the system never picks a price, it checks the one sent
@@ -60,24 +59,36 @@ Planned on 2026-10-29, in this order:
      no discount yet.
    - Services are not sold yet. Before they are, master needs unit groups for
      time and count (hour, day, session): it has none today.
-   - **Later slices**, in this order:
-     - Charges. The amount is typed; a charge has a tax profile or none and
-       goes through the same calculation as a line. A charge may be added to
-       a confirmed sale: what that means once the single invoice of the first
-       invoicing mode exists is settled then.
+   - **Later slices**, in this order: the goods first, then what is
+     monetary, which needs a stable invoicing.
+     - Charges, born from fulfillments (delivery, transport): a typed amount
+       with a tax profile or none, through the same calculation as a line.
+     - Returns (revocations) from a completed fulfillment.
      - Taxes chosen by context, such as Benin's AIB depending on the
        customer: a `tax_rules` layer selecting the profiles of a sale before
        calculation. Until then each line takes the profile of its item and
        keeps the profile used.
-     - Invoices, with document-level rounding (per invoice and rate) on top
-       of the per-bracket rounding; then payments and their allocation; then
-       fulfillment taking stock out, which needs both to check the paid
-       share.
-     - Credit notes, returns, refunds and adjustments.
+     - Invoices, after fulfillment, with document-level rounding (per invoice
+       and rate) on top of the per-bracket rounding; then payments and their
+       allocation, which let a fulfillment check the paid share; then credit.
+     - Credit notes, refunds and adjustments.
    - The data model is in `sale.pdf` and `Sale-boilerplate.png`. The payment
      methods an organization may use are a natural choice feature for plans.
      The rest of what each later slice leaves open is listed in the
      [sale module](modules/sale.md#left-for-later-slices).
+4. [x] **Sale, second slice: fulfillment.** The goods of a sale leave the
+   stock in the three modes; see [Fulfillment](modules/sale.md#fulfillment).
+   - [x] Fulfillments (`draft`, `completed`, `cancelled`) with their lines,
+     each from a named warehouse, a quantity in the unit sold in and the lots
+     to take if named; cancelling one reverses its inventory transaction.
+   - [x] A counter sale delivers everything at confirmation; a bill-and-hold
+     sale sets everything aside in its warehouses' customer hold locations,
+     managed by the system, and delivers from them; a progress-billing sale
+     delivers through drafts.
+   - [x] A cancelled sale gives back what it set aside once nothing it
+     delivered is still out, and becomes `cancelled`.
+   - [x] Inventory's `stockAvailability()` read, checked before any movement,
+     and its refusals brought back on the request's fields or naming the line.
 
 ## Current status
 
@@ -117,8 +128,9 @@ Planned on 2026-10-29, in this order:
   priced and taxed through the catalog and `TaxInterface`, and the gestures
   from draft to
   `active` (validate, approve, reject, reopen, abandon, confirm, cancel,
-  resume) on the shared state machine; see [Sale module](modules/sale.md).
-  No invoice, payment or stock movement yet.
+  resume) on the shared state machine, and fulfillments taking the goods out
+  of stock in the three modes; see [Sale module](modules/sale.md). No invoice
+  or payment yet.
 
 ### Partially usable
 

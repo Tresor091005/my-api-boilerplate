@@ -113,6 +113,22 @@ class Sale extends Model
             ->orderBy('id');
     }
 
+    /** @return HasMany<Fulfillment, $this> */
+    public function fulfillments(): HasMany
+    {
+        return $this->hasMany(Fulfillment::class)
+            ->where('sale_fulfillments.organization_id', currentOrganizationId())
+            ->orderBy('created_at')
+            ->orderBy('id');
+    }
+
+    /** @return HasMany<SaleHold, $this> */
+    public function holds(): HasMany
+    {
+        return $this->hasMany(SaleHold::class)
+            ->where('sale_holds.organization_id', currentOrganizationId());
+    }
+
     /** The customer, even deleted since: the sale keeps its name. */
     public function customer(): BelongsTo
     {

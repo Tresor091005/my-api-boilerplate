@@ -30,6 +30,9 @@ class SaleLineResource extends ApiResource
             ->field('price_level_id')
             ->field('price_level_name')
             ->field('unit_amount', columns: ['unit_amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'unit_amount'))
+            // what completed fulfillments delivered, in the unit sold in
+            ->field('delivered_quantity', columns: ['display_unit_code'], relations: ['deliveredLines'], computedBy: fn (Model $line): int => (int) app(MasterInterface::class)->convertUnitFromBase((string) $line->getRelation('deliveredLines')->sum('quantity'), (string) $line->getAttribute('display_unit_code'))['amount'])
+            ->field('left_to_deliver', columns: ['quantity', 'display_unit_code'], relations: ['deliveredLines'], computedBy: fn (Model $line): int => (int) app(MasterInterface::class)->convertUnitFromBase((string) max(0, (int) $line->getAttribute('quantity') - (int) $line->getRelation('deliveredLines')->sum('quantity')), (string) $line->getAttribute('display_unit_code'))['amount'])
             ->field('tax_profile_id')
             ->field('amount', columns: ['amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'amount'))
             ->field('base_amount', columns: ['base_amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'base_amount'))

@@ -229,6 +229,39 @@ final class SaleException extends AssertionException
         );
     }
 
+    /** @param list<string> $shortages each line, location and quantities lacking */
+    public static function stockInsufficient(array $shortages): self
+    {
+        return new self(
+            __('sale::exceptions.stock_insufficient', ['items' => self::listed($shortages)]),
+            ['shortages' => $shortages],
+        );
+    }
+
+    public static function saleNotFulfillable(string $number, string $status): self
+    {
+        return new self(
+            __('sale::exceptions.sale_not_fulfillable', ['number' => $number, 'status' => $status]),
+            ['number' => $number, 'status' => $status],
+        );
+    }
+
+    public static function fulfillmentNotDraft(string $number, string $status): self
+    {
+        return new self(
+            __('sale::exceptions.fulfillment_not_draft', ['number' => $number, 'status' => $status]),
+            ['number' => $number, 'status' => $status],
+        );
+    }
+
+    public static function fulfillmentNotCompleted(string $number, string $status): self
+    {
+        return new self(
+            __('sale::exceptions.fulfillment_not_completed', ['number' => $number, 'status' => $status]),
+            ['number' => $number, 'status' => $status],
+        );
+    }
+
     /** Wraps a refusal met while confirming a locked sale. */
     public static function confirmationBlocked(string $number, self $obstacle): self
     {
