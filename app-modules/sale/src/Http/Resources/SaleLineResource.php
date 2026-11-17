@@ -9,6 +9,7 @@ use Lahatre\Catalog\Http\Resources\PriceLevelResource;
 use Lahatre\Master\Contracts\MasterInterface;
 use Lahatre\ResponseSelection\ApiResource;
 use Lahatre\ResponseSelection\ResourceDefinition;
+use Lahatre\Tax\Contracts\TaxInterface;
 
 /** Amounts are decimals in the currency of `tax_result.currency_code`. */
 class SaleLineResource extends ApiResource
@@ -35,8 +36,8 @@ class SaleLineResource extends ApiResource
             ->field('included_tax_amount', columns: ['included_tax_amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'included_tax_amount'))
             ->field('added_tax_amount', columns: ['added_tax_amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'added_tax_amount'))
             ->field('total_amount', columns: ['total_amount', 'tax_result'], computedBy: fn (Model $line): string => self::decimal($line, 'total_amount'))
-            // the calculation as it was kept, amounts in minor units
-            ->field('tax_result')
+            // the calculation as it was kept, its amounts as decimals
+            ->field('tax_result', computedBy: fn (Model $line): array => app(TaxInterface::class)->presentResult((array) $line->getAttribute('tax_result')), columns: ['tax_result'])
             ->field('created_at')
             ->field('updated_at')
             ->include('price_level', PriceLevelResource::class);

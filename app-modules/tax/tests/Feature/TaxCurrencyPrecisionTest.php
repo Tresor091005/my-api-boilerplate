@@ -207,3 +207,65 @@ it('accepts a per-unit rate finer than the currency through the API', function (
         ->assertJsonPath('data.fixed_mode', 'per_tax_unit')
         ->assertJsonPath('data.brackets.0.value', '0.606900');
 });
+
+it('presents a kept result with its amounts as decimals, leaving rates and quantities as they are', function (): void {
+    $vat = $this->createPercentageTax('20', ['code' => 'VAT']);
+    $perLine = $this->createTax([
+        'code'             => 'FEE',
+        'calculation_type' => 'fixed',
+        'fixed_mode'       => 'per_line',
+        'brackets'         => [['base_min' => '0', 'base_max' => null, 'value' => '2.50']],
+    ]);
+    $perLitre = $this->createTax([
+        'code'             => 'FUEL',
+        'calculation_type' => 'fixed',
+        'fixed_mode'       => 'per_tax_unit',
+        'tax_unit_code'    => 'l',
+        'brackets'         => [['base_min' => '0', 'base_max' => null, 'value' => '0.6069']],
+    ]);
+    $profile = $this->createProfile([
+        ['tax_id' => $vat->id, 'treatment' => 'standard'],
+        ['tax_id' => $perLine->id, 'treatment' => 'standard'],
+        ['tax_id' => $perLitre->id, 'treatment' => 'standard'],
+    ]);
+    $kept = $this->engine->resolve(euroLine($this, $profile->id, '12050', ['quantity' => '10', 'unit_code' => 'l']))->toArray();
+
+    $presented = collect($this->engine->presentResult($kept));
+    $taxes = collect($presented['taxes'])->keyBy('code');
+
+    expect($presented->only(['amount', 'base_amount', 'quantity', 'total_tax_amount', 'total_amount'])->all())->toBe([
+        'amount'           => '120.50',
+        'base_amount'      => '120.50',
+        'quantity'         => '10',
+        'total_tax_amount' => '32.67',
+        'total_amount'     => '153.17',
+    ])
+        ->and($taxes['VAT']['tax_amount'])->toBe('24.10')
+        ->and($taxes['VAT']['taxable_base_amount'])->toBe('120.50')
+        ->and($taxes['VAT']['brackets'][0]['value'])->toBe('20')
+        ->and($taxes['VAT']['brackets'][0]['base_min'])->toBe('0.00')
+        ->and($taxes['FEE']['brackets'][0]['value'])->toBe('2.50')
+        ->and($taxes['FEE']['tax_amount'])->toBe('2.50')
+        ->and($taxes['FUEL']['brackets'][0]['value'])->toBe('0.6069')
+        ->and($taxes['FUEL']['tax_quantity'])->toBe('10')
+        ->and($taxes['FUEL']['tax_amount'])->toBe('6.07')
+        ->and($kept['total_amount'])->toBe('15317');
+});
+
+it('simulates amounts sent and answered as decimals of the functional currency', function (): void {
+    $this->withoutMiddleware(ThrottleRequests::class);
+    $this->authenticateTaxMember();
+    $vat = $this->createPercentageTax('20', ['code' => 'VAT']);
+    $profile = $this->createProfile([['tax_id' => $vat->id, 'treatment' => 'standard']]);
+
+    $this->postJson('/v1/tax/simulations', ['lines' => [['tax_profile_id' => $profile->id, 'amount' => '120.50', 'quantity' => '1']]])
+        ->assertOk()
+        ->assertJsonPath('data.lines.0.amount', '120.50')
+        ->assertJsonPath('data.lines.0.taxes.0.tax_amount', '24.10')
+        ->assertJsonPath('data.total_tax_amount', '24.10')
+        ->assertJsonPath('data.total_amount', '144.60');
+
+    $this->postJson('/v1/tax/simulations', ['lines' => [['tax_profile_id' => $profile->id, 'amount' => '120.505', 'quantity' => '1']]])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['lines.0.amount']);
+});

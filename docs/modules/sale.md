@@ -270,7 +270,7 @@ customer was deleted since.
 | `tax_profile_id` | The tax profile used, empty for an item without one. |
 | `amount` | `unit_amount` times the quantity in the unit sold in. |
 | `base_amount`, `included_tax_amount`, `added_tax_amount`, `total_amount` | Before tax, taxes the price already contains, taxes added on top, to pay. |
-| `tax_result` | The calculation kept as it was (`TaxResultViewData`, `schema_version` 2), in minor units, with the taxes the price contains. |
+| `tax_result` | The calculation kept as it was (`TaxResultViewData`, `schema_version` 2), in minor units, with the taxes the price contains. The API renders it with its amounts as decimals. |
 
 One line per item and unit. At most 250 per sale (`config/child-limits.php`).
 The lines of a draft are replaced at each write and are never changed once the
@@ -426,8 +426,9 @@ its relations in that answer.
   `due_date` (read only: the date that applies now, the sale's own else its
   customer's, empty for a sale paid at once; dates as `Y-m-d`) and
   `approval_reasons`.
-  Amounts are decimal strings of the sale's currency; a line's `tax_result`
-  stays in minor units.
+  Amounts are decimal strings of the sale's currency. A line's `tax_result`,
+  the kept calculation, renders with its amounts as decimals too
+  (`TaxInterface::presentResult()`); it stays in minor units in the database.
 - Lines and transitions have no permission of their own: they are reached
   through their sale.
 

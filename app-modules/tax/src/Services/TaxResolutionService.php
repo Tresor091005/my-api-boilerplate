@@ -39,6 +39,7 @@ final readonly class TaxResolutionService implements TaxInterface
         private TaxConfigurationLock $configurationLock,
         private OrganizationInterface $organizationInterface,
         private MasterInterface $masterInterface,
+        private TaxResultPresenter $resultPresenter,
     ) {}
 
     public function assertProfileAssignable(string $taxProfileId, Collection $unitGroupIds): void
@@ -171,13 +172,18 @@ final readonly class TaxResolutionService implements TaxInterface
      *
      * @throws TaxException
      */
+    public function presentResult(array $taxResult): array
+    {
+        return $this->resultPresenter->present($taxResult);
+    }
+
     public function simulate(TaxSimulationData $data): TaxSimulationViewData
     {
         $currencyCode = $this->organizationInterface->functionalCurrency(currentOrganizationId())->code;
         $results = $this->resolveLines(
             $data->lines->map(fn (TaxSimulationLineData $line): TaxableLineData => TaxableLineData::fromArray([
                 'tax_profile_id'   => $line->taxProfileId,
-                'amount'           => $line->amount,
+                'amount'           => $this->masterInterface->toMinor($line->amount, $currencyCode),
                 'included_tax_ids' => $line->includedTaxIds,
                 'currency_code'    => $currencyCode,
                 'quantity'         => $line->quantity,

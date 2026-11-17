@@ -14,10 +14,14 @@ changes.
   `tax_amount_max`, custom grids) are decimals in units of the currency (`2.50`),
   with at most 6 decimals at the API. They may not have more decimals than the
   currency allows, except the rate of a per-unit tax (see below).
-- **Calculations** work in minor units. A line's `amount` is a whole
-  number of minor units (`250` for 2.50 EUR), and every amount in the result
-  is a whole number of minor units written as a string. The engine compiles
-  the definitions to minor units before calculating.
+- **Calculations** work in minor units. Inside the application a line's
+  `amount` is a whole number of minor units (`250` for 2.50 EUR), and every
+  amount in the result is a whole number of minor units written as a string;
+  that is also the form a document freezes. The engine compiles the
+  definitions to minor units before calculating. The API speaks decimals:
+  the simulation takes and answers decimal amounts, and
+  `TaxInterface::presentResult()` renders a kept result with its amounts as
+  decimals of its currency for any module that shows one.
 - Percentage values stay decimals: `18` means 18 %.
 
 ## Taxes
@@ -231,11 +235,11 @@ and is never refused.
 `POST /v1/tax/simulations` calculates lines without recording anything: for
 whoever configures a profile and wants to check it, and for whoever prepares a
 sale and wants its totals. Each line names its `tax_profile_id`, with
-`amount` in minor units of the functional currency, the taxes that amount
+`amount` as a decimal of the functional currency, the taxes that amount
 already contains in `included_tax_ids` if any, a positive `quantity`, and the
 sale `unit_code` when the profile has an applicable per-unit tax. The answer
-gives each line's result, as `resolve()` returns it, the total tax amount and
-the total amount to pay.
+gives each line's result, as `resolve()` returns it but with its amounts as
+decimals, the total tax amount and the total amount to pay.
 
 The simulation applies the rules of `TaxInterface`: an inactive profile or tax
 is refused. With `include_inactive: true`, they are calculated too, so a draft

@@ -155,13 +155,6 @@ purchasing requirements are clear.
   guard (for example, no VAT under Benin's TPS) built on the tax `kind`. It
   waits for regulatory expertise and real users to validate it; the engine
   already takes these as data, so it needs no engine change.
-- [ ] To decide: how a sale line renders `tax_result`. It is rendered as
-  kept, in minor units written as integer strings, the tax module's format
-  (like `POST /v1/tax/simulations`), while every other amount of the line is a
-  decimal. Options: render it only on demand (`default: false`), or add the
-  per-tax detail (`taxes[]`) in decimals for screens that show it. Either
-  way, say it in the endpoint reference, not only in the sale module
-  document.
 
 ## TODO: partners and flows
 

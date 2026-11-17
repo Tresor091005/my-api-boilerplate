@@ -172,10 +172,17 @@ it('calculates a price containing VAT with a tax added on top, and the totals', 
         ->assertJsonPath('data.lines.0.total_amount', '2460')
         ->assertJsonPath('data.lines.0.tax_result.schema_version', 2)
         ->assertJsonPath('data.lines.0.tax_result.total_amount', '2460')
+        ->assertJsonPath('data.lines.0.tax_result.taxes.0.tax_amount', '100')
         ->assertJsonPath('data.lines_base_total', '2000')
         ->assertJsonPath('data.lines_tax_total', '460')
         ->assertJsonPath('data.lines_total', '2460')
         ->assertJsonPath('data.total', '2460');
+});
+
+it('keeps the tax calculation of a line in minor units', function (): void {
+    postSaleDraft()->assertCreated();
+
+    expect(SaleLine::query()->latest('created_at')->firstOrFail()->tax_result['total_amount'])->toBe('2460');
 });
 
 it('calculates an item without tax profile and a price before tax', function (): void {

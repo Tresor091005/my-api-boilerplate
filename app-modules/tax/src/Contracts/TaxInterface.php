@@ -86,4 +86,14 @@ interface TaxInterface
      * @return Collection<TKey, TaxResultViewData> keyed like $lines
      */
     public function resolveMany(Collection $lines): Collection;
+
+    /**
+     * Renders a result frozen from `TaxResultViewData::toArray()` with its
+     * amounts as decimals of its currency, for an API answer. Rates and
+     * quantities stay as they are.
+     *
+     * @param  array<string, mixed>  $taxResult
+     * @return array<string, mixed>
+     */
+    public function presentResult(array $taxResult): array;
 }

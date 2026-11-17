@@ -595,7 +595,8 @@ Definition values (`base_min`, `base_max`, `value`, `tax_amount_min`,
 `tax_amount_max`, for a tax or a custom grid) are decimal strings in units of the
 functional currency, with up to 18 digits and 6 decimals; except the rate of a
 `per_tax_unit` tax, they may not have more decimals than the currency allows.
-Calculation amounts are whole numbers of minor units, as strings. Lists are
+Calculation amounts are sent and answered as decimal strings of the functional
+currency, like every other amount of the API. Lists are
 cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
 `created_at`, `sort_order`).
 
@@ -611,7 +612,7 @@ cursor-paginated (`per_page` up to 100, `cursor`, `sort_by` `code`, `name` or
 | GET | `/v1/tax/profiles/{profile}` | `tax_profile.retrieve` | Return a profile, with the same includes. |
 | PUT/PATCH | `/v1/tax/profiles/{profile}` | `tax_profile.update` | Replace the definition and its lines. A profile used by catalog items stays active and compatible with their unit groups, and the taxes their prices already contain must stay taxes a price can contain (`included_taxes_in_use`). |
 | DELETE | `/v1/tax/profiles/{profile}` | `tax_profile.delete` | Soft-delete a profile no catalog item uses. |
-| POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `amount` (whole minor units of the functional currency), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. A line may list in `included_tax_ids` the taxes its amount [already contains](../modules/tax.md#amounts-that-already-contain-taxes): the amount before tax is then derived, and the other taxes come on top. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount in minor units, `data.total_tax_amount` and `data.total_amount`. |
+| POST | `/v1/tax/simulations` | `tax_profile.simulate` | Calculate `lines` (1 to 250) without recording anything. Each line has `tax_profile_id`, `amount` (a decimal of the functional currency, no more decimals than it allows, at most 18 digits once in minor units), `quantity` (positive decimal, up to 10 decimals) and `unit_code`, the sale unit, required when an applicable tax is charged per unit. A line may list in `included_tax_ids` the taxes its amount [already contains](../modules/tax.md#amounts-that-already-contain-taxes): the amount before tax is then derived, and the other taxes come on top. An inactive profile or tax is refused unless `include_inactive` is true, which also needs `tax_profile.update`. Returns `data.lines`, the explainable result of each line with every amount as a decimal (rates and quantities as they are; a per-unit rate keeps its own decimals), `data.total_tax_amount` and `data.total_amount`. |
 
 ## Sale
 
@@ -623,7 +624,8 @@ way out. See
 the [sale module](../modules/sale.md) for the rules. Lists are cursor-paginated
 (`per_page` up to 100, `cursor`, `sort_order`). A sale renders with
 `include=lines,customer,transitions`, and a line with `include=lines.price_level`; amounts
-are decimal strings of its currency. At most 250 lines per sale.
+are decimal strings of its currency. A line's kept tax calculation, `tax_result`, renders
+with its amounts as decimals too. At most 250 lines per sale.
 
 | Method | URI | Permission | Purpose |
 | --- | --- | --- | --- |

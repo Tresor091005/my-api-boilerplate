@@ -7,10 +7,11 @@ namespace Lahatre\Tax\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
+use Lahatre\Organization\Contracts\OrganizationInterface;
 use Lahatre\Shared\Rules\BulkExists;
 
 /**
- * Lines to simulate: amounts in minor units of the functional currency, each
+ * Lines to simulate: amounts as decimals of the functional currency, each
  * with the taxes it already contains, if any. Profile ownership, the per-unit
  * checks and what an amount may contain belong to the service.
  */
@@ -25,6 +26,7 @@ class TaxSimulationRequest extends FormRequest
     public function rules(): array
     {
         $organizationId = currentOrganizationId();
+        $precision = app(OrganizationInterface::class)->functionalCurrency($organizationId)->precision;
 
         return [
             'include_inactive' => ['boolean'],
@@ -40,7 +42,8 @@ class TaxSimulationRequest extends FormRequest
             ],
             'lines.*'                => ['required', 'array'],
             'lines.*.tax_profile_id' => ['required', 'uuid'],
-            'lines.*.amount'         => ['required', 'string', 'regex:/^\d{1,18}$/'],
+            // at most 18 digits once in minor units
+            'lines.*.amount' => ['required', 'decimal:0,'.$precision, 'min:0', 'max:'.str_repeat('9', 18 - $precision)],
             // a tax outside the profile of the line is left out, so no lookup is needed
             'lines.*.included_tax_ids'   => ['array', 'max:'.config('child-limits.tax_profile_lines.tax_profile_id')],
             'lines.*.included_tax_ids.*' => ['uuid'],
